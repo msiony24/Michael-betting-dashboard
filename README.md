@@ -1,18 +1,34 @@
-# Michael Betting Dashboard
 
-A private Streamlit dashboard for NFL, college football, NBA, tennis, UFC and boxing.
+# Michael Betting Dashboard — Version 2
 
-## Easiest Windows setup
+A Streamlit dashboard for:
 
-1. Install Python from python.org. During installation, check **Add Python to PATH**.
-2. Unzip this folder onto your Desktop.
-3. Double-click `START_WINDOWS.bat`.
-4. The first run installs the required packages. The dashboard then opens in your browser.
+- Tracking pending and settled bets
+- Calculating the stake required to win a target amount
+- Monitoring bankroll, ROI, win rate and exposure
+- Running Monte Carlo bankroll simulations
+- Recording sport-specific matchup research
+- Exporting and restoring betting records by CSV
 
-## Mac setup
+## Deploying the update
 
-1. Install Python 3.
-2. Unzip this folder.
-3. Double-click `START_MAC.command`. If macOS blocks it, right-click and choose Open.
+1. Open the GitHub repository used by Streamlit.
+2. Replace the existing `app.py` with this version.
+3. Replace `requirements.txt`.
+4. Commit the changes.
+5. Streamlit Community Cloud will automatically rebuild the website.
 
-The dashboard runs locally and does not connect to a sportsbook or place wagers.
+The main file path remains:
+
+`app.py`
+
+## Important storage note
+
+Streamlit Community Cloud does not guarantee permanent local storage. Download the CSV backup after entering or settling bets. Use the sidebar uploader to restore it.
+
+## Run locally
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
