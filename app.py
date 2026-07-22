@@ -17,6 +17,13 @@ st.set_page_config(
 SPORTS = ["NFL", "College Football", "NBA", "Tennis", "UFC", "Boxing"]
 STATUSES = ["Pending", "Won", "Lost", "Void", "Cashed Out"]
 BET_TYPES = ["Moneyline", "Spread", "Total", "Prop", "Parlay", "Live"]
+ANALYSIS_COLUMNS = [
+    "analysis_id", "created_at", "match_date", "tournament", "surface", "round",
+    "player_a", "player_b", "market_odds_a", "model_probability_a", "fair_odds_a",
+    "estimated_roi", "confidence", "prediction", "upset_path", "biggest_risk",
+    "assumptions", "notes", "result", "review"
+]
+
 DEFAULT_COLUMNS = [
     "id", "date", "sport", "event", "selection", "bet_type", "odds",
     "stake", "target_profit", "status", "result_profit", "book",
@@ -122,6 +129,9 @@ if "bankroll" not in st.session_state:
 if "target_profit" not in st.session_state:
     st.session_state.target_profit = 10000.0
 
+if "analyses" not in st.session_state:
+    st.session_state.analyses = pd.DataFrame(columns=ANALYSIS_COLUMNS)
+
 
 st.markdown("""
 <style>
@@ -173,7 +183,7 @@ pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
 tabs = st.tabs([
     "Dashboard", "New Bet", "Bet Ledger", "Fair Line Engine",
-    "Matchup Lab", "Outcome Simulator", "Performance", "Backup"
+    "Analysis Archive", "Matchup Lab", "Outcome Simulator", "Performance", "Backup"
 ])
 
 with tabs[0]:
@@ -353,6 +363,12 @@ with tabs[3]:
     st.subheader("Fair Line Engine — Tennis v1")
     st.caption("Build an independent price from a structured matchup scorecard, then compare it with the sportsbook.")
 
+    meta1, meta2, meta3, meta4 = st.columns(4)
+    match_date = meta1.date_input("Match date", value=date.today(), key="fle_date")
+    tournament = meta2.text_input("Tournament", placeholder="Montreal", key="fle_tournament")
+    surface = meta3.selectbox("Surface", ["Hard", "Clay", "Grass", "Indoor Hard"], key="fle_surface")
+    round_name = meta4.selectbox("Round", ["R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"], key="fle_round")
+
     top1, top2, top3 = st.columns([1.2, 1.2, 1])
     favorite_name = top1.text_input("Player A", value="Favorite", key="fle_favorite")
     opponent_name = top2.text_input("Player B", value="Opponent", key="fle_opponent")
@@ -426,9 +442,72 @@ with tabs[3]:
         st.dataframe(contribution_df, use_container_width=True, hide_index=True)
         st.caption(f"Total weighted matchup advantage: {weighted_difference:+.2f}")
 
-    st.info("Version 1 uses manual pre-match ratings. The next step is replacing these sliders with automatically fetched rankings, Elo, form, surface, workload and matchup data.")
+    st.markdown("#### Pre-match decision record")
+    d1, d2 = st.columns(2)
+    prediction = d1.text_area("Why Player A wins", placeholder="The clearest winning path...")
+    upset_path = d2.text_area("Why Player B wins", placeholder="The realistic upset path...")
+    d3, d4 = st.columns(2)
+    biggest_risk = d3.text_area("Biggest risk to the prediction")
+    assumptions = d4.text_area("Key assumptions", placeholder="Example: Player A is physically healthy and serves near baseline...")
+    analysis_notes = st.text_area("Additional notes")
+
+    if st.button("Save Pre-Match Analysis", type="primary", use_container_width=True):
+        analyses = st.session_state.analyses.copy()
+        next_analysis_id = int(analyses["analysis_id"].max()) + 1 if not analyses.empty else 1
+        row = {
+            "analysis_id": next_analysis_id,
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "match_date": match_date.isoformat(),
+            "tournament": tournament.strip(),
+            "surface": surface,
+            "round": round_name,
+            "player_a": favorite_name.strip(),
+            "player_b": opponent_name.strip(),
+            "market_odds_a": int(market_odds),
+            "model_probability_a": float(model_probability),
+            "fair_odds_a": int(fair_odds),
+            "estimated_roi": float(expected_roi),
+            "confidence": int(confidence),
+            "prediction": prediction.strip(),
+            "upset_path": upset_path.strip(),
+            "biggest_risk": biggest_risk.strip(),
+            "assumptions": assumptions.strip(),
+            "notes": analysis_notes.strip(),
+            "result": "Pending",
+            "review": "",
+        }
+        st.session_state.analyses = pd.concat([analyses, pd.DataFrame([row])], ignore_index=True)
+        st.success("Pre-match analysis saved to the archive.")
+
+    st.info("Current version uses manual pre-match ratings. This now creates a permanent, timestamped record so the model can be evaluated without hindsight.")
 
 with tabs[4]:
+    st.subheader("Analysis Archive")
+    analyses = st.session_state.analyses.copy()
+    if analyses.empty:
+        st.write("No pre-match analyses saved yet.")
+    else:
+        display_cols = ["analysis_id", "match_date", "tournament", "round", "player_a", "player_b", "market_odds_a", "fair_odds_a", "model_probability_a", "estimated_roi", "confidence", "result"]
+        st.dataframe(analyses[display_cols].sort_values("analysis_id", ascending=False), use_container_width=True, hide_index=True)
+
+        st.divider()
+        st.subheader("Post-Match Review")
+        selected_analysis_id = st.selectbox("Analysis ID", analyses["analysis_id"].astype(int).tolist())
+        selected_analysis = analyses[analyses["analysis_id"] == selected_analysis_id].iloc[0]
+        a1, a2 = st.columns(2)
+        result = a1.selectbox("Result", ["Pending", "Player A Won", "Player B Won", "Void"], index=["Pending", "Player A Won", "Player B Won", "Void"].index(selected_analysis["result"]) if selected_analysis["result"] in ["Pending", "Player A Won", "Player B Won", "Void"] else 0)
+        review = a2.text_area("What happened and what should Macabets learn?", value=str(selected_analysis["review"]))
+        if st.button("Save Post-Match Review", use_container_width=True):
+            idx = st.session_state.analyses.index[st.session_state.analyses["analysis_id"] == selected_analysis_id][0]
+            st.session_state.analyses.at[idx, "result"] = result
+            st.session_state.analyses.at[idx, "review"] = review.strip()
+            st.success("Review saved.")
+            st.rerun()
+
+        csv = analyses.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Analysis Archive CSV", csv, "macabets_analysis_archive.csv", "text/csv", use_container_width=True)
+
+with tabs[5]:
     st.subheader("Matchup Lab")
     sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
 
@@ -508,7 +587,7 @@ with tabs[4]:
 
     st.info("This page is a structured research worksheet. It does not automatically fetch current injuries, odds or statistics yet.")
 
-with tabs[5]:
+with tabs[6]:
     st.subheader("Outcome Simulator")
     r1, r2, r3, r4 = st.columns(4)
     sim_bankroll = r1.number_input("Simulation bankroll", min_value=100.0, value=float(current_bankroll), step=1000.0)
