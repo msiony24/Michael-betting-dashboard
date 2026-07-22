@@ -1,37 +1,51 @@
-# Macabets — Version 3
+# Macabets — Version 4
 
-A Streamlit betting intelligence dashboard with:
+Macabets Version 4 adds an automatic ATP Tennis Matchup Lab.
 
-- Bet tracking and settlement
-- Target-profit stake calculations
-- Bankroll, ROI, win rate and exposure monitoring
-- Monte Carlo bankroll simulations
-- Performance analysis
-- CSV backup and restore
-- Tennis Matchup Lab beta
-- No-vig market probability
-- Macabets fair-line pricing
-- Context-based probability adjustments
-- Green Light / Lean / Pass recommendations
-- Preferred entry and maximum playable price
-- Matchup-analysis CSV export
+## Tennis workflow
 
-## Deploying the update
+The user selects:
 
-1. Open the GitHub repository connected to Streamlit.
-2. Replace the current `app.py` with `app_macabets_v3.py`.
-3. Rename `app_macabets_v3.py` to `app.py` in GitHub, or paste its contents into the existing `app.py`.
-4. Keep the included `requirements.txt`.
-5. Commit the changes.
-6. Streamlit Community Cloud will rebuild automatically.
+- Player A
+- Player B
+- Tournament
+- Round
+- Surface
+- Event date
+- A simple 1–10 form rating for each player
 
-## Important storage note
+Macabets automatically calculates:
 
-Streamlit session data is temporary. Download the bets CSV and matchup-analysis CSV after updates you want to keep.
+- Overall Elo
+- Surface Elo
+- Ranking-based strength
+- Statistical base probability
+- Recent database form
+- Serve and return performance
+- Surface history
+- Rest and workload
+- Recorded retirement signals
+- Advanced-round and major-event performance
+- Deciding-match performance
+- Head-to-head context
+- Final probability and fair American line
+- Edge and Green Light / Lean / Pass when sportsbook odds are supplied
 
-## Run locally
+## Data
 
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
+The app downloads public ATP historical match files at runtime and caches them for six hours.
+Internet access is required when the cache refreshes.
+
+## Deploy
+
+Upload and replace these three files in the GitHub repository connected to Streamlit:
+
+- `app.py`
+- `tennis_engine.py`
+- `requirements.txt`
+
+Commit the changes. Streamlit Community Cloud should rebuild automatically.
+
+## Storage
+
+Saved bets and matchup analyses remain session-based. Download CSV backups for information that must be retained.

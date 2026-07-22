@@ -8,6 +8,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from tennis_engine import (
+    analyze_matchup, implied_probability as tennis_implied_probability,
+    load_tennis_data, player_options, tournament_catalog
+)
+
 st.set_page_config(
     page_title="Macabets",
     page_icon="📊",
@@ -375,305 +380,240 @@ with tabs[2]:
 
 with tabs[3]:
     st.subheader("Macabets Matchup Lab")
-    st.caption("Price the matchup first. Then decide whether the current market offers enough value to bet.")
+    st.caption("Select the matchup and event. Macabets builds the statistical and contextual projection automatically.")
 
     sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
-    lab_date = st.date_input("Event date", value=date.today(), key="lab_date")
 
     if sport_lab == "Tennis":
-        st.markdown("### Tennis Beta")
+        try:
+            with st.spinner("Loading ATP player and match database..."):
+                tennis_matches, tennis_load_errors = load_tennis_data()
 
-        top1, top2, top3 = st.columns(3)
-        player_a = top1.text_input("Selection / favorite", placeholder="Etcheverry")
-        player_b = top2.text_input("Opponent", placeholder="Rodionov")
-        tournament = top3.text_input("Tournament", placeholder="ATP event")
+            available_players = player_options(tennis_matches)
+            tournaments = tournament_catalog(tennis_matches)
 
-        meta1, meta2, meta3, meta4 = st.columns(4)
-        surface = meta1.selectbox("Surface", ["Hard", "Clay", "Grass", "Indoor Hard"])
-        event_level = meta2.selectbox(
-            "Event level",
-            ["ATP 250", "ATP 500", "Masters 1000", "Grand Slam", "Davis Cup", "Other"],
-        )
-        round_name = meta3.selectbox(
-            "Round",
-            ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
-        )
-        match_format = meta4.selectbox("Format", ["Best of 3", "Best of 5"])
+            if tennis_load_errors:
+                with st.expander("Data status"):
+                    st.caption(
+                        "Some yearly files were unavailable, but Macabets loaded the remaining database: "
+                        + "; ".join(tennis_load_errors)
+                    )
 
-        st.divider()
-        st.markdown("### Market Price")
+            st.markdown("### Matchup")
+            p1, p2 = st.columns(2)
+            player_a = p1.selectbox(
+                "Player A",
+                available_players,
+                index=None,
+                placeholder="Start typing a player's name",
+                key="auto_player_a",
+            )
+            player_b = p2.selectbox(
+                "Player B",
+                available_players,
+                index=None,
+                placeholder="Start typing a player's name",
+                key="auto_player_b",
+            )
 
-        market1, market2, market3 = st.columns(3)
-        opening_odds = market1.number_input("Opening line", value=-180, step=5)
-        current_odds = market2.number_input("Current Vegas line", value=-180, step=5)
-        opponent_odds = market3.number_input("Opponent line", value=155, step=5)
+            event1, event2, event3, event4 = st.columns(4)
+            tournament = event1.selectbox(
+                "Tournament",
+                list(tournaments.keys()),
+                index=None,
+                placeholder="Start typing a tournament",
+            )
+            round_label = event2.selectbox(
+                "Round",
+                ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
+                index=4,
+            )
 
-        market_prob = implied_probability(int(current_odds))
-        no_vig_prob = no_vig_probability(int(current_odds), int(opponent_odds))
+            detected_surface = tournaments.get(tournament, {}).get("surface", "Hard") if tournament else "Hard"
+            surface_options = ["Hard", "Clay", "Grass", "Carpet"]
+            surface_index = surface_options.index(detected_surface) if detected_surface in surface_options else 0
+            surface = event3.selectbox("Surface", surface_options, index=surface_index)
+            event_date = event4.date_input("Event date", value=date.today())
 
-        st.divider()
-        st.markdown("### Statistical Base Projection")
-        st.caption("Enter the probability Macabets assigns before matchup and situational context is applied.")
+            st.markdown("### Your Form Read")
+            st.caption(
+                "This is the only judgment call Macabets asks from you. "
+                "The database also calculates recent form independently."
+            )
+            f1, f2 = st.columns(2)
+            form_a = f1.slider(
+                f"{player_a or 'Player A'} form",
+                1, 10, 5,
+                help="1 = extremely poor current form; 5 = neutral; 10 = elite current form."
+            )
+            form_b = f2.slider(
+                f"{player_b or 'Player B'} form",
+                1, 10, 5,
+                help="1 = extremely poor current form; 5 = neutral; 10 = elite current form."
+            )
 
-        base1, base2, base3 = st.columns(3)
-        base_probability_pct = base1.slider(
-            "Base win probability",
-            min_value=1.0,
-            max_value=99.0,
-            value=float(round(no_vig_prob * 100, 1)),
-            step=0.5,
-        )
-        model_confidence = base2.slider("Overall confidence", 1, 10, 7)
-        data_quality = base3.slider("Data quality", 1, 10, 7)
+            st.markdown("### Market Price")
+            st.caption(
+                "Optional. Macabets can calculate its fair line without sportsbook odds. "
+                "Enter current odds only when you want an edge and recommendation."
+            )
+            o1, o2 = st.columns(2)
+            market_a_text = o1.text_input("Current odds for Player A", placeholder="-180")
+            market_b_text = o2.text_input("Current odds for Player B", placeholder="+155")
 
-        st.divider()
-        st.markdown("### Context Engine")
-        st.caption(
-            "Score each category from -10 to +10 for the selected player. "
-            "Positive values help the selection; negative values help the opponent."
-        )
-
-        context_definitions = [
-            ("Matchup", "Serve, return, rally tolerance, weapons and exploitable weaknesses"),
-            ("Recent Form", "Current level, opponent quality and whether results match the underlying play"),
-            ("Surface & Conditions", "Surface fit, court speed, altitude, weather and indoor/outdoor conditions"),
-            ("Fitness & Fatigue", "Injuries, workload, travel, recovery and scheduling"),
-            ("Event & Pressure", "Tournament importance, round pressure and big-match experience"),
-            ("Psychological", "Confidence, rivalry, crowd, composure and ability to close"),
-        ]
-
-        adjustments = []
-        notes = []
-        for idx, (factor_name, factor_help) in enumerate(context_definitions):
-            with st.expander(factor_name, expanded=(idx < 2)):
-                c1, c2 = st.columns([1, 1])
-                score = c1.slider(
-                    f"{factor_name} score",
-                    min_value=-10,
-                    max_value=10,
-                    value=0,
-                    key=f"ctx_score_{idx}",
-                    help=factor_help,
-                )
-                factor_confidence = c2.slider(
-                    f"{factor_name} confidence",
-                    min_value=0,
-                    max_value=100,
-                    value=70,
-                    step=5,
-                    key=f"ctx_conf_{idx}",
-                )
-                explanation = st.text_area(
-                    f"{factor_name} reasoning",
-                    placeholder=factor_help,
-                    key=f"ctx_note_{idx}",
-                )
-                adjustment = context_adjustment(score, factor_confidence)
-                adjustments.append({
-                    "Factor": factor_name,
-                    "Score": score,
-                    "Confidence": factor_confidence,
-                    "Adjustment": adjustment,
-                    "Reasoning": explanation,
-                })
-                notes.append(explanation.strip())
-
-        total_adjustment = sum(item["Adjustment"] for item in adjustments)
-        base_probability = base_probability_pct / 100
-        final_probability = clamp_probability(base_probability + total_adjustment)
-        fair_line = probability_to_american(final_probability)
-        edge = final_probability - market_prob
-        no_vig_edge = final_probability - no_vig_prob
-        recommendation, recommendation_reason = recommendation_from_edge(
-            edge, model_confidence, data_quality
-        )
-
-        fair_low = clamp_probability(final_probability - ((11 - data_quality) * 0.005))
-        fair_high = clamp_probability(final_probability + ((11 - data_quality) * 0.005))
-        fair_range_low = probability_to_american(fair_low)
-        fair_range_high = probability_to_american(fair_high)
-
-        preferred_entry_prob = clamp_probability(final_probability - 0.035)
-        max_playable_prob = clamp_probability(final_probability - 0.015)
-        preferred_entry = probability_to_american(preferred_entry_prob)
-        max_playable = probability_to_american(max_playable_prob)
-
-        st.divider()
-        st.markdown("### Macabets Price")
-
-        price1, price2, price3, price4 = st.columns(4)
-        price1.metric("Vegas implied probability", f"{market_prob:.1%}")
-        price2.metric("No-vig market probability", f"{no_vig_prob:.1%}")
-        price3.metric("Macabets probability", f"{final_probability:.1%}", f"{total_adjustment:+.1%} context")
-        price4.metric("Macabets fair line", f"{fair_line:+d}")
-
-        price5, price6, price7, price8 = st.columns(4)
-        price5.metric("Edge vs listed line", f"{edge:+.1%}")
-        price6.metric("Edge vs no-vig market", f"{no_vig_edge:+.1%}")
-        price7.metric("Preferred entry", f"{preferred_entry:+d}")
-        price8.metric("Maximum playable", f"{max_playable:+d}")
-
-        st.caption(
-            f"Estimated fair-line range: {fair_range_low:+d} to {fair_range_high:+d}. "
-            "The range widens when data quality is lower."
-        )
-
-        if recommendation == "GREEN LIGHT":
-            st.success(f"GREEN LIGHT — {recommendation_reason}")
-        elif recommendation == "LEAN":
-            st.warning(f"LEAN — {recommendation_reason}")
-        else:
-            st.error(f"PASS — {recommendation_reason}")
-
-        st.markdown(f"**Market assessment:** {line_value_label(edge)}")
-
-        adjustment_table = pd.DataFrame(adjustments)
-        adjustment_table["Probability impact"] = adjustment_table["Adjustment"].map(lambda x: f"{x:+.2%}")
-        st.markdown("#### Context Breakdown")
-        st.dataframe(
-            adjustment_table[["Factor", "Score", "Confidence", "Probability impact", "Reasoning"]],
-            use_container_width=True,
-            hide_index=True,
-        )
-
-        st.markdown("#### Macabets Explanation")
-        active_factors = [item for item in adjustments if item["Score"] != 0]
-        if not active_factors:
-            st.info("No context adjustments have been entered. The final price currently equals the base projection.")
-        else:
-            strongest = sorted(active_factors, key=lambda x: abs(x["Adjustment"]), reverse=True)
-            for item in strongest:
-                direction = "helps" if item["Adjustment"] > 0 else "hurts"
-                reason = item["Reasoning"] or "No written explanation entered."
-                st.write(
-                    f"**{item['Factor']} {direction} {player_a or 'the selection'} "
-                    f"({item['Adjustment']:+.2%}):** {reason}"
-                )
-
-        st.divider()
-        st.markdown("### Save Analysis to Session")
-        analysis_notes = st.text_area(
-            "Final thesis / risks",
-            placeholder="What is the clearest path to victory, and how can the selection lose?",
-            key="lab_final_thesis",
-        )
-
-        if "analyses" not in st.session_state:
-            st.session_state.analyses = []
-
-        if st.button("Save Matchup Analysis", type="primary", use_container_width=True):
-            if not player_a.strip() or not player_b.strip():
-                st.error("Enter both players before saving.")
-            else:
-                analysis_record = {
-                    "date": lab_date.isoformat(),
-                    "sport": sport_lab,
-                    "event": tournament.strip(),
-                    "selection": player_a.strip(),
-                    "opponent": player_b.strip(),
-                    "surface": surface,
-                    "event_level": event_level,
-                    "round": round_name,
-                    "format": match_format,
-                    "opening_line": int(opening_odds),
-                    "current_line": int(current_odds),
-                    "opponent_line": int(opponent_odds),
-                    "market_probability": market_prob,
-                    "no_vig_probability": no_vig_prob,
-                    "base_probability": base_probability,
-                    "context_adjustment": total_adjustment,
-                    "macabets_probability": final_probability,
-                    "fair_line": fair_line,
-                    "edge": edge,
-                    "confidence": model_confidence,
-                    "data_quality": data_quality,
-                    "recommendation": recommendation,
-                    "preferred_entry": preferred_entry,
-                    "maximum_playable": max_playable,
-                    "thesis": analysis_notes.strip(),
-                }
-                st.session_state.analyses.append(analysis_record)
-                st.success("Matchup analysis saved for this session.")
-
-        if st.session_state.analyses:
-            st.markdown("#### Saved Matchup Analyses")
-            analyses_df = pd.DataFrame(st.session_state.analyses)
-            display_cols = [
-                "date", "sport", "selection", "opponent", "current_line",
-                "macabets_probability", "fair_line", "edge",
-                "recommendation", "confidence", "data_quality"
-            ]
-            analyses_view = analyses_df[display_cols].copy()
-            analyses_view["macabets_probability"] = analyses_view["macabets_probability"].map(lambda x: f"{x:.1%}")
-            analyses_view["edge"] = analyses_view["edge"].map(lambda x: f"{x:+.1%}")
-            st.dataframe(analyses_view, use_container_width=True, hide_index=True)
-
-            analyses_csv = analyses_df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "Download Matchup Analyses CSV",
-                data=analyses_csv,
-                file_name=f"macabets_matchup_analyses_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                mime="text/csv",
+            run_disabled = not player_a or not player_b or player_a == player_b or not tournament
+            if st.button(
+                "Run Automatic Macabets Analysis",
+                type="primary",
                 use_container_width=True,
+                disabled=run_disabled,
+            ):
+                result = analyze_matchup(
+                    tennis_matches,
+                    player_a,
+                    player_b,
+                    tournament,
+                    round_label,
+                    surface,
+                    form_a,
+                    form_b,
+                    event_date,
+                )
+                st.session_state["latest_tennis_analysis"] = result
+
+            result = st.session_state.get("latest_tennis_analysis")
+            if result and result["player_a"] == player_a and result["player_b"] == player_b:
+                st.divider()
+                st.markdown("## Macabets Projection")
+
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Statistical base", f"{result['base_probability']:.1%}")
+                m2.metric("Automatic context", f"{result['total_adjustment']:+.1%}")
+                m3.metric("Macabets probability", f"{result['final_probability']:.1%}")
+                m4.metric("Macabets fair line", f"{result['fair_line']:+d}")
+
+                m5, m6, m7, m8 = st.columns(4)
+                m5.metric("Overall Elo", f"{result['overall_elo_a']:.0f} vs {result['overall_elo_b']:.0f}")
+                m6.metric("Surface Elo", f"{result['surface_elo_a']:.0f} vs {result['surface_elo_b']:.0f}")
+                m7.metric("Confidence", f"{result['confidence']}/10")
+                m8.metric("Data quality", f"{result['data_quality']}/10")
+
+                market_a = None
+                market_b = None
+                try:
+                    if market_a_text.strip():
+                        market_a = int(market_a_text.replace("+", "").strip())
+                    if market_b_text.strip():
+                        market_b = int(market_b_text.replace("+", "").strip())
+                except ValueError:
+                    st.error("Enter American odds as a whole number, such as -180 or +155.")
+
+                if market_a and market_b:
+                    raw_a = tennis_implied_probability(market_a)
+                    raw_b = tennis_implied_probability(market_b)
+                    no_vig_a = raw_a / (raw_a + raw_b)
+                    edge = result["final_probability"] - raw_a
+                    no_vig_edge = result["final_probability"] - no_vig_a
+
+                    e1, e2, e3 = st.columns(3)
+                    e1.metric("Vegas implied", f"{raw_a:.1%}")
+                    e2.metric("No-vig market", f"{no_vig_a:.1%}")
+                    e3.metric("Macabets edge", f"{edge:+.1%}", f"{no_vig_edge:+.1%} vs no-vig")
+
+                    if result["data_quality"] < 5:
+                        st.error("PASS — insufficient data quality.")
+                    elif edge >= 0.05 and result["confidence"] >= 7:
+                        st.success("GREEN LIGHT — meaningful pricing edge with adequate confidence.")
+                    elif edge >= 0.025 and result["confidence"] >= 6:
+                        st.warning("LEAN — positive edge, but below Green Light standards.")
+                    else:
+                        st.error("PASS — the available price does not offer enough value.")
+                else:
+                    st.info(
+                        "Macabets has produced its fair line. Enter both sportsbook prices above "
+                        "to compare the projection with the market."
+                    )
+
+                st.markdown("### Automatic Context Report")
+                context_rows = []
+                for item in result["adjustments"]:
+                    context_rows.append({
+                        "Category": item["factor"],
+                        "Probability impact": f"{item['adjustment']:+.2%}",
+                        "Macabets reasoning": item["explanation"],
+                    })
+                st.dataframe(pd.DataFrame(context_rows), use_container_width=True, hide_index=True)
+
+                st.markdown("### Player Comparison")
+                pa = result["profile_a"]
+                pb = result["profile_b"]
+                comparison = pd.DataFrame([
+                    {
+                        "Metric": "Current ranking",
+                        player_a: f"{pa['rank']:.0f}" if not pd.isna(pa["rank"]) else "Unknown",
+                        player_b: f"{pb['rank']:.0f}" if not pd.isna(pb["rank"]) else "Unknown",
+                    },
+                    {"Metric": "Last-10 win rate", player_a: f"{pa['recent_win']:.0%}", player_b: f"{pb['recent_win']:.0%}"},
+                    {"Metric": f"{surface} win rate", player_a: f"{pa['surface_win']:.0%}", player_b: f"{pb['surface_win']:.0%}"},
+                    {"Metric": "Serve points won", player_a: f"{pa['serve_points_won']:.1%}", player_b: f"{pb['serve_points_won']:.1%}"},
+                    {"Metric": "Return points won", player_a: f"{pa['return_points_won']:.1%}", player_b: f"{pb['return_points_won']:.1%}"},
+                    {"Metric": "Matches in last 7 days", player_a: pa["matches_7"], player_b: pb["matches_7"]},
+                    {"Metric": "Rest days", player_a: pa["rest_days"], player_b: pb["rest_days"]},
+                    {"Metric": "Advanced-round win rate", player_a: f"{pa['advanced_round_win']:.0%}", player_b: f"{pb['advanced_round_win']:.0%}"},
+                    {"Metric": "Deciding-match win rate", player_a: f"{pa['deciding_win']:.0%}", player_b: f"{pb['deciding_win']:.0%}"},
+                ])
+                st.dataframe(comparison, use_container_width=True, hide_index=True)
+
+                st.caption(
+                    "Fitness is estimated from workload, rest, inactivity and recorded retirements. "
+                    "Psychological context is a historical performance proxy, not a claim about a player's private mental state. "
+                    "Confirmed injuries and live odds require a separate live-data provider."
+                )
+
+                if "analyses" not in st.session_state:
+                    st.session_state.analyses = []
+
+                if st.button("Save Automatic Analysis", use_container_width=True):
+                    save_record = {
+                        "date": event_date.isoformat(),
+                        "sport": "Tennis",
+                        "event": tournament,
+                        "selection": player_a,
+                        "opponent": player_b,
+                        "surface": surface,
+                        "round": round_label,
+                        "base_probability": result["base_probability"],
+                        "context_adjustment": result["total_adjustment"],
+                        "macabets_probability": result["final_probability"],
+                        "fair_line": result["fair_line"],
+                        "confidence": result["confidence"],
+                        "data_quality": result["data_quality"],
+                    }
+                    st.session_state.analyses.append(save_record)
+                    st.success("Automatic matchup analysis saved for this session.")
+
+                if st.session_state.analyses:
+                    analyses_df = pd.DataFrame(st.session_state.analyses)
+                    st.download_button(
+                        "Download Matchup Analyses CSV",
+                        data=analyses_df.to_csv(index=False).encode("utf-8"),
+                        file_name=f"macabets_analyses_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime="text/csv",
+                        use_container_width=True,
+                    )
+
+        except Exception as exc:
+            st.error(f"The tennis database could not load: {exc}")
+            st.caption(
+                "Check that the Streamlit app has internet access, then reboot the app. "
+                "No manual projection will be substituted for missing data."
             )
 
     else:
         st.info(
-            "The full pricing engine is being introduced sport by sport. "
-            "Tennis is the first Macabets beta because it is the current research priority."
+            "Automatic modeling is currently available for Tennis. "
+            "NFL, college football, NBA and combat-sports engines will be added separately."
         )
-
-        if sport_lab in ["NFL", "College Football"]:
-            c1, c2 = st.columns(2)
-            with c1:
-                st.text_input("Favorite team")
-                st.text_area("Recent form")
-                st.text_area("Offensive strengths / weaknesses")
-                st.text_area("Defensive strengths / weaknesses")
-                st.text_area("Injuries / availability")
-            with c2:
-                st.text_input("Opponent")
-                st.text_area("Opponent recent form")
-                st.text_area("Opponent offensive profile")
-                st.text_area("Opponent defensive profile")
-                st.text_area("Venue, travel, rest, weather, rivalry")
-            st.text_area("Where does the favorite have the clearest matchup advantage?")
-            st.text_area("How can the opponent realistically upset the favorite?")
-
-        elif sport_lab == "NBA":
-            c1, c2 = st.columns(2)
-            with c1:
-                st.text_input("Favorite team")
-                st.text_area("Last 5–10 games")
-                st.text_area("Offensive matchup")
-                st.text_area("Defensive matchup")
-                st.text_area("Injuries / minutes restrictions")
-            with c2:
-                st.text_input("Opponent")
-                st.text_area("Opponent last 5–10 games")
-                st.text_area("Pace and shot profile")
-                st.text_area("Rest / back-to-back / travel")
-                st.text_area("Rebounding and turnover matchup")
-            st.text_area("Upset path and late-game risk")
-
-        else:
-            c1, c2 = st.columns(2)
-            with c1:
-                st.text_input("Favorite fighter")
-                st.text_area("Recent form and quality of opposition")
-                st.text_area("Power at this weight")
-                st.text_area("Chin durability")
-                st.text_area("Wrestling / grappling / clinch profile")
-                st.text_area("Injuries, layoff, weight cut")
-            with c2:
-                st.text_input("Opponent fighter")
-                st.text_area("Opponent recent form")
-                st.text_area("Opponent power and finishing threat")
-                st.text_area("Opponent chin and recovery")
-                st.text_area("Opponent technical advantages")
-                st.text_area("Age, mileage and camp changes")
-            st.text_area("Favorite's clearest path to victory")
-            st.text_area("Opponent's most realistic upset path")
 
 with tabs[4]:
     st.subheader("Risk Simulator")
