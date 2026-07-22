@@ -1,3 +1,4 @@
+
 import io
 import math
 from datetime import date, datetime
@@ -22,7 +23,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.9"
+APP_VERSION = "Macabets Tennis v0.9.1"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -127,10 +128,25 @@ def minimum_acceptable_odds(model_probability, required_roi=0.02):
 
 
 def decision_label(expected_roi, confidence):
-    if expected_roi >= 0.05 and confidence >= 7:
-        return "BET", "The estimated edge is meaningful and supported by sufficient confidence."
-    if expected_roi >= 0.02 and confidence >= 6:
-        return "WATCH", "There may be value, but the edge or confidence is not strong enough yet."
+    """
+    Grade the offered price independently from model confidence.
+
+    Confidence affects the strength/caution attached to the recommendation,
+    but it must not turn a clearly positive-value price into WATCH or PASS.
+    """
+    expected_roi = float(expected_roi)
+    confidence = int(confidence)
+
+    if expected_roi >= 0.05:
+        if confidence >= 7:
+            return "BET", "The offered price shows meaningful expected value with strong model confidence."
+        if confidence >= 5:
+            return "BET", "The offered price shows meaningful expected value, but model confidence is moderate."
+        return "BET", "The offered price shows meaningful expected value, but model confidence is low; treat the fair line cautiously."
+
+    if expected_roi >= 0.02:
+        return "WATCH", "The offered price shows a smaller positive edge that does not yet reach the full BET threshold."
+
     return "PASS", "The current price does not provide enough model-supported value."
 
 
@@ -946,20 +962,37 @@ with tabs[3]:
                         f"{considered_roi:+.1%}",
                     )
 
-                    d1, d2, d3 = st.columns(3)
+                    d1, d2, d3, d4 = st.columns(4)
                     d1.metric("Decision", decision)
                     d2.metric(
+                        "Recommendation strength",
+                        (
+                            "Strong"
+                            if confidence >= 7 and int(result["data_quality"]) >= 7
+                            else "Moderate"
+                            if confidence >= 5 and int(result["data_quality"]) >= 5
+                            else "Low"
+                        ),
+                    )
+                    d3.metric(
                         "Minimum acceptable price",
                         format_american(minimum_price),
                     )
-                    d3.metric("Data quality", f"{int(result['data_quality'])}/10")
+                    d4.metric("Data quality", f"{int(result['data_quality'])}/10")
 
                     if decision == "BET":
+                        caution = (
+                            " Data quality is limited, so this is a low-confidence value signal."
+                            if int(result["data_quality"]) < 5 or confidence < 5
+                            else ""
+                        )
                         st.success(
                             f"BET: Macabets prices {considered_player} at "
                             f"{format_american(considered_fair_odds)} versus your available "
                             f"price of {format_american(considered_market_odds)}. "
-                            f"Estimated ROI is {considered_roi:+.1%}."
+                            f"Estimated ROI is {considered_roi:+.1%}. "
+                            f"Your price is also better than the minimum acceptable price of "
+                            f"{format_american(minimum_price)}.{caution}"
                         )
                     elif decision == "WATCH":
                         st.warning(
