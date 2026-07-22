@@ -22,7 +22,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.6"
+APP_VERSION = "Macabets Tennis v0.7"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -424,15 +424,14 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.6", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.7", expanded=True):
         st.markdown(
             """
-            - Automatic Match Analyzer connected to the historical ATP database
-            - Overall Elo and surface Elo calculated automatically
-            - Automatic recent form, surface form, serve/return, fatigue, rest, and pressure analysis
-            - Monte Carlo match and set-score simulation
-            - No manual player-rating sliders in the primary workflow
-            - Full factor explanations and player data-quality profiles
+            - Select the player you are considering betting
+            - Macabets evaluates that exact side without changing the underlying model
+            - Side-specific fair line, market price, expected ROI, edge, and decision
+            - Shows whether Macabets prefers the opposite player
+            - Keeps a neutral “Just analyze” option for matchup research
             """
         )
 
@@ -609,7 +608,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v2")
+    st.subheader("Automatic Match Analyzer — Tennis v3")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -705,15 +704,31 @@ with tabs[3]:
                 key="auto_player_b",
             )
 
+            bet_side_options = [
+                "Just analyze",
+                f"{player_a} — Player A",
+                f"{player_b} — Player B",
+            ]
+            considering_bet = st.radio(
+                "Who are you considering betting on?",
+                bet_side_options,
+                horizontal=True,
+                key="auto_considering_bet",
+                help=(
+                    "This does not influence the model. It only tells Macabets which "
+                    "market position you want evaluated."
+                ),
+            )
+
             o1, o2, o3 = st.columns(3)
             market_odds_a = o1.number_input(
-                "Sportsbook odds — Player A",
+                f"Sportsbook odds — {player_a}",
                 value=int(st.session_state.get("fle_market_a", -180)),
                 step=5,
                 key="auto_market_a",
             )
             market_odds_b = o2.number_input(
-                "Sportsbook odds — Player B",
+                f"Sportsbook odds — {player_b}",
                 value=int(st.session_state.get("fle_market_b", 155)),
                 step=5,
                 key="auto_market_b",
@@ -751,6 +766,7 @@ with tabs[3]:
                             "market_odds_a": int(market_odds_a),
                             "market_odds_b": int(market_odds_b),
                             "match_date": match_date.isoformat(),
+                            "considering_bet": considering_bet,
                         }
                     except Exception as exc:
                         st.session_state.pop("automatic_match_result", None)
@@ -766,45 +782,174 @@ with tabs[3]:
                 listed_b = int(market_snapshot.get("market_odds_b", market_odds_b))
 
                 model_probability = float(result["win_probability"])
+                probability_b = 1 - model_probability
                 fair_odds = int(result["fair_line"])
-                fair_odds_b = probability_to_american(1 - model_probability)
+                fair_odds_b = probability_to_american(probability_b)
                 no_vig_a, no_vig_b, sportsbook_hold = no_vig_probabilities(listed_a, listed_b)
-                no_vig_edge = model_probability - no_vig_a
-                expected_roi = (
+
+                roi_a = (
                     model_probability * (american_to_decimal(listed_a) - 1)
                     - (1 - model_probability)
                 )
+                roi_b = (
+                    probability_b * (american_to_decimal(listed_b) - 1)
+                    - (1 - probability_b)
+                )
+                edge_a = model_probability - no_vig_a
+                edge_b = probability_b - no_vig_b
                 confidence = int(result["confidence"])
-                minimum_price = minimum_acceptable_odds(model_probability, required_roi=0.02)
-                decision, decision_reason = decision_label(expected_roi, confidence)
+
+                considered_snapshot = str(
+                    market_snapshot.get("considering_bet", "Just analyze")
+                )
+                if "Player A" in considered_snapshot:
+                    considered_player = analyzed_a
+                    considered_probability = model_probability
+                    considered_fair_odds = fair_odds
+                    considered_market_odds = listed_a
+                    considered_no_vig = no_vig_a
+                    considered_edge = edge_a
+                    considered_roi = roi_a
+                    opposite_player = analyzed_b
+                    opposite_roi = roi_b
+                elif "Player B" in considered_snapshot:
+                    considered_player = analyzed_b
+                    considered_probability = probability_b
+                    considered_fair_odds = fair_odds_b
+                    considered_market_odds = listed_b
+                    considered_no_vig = no_vig_b
+                    considered_edge = edge_b
+                    considered_roi = roi_b
+                    opposite_player = analyzed_a
+                    opposite_roi = roi_a
+                else:
+                    considered_player = None
+                    considered_probability = None
+                    considered_fair_odds = None
+                    considered_market_odds = None
+                    considered_no_vig = None
+                    considered_edge = None
+                    considered_roi = None
+                    opposite_player = None
+                    opposite_roi = None
+
+                minimum_price_a = minimum_acceptable_odds(
+                    model_probability, required_roi=0.02
+                )
+                minimum_price_b = minimum_acceptable_odds(
+                    probability_b, required_roi=0.02
+                )
+                if considered_player == analyzed_a:
+                    minimum_price = minimum_price_a
+                elif considered_player == analyzed_b:
+                    minimum_price = minimum_price_b
+                else:
+                    minimum_price = None
+
+                if considered_player:
+                    decision, decision_reason = decision_label(
+                        considered_roi, confidence
+                    )
+                else:
+                    decision = "ANALYZE"
+                    decision_reason = (
+                        "No betting side was selected. Macabets is showing the matchup "
+                        "objectively."
+                    )
+
+                # Preserve Player A fields for the existing archive structure.
+                no_vig_edge = edge_a
+                expected_roi = roi_a
 
                 st.divider()
                 st.markdown(f"### {analyzed_a} vs {analyzed_b}")
 
+                st.markdown("#### Objective Match Price")
                 m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Macabets win probability", f"{model_probability:.1%}")
-                m2.metric("Macabets fair line — A", format_american(fair_odds))
-                m3.metric("Market no-vig probability — A", f"{no_vig_a:.1%}")
-                m4.metric("Edge vs no-vig market", f"{no_vig_edge:+.1%}")
+                m1.metric(
+                    f"{analyzed_a} probability",
+                    f"{model_probability:.1%}",
+                    f"Fair {format_american(fair_odds)}",
+                )
+                m2.metric(
+                    f"{analyzed_b} probability",
+                    f"{probability_b:.1%}",
+                    f"Fair {format_american(fair_odds_b)}",
+                )
+                m3.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
+                m4.metric("Model confidence", f"{confidence}/10")
 
-                n1, n2, n3, n4 = st.columns(4)
-                n1.metric("Estimated ROI", f"{expected_roi:+.1%}")
-                n2.metric("Decision", decision)
-                n3.metric("Confidence", f"{confidence}/10")
-                n4.metric("Data quality", f"{int(result['data_quality'])}/10")
-
-                if decision == "BET":
-                    st.success(
-                        f"Macabets prices {analyzed_a} at {format_american(fair_odds)} "
-                        f"against the listed price of {format_american(listed_a)}."
+                if considered_player:
+                    st.markdown(f"#### Your Considered Bet: {considered_player}")
+                    n1, n2, n3, n4 = st.columns(4)
+                    n1.metric(
+                        "Your market price",
+                        format_american(considered_market_odds),
                     )
-                elif decision == "WATCH":
-                    st.warning(decision_reason)
+                    n2.metric(
+                        "Macabets fair price",
+                        format_american(considered_fair_odds),
+                    )
+                    n3.metric(
+                        "Edge vs no-vig market",
+                        f"{considered_edge:+.1%}",
+                    )
+                    n4.metric(
+                        "Expected ROI",
+                        f"{considered_roi:+.1%}",
+                    )
+
+                    d1, d2, d3 = st.columns(3)
+                    d1.metric("Decision", decision)
+                    d2.metric(
+                        "Minimum acceptable price",
+                        format_american(minimum_price),
+                    )
+                    d3.metric("Data quality", f"{int(result['data_quality'])}/10")
+
+                    if decision == "BET":
+                        st.success(
+                            f"BET: Macabets prices {considered_player} at "
+                            f"{format_american(considered_fair_odds)} versus your available "
+                            f"price of {format_american(considered_market_odds)}. "
+                            f"Estimated ROI is {considered_roi:+.1%}."
+                        )
+                    elif decision == "WATCH":
+                        st.warning(
+                            f"WATCH: {decision_reason} Macabets needs approximately "
+                            f"{format_american(minimum_price)} or better for a 2% expected return."
+                        )
+                    else:
+                        st.error(
+                            f"PASS: {format_american(considered_market_odds)} is too expensive "
+                            f"relative to Macabets' fair price of "
+                            f"{format_american(considered_fair_odds)}. "
+                            f"A price near {format_american(minimum_price)} or better is required."
+                        )
+
+                    if opposite_roi > considered_roi:
+                        if opposite_roi > 0:
+                            st.info(
+                                f"Macabets currently sees more value on {opposite_player} "
+                                f"({opposite_roi:+.1%} estimated ROI) than on your considered side."
+                            )
+                        else:
+                            st.caption(
+                                f"The opposite side grades better than your considered bet, "
+                                f"but it still does not show positive expected value "
+                                f"({opposite_roi:+.1%})."
+                            )
                 else:
-                    st.error(
-                        f"Pass at {format_american(listed_a)}. Macabets needs approximately "
-                        f"{format_american(minimum_price)} or better for a 2% expected return."
+                    st.info(
+                        "No betting side selected. Macabets has priced both players objectively. "
+                        "Select a player above and analyze again to receive a direct BET / WATCH / "
+                        "PASS evaluation."
                     )
+                    n1, n2, n3, n4 = st.columns(4)
+                    n1.metric(f"{analyzed_a} ROI", f"{roi_a:+.1%}")
+                    n2.metric(f"{analyzed_b} ROI", f"{roi_b:+.1%}")
+                    n3.metric(f"{analyzed_a} no-vig edge", f"{edge_a:+.1%}")
+                    n4.metric(f"{analyzed_b} no-vig edge", f"{edge_b:+.1%}")
 
                 st.markdown("#### Model Foundation")
                 e1, e2, e3, e4 = st.columns(4)
@@ -954,14 +1099,24 @@ with tabs[3]:
                         "no_vig_probability_a": no_vig_a,
                         "no_vig_edge": no_vig_edge,
                         "decision": decision,
-                        "minimum_acceptable_odds_a": minimum_price,
+                        "minimum_acceptable_odds_a": minimum_price_a,
                         "estimated_roi": expected_roi,
                         "confidence": confidence,
                         "prediction": prediction.strip(),
                         "upset_path": upset_path.strip(),
                         "biggest_risk": biggest_risk.strip(),
                         "assumptions": assumptions.strip(),
-                        "notes": analysis_notes.strip(),
+                        "notes": (
+                            (
+                                f"Considering bet: {considered_player} at "
+                                f"{format_american(considered_market_odds)}. "
+                                f"Side-specific decision: {decision}. "
+                                f"Side-specific estimated ROI: {considered_roi:+.1%}. "
+                                if considered_player else
+                                "No betting side selected. "
+                            )
+                            + analysis_notes.strip()
+                        ).strip(),
                         "result": "Pending",
                         "closing_odds_a": np.nan,
                         "prediction_correct": "",
