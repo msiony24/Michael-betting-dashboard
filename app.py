@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 st.set_page_config(
-    page_title="Michael Betting Dashboard",
+    page_title="Macabets",
     page_icon="📊",
     layout="wide",
 )
@@ -67,6 +67,56 @@ def kelly_fraction(model_prob, odds):
     return max(0.0, (b * model_prob - q) / b)
 
 
+def probability_to_american(probability):
+    probability = min(max(float(probability), 0.0001), 0.9999)
+    if probability >= 0.5:
+        return int(round(-100 * probability / (1 - probability)))
+    return int(round(100 * (1 - probability) / probability))
+
+
+def no_vig_probability(selection_odds, opponent_odds):
+    selection_implied = implied_probability(selection_odds)
+    opponent_implied = implied_probability(opponent_odds)
+    total = selection_implied + opponent_implied
+    if total <= 0:
+        return 0.5
+    return selection_implied / total
+
+
+def clamp_probability(probability):
+    return min(max(float(probability), 0.01), 0.99)
+
+
+def recommendation_from_edge(edge, confidence, data_quality):
+    if data_quality <= 4:
+        return "PASS", "Data quality is too weak for a strong recommendation."
+    if confidence >= 8 and edge >= 0.05:
+        return "GREEN LIGHT", "Strong model edge with high confidence."
+    if confidence >= 7 and edge >= 0.03:
+        return "LEAN", "Positive edge, but not strong enough for a full green light."
+    if edge > 0:
+        return "PASS", "Macabets sees some value, but the edge or confidence is insufficient."
+    return "PASS", "The market price is equal to or better than the Macabets projection."
+
+
+def line_value_label(edge):
+    if edge >= 0.07:
+        return "Major value"
+    if edge >= 0.05:
+        return "Strong value"
+    if edge >= 0.03:
+        return "Moderate value"
+    if edge > 0:
+        return "Small value"
+    if edge == 0:
+        return "Fairly priced"
+    return "No value"
+
+
+def context_adjustment(score, confidence):
+    return (float(score) / 10.0) * (float(confidence) / 100.0) * 0.05
+
+
 def empty_bets():
     return pd.DataFrame(columns=DEFAULT_COLUMNS)
 
@@ -93,6 +143,9 @@ if "bankroll" not in st.session_state:
 if "target_profit" not in st.session_state:
     st.session_state.target_profit = 10000.0
 
+if "analyses" not in st.session_state:
+    st.session_state.analyses = []
+
 
 st.markdown("""
 <style>
@@ -102,8 +155,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Michael Betting Dashboard")
-st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
+st.title("Macabets")
+st.caption("Betting intelligence, fair-line pricing, matchup analysis and bankroll risk control.")
 
 with st.sidebar:
     st.header("Core Settings")
@@ -321,84 +374,306 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Matchup Lab")
+    st.subheader("Macabets Matchup Lab")
+    st.caption("Price the matchup first. Then decide whether the current market offers enough value to bet.")
+
     sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
+    lab_date = st.date_input("Event date", value=date.today(), key="lab_date")
 
-    if sport_lab in ["NFL", "College Football"]:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("#### Favorite")
-            fav = st.text_input("Favorite team")
-            fav_form = st.text_area("Recent form")
-            fav_off = st.text_area("Offensive strengths / weaknesses")
-            fav_def = st.text_area("Defensive strengths / weaknesses")
-            fav_inj = st.text_area("Injuries / availability")
-        with c2:
-            st.markdown("#### Opponent")
-            dog = st.text_input("Opponent")
-            dog_form = st.text_area("Opponent recent form")
-            dog_off = st.text_area("Opponent offensive profile")
-            dog_def = st.text_area("Opponent defensive profile")
-            situational = st.text_area("Venue, travel, rest, weather, rivalry")
-        st.text_area("Where does the favorite have the clearest matchup advantage?")
-        st.text_area("How can the opponent realistically upset the favorite?")
-        st.slider("Overall confidence", 1, 10, 7, key="football_conf")
+    if sport_lab == "Tennis":
+        st.markdown("### Tennis Beta")
 
-    elif sport_lab == "NBA":
-        c1, c2 = st.columns(2)
-        with c1:
-            st.text_input("Favorite team")
-            st.text_area("Last 5–10 games")
-            st.text_area("Offensive matchup")
-            st.text_area("Defensive matchup")
-            st.text_area("Injuries / minutes restrictions")
-        with c2:
-            st.text_input("Opponent")
-            st.text_area("Opponent last 5–10 games")
-            st.text_area("Pace and shot profile")
-            st.text_area("Rest / back-to-back / travel")
-            st.text_area("Rebounding and turnover matchup")
-        st.text_area("Upset path and late-game risk")
-        st.slider("Overall confidence", 1, 10, 7, key="nba_conf")
+        top1, top2, top3 = st.columns(3)
+        player_a = top1.text_input("Selection / favorite", placeholder="Etcheverry")
+        player_b = top2.text_input("Opponent", placeholder="Rodionov")
+        tournament = top3.text_input("Tournament", placeholder="ATP event")
 
-    elif sport_lab == "Tennis":
-        c1, c2 = st.columns(2)
-        with c1:
-            st.text_input("Favorite player")
-            st.text_area("Recent form and workload")
-            st.text_area("Serve / return advantages")
-            st.text_area("Surface and conditions")
-            st.text_area("Fitness / injury concerns")
-        with c2:
-            st.text_input("Opponent player")
-            st.text_area("Opponent form")
-            st.text_area("Opponent's upset weapons")
-            st.text_area("Head-to-head context")
-            st.text_area("Travel / scheduling / fatigue")
-        st.text_area("How does the favorite lose this match?")
-        st.slider("Overall confidence", 1, 10, 7, key="tennis_conf")
+        meta1, meta2, meta3, meta4 = st.columns(4)
+        surface = meta1.selectbox("Surface", ["Hard", "Clay", "Grass", "Indoor Hard"])
+        event_level = meta2.selectbox(
+            "Event level",
+            ["ATP 250", "ATP 500", "Masters 1000", "Grand Slam", "Davis Cup", "Other"],
+        )
+        round_name = meta3.selectbox(
+            "Round",
+            ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
+        )
+        match_format = meta4.selectbox("Format", ["Best of 3", "Best of 5"])
+
+        st.divider()
+        st.markdown("### Market Price")
+
+        market1, market2, market3 = st.columns(3)
+        opening_odds = market1.number_input("Opening line", value=-180, step=5)
+        current_odds = market2.number_input("Current Vegas line", value=-180, step=5)
+        opponent_odds = market3.number_input("Opponent line", value=155, step=5)
+
+        market_prob = implied_probability(int(current_odds))
+        no_vig_prob = no_vig_probability(int(current_odds), int(opponent_odds))
+
+        st.divider()
+        st.markdown("### Statistical Base Projection")
+        st.caption("Enter the probability Macabets assigns before matchup and situational context is applied.")
+
+        base1, base2, base3 = st.columns(3)
+        base_probability_pct = base1.slider(
+            "Base win probability",
+            min_value=1.0,
+            max_value=99.0,
+            value=float(round(no_vig_prob * 100, 1)),
+            step=0.5,
+        )
+        model_confidence = base2.slider("Overall confidence", 1, 10, 7)
+        data_quality = base3.slider("Data quality", 1, 10, 7)
+
+        st.divider()
+        st.markdown("### Context Engine")
+        st.caption(
+            "Score each category from -10 to +10 for the selected player. "
+            "Positive values help the selection; negative values help the opponent."
+        )
+
+        context_definitions = [
+            ("Matchup", "Serve, return, rally tolerance, weapons and exploitable weaknesses"),
+            ("Recent Form", "Current level, opponent quality and whether results match the underlying play"),
+            ("Surface & Conditions", "Surface fit, court speed, altitude, weather and indoor/outdoor conditions"),
+            ("Fitness & Fatigue", "Injuries, workload, travel, recovery and scheduling"),
+            ("Event & Pressure", "Tournament importance, round pressure and big-match experience"),
+            ("Psychological", "Confidence, rivalry, crowd, composure and ability to close"),
+        ]
+
+        adjustments = []
+        notes = []
+        for idx, (factor_name, factor_help) in enumerate(context_definitions):
+            with st.expander(factor_name, expanded=(idx < 2)):
+                c1, c2 = st.columns([1, 1])
+                score = c1.slider(
+                    f"{factor_name} score",
+                    min_value=-10,
+                    max_value=10,
+                    value=0,
+                    key=f"ctx_score_{idx}",
+                    help=factor_help,
+                )
+                factor_confidence = c2.slider(
+                    f"{factor_name} confidence",
+                    min_value=0,
+                    max_value=100,
+                    value=70,
+                    step=5,
+                    key=f"ctx_conf_{idx}",
+                )
+                explanation = st.text_area(
+                    f"{factor_name} reasoning",
+                    placeholder=factor_help,
+                    key=f"ctx_note_{idx}",
+                )
+                adjustment = context_adjustment(score, factor_confidence)
+                adjustments.append({
+                    "Factor": factor_name,
+                    "Score": score,
+                    "Confidence": factor_confidence,
+                    "Adjustment": adjustment,
+                    "Reasoning": explanation,
+                })
+                notes.append(explanation.strip())
+
+        total_adjustment = sum(item["Adjustment"] for item in adjustments)
+        base_probability = base_probability_pct / 100
+        final_probability = clamp_probability(base_probability + total_adjustment)
+        fair_line = probability_to_american(final_probability)
+        edge = final_probability - market_prob
+        no_vig_edge = final_probability - no_vig_prob
+        recommendation, recommendation_reason = recommendation_from_edge(
+            edge, model_confidence, data_quality
+        )
+
+        fair_low = clamp_probability(final_probability - ((11 - data_quality) * 0.005))
+        fair_high = clamp_probability(final_probability + ((11 - data_quality) * 0.005))
+        fair_range_low = probability_to_american(fair_low)
+        fair_range_high = probability_to_american(fair_high)
+
+        preferred_entry_prob = clamp_probability(final_probability - 0.035)
+        max_playable_prob = clamp_probability(final_probability - 0.015)
+        preferred_entry = probability_to_american(preferred_entry_prob)
+        max_playable = probability_to_american(max_playable_prob)
+
+        st.divider()
+        st.markdown("### Macabets Price")
+
+        price1, price2, price3, price4 = st.columns(4)
+        price1.metric("Vegas implied probability", f"{market_prob:.1%}")
+        price2.metric("No-vig market probability", f"{no_vig_prob:.1%}")
+        price3.metric("Macabets probability", f"{final_probability:.1%}", f"{total_adjustment:+.1%} context")
+        price4.metric("Macabets fair line", f"{fair_line:+d}")
+
+        price5, price6, price7, price8 = st.columns(4)
+        price5.metric("Edge vs listed line", f"{edge:+.1%}")
+        price6.metric("Edge vs no-vig market", f"{no_vig_edge:+.1%}")
+        price7.metric("Preferred entry", f"{preferred_entry:+d}")
+        price8.metric("Maximum playable", f"{max_playable:+d}")
+
+        st.caption(
+            f"Estimated fair-line range: {fair_range_low:+d} to {fair_range_high:+d}. "
+            "The range widens when data quality is lower."
+        )
+
+        if recommendation == "GREEN LIGHT":
+            st.success(f"GREEN LIGHT — {recommendation_reason}")
+        elif recommendation == "LEAN":
+            st.warning(f"LEAN — {recommendation_reason}")
+        else:
+            st.error(f"PASS — {recommendation_reason}")
+
+        st.markdown(f"**Market assessment:** {line_value_label(edge)}")
+
+        adjustment_table = pd.DataFrame(adjustments)
+        adjustment_table["Probability impact"] = adjustment_table["Adjustment"].map(lambda x: f"{x:+.2%}")
+        st.markdown("#### Context Breakdown")
+        st.dataframe(
+            adjustment_table[["Factor", "Score", "Confidence", "Probability impact", "Reasoning"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.markdown("#### Macabets Explanation")
+        active_factors = [item for item in adjustments if item["Score"] != 0]
+        if not active_factors:
+            st.info("No context adjustments have been entered. The final price currently equals the base projection.")
+        else:
+            strongest = sorted(active_factors, key=lambda x: abs(x["Adjustment"]), reverse=True)
+            for item in strongest:
+                direction = "helps" if item["Adjustment"] > 0 else "hurts"
+                reason = item["Reasoning"] or "No written explanation entered."
+                st.write(
+                    f"**{item['Factor']} {direction} {player_a or 'the selection'} "
+                    f"({item['Adjustment']:+.2%}):** {reason}"
+                )
+
+        st.divider()
+        st.markdown("### Save Analysis to Session")
+        analysis_notes = st.text_area(
+            "Final thesis / risks",
+            placeholder="What is the clearest path to victory, and how can the selection lose?",
+            key="lab_final_thesis",
+        )
+
+        if "analyses" not in st.session_state:
+            st.session_state.analyses = []
+
+        if st.button("Save Matchup Analysis", type="primary", use_container_width=True):
+            if not player_a.strip() or not player_b.strip():
+                st.error("Enter both players before saving.")
+            else:
+                analysis_record = {
+                    "date": lab_date.isoformat(),
+                    "sport": sport_lab,
+                    "event": tournament.strip(),
+                    "selection": player_a.strip(),
+                    "opponent": player_b.strip(),
+                    "surface": surface,
+                    "event_level": event_level,
+                    "round": round_name,
+                    "format": match_format,
+                    "opening_line": int(opening_odds),
+                    "current_line": int(current_odds),
+                    "opponent_line": int(opponent_odds),
+                    "market_probability": market_prob,
+                    "no_vig_probability": no_vig_prob,
+                    "base_probability": base_probability,
+                    "context_adjustment": total_adjustment,
+                    "macabets_probability": final_probability,
+                    "fair_line": fair_line,
+                    "edge": edge,
+                    "confidence": model_confidence,
+                    "data_quality": data_quality,
+                    "recommendation": recommendation,
+                    "preferred_entry": preferred_entry,
+                    "maximum_playable": max_playable,
+                    "thesis": analysis_notes.strip(),
+                }
+                st.session_state.analyses.append(analysis_record)
+                st.success("Matchup analysis saved for this session.")
+
+        if st.session_state.analyses:
+            st.markdown("#### Saved Matchup Analyses")
+            analyses_df = pd.DataFrame(st.session_state.analyses)
+            display_cols = [
+                "date", "sport", "selection", "opponent", "current_line",
+                "macabets_probability", "fair_line", "edge",
+                "recommendation", "confidence", "data_quality"
+            ]
+            analyses_view = analyses_df[display_cols].copy()
+            analyses_view["macabets_probability"] = analyses_view["macabets_probability"].map(lambda x: f"{x:.1%}")
+            analyses_view["edge"] = analyses_view["edge"].map(lambda x: f"{x:+.1%}")
+            st.dataframe(analyses_view, use_container_width=True, hide_index=True)
+
+            analyses_csv = analyses_df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "Download Matchup Analyses CSV",
+                data=analyses_csv,
+                file_name=f"macabets_matchup_analyses_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
 
     else:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.text_input("Favorite fighter")
-            st.text_area("Recent form and quality of opposition")
-            st.text_area("Power at this weight")
-            st.text_area("Chin durability")
-            st.text_area("Wrestling / grappling / clinch profile")
-            st.text_area("Injuries, layoff, weight cut")
-        with c2:
-            st.text_input("Opponent fighter")
-            st.text_area("Opponent recent form")
-            st.text_area("Opponent power and finishing threat")
-            st.text_area("Opponent chin and recovery")
-            st.text_area("Opponent technical advantages")
-            st.text_area("Age, mileage and camp changes")
-        st.text_area("Favorite's clearest path to victory")
-        st.text_area("Opponent's most realistic upset path")
-        st.slider("Overall confidence", 1, 10, 7, key="combat_conf")
+        st.info(
+            "The full pricing engine is being introduced sport by sport. "
+            "Tennis is the first Macabets beta because it is the current research priority."
+        )
 
-    st.info("This page is a structured research worksheet. It does not automatically fetch current injuries, odds or statistics yet.")
+        if sport_lab in ["NFL", "College Football"]:
+            c1, c2 = st.columns(2)
+            with c1:
+                st.text_input("Favorite team")
+                st.text_area("Recent form")
+                st.text_area("Offensive strengths / weaknesses")
+                st.text_area("Defensive strengths / weaknesses")
+                st.text_area("Injuries / availability")
+            with c2:
+                st.text_input("Opponent")
+                st.text_area("Opponent recent form")
+                st.text_area("Opponent offensive profile")
+                st.text_area("Opponent defensive profile")
+                st.text_area("Venue, travel, rest, weather, rivalry")
+            st.text_area("Where does the favorite have the clearest matchup advantage?")
+            st.text_area("How can the opponent realistically upset the favorite?")
+
+        elif sport_lab == "NBA":
+            c1, c2 = st.columns(2)
+            with c1:
+                st.text_input("Favorite team")
+                st.text_area("Last 5–10 games")
+                st.text_area("Offensive matchup")
+                st.text_area("Defensive matchup")
+                st.text_area("Injuries / minutes restrictions")
+            with c2:
+                st.text_input("Opponent")
+                st.text_area("Opponent last 5–10 games")
+                st.text_area("Pace and shot profile")
+                st.text_area("Rest / back-to-back / travel")
+                st.text_area("Rebounding and turnover matchup")
+            st.text_area("Upset path and late-game risk")
+
+        else:
+            c1, c2 = st.columns(2)
+            with c1:
+                st.text_input("Favorite fighter")
+                st.text_area("Recent form and quality of opposition")
+                st.text_area("Power at this weight")
+                st.text_area("Chin durability")
+                st.text_area("Wrestling / grappling / clinch profile")
+                st.text_area("Injuries, layoff, weight cut")
+            with c2:
+                st.text_input("Opponent fighter")
+                st.text_area("Opponent recent form")
+                st.text_area("Opponent power and finishing threat")
+                st.text_area("Opponent chin and recovery")
+                st.text_area("Opponent technical advantages")
+                st.text_area("Age, mileage and camp changes")
+            st.text_area("Favorite's clearest path to victory")
+            st.text_area("Opponent's most realistic upset path")
 
 with tabs[4]:
     st.subheader("Risk Simulator")

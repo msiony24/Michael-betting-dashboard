@@ -1,30 +1,33 @@
+# Macabets — Version 3
 
-# Michael Betting Dashboard — Version 2
+A Streamlit betting intelligence dashboard with:
 
-A Streamlit dashboard for:
-
-- Tracking pending and settled bets
-- Calculating the stake required to win a target amount
-- Monitoring bankroll, ROI, win rate and exposure
-- Running Monte Carlo bankroll simulations
-- Recording sport-specific matchup research
-- Exporting and restoring betting records by CSV
+- Bet tracking and settlement
+- Target-profit stake calculations
+- Bankroll, ROI, win rate and exposure monitoring
+- Monte Carlo bankroll simulations
+- Performance analysis
+- CSV backup and restore
+- Tennis Matchup Lab beta
+- No-vig market probability
+- Macabets fair-line pricing
+- Context-based probability adjustments
+- Green Light / Lean / Pass recommendations
+- Preferred entry and maximum playable price
+- Matchup-analysis CSV export
 
 ## Deploying the update
 
-1. Open the GitHub repository used by Streamlit.
-2. Replace the existing `app.py` with this version.
-3. Replace `requirements.txt`.
-4. Commit the changes.
-5. Streamlit Community Cloud will automatically rebuild the website.
-
-The main file path remains:
-
-`app.py`
+1. Open the GitHub repository connected to Streamlit.
+2. Replace the current `app.py` with `app_macabets_v3.py`.
+3. Rename `app_macabets_v3.py` to `app.py` in GitHub, or paste its contents into the existing `app.py`.
+4. Keep the included `requirements.txt`.
+5. Commit the changes.
+6. Streamlit Community Cloud will rebuild automatically.
 
 ## Important storage note
 
-Streamlit Community Cloud does not guarantee permanent local storage. Download the CSV backup after entering or settling bets. Use the sidebar uploader to restore it.
+Streamlit session data is temporary. Download the bets CSV and matchup-analysis CSV after updates you want to keep.
 
 ## Run locally
 
