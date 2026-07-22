@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-APP_VERSION = "Macabets Tennis v0.4"
+APP_VERSION = "Macabets Tennis v0.5"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -34,6 +34,13 @@ DEFAULT_COLUMNS = [
     "id", "date", "sport", "event", "selection", "bet_type", "odds",
     "stake", "target_profit", "status", "result_profit", "book",
     "confidence", "notes"
+]
+
+
+SLATE_COLUMNS = [
+    "slate_id", "match_date", "tournament", "surface", "round",
+    "player_a", "player_b", "market_odds_a", "market_odds_b",
+    "model_probability_a", "confidence", "notes"
 ]
 
 
@@ -218,6 +225,87 @@ def closing_line_value(model_probability, closing_odds):
     return probability * (decimal - 1) - (1 - probability)
 
 
+def empty_slate():
+    return pd.DataFrame(columns=SLATE_COLUMNS)
+
+
+def normalize_slate(df):
+    clean = df.copy()
+    for col in SLATE_COLUMNS:
+        if col not in clean.columns:
+            clean[col] = ""
+    clean = clean[SLATE_COLUMNS]
+
+    numeric = [
+        "slate_id", "market_odds_a", "market_odds_b",
+        "model_probability_a", "confidence"
+    ]
+    for col in numeric:
+        clean[col] = pd.to_numeric(clean[col], errors="coerce")
+
+    clean["slate_id"] = clean["slate_id"].fillna(0).astype(int)
+    clean["model_probability_a"] = clean["model_probability_a"].fillna(0.5).clip(0.01, 0.99)
+    clean["confidence"] = clean["confidence"].fillna(5).clip(1, 10)
+    return clean
+
+
+def score_daily_slate(df):
+    scored = normalize_slate(df)
+    if scored.empty:
+        return scored
+
+    market_a = scored["market_odds_a"].apply(
+        lambda value: implied_probability(int(value)) if pd.notna(value) and value != 0 else np.nan
+    )
+    market_b = scored["market_odds_b"].apply(
+        lambda value: implied_probability(int(value)) if pd.notna(value) and value != 0 else np.nan
+    )
+    totals = market_a + market_b
+
+    scored["no_vig_probability_a"] = np.where(
+        totals > 0, market_a / totals, market_a
+    )
+    scored["sportsbook_hold"] = totals - 1
+    scored["fair_odds_a"] = scored["model_probability_a"].apply(probability_to_american)
+    scored["no_vig_edge"] = scored["model_probability_a"] - scored["no_vig_probability_a"]
+    scored["estimated_roi"] = scored.apply(
+        lambda row: (
+            row["model_probability_a"] * (american_to_decimal(int(row["market_odds_a"])) - 1)
+            - (1 - row["model_probability_a"])
+        )
+        if pd.notna(row["market_odds_a"]) and row["market_odds_a"] != 0
+        else np.nan,
+        axis=1,
+    )
+    scored["decision"] = scored.apply(
+        lambda row: decision_label(
+            float(row["estimated_roi"]) if pd.notna(row["estimated_roi"]) else -1,
+            int(row["confidence"]),
+        )[0],
+        axis=1,
+    )
+    scored["minimum_acceptable_odds_a"] = scored["model_probability_a"].apply(
+        lambda probability: minimum_acceptable_odds(probability, required_roi=0.02)
+    )
+
+    # A transparent ranking score: edge is primary, confidence and market disagreement are secondary.
+    scored["opportunity_score"] = (
+        scored["estimated_roi"].fillna(-1) * 100 * 0.60
+        + scored["confidence"] * 0.25
+        + scored["no_vig_edge"].fillna(0) * 100 * 0.15
+    )
+    return scored.sort_values(
+        ["opportunity_score", "confidence"],
+        ascending=[False, False],
+    ).reset_index(drop=True)
+
+
+if "pending_fair_line_prefill" in st.session_state:
+    pending = st.session_state.pop("pending_fair_line_prefill")
+    for key, value in pending.items():
+        st.session_state[key] = value
+
+
 if "bets" not in st.session_state:
     st.session_state.bets = empty_bets()
 
@@ -229,6 +317,10 @@ if "target_profit" not in st.session_state:
 
 if "analyses" not in st.session_state:
     st.session_state.analyses = empty_analyses()
+
+
+if "daily_slate" not in st.session_state:
+    st.session_state.daily_slate = empty_slate()
 
 
 st.markdown("""
@@ -313,19 +405,20 @@ pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
 tabs = st.tabs([
     "Dashboard", "New Bet", "Bet Ledger", "Fair Line Engine",
-    "Analysis Archive", "Matchup Lab", "Outcome Simulator", "Performance", "Backup"
+    "Analysis Archive", "Matchup Lab", "Outcome Simulator", "Performance",
+    "Backup", "Daily Slate"
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.4", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.5", expanded=True):
         st.markdown(
             """
-            - Two-sided sportsbook market entry with no-vig probabilities
-            - Macabets fair lines for both players
-            - Automatic Bet / Watch / Pass decision card
-            - Minimum acceptable price for Player A
-            - Model edge measured against both the listed price and the no-vig market
-            - Automatic matchup brief built from the largest factor advantages and risks
+            - Daily Slate workspace for ranking an entire card
+            - Automatic Bet / Watch / Pass classification across all entered matches
+            - Slate Opportunity Score combining edge, confidence, and model separation
+            - Filters for tournament, surface, and decision
+            - One-click matchup handoff into the Fair Line Engine
+            - Daily Slate CSV import and export
             """
         )
 
@@ -1009,6 +1102,208 @@ with tabs[7]:
         ax.set_ylabel("Bankroll ($)")
         st.pyplot(fig, use_container_width=True)
         plt.close(fig)
+
+with tabs[9]:
+    st.subheader("Daily Slate")
+    st.caption(
+        "Enter the full card, rank every matchup, and move the strongest opportunities "
+        "into the Fair Line Engine for deeper analysis."
+    )
+
+    with st.expander("Add Matchup", expanded=True):
+        s1, s2, s3, s4 = st.columns(4)
+        slate_date = s1.date_input("Match date", value=date.today(), key="slate_date")
+        slate_tournament = s2.text_input("Tournament", placeholder="Montreal", key="slate_tournament")
+        slate_surface = s3.selectbox(
+            "Surface", ["Hard", "Clay", "Grass", "Indoor Hard"], key="slate_surface"
+        )
+        slate_round = s4.selectbox(
+            "Round",
+            ["R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
+            key="slate_round",
+        )
+
+        p1, p2 = st.columns(2)
+        slate_player_a = p1.text_input("Player A", key="slate_player_a")
+        slate_player_b = p2.text_input("Player B", key="slate_player_b")
+
+        o1, o2, o3, o4 = st.columns(4)
+        slate_odds_a = o1.number_input(
+            "Sportsbook odds — A", value=-150, step=5, key="slate_odds_a"
+        )
+        slate_odds_b = o2.number_input(
+            "Sportsbook odds — B", value=130, step=5, key="slate_odds_b"
+        )
+        slate_probability = o3.slider(
+            "Macabets probability — A",
+            1.0, 99.0, 60.0, 0.5,
+            key="slate_probability",
+        ) / 100
+        slate_confidence = o4.slider(
+            "Data confidence", 1, 10, 6, key="slate_confidence"
+        )
+        slate_notes = st.text_input(
+            "Quick note",
+            placeholder="Example: Better hard-court form, but fatigue needs verification.",
+            key="slate_notes",
+        )
+
+        if st.button("Add to Daily Slate", type="primary", use_container_width=True):
+            if not slate_player_a.strip() or not slate_player_b.strip():
+                st.error("Enter both players.")
+            else:
+                slate = normalize_slate(st.session_state.daily_slate)
+                next_id = int(slate["slate_id"].max()) + 1 if not slate.empty else 1
+                row = {
+                    "slate_id": next_id,
+                    "match_date": slate_date.isoformat(),
+                    "tournament": slate_tournament.strip(),
+                    "surface": slate_surface,
+                    "round": slate_round,
+                    "player_a": slate_player_a.strip(),
+                    "player_b": slate_player_b.strip(),
+                    "market_odds_a": int(slate_odds_a),
+                    "market_odds_b": int(slate_odds_b),
+                    "model_probability_a": float(slate_probability),
+                    "confidence": int(slate_confidence),
+                    "notes": slate_notes.strip(),
+                }
+                st.session_state.daily_slate = normalize_slate(
+                    pd.concat([slate, pd.DataFrame([row])], ignore_index=True)
+                )
+                st.success("Matchup added to the Daily Slate.")
+                st.rerun()
+
+    st.divider()
+    slate_upload = st.file_uploader(
+        "Import Daily Slate CSV",
+        type=["csv"],
+        key="daily_slate_upload",
+    )
+    if slate_upload is not None:
+        try:
+            st.session_state.daily_slate = normalize_slate(pd.read_csv(slate_upload))
+            st.success(f"Loaded {len(st.session_state.daily_slate)} slate matchups.")
+        except Exception as exc:
+            st.error(f"Could not load Daily Slate CSV: {exc}")
+
+    slate = score_daily_slate(st.session_state.daily_slate)
+
+    if slate.empty:
+        st.info("No matchups have been added to today's slate.")
+    else:
+        f1, f2, f3 = st.columns(3)
+        tournament_options = sorted(
+            [value for value in slate["tournament"].dropna().astype(str).unique() if value]
+        )
+        tournament_filter = f1.multiselect(
+            "Tournament",
+            tournament_options,
+            default=tournament_options,
+        )
+        surface_options = sorted(slate["surface"].dropna().astype(str).unique().tolist())
+        surface_filter = f2.multiselect(
+            "Surface",
+            surface_options,
+            default=surface_options,
+        )
+        decision_filter = f3.multiselect(
+            "Decision",
+            ["BET", "WATCH", "PASS"],
+            default=["BET", "WATCH", "PASS"],
+        )
+
+        filtered_slate = slate[
+            slate["tournament"].astype(str).isin(tournament_filter)
+            & slate["surface"].astype(str).isin(surface_filter)
+            & slate["decision"].isin(decision_filter)
+        ].copy()
+
+        bet_count = int((slate["decision"] == "BET").sum())
+        watch_count = int((slate["decision"] == "WATCH").sum())
+        pass_count = int((slate["decision"] == "PASS").sum())
+        best_score = float(slate["opportunity_score"].max())
+
+        q1, q2, q3, q4 = st.columns(4)
+        q1.metric("Slate Matches", len(slate))
+        q2.metric("Bet Candidates", bet_count)
+        q3.metric("Watch List", watch_count)
+        q4.metric("Top Opportunity Score", f"{best_score:.1f}")
+
+        display = filtered_slate[
+            [
+                "slate_id", "match_date", "tournament", "round", "player_a", "player_b",
+                "market_odds_a", "market_odds_b", "model_probability_a",
+                "fair_odds_a", "no_vig_edge", "estimated_roi", "confidence",
+                "decision", "opportunity_score"
+            ]
+        ].copy()
+        display["model_probability_a"] = display["model_probability_a"].map(lambda x: f"{x:.1%}")
+        display["no_vig_edge"] = display["no_vig_edge"].map(lambda x: f"{x:+.1%}")
+        display["estimated_roi"] = display["estimated_roi"].map(lambda x: f"{x:+.1%}")
+        display["opportunity_score"] = display["opportunity_score"].map(lambda x: f"{x:.1f}")
+        st.dataframe(display, use_container_width=True, hide_index=True)
+
+        st.markdown("#### Open a Matchup for Deep Analysis")
+        selected_slate_id = st.selectbox(
+            "Slate matchup",
+            slate["slate_id"].astype(int).tolist(),
+            format_func=lambda x: (
+                f"#{x} — "
+                f"{slate.loc[slate['slate_id'] == x, 'player_a'].iloc[0]} vs "
+                f"{slate.loc[slate['slate_id'] == x, 'player_b'].iloc[0]}"
+            ),
+        )
+        selected_slate = slate[slate["slate_id"] == selected_slate_id].iloc[0]
+
+        a1, a2, a3 = st.columns(3)
+        a1.metric("Decision", selected_slate["decision"])
+        a2.metric("Expected ROI", f"{selected_slate['estimated_roi']:+.1%}")
+        a3.metric("Fair line — A", format_american(selected_slate["fair_odds_a"]))
+
+        load_col, delete_col = st.columns(2)
+        if load_col.button(
+            "Load into Fair Line Engine",
+            type="primary",
+            use_container_width=True,
+        ):
+            surface_values = ["Hard", "Clay", "Grass", "Indoor Hard"]
+            round_values = ["R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"]
+            st.session_state.pending_fair_line_prefill = {
+                "fle_date": date.fromisoformat(str(selected_slate["match_date"])),
+                "fle_tournament": str(selected_slate["tournament"]),
+                "fle_surface": (
+                    str(selected_slate["surface"])
+                    if str(selected_slate["surface"]) in surface_values else "Hard"
+                ),
+                "fle_round": (
+                    str(selected_slate["round"])
+                    if str(selected_slate["round"]) in round_values else "R32"
+                ),
+                "fle_favorite": str(selected_slate["player_a"]),
+                "fle_opponent": str(selected_slate["player_b"]),
+                "fle_market_a": int(selected_slate["market_odds_a"]),
+                "fle_market_b": int(selected_slate["market_odds_b"]),
+            }
+            st.success("Matchup loaded. Open the Fair Line Engine tab.")
+            st.rerun()
+
+        if delete_col.button("Remove from Slate", use_container_width=True):
+            st.session_state.daily_slate = st.session_state.daily_slate[
+                st.session_state.daily_slate["slate_id"] != selected_slate_id
+            ].reset_index(drop=True)
+            st.success("Matchup removed.")
+            st.rerun()
+
+        export_slate = normalize_slate(st.session_state.daily_slate)
+        st.download_button(
+            "Download Daily Slate CSV",
+            export_slate.to_csv(index=False).encode("utf-8"),
+            f"macabets_daily_slate_{date.today().isoformat()}.csv",
+            "text/csv",
+            use_container_width=True,
+        )
+
 
 with tabs[8]:
     st.subheader("Backup and Export")
