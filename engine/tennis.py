@@ -451,256 +451,6 @@ def simulate_matches(
     }
 
 
-
-def _sets_played_from_score(score: object) -> int:
-    """Best-effort set count from ATP score text."""
-    text = str(score or "").upper()
-    if not text or text == "NAN":
-        return 0
-    return len(re.findall(r"\d+\s*-\s*\d+", text))
-
-
-def fatigue_profile(rows: pd.DataFrame, event_date: date) -> dict:
-    """
-    Expanded workload profile using only information available in the match database.
-    Manual travel, late-finish and injury inputs are added separately in analyze().
-    """
-    if rows.empty:
-        return {
-            "matches_3": 0,
-            "matches_7": 0,
-            "matches_14": 0,
-            "sets_3": 0,
-            "sets_7": 0,
-            "deciders_7": 0,
-            "consecutive_weeks": 0,
-            "rest_days": 30,
-            "score": 0.0,
-        }
-
-    event_ts = pd.Timestamp(event_date)
-    recent_3 = rows[rows["date"] >= event_ts - pd.Timedelta(days=3)]
-    recent_7 = rows[rows["date"] >= event_ts - pd.Timedelta(days=7)]
-    recent_14 = rows[rows["date"] >= event_ts - pd.Timedelta(days=14)]
-
-    sets_3 = int(recent_3["score"].map(_sets_played_from_score).sum())
-    sets_7 = int(recent_7["score"].map(_sets_played_from_score).sum())
-    deciders_7 = int(
-        (recent_7["score"].map(_sets_played_from_score) >= 3).sum()
-    )
-
-    active_weeks = set(
-        pd.to_datetime(recent_14["date"]).dt.to_period("W").astype(str).tolist()
-    )
-    consecutive_weeks = min(len(active_weeks), 3)
-    rest_days = max(0, int((event_ts - rows["date"].max()).days))
-
-    score = (
-        len(recent_3) * 1.20
-        + len(recent_7) * 0.65
-        + len(recent_14) * 0.18
-        + sets_3 * 0.22
-        + sets_7 * 0.10
-        + deciders_7 * 0.75
-        + max(0, consecutive_weeks - 1) * 0.70
-        - min(rest_days, 7) * 0.25
-    )
-
-    return {
-        "matches_3": int(len(recent_3)),
-        "matches_7": int(len(recent_7)),
-        "matches_14": int(len(recent_14)),
-        "sets_3": sets_3,
-        "sets_7": sets_7,
-        "deciders_7": deciders_7,
-        "consecutive_weeks": consecutive_weeks,
-        "rest_days": rest_days,
-        "score": float(score),
-    }
-
-
-def surface_transition_profile(
-    rows: pd.DataFrame,
-    current_surface: str,
-    event_date: date,
-) -> dict:
-    """Measure how recently and how often the player has competed on this surface."""
-    if rows.empty:
-        return {
-            "previous_surface": None,
-            "surface_changed": False,
-            "matches_current_surface_30": 0,
-            "days_since_current_surface": None,
-            "adaptation_score": 0.5,
-        }
-
-    event_ts = pd.Timestamp(event_date)
-    previous = rows.iloc[-1]
-    previous_surface = str(previous.get("surface", ""))
-    surface_changed = previous_surface.casefold() != str(current_surface).casefold()
-
-    same_surface = rows[
-        rows["surface"].astype(str).str.casefold() == str(current_surface).casefold()
-    ]
-    recent_same = same_surface[
-        same_surface["date"] >= event_ts - pd.Timedelta(days=30)
-    ]
-
-    if same_surface.empty:
-        days_since = None
-    else:
-        days_since = max(0, int((event_ts - same_surface["date"].max()).days))
-
-    recent_matches = int(len(recent_same))
-    adaptation = 0.50
-    if not surface_changed:
-        adaptation += 0.20
-    adaptation += min(recent_matches, 4) * 0.075
-    if surface_changed and recent_matches == 0:
-        adaptation -= 0.18
-    if days_since is not None and days_since > 60:
-        adaptation -= 0.10
-
-    return {
-        "previous_surface": previous_surface or None,
-        "surface_changed": bool(surface_changed),
-        "matches_current_surface_30": recent_matches,
-        "days_since_current_surface": days_since,
-        "adaptation_score": float(np.clip(adaptation, 0.10, 0.90)),
-    }
-
-
-def infer_handedness(rows: pd.DataFrame, player: str) -> str:
-    """Infer handedness from the latest available ATP match record."""
-    if rows.empty:
-        return "Unknown"
-
-    key = norm(player)
-    for _, row in rows.sort_values("date", ascending=False).iterrows():
-        won = norm(row.get("winner_name", "")) == key
-        column = "winner_hand" if won else "loser_hand"
-        raw = str(row.get(column, "")).strip().upper()
-        if raw == "L":
-            return "Left"
-        if raw == "R":
-            return "Right"
-
-    return "Unknown"
-
-
-def style_profile(profile_data: dict, manual_style: str = "Auto") -> dict:
-    """Create a transparent high-level playing-style label."""
-    if manual_style and manual_style != "Auto":
-        return {
-            "label": manual_style,
-            "serve_score": float(profile_data["serve_points_won"]),
-            "return_score": float(profile_data["return_points_won"]),
-            "manual": True,
-        }
-
-    serve = float(profile_data["serve_points_won"])
-    ret = float(profile_data["return_points_won"])
-
-    if serve >= 0.665 and ret < 0.385:
-        label = "Big Server"
-    elif ret >= 0.405 and serve < 0.635:
-        label = "Elite Returner"
-    elif serve >= 0.645 and ret >= 0.395:
-        label = "Aggressive All-Court"
-    elif serve < 0.625 and ret >= 0.395:
-        label = "Counterpuncher"
-    else:
-        label = "Balanced Baseliner"
-
-    return {
-        "label": label,
-        "serve_score": serve,
-        "return_score": ret,
-        "manual": False,
-    }
-
-
-def style_matchup_adjustment(
-    style_a: dict,
-    style_b: dict,
-    handedness_a: str,
-    handedness_b: str,
-    surface: str,
-) -> tuple[float, str]:
-    """Small matchup adjustment; capped because style tags are coarse."""
-    a = style_a["label"]
-    b = style_b["label"]
-    surface_key = str(surface).casefold()
-    impact = 0.0
-    notes = []
-
-    if a == "Elite Returner" and b == "Big Server":
-        impact += 0.018
-        notes.append("Player A's return profile counters Player B's serve dependence")
-    elif b == "Elite Returner" and a == "Big Server":
-        impact -= 0.018
-        notes.append("Player B's return profile counters Player A's serve dependence")
-
-    if a == "Counterpuncher" and b in {"Aggressive All-Court", "Big Server"}:
-        impact += 0.009 if surface_key == "clay" else 0.003
-        notes.append("Player A's defensive profile gains value in longer exchanges")
-    elif b == "Counterpuncher" and a in {"Aggressive All-Court", "Big Server"}:
-        impact -= 0.009 if surface_key == "clay" else 0.003
-        notes.append("Player B's defensive profile gains value in longer exchanges")
-
-    if a == "Big Server" and surface_key in {"grass", "carpet"}:
-        impact += 0.008
-    if b == "Big Server" and surface_key in {"grass", "carpet"}:
-        impact -= 0.008
-
-    if handedness_a != handedness_b and "Left" in {handedness_a, handedness_b}:
-        # Do not assume the left-hander always benefits; record the asymmetry and
-        # apply only a very small adjustment toward the left-handed player.
-        impact += 0.004 if handedness_a == "Left" else -0.004
-        notes.append("Opposite-handed matchup creates a small left-handed asymmetry")
-
-    reason = "; ".join(notes) if notes else "No material style interaction detected"
-    return float(np.clip(impact, -0.025, 0.025)), reason
-
-
-def injury_risk_score(status: str) -> float:
-    return {
-        "Clear": 0.0,
-        "Minor concern": 0.012,
-        "Recent medical timeout": 0.022,
-        "Returning from layoff": 0.028,
-        "Recent retirement": 0.040,
-        "Significant concern": 0.050,
-    }.get(str(status), 0.0)
-
-
-def motivation_score(
-    home_event: bool,
-    defending_status: str,
-    priority: str,
-    ranking_pressure: str,
-) -> float:
-    score = 0.0
-    if home_event:
-        score += 0.006
-    score += {
-        "None": 0.0,
-        "Defending meaningful points": 0.006,
-        "Defending title/final": 0.010,
-    }.get(str(defending_status), 0.0)
-    score += {
-        "Low": -0.010,
-        "Normal": 0.0,
-        "High": 0.008,
-    }.get(str(priority), 0.0)
-    score += {
-        "None": 0.0,
-        "Moderate": 0.003,
-        "High": 0.006,
-    }.get(str(ranking_pressure), 0.0)
-    return score
-
-
 def analyze(
     matches: pd.DataFrame,
     player_a: str,
@@ -713,46 +463,11 @@ def analyze(
     tournament_category_label: str | None = None,
     environment: str = "Outdoor",
     match_format: str | None = None,
-    style_a: str = "Auto",
-    style_b: str = "Auto",
-    handedness_a: str = "Auto",
-    handedness_b: str = "Auto",
-    injury_status_a: str = "Clear",
-    injury_status_b: str = "Clear",
-    travel_load_a: str = "None",
-    travel_load_b: str = "None",
-    late_finish_a: bool = False,
-    late_finish_b: bool = False,
-    home_event_a: bool = False,
-    home_event_b: bool = False,
-    defending_status_a: str = "None",
-    defending_status_b: str = "None",
-    priority_a: str = "Normal",
-    priority_b: str = "Normal",
-    ranking_pressure_a: str = "None",
-    ranking_pressure_b: str = "None",
-    draw_pressure_a: str = "Normal",
-    draw_pressure_b: str = "Normal",
 ) -> dict:
     rows_a = perspective(matches, player_a, event_date)
     rows_b = perspective(matches, player_b, event_date)
     pa = profile(rows_a, surface, event_date)
     pb = profile(rows_b, surface, event_date)
-
-    fatigue_profile_a = fatigue_profile(rows_a, event_date)
-    fatigue_profile_b = fatigue_profile(rows_b, event_date)
-    transition_a = surface_transition_profile(rows_a, surface, event_date)
-    transition_b = surface_transition_profile(rows_b, surface, event_date)
-    playing_style_a = style_profile(pa, style_a)
-    playing_style_b = style_profile(pb, style_b)
-    detected_hand_a = infer_handedness(rows_a, player_a)
-    detected_hand_b = infer_handedness(rows_b, player_b)
-    effective_hand_a = (
-        detected_hand_a if handedness_a == "Auto" else handedness_a
-    )
-    effective_hand_b = (
-        detected_hand_b if handedness_b == "Auto" else handedness_b
-    )
 
     overall, surface_table = elo_tables(matches, surface, event_date)
     opponent_strength_a = opponent_strength_profile(
@@ -819,57 +534,11 @@ def analyze(
         -.04, .04
     ))
 
-    travel_penalty = {"None": 0.0, "Moderate": 0.9, "Heavy": 1.8}
-    fatigue_score_a = (
-        fatigue_profile_a["score"]
-        + travel_penalty.get(travel_load_a, 0.0)
-        + (1.2 if late_finish_a else 0.0)
-    )
-    fatigue_score_b = (
-        fatigue_profile_b["score"]
-        + travel_penalty.get(travel_load_b, 0.0)
-        + (1.2 if late_finish_b else 0.0)
-    )
+    fatigue_a = pa["matches_7"] * .7 + pa["matches_14"] * .22 - min(pa["rest_days"], 7) * .1
+    fatigue_b = pb["matches_7"] * .7 + pb["matches_14"] * .22 - min(pb["rest_days"], 7) * .1
     fatigue = float(np.clip(
-        (fatigue_score_b - fatigue_score_a) * .007 * weights["fatigue"],
-        -.055, .055
-    ))
-
-    transition = float(np.clip(
-        (
-            transition_a["adaptation_score"]
-            - transition_b["adaptation_score"]
-        ) * 0.045,
-        -0.035,
-        0.035,
-    ))
-
-    style_matchup, style_reason = style_matchup_adjustment(
-        playing_style_a,
-        playing_style_b,
-        effective_hand_a,
-        effective_hand_b,
-        surface,
-    )
-
-    injury_a = injury_risk_score(injury_status_a)
-    injury_b = injury_risk_score(injury_status_b)
-    injury = float(np.clip(injury_b - injury_a, -0.05, 0.05))
-
-    motivation_a = motivation_score(
-        home_event_a, defending_status_a, priority_a, ranking_pressure_a
-    )
-    motivation_b = motivation_score(
-        home_event_b, defending_status_b, priority_b, ranking_pressure_b
-    )
-    motivation = float(np.clip(motivation_a - motivation_b, -0.025, 0.025))
-
-    draw_values = {"Favorable": 0.003, "Normal": 0.0, "Difficult": -0.004}
-    draw_context = float(np.clip(
-        draw_values.get(draw_pressure_a, 0.0)
-        - draw_values.get(draw_pressure_b, 0.0),
-        -0.008,
-        0.008,
+        (fatigue_b - fatigue_a) * .006 * weights["fatigue"],
+        -.04, .04
     ))
 
     pressure = float(np.clip(
@@ -904,35 +573,10 @@ def analyze(
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
          f"{player_b} {pb['surface_win']:.0%}."),
-        ("Fatigue 2.0", fatigue,
-         f"{player_a}: {fatigue_profile_a['matches_7']} matches, "
-         f"{fatigue_profile_a['sets_7']} sets, {fatigue_profile_a['deciders_7']} deciders "
-         f"in 7 days, {fatigue_profile_a['rest_days']} rest days, travel {travel_load_a}"
-         f"{', late finish' if late_finish_a else ''}. {player_b}: "
-         f"{fatigue_profile_b['matches_7']} matches, {fatigue_profile_b['sets_7']} sets, "
-         f"{fatigue_profile_b['deciders_7']} deciders, "
-         f"{fatigue_profile_b['rest_days']} rest days, travel {travel_load_b}"
-         f"{', late finish' if late_finish_b else ''}."),
-        ("Surface transition", transition,
-         f"{player_a}: previous surface {transition_a['previous_surface'] or 'unknown'}, "
-         f"{transition_a['matches_current_surface_30']} current-surface matches in 30 days, "
-         f"adaptation {transition_a['adaptation_score']:.0%}. {player_b}: previous surface "
-         f"{transition_b['previous_surface'] or 'unknown'}, "
-         f"{transition_b['matches_current_surface_30']} current-surface matches, "
-         f"adaptation {transition_b['adaptation_score']:.0%}."),
-        ("Style matchup", style_matchup,
-         f"{player_a}: {playing_style_a['label']} ({effective_hand_a}-handed). "
-         f"{player_b}: {playing_style_b['label']} ({effective_hand_b}-handed). {style_reason}."),
-        ("Injury / retirement risk", injury,
-         f"{player_a}: {injury_status_a}. {player_b}: {injury_status_b}."),
-        ("Tournament motivation", motivation,
-         f"{player_a}: priority {priority_a}, defending {defending_status_a}, "
-         f"ranking pressure {ranking_pressure_a}, home event {home_event_a}. "
-         f"{player_b}: priority {priority_b}, defending {defending_status_b}, "
-         f"ranking pressure {ranking_pressure_b}, home event {home_event_b}."),
-        ("Draw context", draw_context,
-         f"Forward draw pressure: {player_a} {draw_pressure_a}; "
-         f"{player_b} {draw_pressure_b}. This factor is deliberately capped."),
+        ("Context-weighted fatigue", fatigue,
+         f"Last 7/14 days: {player_a} {pa['matches_7']}/{pa['matches_14']} matches with "
+         f"{pa['rest_days']} rest days; {player_b} {pb['matches_7']}/{pb['matches_14']} "
+         f"with {pb['rest_days']} rest days. Context multiplier: {weights['fatigue']:.2f}x."),
         ("Event pressure", pressure,
          f"{category}, {round_label}, {match_format}. Advanced-round win rate: "
          f"{player_a} {pa['advanced_win']:.0%}; {player_b} {pb['advanced_win']:.0%}. "
@@ -948,22 +592,7 @@ def analyze(
 
     sample = min(pa["sample"], pb["sample"])
     quality = int(np.clip(round(3 + min(sample, 50) / 8), 3, 10))
-    uncertainty_penalty = (
-        int(injury_status_a != "Clear")
-        + int(injury_status_b != "Clear")
-        + int(style_a == "Auto")
-        + int(style_b == "Auto")
-    ) * 0.25
-    confidence = int(np.clip(
-        round(
-            5
-            + abs(simulation["win_probability"] - .5) * 8
-            + (quality - 6) * .3
-            - uncertainty_penalty
-        ),
-        1,
-        10,
-    ))
+    confidence = int(np.clip(round(5 + abs(simulation["win_probability"] - .5) * 8 + (quality - 6) * .3), 1, 10))
 
     return {
         "player_a": player_a,
@@ -977,34 +606,6 @@ def analyze(
         "context_weights": weights,
         "opponent_strength_a": opponent_strength_a,
         "opponent_strength_b": opponent_strength_b,
-        "fatigue_profile_a": fatigue_profile_a,
-        "fatigue_profile_b": fatigue_profile_b,
-        "surface_transition_a": transition_a,
-        "surface_transition_b": transition_b,
-        "playing_style_a": playing_style_a,
-        "playing_style_b": playing_style_b,
-        "handedness_a": effective_hand_a,
-        "handedness_b": effective_hand_b,
-        "handedness_source_a": "automatic" if handedness_a == "Auto" else "manual override",
-        "handedness_source_b": "automatic" if handedness_b == "Auto" else "manual override",
-        "injury_status_a": injury_status_a,
-        "injury_status_b": injury_status_b,
-        "motivation_context": {
-            "player_a": {
-                "home_event": home_event_a,
-                "defending_status": defending_status_a,
-                "priority": priority_a,
-                "ranking_pressure": ranking_pressure_a,
-                "draw_pressure": draw_pressure_a,
-            },
-            "player_b": {
-                "home_event": home_event_b,
-                "defending_status": defending_status_b,
-                "priority": priority_b,
-                "ranking_pressure": ranking_pressure_b,
-                "draw_pressure": draw_pressure_b,
-            },
-        },
         "base_probability": base,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
