@@ -1,4 +1,3 @@
-
 import io
 import math
 from datetime import date, datetime
@@ -15,6 +14,7 @@ try:
         player_names as tennis_player_names,
         tournament_names as tennis_tournament_names,
         tournament_surface as tennis_tournament_surface,
+        tournament_category as tennis_tournament_category,
     )
     TENNIS_ENGINE_AVAILABLE = True
     TENNIS_ENGINE_IMPORT_ERROR = ""
@@ -22,7 +22,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.8"
+APP_VERSION = "Macabets Tennis v0.9"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -424,14 +424,14 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.8", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.9", expanded=True):
         st.markdown(
             """
-            - Direct explanation of why a considered bet grades BET, WATCH, or PASS
-            - Separates player strength from betting-price value
-            - Shows the strongest factors supporting and opposing your selected side
-            - Identifies “good player, bad price” situations
-            - Adds a concise Macabets verdict before the detailed model table
+            - First version of the Macabets Context Engine
+            - Event category, round, surface, environment, and match format affect the fair line
+            - Dynamic Elo, serve, return, form, fatigue, pressure, and deciding-match weights
+            - Transparent context-weight display so adjustments can be audited
+            - Best-of-five simulations are controlled by the selected match format
             """
         )
 
@@ -608,7 +608,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v4")
+    st.subheader("Automatic Match Analyzer — Tennis v5")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -688,6 +688,39 @@ with tabs[3]:
                 key="auto_round",
             )
 
+            detected_category = tennis_tournament_category(matches, tournament)
+            category_options = [
+                "Grand Slam", "Masters 1000", "ATP 500", "ATP 250",
+                "Challenger", "Tour Finals", "Davis Cup"
+            ]
+            c1, c2, c3 = st.columns(3)
+            tournament_category = c1.selectbox(
+                "Event category",
+                category_options,
+                index=(
+                    category_options.index(detected_category)
+                    if detected_category in category_options else 3
+                ),
+                key="auto_tournament_category",
+                help="Macabets infers this from the event, but you can correct it.",
+            )
+            environment = c2.selectbox(
+                "Environment",
+                ["Outdoor", "Indoor"],
+                key="auto_environment",
+            )
+            inferred_format = (
+                "Best of 5"
+                if tournament_category == "Grand Slam" and round_name != "Qualifying"
+                else "Best of 3"
+            )
+            match_format = c3.selectbox(
+                "Match format",
+                ["Best of 3", "Best of 5"],
+                index=0 if inferred_format == "Best of 3" else 1,
+                key="auto_match_format",
+            )
+
             p1, p2 = st.columns(2)
             default_a_index = player_a_options.index(existing_a) if existing_a in player_a_options else 0
             default_b_index = player_b_options.index(existing_b) if existing_b in player_b_options else min(1, len(player_b_options) - 1)
@@ -761,12 +794,18 @@ with tabs[3]:
                             surface=surface,
                             event_date=match_date,
                             simulations=int(simulations),
+                            tournament_category_label=tournament_category,
+                            environment=environment,
+                            match_format=match_format,
                         )
                         st.session_state.automatic_match_market = {
                             "market_odds_a": int(market_odds_a),
                             "market_odds_b": int(market_odds_b),
                             "match_date": match_date.isoformat(),
                             "considering_bet": considering_bet,
+                            "tournament_category": tournament_category,
+                            "environment": environment,
+                            "match_format": match_format,
                         }
                     except Exception as exc:
                         st.session_state.pop("automatic_match_result", None)
@@ -863,6 +902,14 @@ with tabs[3]:
 
                 st.divider()
                 st.markdown(f"### {analyzed_a} vs {analyzed_b}")
+
+                st.markdown("#### Match Context")
+                cx1, cx2, cx3, cx4, cx5 = st.columns(5)
+                cx1.metric("Category", result.get("tournament_category", "—"))
+                cx2.metric("Round", result.get("round", "—"))
+                cx3.metric("Surface", result.get("surface", "—"))
+                cx4.metric("Environment", result.get("environment", "—"))
+                cx5.metric("Format", result.get("match_format", "—"))
 
                 st.markdown("#### Objective Match Price")
                 m1, m2, m3, m4 = st.columns(4)
@@ -1083,6 +1130,35 @@ with tabs[3]:
                             "The recommendation is being made with limited data quality. "
                             "The calculated edge may be less reliable than the headline number."
                         )
+
+                st.markdown("#### Context Engine Weights")
+                context_weights_result = result.get("context_weights", {})
+                if context_weights_result:
+                    cw1, cw2, cw3, cw4 = st.columns(4)
+                    cw1.metric(
+                        "Base Elo mix",
+                        f"{context_weights_result.get('overall_elo', 0):.0%} overall",
+                        f"{context_weights_result.get('surface_elo', 0):.0%} surface",
+                    )
+                    cw2.metric(
+                        "Serve / return",
+                        f"{context_weights_result.get('serve', 1):.2f}x serve",
+                        f"{context_weights_result.get('return', 1):.2f}x return",
+                    )
+                    cw3.metric(
+                        "Form / fatigue",
+                        f"{context_weights_result.get('form', 1):.2f}x form",
+                        f"{context_weights_result.get('fatigue', 1):.2f}x fatigue",
+                    )
+                    cw4.metric(
+                        "Pressure",
+                        f"{context_weights_result.get('pressure', 1):.2f}x",
+                        f"{context_weights_result.get('deciding', 1):.2f}x deciding",
+                    )
+                    st.caption(
+                        "These weights are selected before the player comparison. They depend "
+                        "only on the match context and do not change based on the side you want to bet."
+                    )
 
                 st.markdown("#### Model Foundation")
                 e1, e2, e3, e4 = st.columns(4)
