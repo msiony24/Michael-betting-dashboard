@@ -23,7 +23,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.10"
+APP_VERSION = "Macabets Tennis v0.11"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -440,15 +440,16 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.10", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.11", expanded=True):
         st.markdown(
             """
-            - Opponent Strength Index added to the fair-line calculation
-            - Recent records are adjusted for the quality of opposition
-            - Average opponent Elo and ranking over the last 10 matches
-            - Recent records against top-50 and top-100 opponents
-            - Quality-adjusted form score for both players
-            - Transparent probability impact in the model breakdown
+            - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
+            - Surface Transition Engine: recent exposure and adaptation to the current surface
+            - Opponent Style Matchups with automatic or manual style tags
+            - Injury and retirement-risk context
+            - Tournament motivation: home event, defending points, priority and ranking pressure
+            - Draw-pressure context with deliberately limited model impact
+            - Every new factor appears in the probability-impact breakdown
             """
         )
 
@@ -625,7 +626,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v6")
+    st.subheader("Automatic Match Analyzer — Tennis v7")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -738,6 +739,103 @@ with tabs[3]:
                 key="auto_match_format",
             )
 
+            with st.expander("Advanced match context — Tier 1 & 2", expanded=False):
+                st.caption(
+                    "Leave uncertain fields at their neutral defaults. Manual context should "
+                    "only be entered when the information is known."
+                )
+
+                st.markdown("##### Playing style and handedness")
+                s1, s2, s3, s4 = st.columns(4)
+                style_options = [
+                    "Auto", "Big Server", "Elite Returner", "Aggressive All-Court",
+                    "Counterpuncher", "Balanced Baseliner"
+                ]
+                manual_style_a = s1.selectbox(
+                    "Player A style", style_options, key="auto_style_a"
+                )
+                manual_style_b = s2.selectbox(
+                    "Player B style", style_options, key="auto_style_b"
+                )
+                handedness_a = s3.selectbox(
+                    "Player A hand", ["Right", "Left"], key="auto_hand_a"
+                )
+                handedness_b = s4.selectbox(
+                    "Player B hand", ["Right", "Left"], key="auto_hand_b"
+                )
+
+                st.markdown("##### Health, workload and travel")
+                h1, h2, h3, h4 = st.columns(4)
+                injury_options = [
+                    "Clear", "Minor concern", "Recent medical timeout",
+                    "Returning from layoff", "Recent retirement", "Significant concern"
+                ]
+                injury_status_a = h1.selectbox(
+                    "Player A health", injury_options, key="auto_injury_a"
+                )
+                injury_status_b = h2.selectbox(
+                    "Player B health", injury_options, key="auto_injury_b"
+                )
+                travel_load_a = h3.selectbox(
+                    "Player A travel", ["None", "Moderate", "Heavy"], key="auto_travel_a"
+                )
+                travel_load_b = h4.selectbox(
+                    "Player B travel", ["None", "Moderate", "Heavy"], key="auto_travel_b"
+                )
+                lf1, lf2 = st.columns(2)
+                late_finish_a = lf1.checkbox(
+                    "Player A had a late finish / short turnaround",
+                    key="auto_late_finish_a",
+                )
+                late_finish_b = lf2.checkbox(
+                    "Player B had a late finish / short turnaround",
+                    key="auto_late_finish_b",
+                )
+
+                st.markdown("##### Motivation and tournament context")
+                mca1, mca2 = st.columns(2)
+                with mca1:
+                    st.markdown("**Player A**")
+                    home_event_a = st.checkbox("Home-country event", key="auto_home_a")
+                    defending_status_a = st.selectbox(
+                        "Defending status",
+                        ["None", "Defending meaningful points", "Defending title/final"],
+                        key="auto_defending_a",
+                    )
+                    priority_a = st.selectbox(
+                        "Event priority", ["Low", "Normal", "High"],
+                        index=1, key="auto_priority_a"
+                    )
+                    ranking_pressure_a = st.selectbox(
+                        "Ranking pressure", ["None", "Moderate", "High"],
+                        key="auto_rank_pressure_a",
+                    )
+                    draw_pressure_a = st.selectbox(
+                        "Forward draw", ["Favorable", "Normal", "Difficult"],
+                        index=1, key="auto_draw_a"
+                    )
+
+                with mca2:
+                    st.markdown("**Player B**")
+                    home_event_b = st.checkbox("Home-country event", key="auto_home_b")
+                    defending_status_b = st.selectbox(
+                        "Defending status",
+                        ["None", "Defending meaningful points", "Defending title/final"],
+                        key="auto_defending_b",
+                    )
+                    priority_b = st.selectbox(
+                        "Event priority", ["Low", "Normal", "High"],
+                        index=1, key="auto_priority_b"
+                    )
+                    ranking_pressure_b = st.selectbox(
+                        "Ranking pressure", ["None", "Moderate", "High"],
+                        key="auto_rank_pressure_b",
+                    )
+                    draw_pressure_b = st.selectbox(
+                        "Forward draw", ["Favorable", "Normal", "Difficult"],
+                        index=1, key="auto_draw_b"
+                    )
+
             p1, p2 = st.columns(2)
             default_a_index = player_a_options.index(existing_a) if existing_a in player_a_options else 0
             default_b_index = player_b_options.index(existing_b) if existing_b in player_b_options else min(1, len(player_b_options) - 1)
@@ -814,6 +912,26 @@ with tabs[3]:
                             tournament_category_label=tournament_category,
                             environment=environment,
                             match_format=match_format,
+                            style_a=manual_style_a,
+                            style_b=manual_style_b,
+                            handedness_a=handedness_a,
+                            handedness_b=handedness_b,
+                            injury_status_a=injury_status_a,
+                            injury_status_b=injury_status_b,
+                            travel_load_a=travel_load_a,
+                            travel_load_b=travel_load_b,
+                            late_finish_a=late_finish_a,
+                            late_finish_b=late_finish_b,
+                            home_event_a=home_event_a,
+                            home_event_b=home_event_b,
+                            defending_status_a=defending_status_a,
+                            defending_status_b=defending_status_b,
+                            priority_a=priority_a,
+                            priority_b=priority_b,
+                            ranking_pressure_a=ranking_pressure_a,
+                            ranking_pressure_b=ranking_pressure_b,
+                            draw_pressure_a=draw_pressure_a,
+                            draw_pressure_b=draw_pressure_b,
                         )
                         st.session_state.automatic_match_market = {
                             "market_odds_a": int(market_odds_a),
@@ -1164,6 +1282,42 @@ with tabs[3]:
                             "The recommendation is being made with limited data quality. "
                             "The calculated edge may be less reliable than the headline number."
                         )
+
+                st.markdown("#### Tier 1 & 2 Context")
+                fp_a = result.get("fatigue_profile_a", {})
+                fp_b = result.get("fatigue_profile_b", {})
+                tr_a = result.get("surface_transition_a", {})
+                tr_b = result.get("surface_transition_b", {})
+                ps_a = result.get("playing_style_a", {})
+                ps_b = result.get("playing_style_b", {})
+
+                tc1, tc2 = st.columns(2)
+                with tc1:
+                    st.markdown(f"**{analyzed_a}**")
+                    x1, x2, x3 = st.columns(3)
+                    x1.metric("Style", ps_a.get("label", "—"))
+                    x2.metric("7-day workload", f"{fp_a.get('matches_7', 0)} matches / {fp_a.get('sets_7', 0)} sets")
+                    x3.metric("Rest", f"{fp_a.get('rest_days', 0)} days")
+                    x4, x5, x6 = st.columns(3)
+                    x4.metric("Surface adaptation", f"{tr_a.get('adaptation_score', .5):.0%}")
+                    x5.metric("Recent surface matches", tr_a.get("matches_current_surface_30", 0))
+                    x6.metric("Health", result.get("injury_status_a", "Clear"))
+
+                with tc2:
+                    st.markdown(f"**{analyzed_b}**")
+                    y1, y2, y3 = st.columns(3)
+                    y1.metric("Style", ps_b.get("label", "—"))
+                    y2.metric("7-day workload", f"{fp_b.get('matches_7', 0)} matches / {fp_b.get('sets_7', 0)} sets")
+                    y3.metric("Rest", f"{fp_b.get('rest_days', 0)} days")
+                    y4, y5, y6 = st.columns(3)
+                    y4.metric("Surface adaptation", f"{tr_b.get('adaptation_score', .5):.0%}")
+                    y5.metric("Recent surface matches", tr_b.get("matches_current_surface_30", 0))
+                    y6.metric("Health", result.get("injury_status_b", "Clear"))
+
+                st.caption(
+                    "Automatic workload and surface-transition data are combined with any "
+                    "manual context entered before analysis. Neutral defaults create no adjustment."
+                )
 
                 st.markdown("#### Opponent Strength Index")
                 osa = result.get("opponent_strength_a", {})
