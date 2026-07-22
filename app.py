@@ -1,289 +1,654 @@
 
-from datetime import date
+import io
 import math
+from datetime import date, datetime
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import streamlit as st
 
-from engine.data import load_matches
-from engine.tennis import (
-    analyze,
-    implied_probability,
-    player_names,
-    tournament_names,
-    tournament_surface,
-)
-
-
 st.set_page_config(
-    page_title="Macabets",
-    page_icon="M",
+    page_title="Michael Betting Dashboard",
+    page_icon="📊",
     layout="wide",
 )
 
+SPORTS = ["NFL", "College Football", "NBA", "Tennis", "UFC", "Boxing"]
+STATUSES = ["Pending", "Won", "Lost", "Void", "Cashed Out"]
+BET_TYPES = ["Moneyline", "Spread", "Total", "Prop", "Parlay", "Live"]
+DEFAULT_COLUMNS = [
+    "id", "date", "sport", "event", "selection", "bet_type", "odds",
+    "stake", "target_profit", "status", "result_profit", "book",
+    "confidence", "notes"
+]
+
+
+def money(value):
+    return f"${value:,.2f}"
+
+
+def american_to_decimal(odds):
+    if odds == 0:
+        return 1.0
+    return 1 + (100 / abs(odds) if odds < 0 else odds / 100)
+
+
+def probability_to_american(probability):
+    """Convert a win probability (0-1) to fair American odds."""
+    probability = min(max(float(probability), 0.0001), 0.9999)
+    if probability >= 0.5:
+        return -round(100 * probability / (1 - probability))
+    return round(100 * (1 - probability) / probability)
+
+
+def format_american(odds):
+    odds = int(round(odds))
+    return f"+{odds}" if odds > 0 else str(odds)
+
+
+def fair_line_probability(scores_favorite, scores_opponent, weights, confidence):
+    """Create a first-pass fair probability from a weighted matchup scorecard.
+
+    The confidence input shrinks uncertain estimates toward 50%, preventing
+    low-information matchups from producing extreme prices.
+    """
+    weighted_difference = sum(
+        weights[key] * (scores_favorite[key] - scores_opponent[key])
+        for key in weights
+    )
+    raw_probability = 1 / (1 + math.exp(-0.45 * weighted_difference))
+    confidence_factor = min(max(confidence / 10, 0.1), 1.0)
+    adjusted_probability = 0.5 + (raw_probability - 0.5) * confidence_factor
+    return min(max(adjusted_probability, 0.02), 0.98), weighted_difference
+
+
+def implied_probability(odds):
+    if odds < 0:
+        return abs(odds) / (abs(odds) + 100)
+    if odds > 0:
+        return 100 / (odds + 100)
+    return 0.0
+
+
+def stake_to_win(odds, target):
+    if odds < 0:
+        return target * abs(odds) / 100
+    if odds > 0:
+        return target * 100 / odds
+    return 0.0
+
+
+def potential_profit(odds, stake):
+    if odds < 0:
+        return stake * 100 / abs(odds)
+    if odds > 0:
+        return stake * odds / 100
+    return 0.0
+
+
+def kelly_fraction(model_prob, odds):
+    dec = american_to_decimal(odds)
+    b = dec - 1
+    q = 1 - model_prob
+    if b <= 0:
+        return 0.0
+    return max(0.0, (b * model_prob - q) / b)
+
+
+def empty_bets():
+    return pd.DataFrame(columns=DEFAULT_COLUMNS)
+
+
+def normalize_bets(df):
+    clean = df.copy()
+    for col in DEFAULT_COLUMNS:
+        if col not in clean.columns:
+            clean[col] = ""
+    clean = clean[DEFAULT_COLUMNS]
+    numeric = ["odds", "stake", "target_profit", "result_profit", "confidence"]
+    for col in numeric:
+        clean[col] = pd.to_numeric(clean[col], errors="coerce").fillna(0)
+    clean["status"] = clean["status"].replace("", "Pending")
+    return clean
+
+
+if "bets" not in st.session_state:
+    st.session_state.bets = empty_bets()
+
+if "bankroll" not in st.session_state:
+    st.session_state.bankroll = 100000.0
+
+if "target_profit" not in st.session_state:
+    st.session_state.target_profit = 10000.0
+
+
 st.markdown("""
 <style>
-.block-container {max-width: 1180px; padding-top: 2rem; padding-bottom: 4rem;}
-[data-testid="stMetric"] {
-    border: 1px solid rgba(128,128,128,.22);
-    border-radius: 14px;
-    padding: 14px 16px;
-}
-[data-testid="stMetricValue"] {font-size: 2rem;}
-div.stButton > button {
-    min-height: 3.25rem;
-    border-radius: 12px;
-    font-weight: 700;
-}
-.macabets-kicker {
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    opacity: .62;
-    font-size: .8rem;
-}
-.macabets-title {
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: .4rem;
-}
-.sim-hero {
-    border: 1px solid rgba(128,128,128,.24);
-    border-radius: 18px;
-    padding: 24px;
-    margin: 14px 0 20px;
-    text-align: center;
-    background: rgba(128,128,128,.06);
-}
-.sim-label {font-size:.75rem; letter-spacing:.14em; opacity:.6; font-weight:700;}
-.sim-main {font-size:1.25rem; font-weight:700; margin-top:10px;}
-.sim-percent {font-size:4rem; line-height:1.05; font-weight:850; margin:8px 0;}
-.sim-secondary {opacity:.7;}
-.result-card {
-    border: 1px solid rgba(128,128,128,.22);
-    border-radius: 16px;
-    padding: 18px;
-}
+.block-container {padding-top: 1.2rem; padding-bottom: 3rem;}
+[data-testid="stMetricValue"] {font-size: 1.65rem;}
+.small-note {color: #777; font-size: .88rem;}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="macabets-kicker">Betting Intelligence</div>', unsafe_allow_html=True)
-st.markdown('<div class="macabets-title">Macabets</div>', unsafe_allow_html=True)
-st.caption("Search a matchup. Macabets handles the model, context and simulations.")
+st.title("Michael Betting Dashboard")
+st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
 
-nav = st.radio(
-    "Navigation",
-    ["Analyze Matchup", "My Bets"],
-    horizontal=True,
-    label_visibility="collapsed",
-)
-
-if nav == "Analyze Matchup":
-    sport = st.selectbox(
-        "Sport",
-        ["Tennis", "NFL", "College Football", "NBA", "UFC", "Boxing"],
-        label_visibility="collapsed",
+with st.sidebar:
+    st.header("Core Settings")
+    st.session_state.bankroll = st.number_input(
+        "Starting bankroll",
+        min_value=0.0,
+        value=float(st.session_state.bankroll),
+        step=1000.0,
     )
+    st.session_state.target_profit = st.number_input(
+        "Default target profit",
+        min_value=1.0,
+        value=float(st.session_state.target_profit),
+        step=500.0,
+    )
+    st.divider()
+    st.subheader("Restore / Import")
+    uploaded = st.file_uploader("Upload a prior bets CSV", type=["csv"])
+    if uploaded is not None:
+        try:
+            imported = normalize_bets(pd.read_csv(uploaded))
+            st.session_state.bets = imported
+            st.success(f"Loaded {len(imported)} bets.")
+        except Exception as exc:
+            st.error(f"Could not load CSV: {exc}")
 
-    if sport != "Tennis":
-        st.info(f"The automatic {sport} engine is next. Tennis is the first working simulation model.")
-        st.stop()
+bets = normalize_bets(st.session_state.bets)
+settled = bets[bets["status"].isin(["Won", "Lost", "Void", "Cashed Out"])]
+pending = bets[bets["status"] == "Pending"]
+net_profit = float(settled["result_profit"].sum()) if not settled.empty else 0.0
+current_bankroll = st.session_state.bankroll + net_profit
+total_staked = float(settled["stake"].sum()) if not settled.empty else 0.0
+roi = net_profit / total_staked if total_staked else 0.0
+decisions = settled[settled["status"].isin(["Won", "Lost"])]
+wins = int((decisions["status"] == "Won").sum()) if not decisions.empty else 0
+win_rate = wins / len(decisions) if len(decisions) else 0.0
+pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
-    try:
-        with st.spinner("Loading Macabets tennis database..."):
-            matches, load_errors = load_matches()
-    except Exception as exc:
-        st.error("Macabets could not load its tennis database.")
-        st.code(str(exc))
-        st.caption("Open Manage app, choose Reboot app once, and return to this page.")
-        st.stop()
+tabs = st.tabs([
+    "Dashboard", "New Bet", "Bet Ledger", "Fair Line Engine",
+    "Matchup Lab", "Outcome Simulator", "Performance", "Backup"
+])
 
-    players = player_names(matches)
-    tournaments = tournament_names(matches)
+with tabs[0]:
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Current Bankroll", money(current_bankroll), money(net_profit))
+    c2.metric("Pending Exposure", money(pending_exposure))
+    c3.metric("Settled ROI", f"{roi:.1%}")
+    c4.metric("Win Rate", f"{win_rate:.1%}")
+    c5.metric("Bets Logged", f"{len(bets)}")
 
-    st.markdown("## Search matchup")
-    c1, vs, c2 = st.columns([1, .12, 1])
-    with c1:
-        player_a = st.selectbox(
-            "Player 1",
-            players,
-            index=None,
-            placeholder="Start typing a player",
+    if current_bankroll > 0:
+        exposure_pct = pending_exposure / current_bankroll
+        if exposure_pct >= 0.25:
+            st.error(f"Pending exposure is {exposure_pct:.1%} of bankroll. This is a major concentration risk.")
+        elif exposure_pct >= 0.15:
+            st.warning(f"Pending exposure is {exposure_pct:.1%} of bankroll. Proceed carefully.")
+        elif exposure_pct > 0:
+            st.info(f"Pending exposure is {exposure_pct:.1%} of bankroll.")
+
+    left, right = st.columns([1.2, 1])
+    with left:
+        st.subheader("Recent Bets")
+        if bets.empty:
+            st.write("No bets logged yet.")
+        else:
+            view = bets.sort_values("id", ascending=False).head(10)
+            st.dataframe(
+                view[["date", "sport", "event", "selection", "odds", "stake", "status", "result_profit"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+    with right:
+        st.subheader("Profit by Sport")
+        if settled.empty:
+            st.write("Settle bets to populate this chart.")
+        else:
+            profit_sport = settled.groupby("sport", as_index=False)["result_profit"].sum()
+            fig, ax = plt.subplots()
+            ax.bar(profit_sport["sport"], profit_sport["result_profit"])
+            ax.axhline(0, linewidth=1)
+            ax.set_ylabel("Profit / Loss ($)")
+            ax.tick_params(axis="x", rotation=35)
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
+
+with tabs[1]:
+    st.subheader("Enter a Bet")
+    a, b, c = st.columns(3)
+    sport = a.selectbox("Sport", SPORTS)
+    event_date = b.date_input("Event date", value=date.today())
+    bet_type = c.selectbox("Bet type", BET_TYPES)
+
+    event = st.text_input("Event / matchup", placeholder="Bills vs Jets")
+    selection = st.text_input("Selection", placeholder="Bills moneyline")
+
+    d, e, f = st.columns(3)
+    odds = d.number_input("American odds", value=-200, step=5)
+    target_profit = e.number_input(
+        "Target profit",
+        min_value=1.0,
+        value=float(st.session_state.target_profit),
+        step=500.0,
+    )
+    suggested_stake = stake_to_win(int(odds), target_profit)
+    stake_mode = f.radio("Stake method", ["Risk enough to win target", "Enter my own stake"], horizontal=True)
+
+    if stake_mode == "Risk enough to win target":
+        stake = suggested_stake
+        f.metric("Required stake", money(stake))
+    else:
+        stake = f.number_input("Stake", min_value=0.0, value=1000.0, step=100.0)
+
+    p_profit = potential_profit(int(odds), stake)
+    implied = implied_probability(int(odds))
+    g, h, i = st.columns(3)
+    g.metric("Potential profit", money(p_profit))
+    h.metric("Implied probability", f"{implied:.1%}")
+    i.metric("Total return", money(stake + p_profit))
+
+    j, k, l = st.columns(3)
+    book = j.text_input("Sportsbook", placeholder="Optional")
+    confidence = k.slider("Confidence", 1, 10, 7)
+    status = l.selectbox("Initial status", STATUSES, index=0)
+    notes = st.text_area("Notes / thesis")
+
+    stake_pct = stake / current_bankroll if current_bankroll > 0 else 0
+    if odds <= -500:
+        st.warning("Very heavy favorite: one loss can erase several wins. Confirm the price is justified.")
+    if stake_pct >= 0.20:
+        st.error(f"This stake is {stake_pct:.1%} of the current bankroll.")
+    elif stake_pct >= 0.10:
+        st.warning(f"This stake is {stake_pct:.1%} of the current bankroll.")
+    elif stake_pct > 0:
+        st.caption(f"Stake size: {stake_pct:.1%} of current bankroll.")
+
+    if st.button("Add Bet", type="primary", use_container_width=True):
+        if not event.strip() or not selection.strip():
+            st.error("Enter both the event and selection.")
+        elif stake <= 0:
+            st.error("Stake must be greater than zero.")
+        else:
+            next_id = int(bets["id"].max()) + 1 if not bets.empty else 1
+            initial_result = 0.0
+            if status == "Won":
+                initial_result = p_profit
+            elif status == "Lost":
+                initial_result = -stake
+            row = {
+                "id": next_id,
+                "date": event_date.isoformat(),
+                "sport": sport,
+                "event": event.strip(),
+                "selection": selection.strip(),
+                "bet_type": bet_type,
+                "odds": int(odds),
+                "stake": float(stake),
+                "target_profit": float(target_profit),
+                "status": status,
+                "result_profit": float(initial_result),
+                "book": book.strip(),
+                "confidence": confidence,
+                "notes": notes.strip(),
+            }
+            st.session_state.bets = pd.concat([bets, pd.DataFrame([row])], ignore_index=True)
+            st.success("Bet added. Open Bet Ledger to settle or edit it.")
+
+with tabs[2]:
+    st.subheader("Bet Ledger")
+    if bets.empty:
+        st.write("No bets have been added.")
+    else:
+        filter_col1, filter_col2 = st.columns(2)
+        sport_filter = filter_col1.multiselect("Filter sport", SPORTS, default=SPORTS)
+        status_filter = filter_col2.multiselect("Filter status", STATUSES, default=STATUSES)
+        filtered = bets[bets["sport"].isin(sport_filter) & bets["status"].isin(status_filter)]
+        st.dataframe(filtered, use_container_width=True, hide_index=True)
+
+        st.divider()
+        st.subheader("Settle or Update a Bet")
+        selected_id = st.selectbox(
+            "Bet ID",
+            bets["id"].astype(int).tolist(),
+            format_func=lambda x: f"#{x} — {bets.loc[bets['id'] == x, 'selection'].iloc[0]}",
         )
-    with vs:
-        st.markdown("<div style='text-align:center;padding-top:2.4rem;font-weight:700'>VS</div>",
-                    unsafe_allow_html=True)
-    with c2:
-        player_b = st.selectbox(
-            "Player 2",
-            players,
-            index=None,
-            placeholder="Start typing a player",
+        selected = bets[bets["id"] == selected_id].iloc[0]
+        u1, u2, u3 = st.columns(3)
+        new_status = u1.selectbox(
+            "Status",
+            STATUSES,
+            index=STATUSES.index(selected["status"]) if selected["status"] in STATUSES else 0,
         )
+        default_result = float(selected["result_profit"])
+        if new_status == "Won":
+            default_result = potential_profit(int(selected["odds"]), float(selected["stake"]))
+        elif new_status == "Lost":
+            default_result = -float(selected["stake"])
+        elif new_status == "Void":
+            default_result = 0.0
+        result_profit = u2.number_input("Net result", value=float(default_result), step=100.0)
+        updated_notes = u3.text_input("Updated note", value=str(selected["notes"]))
 
-    e1, e2, e3, e4 = st.columns(4)
-    tournament = e1.selectbox(
-        "Tournament",
-        tournaments,
-        index=None,
-        placeholder="Start typing a tournament",
-    )
-    round_label = e2.selectbox(
-        "Round",
-        ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
-        index=4,
-    )
-    default_surface = tournament_surface(matches, tournament) if tournament else "Hard"
-    surfaces = ["Hard", "Clay", "Grass", "Carpet"]
-    surface = e3.selectbox(
-        "Surface",
-        surfaces,
-        index=surfaces.index(default_surface) if default_surface in surfaces else 0,
-    )
-    event_date = e4.date_input("Event date", value=date.today())
+        col_save, col_delete = st.columns(2)
+        if col_save.button("Save Update", type="primary", use_container_width=True):
+            idx = st.session_state.bets.index[st.session_state.bets["id"] == selected_id][0]
+            st.session_state.bets.at[idx, "status"] = new_status
+            st.session_state.bets.at[idx, "result_profit"] = float(result_profit)
+            st.session_state.bets.at[idx, "notes"] = updated_notes
+            st.success("Bet updated.")
+            st.rerun()
 
-    with st.expander("Sportsbook price — optional"):
-        o1, o2 = st.columns(2)
-        odds_a_text = o1.text_input(f"{player_a or 'Player 1'} odds", placeholder="-180")
-        odds_b_text = o2.text_input(f"{player_b or 'Player 2'} odds", placeholder="+155")
+        if col_delete.button("Delete Bet", use_container_width=True):
+            st.session_state.bets = st.session_state.bets[st.session_state.bets["id"] != selected_id].reset_index(drop=True)
+            st.success("Bet deleted.")
+            st.rerun()
 
-    run_disabled = not player_a or not player_b or player_a == player_b or not tournament
-    run = st.button(
-        "Run Macabets",
-        type="primary",
-        use_container_width=True,
-        disabled=run_disabled,
-    )
+with tabs[3]:
+    st.subheader("Fair Line Engine — Tennis v1")
+    st.caption("Build an independent price from a structured matchup scorecard, then compare it with the sportsbook.")
 
-    if run:
-        with st.spinner("Running 50,000 matchup simulations..."):
-            st.session_state["analysis"] = analyze(
-                matches,
-                player_a,
-                player_b,
-                tournament,
-                round_label,
-                surface,
-                event_date,
-                simulations=50000,
+    top1, top2, top3 = st.columns([1.2, 1.2, 1])
+    favorite_name = top1.text_input("Player A", value="Favorite", key="fle_favorite")
+    opponent_name = top2.text_input("Player B", value="Opponent", key="fle_opponent")
+    market_odds = top3.number_input("Sportsbook odds on Player A", value=-180, step=5, key="fle_market")
+
+    weights = {
+        "Base quality": 0.24,
+        "Surface and recent form": 0.20,
+        "Serve/return matchup": 0.19,
+        "Physical readiness": 0.14,
+        "Conditions and scheduling": 0.11,
+        "Pressure and experience": 0.12,
+    }
+
+    st.markdown("#### Matchup scorecard")
+    st.caption("Rate each player from 0–10 using the information available before the match.")
+    left, right = st.columns(2)
+    favorite_scores = {}
+    opponent_scores = {}
+    with left:
+        st.markdown(f"**{favorite_name}**")
+        for factor in weights:
+            favorite_scores[factor] = st.slider(
+                factor, 0.0, 10.0, 7.0, 0.5, key=f"fav_{factor}"
+            )
+    with right:
+        st.markdown(f"**{opponent_name}**")
+        for factor in weights:
+            opponent_scores[factor] = st.slider(
+                factor, 0.0, 10.0, 5.5, 0.5, key=f"dog_{factor}"
             )
 
-    result = st.session_state.get("analysis")
-    if result and player_a == result["player_a"] and player_b == result["player_b"]:
-        st.divider()
-        st.markdown(f"## {result['player_a']} vs {result['player_b']}")
-        wins_a = round(result["win_probability"] * result["simulation"]["simulations"])
-        wins_b = result["simulation"]["simulations"] - wins_a
-        st.markdown(
-            f"""
-            <div class="sim-hero">
-                <div class="sim-label">MACABETS SIMULATION RESULT</div>
-                <div class="sim-main">{result['player_a']} won {wins_a:,} of {result['simulation']['simulations']:,} simulations</div>
-                <div class="sim-percent">{result['win_probability']:.1%}</div>
-                <div class="sim-secondary">{result['player_b']} won {wins_b:,} simulations · {(1-result['win_probability']):.1%}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.caption(
-            f"{result['tournament']} · {result['round']} · {result['surface']} · "
-            f"{result['simulation']['simulations']:,} simulations"
-        )
+    confidence = st.slider(
+        "Confidence in the available data", 1, 10, 7,
+        help="Lower confidence pulls the model estimate toward 50% and prevents false precision.",
+    )
+
+    model_probability, weighted_difference = fair_line_probability(
+        favorite_scores, opponent_scores, weights, confidence
+    )
+    fair_odds = probability_to_american(model_probability)
+    market_probability = implied_probability(int(market_odds))
+    probability_edge = model_probability - market_probability
+    expected_roi = model_probability * (american_to_decimal(int(market_odds)) - 1) - (1 - model_probability)
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Macabets win probability", f"{model_probability:.1%}")
+    m2.metric("Macabets fair line", format_american(fair_odds))
+    m3.metric("Sportsbook implied", f"{market_probability:.1%}")
+    m4.metric("Estimated ROI at market", f"{expected_roi:.1%}")
+
+    if expected_roi >= 0.05 and confidence >= 7:
+        st.success(f"Potential value: Macabets prices {favorite_name} at {format_american(fair_odds)} versus the market's {format_american(market_odds)}.")
+    elif expected_roi > 0:
+        st.warning("Small or low-confidence edge. Continue researching before treating this as a bet.")
+    else:
+        st.error(f"No value on {favorite_name} at the current price. Macabets requires {format_american(fair_odds)} or better.")
+
+    with st.expander("See factor contribution"):
+        rows = []
+        for factor, weight in weights.items():
+            difference = favorite_scores[factor] - opponent_scores[factor]
+            rows.append({
+                "Factor": factor,
+                favorite_name: favorite_scores[factor],
+                opponent_name: opponent_scores[factor],
+                "Weight": weight,
+                "Weighted advantage": difference * weight,
+            })
+        contribution_df = pd.DataFrame(rows).sort_values("Weighted advantage", ascending=False)
+        st.dataframe(contribution_df, use_container_width=True, hide_index=True)
+        st.caption(f"Total weighted matchup advantage: {weighted_difference:+.2f}")
+
+    st.info("Version 1 uses manual pre-match ratings. The next step is replacing these sliders with automatically fetched rankings, Elo, form, surface, workload and matchup data.")
+
+with tabs[4]:
+    st.subheader("Matchup Lab")
+    sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
+
+    if sport_lab in ["NFL", "College Football"]:
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("#### Favorite")
+            fav = st.text_input("Favorite team")
+            fav_form = st.text_area("Recent form")
+            fav_off = st.text_area("Offensive strengths / weaknesses")
+            fav_def = st.text_area("Defensive strengths / weaknesses")
+            fav_inj = st.text_area("Injuries / availability")
+        with c2:
+            st.markdown("#### Opponent")
+            dog = st.text_input("Opponent")
+            dog_form = st.text_area("Opponent recent form")
+            dog_off = st.text_area("Opponent offensive profile")
+            dog_def = st.text_area("Opponent defensive profile")
+            situational = st.text_area("Venue, travel, rest, weather, rivalry")
+        st.text_area("Where does the favorite have the clearest matchup advantage?")
+        st.text_area("How can the opponent realistically upset the favorite?")
+        st.slider("Overall confidence", 1, 10, 7, key="football_conf")
+
+    elif sport_lab == "NBA":
+        c1, c2 = st.columns(2)
+        with c1:
+            st.text_input("Favorite team")
+            st.text_area("Last 5–10 games")
+            st.text_area("Offensive matchup")
+            st.text_area("Defensive matchup")
+            st.text_area("Injuries / minutes restrictions")
+        with c2:
+            st.text_input("Opponent")
+            st.text_area("Opponent last 5–10 games")
+            st.text_area("Pace and shot profile")
+            st.text_area("Rest / back-to-back / travel")
+            st.text_area("Rebounding and turnover matchup")
+        st.text_area("Upset path and late-game risk")
+        st.slider("Overall confidence", 1, 10, 7, key="nba_conf")
+
+    elif sport_lab == "Tennis":
+        c1, c2 = st.columns(2)
+        with c1:
+            st.text_input("Favorite player")
+            st.text_area("Recent form and workload")
+            st.text_area("Serve / return advantages")
+            st.text_area("Surface and conditions")
+            st.text_area("Fitness / injury concerns")
+        with c2:
+            st.text_input("Opponent player")
+            st.text_area("Opponent form")
+            st.text_area("Opponent's upset weapons")
+            st.text_area("Head-to-head context")
+            st.text_area("Travel / scheduling / fatigue")
+        st.text_area("How does the favorite lose this match?")
+        st.slider("Overall confidence", 1, 10, 7, key="tennis_conf")
+
+    else:
+        c1, c2 = st.columns(2)
+        with c1:
+            st.text_input("Favorite fighter")
+            st.text_area("Recent form and quality of opposition")
+            st.text_area("Power at this weight")
+            st.text_area("Chin durability")
+            st.text_area("Wrestling / grappling / clinch profile")
+            st.text_area("Injuries, layoff, weight cut")
+        with c2:
+            st.text_input("Opponent fighter")
+            st.text_area("Opponent recent form")
+            st.text_area("Opponent power and finishing threat")
+            st.text_area("Opponent chin and recovery")
+            st.text_area("Opponent technical advantages")
+            st.text_area("Age, mileage and camp changes")
+        st.text_area("Favorite's clearest path to victory")
+        st.text_area("Opponent's most realistic upset path")
+        st.slider("Overall confidence", 1, 10, 7, key="combat_conf")
+
+    st.info("This page is a structured research worksheet. It does not automatically fetch current injuries, odds or statistics yet.")
+
+with tabs[5]:
+    st.subheader("Outcome Simulator")
+    r1, r2, r3, r4 = st.columns(4)
+    sim_bankroll = r1.number_input("Simulation bankroll", min_value=100.0, value=float(current_bankroll), step=1000.0)
+    sim_odds = r2.number_input("Odds per bet", value=-250, step=5)
+    model_prob_pct = r3.slider("Your estimated true win probability", 1.0, 99.0, 75.0, 0.5)
+    number_bets = r4.number_input("Number of bets", min_value=1, max_value=500, value=50, step=1)
+
+    s1, s2, s3 = st.columns(3)
+    target_each = s1.number_input("Target profit per bet", min_value=1.0, value=float(st.session_state.target_profit), step=500.0)
+    simulations = s2.number_input("Simulation runs", min_value=100, max_value=20000, value=3000, step=100)
+    staking = s3.selectbox("Staking method", ["Target-profit stake", "Flat % bankroll", "Quarter Kelly"])
+    flat_pct = st.slider("Flat stake %", 0.5, 25.0, 5.0, 0.5) / 100
+
+    true_prob = model_prob_pct / 100
+    implied = implied_probability(int(sim_odds))
+    edge = true_prob - implied
+    full_kelly = kelly_fraction(true_prob, int(sim_odds))
+    quarter_kelly = full_kelly / 4
+
+    q1, q2, q3, q4 = st.columns(4)
+    q1.metric("Implied probability", f"{implied:.1%}")
+    q2.metric("Estimated edge", f"{edge:.1%}")
+    q3.metric("Full Kelly", f"{full_kelly:.1%}")
+    q4.metric("Quarter Kelly", f"{quarter_kelly:.1%}")
+
+    if edge <= 0:
+        st.error("Your estimated probability does not beat the sportsbook's implied probability.")
+    elif sim_odds <= -500:
+        st.warning("The favorite may win often, but the payoff structure creates severe loss-recovery risk.")
+
+    if st.button("Run Simulation", type="primary", use_container_width=True):
+        rng = np.random.default_rng()
+        paths = np.zeros((int(simulations), int(number_bets) + 1))
+        paths[:, 0] = sim_bankroll
+        ruined = np.zeros(int(simulations), dtype=bool)
+
+        for run in range(int(simulations)):
+            bank = sim_bankroll
+            for n in range(1, int(number_bets) + 1):
+                if staking == "Target-profit stake":
+                    stake_n = stake_to_win(int(sim_odds), target_each)
+                elif staking == "Flat % bankroll":
+                    stake_n = bank * flat_pct
+                else:
+                    stake_n = bank * quarter_kelly
+                stake_n = min(stake_n, bank)
+                if stake_n <= 0:
+                    paths[run, n:] = bank
+                    ruined[run] = True
+                    break
+                if rng.random() < true_prob:
+                    bank += potential_profit(int(sim_odds), stake_n)
+                else:
+                    bank -= stake_n
+                paths[run, n] = bank
+                if bank <= 0:
+                    paths[run, n:] = 0
+                    ruined[run] = True
+                    break
+
+        ending = paths[:, -1]
+        median_path = np.median(paths, axis=0)
+        p10_path = np.percentile(paths, 10, axis=0)
+        p90_path = np.percentile(paths, 90, axis=0)
+        probability_profit = float(np.mean(ending > sim_bankroll))
+        probability_loss_half = float(np.mean(ending <= sim_bankroll * 0.5))
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Win probability", f"{result['win_probability']:.1%}")
-        m2.metric("Fair line", f"{result['fair_line']:+d}")
-        m3.metric("Confidence", f"{result['confidence']}/10")
-        m4.metric("Data quality", f"{result['data_quality']}/10")
+        m1.metric("Median ending bankroll", money(float(np.median(ending))))
+        m2.metric("Chance of profit", f"{probability_profit:.1%}")
+        m3.metric("Chance of losing 50%+", f"{probability_loss_half:.1%}")
+        m4.metric("5th percentile finish", money(float(np.percentile(ending, 5))))
 
-        odds_a = odds_b = None
-        try:
-            if odds_a_text.strip():
-                odds_a = int(odds_a_text.replace("+", ""))
-            if odds_b_text.strip():
-                odds_b = int(odds_b_text.replace("+", ""))
-        except ValueError:
-            st.error("Odds must be entered as whole American numbers, such as -180 and +155.")
+        fig, ax = plt.subplots()
+        x = np.arange(int(number_bets) + 1)
+        ax.plot(x, median_path, label="Median")
+        ax.fill_between(x, p10_path, p90_path, alpha=0.2, label="10th–90th percentile")
+        ax.axhline(sim_bankroll, linewidth=1)
+        ax.set_xlabel("Bet number")
+        ax.set_ylabel("Bankroll ($)")
+        ax.legend()
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
 
-        if odds_a is not None and odds_b is not None:
-            market_a = implied_probability(odds_a)
-            market_b = implied_probability(odds_b)
-            no_vig_a = market_a / (market_a + market_b)
-            edge = result["win_probability"] - market_a
-            no_vig_edge = result["win_probability"] - no_vig_a
-
-            x1, x2, x3 = st.columns(3)
-            x1.metric("Vegas implied", f"{market_a:.1%}")
-            x2.metric("No-vig market", f"{no_vig_a:.1%}")
-            x3.metric("Macabets edge", f"{edge:+.1%}", f"{no_vig_edge:+.1%} vs no-vig")
-
-            if result["data_quality"] < 5:
-                st.error("PASS — the available sample is not reliable enough.")
-            elif edge >= .05 and result["confidence"] >= 7:
-                st.success("GREEN LIGHT — meaningful edge with sufficient confidence.")
-            elif edge >= .025 and result["confidence"] >= 6:
-                st.warning("LEAN — positive price advantage, below Green Light standards.")
-            else:
-                st.error("PASS — the current price does not offer enough value.")
-        else:
-            st.info("Macabets produced a fair line. Add both sportsbook prices to calculate market edge.")
-
-        st.markdown("### Simulation outcomes")
-        s1, s2, s3 = st.columns(3)
-        s1.metric(f"{player_a} straight sets", f"{result['simulation']['straight_sets_a']:.1%}")
-        s2.metric("Deciding set", f"{result['simulation']['deciding_set']:.1%}")
-        s3.metric(f"{player_b} straight sets", f"{result['simulation']['straight_sets_b']:.1%}")
-
-        st.markdown("### Why Macabets landed here")
-        factor_frame = pd.DataFrame([
-            {
-                "Factor": item["name"],
-                "Impact": f"{item['impact']:+.2%}",
-                "Reasoning": item["reason"],
-            }
-            for item in result["factors"]
-        ])
-        st.dataframe(factor_frame, use_container_width=True, hide_index=True)
-
-        positive = sorted(
-            [item for item in result["factors"] if item["impact"] > 0],
-            key=lambda item: item["impact"],
-            reverse=True,
+with tabs[6]:
+    st.subheader("Performance Analysis")
+    if settled.empty:
+        st.write("Settle bets to populate performance analytics.")
+    else:
+        perf = settled.copy()
+        perf["odds_band"] = pd.cut(
+            perf["odds"],
+            bins=[-10000, -500, -350, -250, -180, -110, 0, 10000],
+            labels=["≤ -500", "-499 to -350", "-349 to -250", "-249 to -180", "-179 to -110", "Even/+ odds", "Other"],
+            include_lowest=True,
         )
-        negative = sorted(
-            [item for item in result["factors"] if item["impact"] < 0],
-            key=lambda item: item["impact"],
-        )
+        p1, p2 = st.columns(2)
+        with p1:
+            by_sport = perf.groupby("sport").agg(
+                bets=("id", "count"),
+                staked=("stake", "sum"),
+                profit=("result_profit", "sum"),
+            )
+            by_sport["roi"] = by_sport["profit"] / by_sport["staked"].replace(0, np.nan)
+            st.markdown("#### By Sport")
+            st.dataframe(by_sport.reset_index(), use_container_width=True, hide_index=True)
+        with p2:
+            by_band = perf.groupby("odds_band", observed=False).agg(
+                bets=("id", "count"),
+                staked=("stake", "sum"),
+                profit=("result_profit", "sum"),
+            )
+            by_band["roi"] = by_band["profit"] / by_band["staked"].replace(0, np.nan)
+            st.markdown("#### By Odds Range")
+            st.dataframe(by_band.reset_index(), use_container_width=True, hide_index=True)
 
-        r1, r2 = st.columns(2)
-        with r1:
-            st.markdown("#### Top reasons")
-            if positive:
-                for item in positive[:3]:
-                    st.write(f"**{item['name']}** · {item['impact']:+.2%}")
-            else:
-                st.write("No positive contextual adjustment.")
-        with r2:
-            st.markdown("#### Main risks")
-            if negative:
-                for item in negative[:3]:
-                    st.write(f"**{item['name']}** · {item['impact']:+.2%}")
-            else:
-                st.write("No negative contextual adjustment detected.")
+        ordered = perf.sort_values(["date", "id"]).copy()
+        ordered["cumulative_profit"] = ordered["result_profit"].cumsum()
+        ordered["bankroll_curve"] = st.session_state.bankroll + ordered["cumulative_profit"]
+        fig, ax = plt.subplots()
+        ax.plot(range(1, len(ordered) + 1), ordered["bankroll_curve"], marker="o")
+        ax.axhline(st.session_state.bankroll, linewidth=1)
+        ax.set_xlabel("Settled bet")
+        ax.set_ylabel("Bankroll ($)")
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
 
-        st.caption(
-            "The model estimates fitness from match workload and rest. Psychological pressure is represented "
-            "only through historical advanced-round and deciding-match performance. It does not claim access "
-            "to private medical or mental-state information."
-        )
-
-        if load_errors:
-            with st.expander("Data loading notes"):
-                st.write(load_errors)
-
-else:
-    st.markdown("## My Bets")
-    st.info(
-        "The prior ledger, bankroll and performance tools will be reconnected after the core "
-        "Analyze Matchup experience is confirmed."
+with tabs[7]:
+    st.subheader("Backup and Export")
+    st.warning(
+        "Streamlit Community Cloud may restart the app and clear temporary session data. "
+        "Download your CSV after updates and upload it again when needed."
     )
+    csv_data = bets.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "Download All Bets CSV",
+        data=csv_data,
+        file_name=f"michael_bets_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+    st.markdown("#### Current Data")
+    st.dataframe(bets, use_container_width=True, hide_index=True)

@@ -1,26 +1,26 @@
-# Macabets V6 — Local Tennis Database
+# Macabets — Tennis Fair Line Engine v1
 
-Macabets now uses tennis files stored inside the GitHub repository. Streamlit no longer downloads the database when the page loads.
+This build adds the first working Macabets decision-engine feature to the existing Streamlit dashboard.
 
-## First setup
+## New in this build
 
-1. Upload every file and folder in this package to the repository.
-2. In GitHub, open **Actions**.
-3. Select **Update Macabets Tennis Data**.
-4. Click **Run workflow**.
-5. Wait for the action to finish and commit the `data` files.
-6. Reboot the Streamlit app.
+- Tennis Fair Line Engine
+- Structured weighted matchup scorecard
+- Macabets win probability
+- Macabets fair American line
+- Sportsbook implied probability comparison
+- Estimated ROI at the offered price
+- Factor-contribution table
+- Confidence-based probability shrinkage to reduce false precision
+- Risk Simulator renamed to Outcome Simulator
 
-The action also checks for updated tennis results once per day.
+## Current limitation
 
-## Main result
+The first version uses manual 0–10 matchup ratings. The next development stage will replace those inputs with automatically collected rankings, Elo, recent form, surface performance, workload, scheduling and matchup data.
 
-Macabets runs 50,000 simulations and displays:
+## Run locally
 
-`Player A won 33,850 of 50,000 simulations — 67.7%`
-
-It also displays the fair line, price comparison, recommendation, supporting factors and risks.
-
-## Data source
-
-ATP data by Jeff Sackmann / Tennis Abstract. CC BY-NC-SA 4.0. Attribution required; noncommercial use only.
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
