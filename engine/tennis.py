@@ -25,6 +25,16 @@ def norm(value: str) -> str:
     return re.sub(r"\s+", " ", str(value).strip()).casefold()
 
 
+def safe_int(value, default: int = 0) -> int:
+    """Convert user/data values to int without failing on blanks or NaN."""
+    try:
+        if value is None or (isinstance(value, str) and not value.strip()) or pd.isna(value):
+            return default
+        return int(float(value))
+    except (TypeError, ValueError, OverflowError):
+        return default
+
+
 def american_from_probability(probability: float) -> int:
     p = float(np.clip(probability, 0.001, 0.999))
     if p >= 0.5:
@@ -256,7 +266,7 @@ def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
         "return_points_won": safe_ratio(return_num, return_den, .38),
         "matches_7": int((rows["date"] >= event_ts - pd.Timedelta(days=7)).sum()),
         "matches_14": int((rows["date"] >= event_ts - pd.Timedelta(days=14)).sum()),
-        "rest_days": max(0, int((event_ts - last_date).days)),
+        "rest_days": max(0, safe_int((event_ts - last_date).days, 30)),
         "advanced_win": float(advanced["won"].mean()) if len(advanced) >= 4 else .5,
         "big_event_win": float(big["won"].mean()) if len(big) >= 5 else .5,
         "deciding_win": float(deciding["won"].mean()) if len(deciding) >= 4 else .5,
@@ -483,9 +493,9 @@ def fatigue_profile(rows: pd.DataFrame, event_date: date) -> dict:
     recent_7 = rows[rows["date"] >= event_ts - pd.Timedelta(days=7)]
     recent_14 = rows[rows["date"] >= event_ts - pd.Timedelta(days=14)]
 
-    sets_3 = int(recent_3["score"].map(_sets_played_from_score).sum())
-    sets_7 = int(recent_7["score"].map(_sets_played_from_score).sum())
-    deciders_7 = int(
+    sets_3 = safe_int(recent_3["score"].map(_sets_played_from_score).sum())
+    sets_7 = safe_int(recent_7["score"].map(_sets_played_from_score).sum())
+    deciders_7 = safe_int(
         (recent_7["score"].map(_sets_played_from_score) >= 3).sum()
     )
 
@@ -493,7 +503,7 @@ def fatigue_profile(rows: pd.DataFrame, event_date: date) -> dict:
         pd.to_datetime(recent_14["date"]).dt.to_period("W").astype(str).tolist()
     )
     consecutive_weeks = min(len(active_weeks), 3)
-    rest_days = max(0, int((event_ts - rows["date"].max()).days))
+    rest_days = max(0, safe_int((event_ts - rows["date"].max()).days, 30))
 
     score = (
         len(recent_3) * 1.20
@@ -549,7 +559,7 @@ def surface_transition_profile(
     if same_surface.empty:
         days_since = None
     else:
-        days_since = max(0, int((event_ts - same_surface["date"].max()).days))
+        days_since = max(0, safe_int((event_ts - same_surface["date"].max()).days, 999))
 
     recent_matches = int(len(recent_same))
     adaptation = 0.50
