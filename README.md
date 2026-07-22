@@ -1,51 +1,32 @@
-# Macabets — Version 4
+# Macabets Version 5
 
-Macabets Version 4 adds an automatic ATP Tennis Matchup Lab.
+Macabets V5 is rebuilt around one workflow:
 
-## Tennis workflow
+1. Select a sport.
+2. Search two players.
+3. Select the tournament and round.
+4. Press **Run Macabets**.
+5. Read the simulation, fair line, market edge, reasons and risks.
 
-The user selects:
+There are no manual model probabilities, context sliders or personal form ratings.
 
-- Player A
-- Player B
-- Tournament
-- Round
-- Surface
-- Event date
-- A simple 1–10 form rating for each player
+## Files
 
-Macabets automatically calculates:
-
-- Overall Elo
-- Surface Elo
-- Ranking-based strength
-- Statistical base probability
-- Recent database form
-- Serve and return performance
-- Surface history
-- Rest and workload
-- Recorded retirement signals
-- Advanced-round and major-event performance
-- Deciding-match performance
-- Head-to-head context
-- Final probability and fair American line
-- Edge and Green Light / Lean / Pass when sportsbook odds are supplied
-
-## Data
-
-The app downloads public ATP historical match files at runtime and caches them for six hours.
-Internet access is required when the cache refreshes.
-
-## Deploy
-
-Upload and replace these three files in the GitHub repository connected to Streamlit:
-
-- `app.py`
-- `tennis_engine.py`
+- `app.py` — streamlined interface
+- `engine/data.py` — ATP data loading and caching
+- `engine/tennis.py` — ratings, context and Monte Carlo simulation
 - `requirements.txt`
 
-Commit the changes. Streamlit Community Cloud should rebuild automatically.
+## Deployment
 
-## Storage
+Upload all files and folders to the GitHub repository connected to Streamlit. Preserve the `engine` folder structure.
 
-Saved bets and matchup analyses remain session-based. Download CSV backups for information that must be retained.
+Streamlit will rebuild after the commit.
+
+## Data attribution
+
+ATP historical rankings, results and statistics are sourced from Jeff Sackmann / Tennis Abstract and are licensed CC BY-NC-SA 4.0. Attribution is required and commercial use is not permitted without separate permission.
+
+## Data loading
+
+The app first uses certificate-verified HTTPS. If the Streamlit environment has an incomplete certificate chain, it retries the GitHub raw request without local certificate verification and caches the downloaded CSV files.
