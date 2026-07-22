@@ -23,7 +23,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.9.1"
+APP_VERSION = "Macabets Tennis v0.10"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -440,14 +440,15 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.9", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.10", expanded=True):
         st.markdown(
             """
-            - First version of the Macabets Context Engine
-            - Event category, round, surface, environment, and match format affect the fair line
-            - Dynamic Elo, serve, return, form, fatigue, pressure, and deciding-match weights
-            - Transparent context-weight display so adjustments can be audited
-            - Best-of-five simulations are controlled by the selected match format
+            - Opponent Strength Index added to the fair-line calculation
+            - Recent records are adjusted for the quality of opposition
+            - Average opponent Elo and ranking over the last 10 matches
+            - Recent records against top-50 and top-100 opponents
+            - Quality-adjusted form score for both players
+            - Transparent probability impact in the model breakdown
             """
         )
 
@@ -624,7 +625,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v5")
+    st.subheader("Automatic Match Analyzer — Tennis v6")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -1163,6 +1164,48 @@ with tabs[3]:
                             "The recommendation is being made with limited data quality. "
                             "The calculated edge may be less reliable than the headline number."
                         )
+
+                st.markdown("#### Opponent Strength Index")
+                osa = result.get("opponent_strength_a", {})
+                osb = result.get("opponent_strength_b", {})
+
+                if osa and osb:
+                    osi1, osi2 = st.columns(2)
+
+                    with osi1:
+                        st.markdown(f"**{analyzed_a} — recent opposition**")
+                        a1, a2, a3 = st.columns(3)
+                        a1.metric("Strength score", f"{osa.get('strength_score', 0.5):.0%}")
+                        a2.metric("Average opponent Elo", f"{osa.get('avg_opponent_elo', 1500):.0f}")
+                        avg_rank_a = osa.get("avg_opponent_rank")
+                        a3.metric(
+                            "Average opponent rank",
+                            f"{avg_rank_a:.0f}" if avg_rank_a is not None else "N/A",
+                        )
+                        a4, a5, a6 = st.columns(3)
+                        a4.metric("Top-50 record", osa.get("top_50_record", "0-0"))
+                        a5.metric("Top-100 record", osa.get("top_100_record", "0-0"))
+                        a6.metric("Quality form", f"{osa.get('quality_form', 0.5):.0%}")
+
+                    with osi2:
+                        st.markdown(f"**{analyzed_b} — recent opposition**")
+                        b1, b2, b3 = st.columns(3)
+                        b1.metric("Strength score", f"{osb.get('strength_score', 0.5):.0%}")
+                        b2.metric("Average opponent Elo", f"{osb.get('avg_opponent_elo', 1500):.0f}")
+                        avg_rank_b = osb.get("avg_opponent_rank")
+                        b3.metric(
+                            "Average opponent rank",
+                            f"{avg_rank_b:.0f}" if avg_rank_b is not None else "N/A",
+                        )
+                        b4, b5, b6 = st.columns(3)
+                        b4.metric("Top-50 record", osb.get("top_50_record", "0-0"))
+                        b5.metric("Top-100 record", osb.get("top_100_record", "0-0"))
+                        b6.metric("Quality form", f"{osb.get('quality_form', 0.5):.0%}")
+
+                    st.caption(
+                        "This score combines recent opponent Elo, opponent ranking, and "
+                        "the quality of the player's results. It directly changes the fair line."
+                    )
 
                 st.markdown("#### Context Engine Weights")
                 context_weights_result = result.get("context_weights", {})
