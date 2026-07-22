@@ -47,6 +47,18 @@ div.stButton > button {
     line-height: 1;
     margin-bottom: .4rem;
 }
+.sim-hero {
+    border: 1px solid rgba(128,128,128,.24);
+    border-radius: 18px;
+    padding: 24px;
+    margin: 14px 0 20px;
+    text-align: center;
+    background: rgba(128,128,128,.06);
+}
+.sim-label {font-size:.75rem; letter-spacing:.14em; opacity:.6; font-weight:700;}
+.sim-main {font-size:1.25rem; font-weight:700; margin-top:10px;}
+.sim-percent {font-size:4rem; line-height:1.05; font-weight:850; margin:8px 0;}
+.sim-secondary {opacity:.7;}
 .result-card {
     border: 1px solid rgba(128,128,128,.22);
     border-radius: 16px;
@@ -144,7 +156,7 @@ if nav == "Analyze Matchup":
     )
 
     if run:
-        with st.spinner("Running 20,000 matchup simulations..."):
+        with st.spinner("Running 50,000 matchup simulations..."):
             st.session_state["analysis"] = analyze(
                 matches,
                 player_a,
@@ -153,13 +165,26 @@ if nav == "Analyze Matchup":
                 round_label,
                 surface,
                 event_date,
-                simulations=20000,
+                simulations=50000,
             )
 
     result = st.session_state.get("analysis")
     if result and player_a == result["player_a"] and player_b == result["player_b"]:
         st.divider()
         st.markdown(f"## {result['player_a']} vs {result['player_b']}")
+        wins_a = round(result["win_probability"] * result["simulation"]["simulations"])
+        wins_b = result["simulation"]["simulations"] - wins_a
+        st.markdown(
+            f"""
+            <div class="sim-hero">
+                <div class="sim-label">MACABETS SIMULATION RESULT</div>
+                <div class="sim-main">{result['player_a']} won {wins_a:,} of {result['simulation']['simulations']:,} simulations</div>
+                <div class="sim-percent">{result['win_probability']:.1%}</div>
+                <div class="sim-secondary">{result['player_b']} won {wins_b:,} simulations · {(1-result['win_probability']):.1%}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         st.caption(
             f"{result['tournament']} · {result['round']} · {result['surface']} · "
             f"{result['simulation']['simulations']:,} simulations"

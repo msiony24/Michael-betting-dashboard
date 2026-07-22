@@ -1,32 +1,26 @@
-# Macabets Version 5
+# Macabets V6 — Local Tennis Database
 
-Macabets V5 is rebuilt around one workflow:
+Macabets now uses tennis files stored inside the GitHub repository. Streamlit no longer downloads the database when the page loads.
 
-1. Select a sport.
-2. Search two players.
-3. Select the tournament and round.
-4. Press **Run Macabets**.
-5. Read the simulation, fair line, market edge, reasons and risks.
+## First setup
 
-There are no manual model probabilities, context sliders or personal form ratings.
+1. Upload every file and folder in this package to the repository.
+2. In GitHub, open **Actions**.
+3. Select **Update Macabets Tennis Data**.
+4. Click **Run workflow**.
+5. Wait for the action to finish and commit the `data` files.
+6. Reboot the Streamlit app.
 
-## Files
+The action also checks for updated tennis results once per day.
 
-- `app.py` — streamlined interface
-- `engine/data.py` — ATP data loading and caching
-- `engine/tennis.py` — ratings, context and Monte Carlo simulation
-- `requirements.txt`
+## Main result
 
-## Deployment
+Macabets runs 50,000 simulations and displays:
 
-Upload all files and folders to the GitHub repository connected to Streamlit. Preserve the `engine` folder structure.
+`Player A won 33,850 of 50,000 simulations — 67.7%`
 
-Streamlit will rebuild after the commit.
+It also displays the fair line, price comparison, recommendation, supporting factors and risks.
 
-## Data attribution
+## Data source
 
-ATP historical rankings, results and statistics are sourced from Jeff Sackmann / Tennis Abstract and are licensed CC BY-NC-SA 4.0. Attribution is required and commercial use is not permitted without separate permission.
-
-## Data loading
-
-The app first uses certificate-verified HTTPS. If the Streamlit environment has an incomplete certificate chain, it retries the GitHub raw request without local certificate verification and caches the downloaded CSV files.
+ATP data by Jeff Sackmann / Tennis Abstract. CC BY-NC-SA 4.0. Attribution required; noncommercial use only.
