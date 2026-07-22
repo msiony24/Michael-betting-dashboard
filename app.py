@@ -23,7 +23,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.11"
+APP_VERSION = "Macabets Tennis v0.12"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -71,6 +71,136 @@ def safe_int(value, default: int = 0) -> int:
         return int(float(value))
     except (TypeError, ValueError, OverflowError):
         return default
+
+
+def _plain_factor_sentence(factor_name, player, opponent, reason):
+    """Translate model factors into direct matchup language without rating jargon."""
+    templates = {
+        "Context-weighted matchup": (
+            f"{player} has the more favorable serve-and-return profile for this surface and match format."
+        ),
+        "Context-weighted recent form": (
+            f"{player} enters with the stronger recent results and is converting more of the matches expected of them."
+        ),
+        "Opponent strength": (
+            f"{player}'s recent form has been tested against the stronger level of opposition."
+        ),
+        "Surface": (
+            f"{player} has produced the better recent results on this surface."
+        ),
+        "Fatigue 2.0": (
+            f"{player} has the fresher workload and rest profile entering the match."
+        ),
+        "Surface transition": (
+            f"{player} appears better adapted to the current surface and has had the cleaner transition into this event."
+        ),
+        "Style matchup": (
+            f"{player}'s playing style creates a favorable tactical matchup against {opponent}."
+        ),
+        "Injury / retirement risk": (
+            f"{player} carries the cleaner health profile entering the match."
+        ),
+        "Tournament motivation": (
+            f"The tournament context gives {player} the stronger motivation profile."
+        ),
+        "Draw context": (
+            f"The surrounding draw and event situation is slightly more favorable for {player}."
+        ),
+        "Event pressure": (
+            f"{player} has handled comparable rounds and higher-pressure matches more reliably."
+        ),
+        "Deciding-match history": (
+            f"{player} has been more dependable when matches extend into a deciding set."
+        ),
+    }
+    return templates.get(factor_name, f"{player} holds an advantage in {factor_name.lower()}.")
+
+
+def build_matchup_analysis(result, selected_player=None):
+    """Create a neutral, data-grounded explanation for both players and the selected bet."""
+    player_a = result["player_a"]
+    player_b = result["player_b"]
+    factors = [
+        {
+            "name": str(item.get("name", "Matchup factor")),
+            "impact_a": float(item.get("impact", 0.0)),
+            "reason": str(item.get("reason", "")),
+        }
+        for item in result.get("factors", [])
+    ]
+
+    def side_rows(is_a):
+        rows = []
+        player = player_a if is_a else player_b
+        opponent = player_b if is_a else player_a
+        for item in factors:
+            impact = item["impact_a"] if is_a else -item["impact_a"]
+            rows.append({
+                "name": item["name"],
+                "impact": impact,
+                "sentence": _plain_factor_sentence(
+                    item["name"], player, opponent, item["reason"]
+                ),
+            })
+        return rows
+
+    def winning_case(is_a):
+        player = player_a if is_a else player_b
+        opponent = player_b if is_a else player_a
+        rows = side_rows(is_a)
+        positives = sorted(
+            [row for row in rows if row["impact"] > 0.001],
+            key=lambda row: row["impact"],
+            reverse=True,
+        )[:3]
+        if not positives:
+            positives = sorted(rows, key=lambda row: row["impact"], reverse=True)[:2]
+        points = [row["sentence"] for row in positives]
+        style = result.get("playing_style_a" if is_a else "playing_style_b", {}).get("label")
+        if style and all("style" not in row["name"].lower() for row in positives):
+            points.append(
+                f"As a {style.lower()}, {player}'s clearest path is to impose that pattern before {opponent} can settle into preferred rallies."
+            )
+        return points[:3]
+
+    analysis = {
+        "player_a_reasons": winning_case(True),
+        "player_b_reasons": winning_case(False),
+    }
+
+    if selected_player in {player_a, player_b}:
+        selected_is_a = selected_player == player_a
+        opponent = player_b if selected_is_a else player_a
+        rows = side_rows(selected_is_a)
+        support = sorted(rows, key=lambda row: row["impact"], reverse=True)[0]
+        risks = sorted([row for row in rows if row["impact"] < -0.001], key=lambda row: row["impact"])
+        risk = risks[0] if risks else sorted(rows, key=lambda row: abs(row["impact"]))[0]
+
+        risk_paths = {
+            "Context-weighted matchup": f"{opponent} can win if they consistently attack the weaker serve or return pattern and prevent {selected_player} from controlling first-strike points.",
+            "Context-weighted recent form": f"The bet is vulnerable if {selected_player}'s recent form proves temporary and {opponent} starts cleaner than the recent results suggest.",
+            "Opponent strength": f"There is a risk that {selected_player}'s recent record has not prepared them for the level {opponent} brings in this matchup.",
+            "Surface": f"The largest danger is that {opponent} settles into the surface faster and turns the match into the type of points where {selected_player} has been less reliable.",
+            "Fatigue 2.0": f"A long opening set or repeated extended games could expose {selected_player}'s workload and reduce their level later in the match.",
+            "Surface transition": f"If {selected_player} struggles with timing or movement early, {opponent} can build scoreboard pressure before the adjustment arrives.",
+            "Style matchup": f"{opponent}'s style can disrupt {selected_player}'s preferred patterns and force them to win through a less comfortable plan B.",
+            "Injury / retirement risk": f"Any physical limitation could reduce {selected_player}'s serve, movement, or ability to sustain their level across the full match.",
+            "Tournament motivation": f"The concern is that {opponent} treats this event as the higher-priority opportunity and competes with greater urgency in the key moments.",
+            "Draw context": f"External event context may make {selected_player}'s position less comfortable than the headline matchup suggests.",
+            "Event pressure": f"The bet becomes vulnerable if {selected_player} tightens in the important games and {opponent} handles the occasion more cleanly.",
+            "Deciding-match history": f"If the match reaches a deciding set, the historical late-match profile favors {opponent}."
+        }
+        analysis.update({
+            "supporting_factor": support["sentence"],
+            "biggest_risk": risk["sentence"].replace(selected_player, opponent, 1)
+                if risk["impact"] >= 0 else risk["sentence"],
+            "loss_path": risk_paths.get(
+                risk["name"],
+                f"{opponent} can win by neutralizing {selected_player}'s primary advantage and extending the match into less favorable patterns."
+            ),
+            "risk_factor_name": risk["name"],
+        })
+    return analysis
 
 
 def american_to_decimal(odds):
@@ -1160,6 +1290,49 @@ with tabs[3]:
                     n2.metric(f"{analyzed_b} ROI", f"{roi_b:+.1%}")
                     n3.metric(f"{analyzed_a} no-vig edge", f"{edge_a:+.1%}")
                     n4.metric(f"{analyzed_b} no-vig edge", f"{edge_b:+.1%}")
+
+                matchup_analysis = build_matchup_analysis(result, considered_player)
+                st.markdown("#### Macabets Matchup Analysis")
+                st.caption(
+                    "A plain-English explanation generated from the same matchup data used by the fair-line engine. "
+                    "It does not change the probability or recommendation."
+                )
+                why_a, why_b = st.columns(2)
+                with why_a:
+                    st.markdown(f"**Why {analyzed_a} can win**")
+                    for point in matchup_analysis.get("player_a_reasons", []):
+                        st.markdown(f"- {point}")
+                with why_b:
+                    st.markdown(f"**Why {analyzed_b} can win**")
+                    for point in matchup_analysis.get("player_b_reasons", []):
+                        st.markdown(f"- {point}")
+
+                if considered_player:
+                    st.markdown(f"**Bet-specific analysis: {considered_player}**")
+                    ba1, ba2 = st.columns(2)
+                    with ba1:
+                        st.success(
+                            "**Strongest reason to back the bet**\n\n"
+                            + matchup_analysis.get(
+                                "supporting_factor",
+                                "The selected player holds the stronger overall matchup profile."
+                            )
+                        )
+                    with ba2:
+                        st.warning(
+                            "**Biggest risk to the bet**\n\n"
+                            + matchup_analysis.get(
+                                "biggest_risk",
+                                "The opponent has a credible path to disrupt the preferred match pattern."
+                            )
+                        )
+                    st.info(
+                        "**Most realistic loss path:** "
+                        + matchup_analysis.get(
+                            "loss_path",
+                            f"{opposite_player} extends the match and prevents {considered_player} from imposing the expected advantage."
+                        )
+                    )
 
                 # Build a decision-focused explanation from the same neutral model factors.
                 raw_factors = []
