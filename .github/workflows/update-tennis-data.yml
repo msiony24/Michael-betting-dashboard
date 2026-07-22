@@ -2,29 +2,50 @@ name: Update Macabets Tennis Data
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "30 10 * * *"
+
+permissions:
+  contents: write
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Check out Macabets
+        uses: actions/checkout@v4
         with:
-          python-version: "3.12"
+          path: macabets
 
-      - name: Install requests
-        run: pip install requests
+      - name: Check out ATP database
+        uses: actions/checkout@v4
+        with:
+          repository: JeffSackmann/tennis_atp
+          ref: master
+          path: tennis-atp
+          fetch-depth: 1
 
-      - name: Download ATP data
-        run: python update_tennis_data.py
+      - name: Copy recent ATP match files
+        run: |
+          mkdir -p macabets/data
+          cp tennis-atp/atp_matches_2021.csv macabets/data/
+          cp tennis-atp/atp_matches_2022.csv macabets/data/
+          cp tennis-atp/atp_matches_2023.csv macabets/data/
+          cp tennis-atp/atp_matches_2024.csv macabets/data/
+          cp tennis-atp/atp_matches_2025.csv macabets/data/
+          cp tennis-atp/atp_matches_2026.csv macabets/data/
+          ls -lh macabets/data/
 
-      - name: Commit updated data
+      - name: Commit ATP data
+        working-directory: macabets
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff --cached --quiet || git commit -m "Update ATP data"
-          git push
+          if git diff --cached --quiet; then
+            echo "ATP data is already current."
+          else
+            git commit -m "Update ATP match data"
+            git push
+          fi
