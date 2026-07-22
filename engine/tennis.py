@@ -570,6 +570,24 @@ def surface_transition_profile(
     }
 
 
+def infer_handedness(rows: pd.DataFrame, player: str) -> str:
+    """Infer handedness from the latest available ATP match record."""
+    if rows.empty:
+        return "Unknown"
+
+    key = norm(player)
+    for _, row in rows.sort_values("date", ascending=False).iterrows():
+        won = norm(row.get("winner_name", "")) == key
+        column = "winner_hand" if won else "loser_hand"
+        raw = str(row.get(column, "")).strip().upper()
+        if raw == "L":
+            return "Left"
+        if raw == "R":
+            return "Right"
+
+    return "Unknown"
+
+
 def style_profile(profile_data: dict, manual_style: str = "Auto") -> dict:
     """Create a transparent high-level playing-style label."""
     if manual_style and manual_style != "Auto":
@@ -697,8 +715,8 @@ def analyze(
     match_format: str | None = None,
     style_a: str = "Auto",
     style_b: str = "Auto",
-    handedness_a: str = "Right",
-    handedness_b: str = "Right",
+    handedness_a: str = "Auto",
+    handedness_b: str = "Auto",
     injury_status_a: str = "Clear",
     injury_status_b: str = "Clear",
     travel_load_a: str = "None",
@@ -727,6 +745,14 @@ def analyze(
     transition_b = surface_transition_profile(rows_b, surface, event_date)
     playing_style_a = style_profile(pa, style_a)
     playing_style_b = style_profile(pb, style_b)
+    detected_hand_a = infer_handedness(rows_a, player_a)
+    detected_hand_b = infer_handedness(rows_b, player_b)
+    effective_hand_a = (
+        detected_hand_a if handedness_a == "Auto" else handedness_a
+    )
+    effective_hand_b = (
+        detected_hand_b if handedness_b == "Auto" else handedness_b
+    )
 
     overall, surface_table = elo_tables(matches, surface, event_date)
     opponent_strength_a = opponent_strength_profile(
@@ -821,8 +847,8 @@ def analyze(
     style_matchup, style_reason = style_matchup_adjustment(
         playing_style_a,
         playing_style_b,
-        handedness_a,
-        handedness_b,
+        effective_hand_a,
+        effective_hand_b,
         surface,
     )
 
@@ -895,8 +921,8 @@ def analyze(
          f"{transition_b['matches_current_surface_30']} current-surface matches, "
          f"adaptation {transition_b['adaptation_score']:.0%}."),
         ("Style matchup", style_matchup,
-         f"{player_a}: {playing_style_a['label']} ({handedness_a}-handed). "
-         f"{player_b}: {playing_style_b['label']} ({handedness_b}-handed). {style_reason}."),
+         f"{player_a}: {playing_style_a['label']} ({effective_hand_a}-handed). "
+         f"{player_b}: {playing_style_b['label']} ({effective_hand_b}-handed). {style_reason}."),
         ("Injury / retirement risk", injury,
          f"{player_a}: {injury_status_a}. {player_b}: {injury_status_b}."),
         ("Tournament motivation", motivation,
@@ -957,8 +983,10 @@ def analyze(
         "surface_transition_b": transition_b,
         "playing_style_a": playing_style_a,
         "playing_style_b": playing_style_b,
-        "handedness_a": handedness_a,
-        "handedness_b": handedness_b,
+        "handedness_a": effective_hand_a,
+        "handedness_b": effective_hand_b,
+        "handedness_source_a": "automatic" if handedness_a == "Auto" else "manual override",
+        "handedness_source_b": "automatic" if handedness_b == "Auto" else "manual override",
         "injury_status_a": injury_status_a,
         "injury_status_b": injury_status_b,
         "motivation_context": {
