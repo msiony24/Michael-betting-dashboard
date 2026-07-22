@@ -22,7 +22,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.7"
+APP_VERSION = "Macabets Tennis v0.8"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -424,14 +424,14 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.7", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.8", expanded=True):
         st.markdown(
             """
-            - Select the player you are considering betting
-            - Macabets evaluates that exact side without changing the underlying model
-            - Side-specific fair line, market price, expected ROI, edge, and decision
-            - Shows whether Macabets prefers the opposite player
-            - Keeps a neutral “Just analyze” option for matchup research
+            - Direct explanation of why a considered bet grades BET, WATCH, or PASS
+            - Separates player strength from betting-price value
+            - Shows the strongest factors supporting and opposing your selected side
+            - Identifies “good player, bad price” situations
+            - Adds a concise Macabets verdict before the detailed model table
             """
         )
 
@@ -608,7 +608,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v3")
+    st.subheader("Automatic Match Analyzer — Tennis v4")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -951,6 +951,139 @@ with tabs[3]:
                     n3.metric(f"{analyzed_a} no-vig edge", f"{edge_a:+.1%}")
                     n4.metric(f"{analyzed_b} no-vig edge", f"{edge_b:+.1%}")
 
+                # Build a decision-focused explanation from the same neutral model factors.
+                raw_factors = []
+                for factor in result["factors"]:
+                    raw_factors.append({
+                        "name": str(factor["name"]),
+                        "impact_a": float(factor["impact"]),
+                        "reason": str(factor["reason"]),
+                    })
+
+                if considered_player:
+                    considered_is_a = considered_player == analyzed_a
+                    considered_factor_rows = []
+                    for factor in raw_factors:
+                        side_impact = (
+                            factor["impact_a"]
+                            if considered_is_a
+                            else -factor["impact_a"]
+                        )
+                        considered_factor_rows.append({
+                            "name": factor["name"],
+                            "impact": side_impact,
+                            "reason": factor["reason"],
+                        })
+
+                    support_factors = sorted(
+                        [f for f in considered_factor_rows if f["impact"] > 0],
+                        key=lambda item: item["impact"],
+                        reverse=True,
+                    )[:3]
+                    opposition_factors = sorted(
+                        [f for f in considered_factor_rows if f["impact"] < 0],
+                        key=lambda item: item["impact"],
+                    )[:3]
+
+                    model_favors_considered = considered_probability > 0.50
+                    market_favors_considered = considered_no_vig > 0.50
+                    has_positive_value = considered_roi > 0
+                    meaningful_value = considered_roi >= 0.05
+                    price_gap = considered_probability - considered_no_vig
+
+                    if model_favors_considered and not has_positive_value:
+                        verdict_type = "Good player, bad price"
+                        verdict_text = (
+                            f"Macabets expects {considered_player} to win more often than lose, "
+                            f"but {format_american(considered_market_odds)} is too expensive. "
+                            f"The player and the bet are not the same decision."
+                        )
+                    elif not model_favors_considered and has_positive_value:
+                        verdict_type = "Underdog value"
+                        verdict_text = (
+                            f"Macabets does not make {considered_player} the most likely winner, "
+                            f"but the offered price is large enough to create positive expected value."
+                        )
+                    elif model_favors_considered and meaningful_value:
+                        verdict_type = "Player and price align"
+                        verdict_text = (
+                            f"Macabets favors {considered_player} in the matchup and also believes "
+                            f"your price is better than the model's fair price."
+                        )
+                    elif has_positive_value:
+                        verdict_type = "Small price advantage"
+                        verdict_text = (
+                            f"The offered price is slightly better than Macabets' fair value, "
+                            f"but the margin is not yet strong enough for a full BET grade."
+                        )
+                    else:
+                        verdict_type = "No betting advantage"
+                        verdict_text = (
+                            f"Macabets does not see enough compensation at "
+                            f"{format_american(considered_market_odds)} for the matchup risk."
+                        )
+
+                    st.markdown("#### Why Macabets Gave This Decision")
+                    v1, v2, v3 = st.columns(3)
+                    v1.metric(
+                        "Player outlook",
+                        "Favored" if model_favors_considered else "Underdog",
+                        f"{considered_probability:.1%} win probability",
+                    )
+                    v2.metric(
+                        "Price outlook",
+                        "Positive value" if has_positive_value else "Negative value",
+                        f"{price_gap:+.1%} vs no-vig market",
+                    )
+                    v3.metric("Bet diagnosis", verdict_type)
+
+                    if decision == "BET":
+                        st.success(verdict_text)
+                    elif decision == "WATCH":
+                        st.warning(verdict_text)
+                    else:
+                        st.error(verdict_text)
+
+                    reason_col_a, reason_col_b = st.columns(2)
+                    with reason_col_a:
+                        st.markdown(f"**What supports {considered_player}**")
+                        if support_factors:
+                            for factor in support_factors:
+                                st.markdown(
+                                    f"- **{factor['name']}** "
+                                    f"({factor['impact']:+.1%}): {factor['reason']}"
+                                )
+                        else:
+                            st.caption(
+                                "The current model does not identify a meaningful statistical "
+                                "factor supporting this side."
+                            )
+
+                    with reason_col_b:
+                        st.markdown(f"**What works against {considered_player}**")
+                        if opposition_factors:
+                            for factor in opposition_factors:
+                                st.markdown(
+                                    f"- **{factor['name']}** "
+                                    f"({factor['impact']:+.1%}): {factor['reason']}"
+                                )
+                        else:
+                            st.caption(
+                                "The current model does not identify a meaningful statistical "
+                                "factor working against this side."
+                            )
+
+                    if confidence < 6:
+                        st.warning(
+                            "Model confidence is limited. Treat the fair line as less stable "
+                            "until the data sample or matchup context improves."
+                        )
+                    elif int(result["data_quality"]) < 6:
+                        st.warning(
+                            "The recommendation is being made with limited data quality. "
+                            "The calculated edge may be less reliable than the headline number."
+                        )
+
                 st.markdown("#### Model Foundation")
                 e1, e2, e3, e4 = st.columns(4)
                 e1.metric(
@@ -971,8 +1104,8 @@ with tabs[3]:
                 )
 
                 factor_rows = []
-                for factor in result["factors"]:
-                    impact = float(factor["impact"])
+                for factor in raw_factors:
+                    impact = factor["impact_a"]
                     factor_rows.append({
                         "Factor": factor["name"],
                         "Probability impact": impact,
