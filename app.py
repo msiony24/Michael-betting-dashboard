@@ -8,7 +8,21 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-APP_VERSION = "Macabets Tennis v0.5"
+try:
+    from engine.data import load_matches
+    from engine.tennis import (
+        analyze as analyze_tennis_match,
+        player_names as tennis_player_names,
+        tournament_names as tennis_tournament_names,
+        tournament_surface as tennis_tournament_surface,
+    )
+    TENNIS_ENGINE_AVAILABLE = True
+    TENNIS_ENGINE_IMPORT_ERROR = ""
+except Exception as exc:
+    TENNIS_ENGINE_AVAILABLE = False
+    TENNIS_ENGINE_IMPORT_ERROR = str(exc)
+
+APP_VERSION = "Macabets Tennis v0.6"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -410,15 +424,15 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.5", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.6", expanded=True):
         st.markdown(
             """
-            - Daily Slate workspace for ranking an entire card
-            - Automatic Bet / Watch / Pass classification across all entered matches
-            - Slate Opportunity Score combining edge, confidence, and model separation
-            - Filters for tournament, surface, and decision
-            - One-click matchup handoff into the Fair Line Engine
-            - Daily Slate CSV import and export
+            - Automatic Match Analyzer connected to the historical ATP database
+            - Overall Elo and surface Elo calculated automatically
+            - Automatic recent form, surface form, serve/return, fatigue, rest, and pressure analysis
+            - Monte Carlo match and set-score simulation
+            - No manual player-rating sliders in the primary workflow
+            - Full factor explanations and player data-quality profiles
             """
         )
 
@@ -595,183 +609,376 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Fair Line Engine — Tennis v1")
-    st.caption("Build an independent price from a structured matchup scorecard, then compare it with the sportsbook.")
-
-    meta1, meta2, meta3, meta4 = st.columns(4)
-    match_date = meta1.date_input("Match date", value=date.today(), key="fle_date")
-    tournament = meta2.text_input("Tournament", placeholder="Montreal", key="fle_tournament")
-    surface = meta3.selectbox("Surface", ["Hard", "Clay", "Grass", "Indoor Hard"], key="fle_surface")
-    round_name = meta4.selectbox("Round", ["R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"], key="fle_round")
-
-    top1, top2 = st.columns(2)
-    favorite_name = top1.text_input("Player A", value="Favorite", key="fle_favorite")
-    opponent_name = top2.text_input("Player B", value="Opponent", key="fle_opponent")
-
-    market1, market2 = st.columns(2)
-    market_odds = market1.number_input(
-        "Sportsbook odds on Player A",
-        value=-180,
-        step=5,
-        key="fle_market_a",
-    )
-    market_odds_b = market2.number_input(
-        "Sportsbook odds on Player B",
-        value=155,
-        step=5,
-        key="fle_market_b",
+    st.subheader("Automatic Match Analyzer — Tennis v2")
+    st.caption(
+        "Select the matchup and event context. Macabets builds the probability from "
+        "historical ATP results, Elo, surface performance, form, serve/return data, "
+        "fatigue, rest, and event-pressure history."
     )
 
-    weights = {
-        "Base quality": 0.24,
-        "Surface and recent form": 0.20,
-        "Serve/return matchup": 0.19,
-        "Physical readiness": 0.14,
-        "Conditions and scheduling": 0.11,
-        "Pressure and experience": 0.12,
-    }
-
-    st.markdown("#### Matchup scorecard")
-    st.caption("Rate each player from 0–10 using the information available before the match.")
-    left, right = st.columns(2)
-    favorite_scores = {}
-    opponent_scores = {}
-    with left:
-        st.markdown(f"**{favorite_name}**")
-        for factor in weights:
-            favorite_scores[factor] = st.slider(
-                factor, 0.0, 10.0, 7.0, 0.5, key=f"fav_{factor}"
-            )
-    with right:
-        st.markdown(f"**{opponent_name}**")
-        for factor in weights:
-            opponent_scores[factor] = st.slider(
-                factor, 0.0, 10.0, 5.5, 0.5, key=f"dog_{factor}"
-            )
-
-    confidence = st.slider(
-        "Confidence in the available data", 1, 10, 7,
-        help="Lower confidence pulls the model estimate toward 50% and prevents false precision.",
-    )
-
-    model_probability, weighted_difference = fair_line_probability(
-        favorite_scores, opponent_scores, weights, confidence
-    )
-    fair_odds = probability_to_american(model_probability)
-    fair_odds_b = probability_to_american(1 - model_probability)
-    market_probability = implied_probability(int(market_odds))
-    no_vig_a, no_vig_b, sportsbook_hold = no_vig_probabilities(market_odds, market_odds_b)
-    probability_edge = model_probability - market_probability
-    no_vig_edge = model_probability - no_vig_a
-    expected_roi = model_probability * (american_to_decimal(int(market_odds)) - 1) - (1 - model_probability)
-    minimum_price = minimum_acceptable_odds(model_probability, required_roi=0.02)
-    decision, decision_reason = decision_label(expected_roi, confidence)
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Macabets win probability", f"{model_probability:.1%}")
-    m2.metric("Macabets fair line — A", format_american(fair_odds))
-    m3.metric("Macabets fair line — B", format_american(fair_odds_b))
-    m4.metric("Estimated ROI at listed price", f"{expected_roi:.1%}")
-
-    n1, n2, n3, n4 = st.columns(4)
-    n1.metric("No-vig market — A", f"{no_vig_a:.1%}")
-    n2.metric("No-vig market — B", f"{no_vig_b:.1%}")
-    n3.metric("Macabets edge vs no-vig", f"{no_vig_edge:+.1%}")
-    n4.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
-
-    st.markdown("#### Decision Card")
-    dcard1, dcard2, dcard3 = st.columns(3)
-    dcard1.metric("Decision", decision)
-    dcard2.metric("Current price", format_american(market_odds))
-    dcard3.metric("Minimum acceptable price", format_american(minimum_price))
-    st.caption(decision_reason)
-
-    if decision == "BET":
-        st.success(
-            f"Potential value: Macabets prices {favorite_name} at {format_american(fair_odds)} "
-            f"versus the market's {format_american(market_odds)}."
-        )
-    elif decision == "WATCH":
-        st.warning(
-            "The matchup is worth monitoring, but Macabets does not yet have a strong enough "
-            "combination of edge and confidence."
+    if not TENNIS_ENGINE_AVAILABLE:
+        st.error(
+            "The tennis engine could not be imported. Confirm that engine/data.py and "
+            f"engine/tennis.py are in the repository. Import error: {TENNIS_ENGINE_IMPORT_ERROR}"
         )
     else:
-        st.error(
-            f"Pass at the current price. Macabets needs approximately "
-            f"{format_american(minimum_price)} or better to preserve a 2% expected return."
-        )
+        try:
+            matches, data_errors = load_matches()
+        except Exception as exc:
+            matches = pd.DataFrame()
+            data_errors = []
+            st.error(str(exc))
+            st.info(
+                "Run update_tennis_data.py or the GitHub Action named "
+                "'Update Macabets Tennis Data', then reboot the Streamlit app."
+            )
 
-    auto_brief = build_matchup_brief(
-        favorite_name,
-        opponent_name,
-        favorite_scores,
-        opponent_scores,
-        weights,
-    )
-    with st.expander("Automatic Matchup Brief", expanded=True):
-        st.write(auto_brief)
+        if not matches.empty:
+            if data_errors:
+                with st.expander("Data-file warnings"):
+                    for item in data_errors:
+                        st.warning(item)
 
-    with st.expander("See factor contribution"):
-        rows = []
-        for factor, weight in weights.items():
-            difference = favorite_scores[factor] - opponent_scores[factor]
-            rows.append({
-                "Factor": factor,
-                favorite_name: favorite_scores[factor],
-                opponent_name: opponent_scores[factor],
-                "Weight": weight,
-                "Weighted advantage": difference * weight,
-            })
-        contribution_df = pd.DataFrame(rows).sort_values("Weighted advantage", ascending=False)
-        st.dataframe(contribution_df, use_container_width=True, hide_index=True)
-        st.caption(f"Total weighted matchup advantage: {weighted_difference:+.2f}")
+            players = tennis_player_names(matches)
+            tournaments = tennis_tournament_names(matches)
 
-    st.markdown("#### Pre-match decision record")
-    d1, d2 = st.columns(2)
-    prediction = d1.text_area("Why Player A wins", placeholder="The clearest winning path...")
-    upset_path = d2.text_area("Why Player B wins", placeholder="The realistic upset path...")
-    d3, d4 = st.columns(2)
-    biggest_risk = d3.text_area("Biggest risk to the prediction")
-    assumptions = d4.text_area("Key assumptions", placeholder="Example: Player A is physically healthy and serves near baseline...")
-    analysis_notes = st.text_area("Additional notes")
+            existing_a = str(st.session_state.get("fle_favorite", "")).strip()
+            existing_b = str(st.session_state.get("fle_opponent", "")).strip()
+            existing_tournament = str(st.session_state.get("fle_tournament", "")).strip()
 
-    if st.button("Save Pre-Match Analysis", type="primary", use_container_width=True):
-        analyses = st.session_state.analyses.copy()
-        next_analysis_id = int(analyses["analysis_id"].max()) + 1 if not analyses.empty else 1
-        row = {
-            "analysis_id": next_analysis_id,
-            "created_at": datetime.now().isoformat(timespec="seconds"),
-            "match_date": match_date.isoformat(),
-            "tournament": tournament.strip(),
-            "surface": surface,
-            "round": round_name,
-            "player_a": favorite_name.strip(),
-            "player_b": opponent_name.strip(),
-            "market_odds_a": int(market_odds),
-            "market_odds_b": int(market_odds_b),
-            "model_probability_a": float(model_probability),
-            "fair_odds_a": int(fair_odds),
-            "no_vig_probability_a": float(no_vig_a),
-            "no_vig_edge": float(no_vig_edge),
-            "decision": decision,
-            "minimum_acceptable_odds_a": int(minimum_price),
-            "estimated_roi": float(expected_roi),
-            "confidence": int(confidence),
-            "prediction": prediction.strip(),
-            "upset_path": upset_path.strip(),
-            "biggest_risk": biggest_risk.strip(),
-            "assumptions": assumptions.strip(),
-            "notes": analysis_notes.strip(),
-            "result": "Pending",
-            "review": "",
-        }
-        st.session_state.analyses = normalize_analyses(
-            pd.concat([analyses, pd.DataFrame([row])], ignore_index=True)
-        )
-        st.success("Pre-match analysis saved to the archive.")
+            player_a_options = players.copy()
+            player_b_options = players.copy()
+            if existing_a and existing_a not in player_a_options:
+                player_a_options.insert(0, existing_a)
+            if existing_b and existing_b not in player_b_options:
+                player_b_options.insert(0, existing_b)
+            if not player_a_options:
+                player_a_options = ["Player A"]
+            if not player_b_options:
+                player_b_options = ["Player B"]
 
-    st.info("Current version uses manual pre-match ratings. This now creates a permanent, timestamped record so the model can be evaluated without hindsight.")
+            tournament_options = tournaments.copy()
+            if existing_tournament and existing_tournament not in tournament_options:
+                tournament_options.insert(0, existing_tournament)
+            if not tournament_options:
+                tournament_options = ["Montreal"]
+
+            meta1, meta2, meta3, meta4 = st.columns(4)
+            match_date = meta1.date_input("Match date", value=date.today(), key="auto_match_date")
+            tournament = meta2.selectbox(
+                "Tournament",
+                tournament_options,
+                index=(
+                    tournament_options.index(existing_tournament)
+                    if existing_tournament in tournament_options else 0
+                ),
+                key="auto_tournament",
+            )
+
+            detected_surface = tennis_tournament_surface(matches, tournament)
+            surface_options = ["Hard", "Clay", "Grass", "Carpet"]
+            surface = meta3.selectbox(
+                "Surface",
+                surface_options,
+                index=surface_options.index(detected_surface) if detected_surface in surface_options else 0,
+                key="auto_surface",
+            )
+            round_name = meta4.selectbox(
+                "Round",
+                ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
+                key="auto_round",
+            )
+
+            p1, p2 = st.columns(2)
+            default_a_index = player_a_options.index(existing_a) if existing_a in player_a_options else 0
+            default_b_index = player_b_options.index(existing_b) if existing_b in player_b_options else min(1, len(player_b_options) - 1)
+            player_a = p1.selectbox(
+                "Player A",
+                player_a_options,
+                index=default_a_index,
+                key="auto_player_a",
+            )
+            player_b = p2.selectbox(
+                "Player B",
+                player_b_options,
+                index=default_b_index,
+                key="auto_player_b",
+            )
+
+            o1, o2, o3 = st.columns(3)
+            market_odds_a = o1.number_input(
+                "Sportsbook odds — Player A",
+                value=int(st.session_state.get("fle_market_a", -180)),
+                step=5,
+                key="auto_market_a",
+            )
+            market_odds_b = o2.number_input(
+                "Sportsbook odds — Player B",
+                value=int(st.session_state.get("fle_market_b", 155)),
+                step=5,
+                key="auto_market_b",
+            )
+            simulations = o3.selectbox(
+                "Simulations",
+                [5000, 10000, 20000, 50000],
+                index=2,
+                key="auto_simulations",
+            )
+
+            analyze_disabled = player_a == player_b
+            if analyze_disabled:
+                st.warning("Select two different players.")
+
+            if st.button(
+                "Analyze Match",
+                type="primary",
+                use_container_width=True,
+                disabled=analyze_disabled,
+            ):
+                with st.spinner("Macabets is analyzing the matchup..."):
+                    try:
+                        st.session_state.automatic_match_result = analyze_tennis_match(
+                            matches=matches,
+                            player_a=player_a,
+                            player_b=player_b,
+                            tournament=tournament,
+                            round_label=round_name,
+                            surface=surface,
+                            event_date=match_date,
+                            simulations=int(simulations),
+                        )
+                        st.session_state.automatic_match_market = {
+                            "market_odds_a": int(market_odds_a),
+                            "market_odds_b": int(market_odds_b),
+                            "match_date": match_date.isoformat(),
+                        }
+                    except Exception as exc:
+                        st.session_state.pop("automatic_match_result", None)
+                        st.error(f"Analysis failed: {exc}")
+
+            result = st.session_state.get("automatic_match_result")
+            market_snapshot = st.session_state.get("automatic_match_market", {})
+
+            if result:
+                analyzed_a = result["player_a"]
+                analyzed_b = result["player_b"]
+                listed_a = int(market_snapshot.get("market_odds_a", market_odds_a))
+                listed_b = int(market_snapshot.get("market_odds_b", market_odds_b))
+
+                model_probability = float(result["win_probability"])
+                fair_odds = int(result["fair_line"])
+                fair_odds_b = probability_to_american(1 - model_probability)
+                no_vig_a, no_vig_b, sportsbook_hold = no_vig_probabilities(listed_a, listed_b)
+                no_vig_edge = model_probability - no_vig_a
+                expected_roi = (
+                    model_probability * (american_to_decimal(listed_a) - 1)
+                    - (1 - model_probability)
+                )
+                confidence = int(result["confidence"])
+                minimum_price = minimum_acceptable_odds(model_probability, required_roi=0.02)
+                decision, decision_reason = decision_label(expected_roi, confidence)
+
+                st.divider()
+                st.markdown(f"### {analyzed_a} vs {analyzed_b}")
+
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Macabets win probability", f"{model_probability:.1%}")
+                m2.metric("Macabets fair line — A", format_american(fair_odds))
+                m3.metric("Market no-vig probability — A", f"{no_vig_a:.1%}")
+                m4.metric("Edge vs no-vig market", f"{no_vig_edge:+.1%}")
+
+                n1, n2, n3, n4 = st.columns(4)
+                n1.metric("Estimated ROI", f"{expected_roi:+.1%}")
+                n2.metric("Decision", decision)
+                n3.metric("Confidence", f"{confidence}/10")
+                n4.metric("Data quality", f"{int(result['data_quality'])}/10")
+
+                if decision == "BET":
+                    st.success(
+                        f"Macabets prices {analyzed_a} at {format_american(fair_odds)} "
+                        f"against the listed price of {format_american(listed_a)}."
+                    )
+                elif decision == "WATCH":
+                    st.warning(decision_reason)
+                else:
+                    st.error(
+                        f"Pass at {format_american(listed_a)}. Macabets needs approximately "
+                        f"{format_american(minimum_price)} or better for a 2% expected return."
+                    )
+
+                st.markdown("#### Model Foundation")
+                e1, e2, e3, e4 = st.columns(4)
+                e1.metric(
+                    f"{analyzed_a} overall Elo",
+                    f"{result['overall_elo'][0]:.0f}",
+                )
+                e2.metric(
+                    f"{analyzed_b} overall Elo",
+                    f"{result['overall_elo'][1]:.0f}",
+                )
+                e3.metric(
+                    f"{analyzed_a} surface Elo",
+                    f"{result['surface_elo'][0]:.0f}",
+                )
+                e4.metric(
+                    f"{analyzed_b} surface Elo",
+                    f"{result['surface_elo'][1]:.0f}",
+                )
+
+                factor_rows = []
+                for factor in result["factors"]:
+                    impact = float(factor["impact"])
+                    factor_rows.append({
+                        "Factor": factor["name"],
+                        "Probability impact": impact,
+                        "Direction": analyzed_a if impact > 0 else analyzed_b if impact < 0 else "Neutral",
+                        "Explanation": factor["reason"],
+                    })
+                factor_df = pd.DataFrame(factor_rows).sort_values(
+                    "Probability impact",
+                    ascending=False,
+                )
+                st.markdown("#### Why Macabets Made This Line")
+                st.dataframe(
+                    factor_df,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Probability impact": st.column_config.NumberColumn(format="%+.1%%")
+                    },
+                )
+
+                profile_a = result["profile_a"]
+                profile_b = result["profile_b"]
+                profile_df = pd.DataFrame([
+                    {
+                        "Player": analyzed_a,
+                        "Rank": profile_a["rank"],
+                        "Last-10 win rate": profile_a["recent_win"],
+                        f"{result['surface']} win rate": profile_a["surface_win"],
+                        "Serve points won": profile_a["serve_points_won"],
+                        "Return points won": profile_a["return_points_won"],
+                        "Matches — 7 days": profile_a["matches_7"],
+                        "Matches — 14 days": profile_a["matches_14"],
+                        "Rest days": profile_a["rest_days"],
+                        "Historical sample": profile_a["sample"],
+                    },
+                    {
+                        "Player": analyzed_b,
+                        "Rank": profile_b["rank"],
+                        "Last-10 win rate": profile_b["recent_win"],
+                        f"{result['surface']} win rate": profile_b["surface_win"],
+                        "Serve points won": profile_b["serve_points_won"],
+                        "Return points won": profile_b["return_points_won"],
+                        "Matches — 7 days": profile_b["matches_7"],
+                        "Matches — 14 days": profile_b["matches_14"],
+                        "Rest days": profile_b["rest_days"],
+                        "Historical sample": profile_b["sample"],
+                    },
+                ])
+                st.markdown("#### Player Profiles")
+                st.dataframe(
+                    profile_df,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Last-10 win rate": st.column_config.NumberColumn(format="%.1%%"),
+                        f"{result['surface']} win rate": st.column_config.NumberColumn(format="%.1%%"),
+                        "Serve points won": st.column_config.NumberColumn(format="%.1%%"),
+                        "Return points won": st.column_config.NumberColumn(format="%.1%%"),
+                    },
+                )
+
+                simulation = result["simulation"]
+                st.markdown("#### Outcome Simulation")
+                s1, s2, s3, s4 = st.columns(4)
+                s1.metric(f"{analyzed_a} wins", f"{simulation['win_probability']:.1%}")
+                s2.metric(f"{analyzed_a} straight sets", f"{simulation['straight_sets_a']:.1%}")
+                s3.metric(f"{analyzed_b} straight sets", f"{simulation['straight_sets_b']:.1%}")
+                s4.metric("Deciding set", f"{simulation['deciding_set']:.1%}")
+
+                score_df = pd.DataFrame(
+                    [
+                        {"Set score": score, "Probability": probability}
+                        for score, probability in simulation["set_scores"].items()
+                    ]
+                ).sort_values("Probability", ascending=False)
+                st.dataframe(
+                    score_df,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Probability": st.column_config.NumberColumn(format="%.1%%")
+                    },
+                )
+
+                st.markdown("#### Pre-Match Decision Record")
+                d1, d2 = st.columns(2)
+                prediction = d1.text_area(
+                    "Why Player A wins",
+                    value=(
+                        f"Macabets gives {analyzed_a} a {model_probability:.1%} win probability, "
+                        f"with a fair line of {format_american(fair_odds)}."
+                    ),
+                    key="auto_prediction",
+                )
+                upset_path = d2.text_area(
+                    "Why Player B wins",
+                    key="auto_upset_path",
+                )
+                d3, d4 = st.columns(2)
+                biggest_risk = d3.text_area("Biggest risk", key="auto_biggest_risk")
+                assumptions = d4.text_area("Key assumptions", key="auto_assumptions")
+                analysis_notes = st.text_area("Additional notes", key="auto_analysis_notes")
+
+                if st.button(
+                    "Save Automatic Analysis",
+                    type="primary",
+                    use_container_width=True,
+                ):
+                    analyses = st.session_state.analyses.copy()
+                    next_analysis_id = int(analyses["analysis_id"].max()) + 1 if not analyses.empty else 1
+                    row = {
+                        "analysis_id": next_analysis_id,
+                        "created_at": datetime.now().isoformat(timespec="seconds"),
+                        "match_date": str(market_snapshot.get("match_date", date.today().isoformat())),
+                        "tournament": result["tournament"],
+                        "surface": result["surface"],
+                        "round": result["round"],
+                        "player_a": analyzed_a,
+                        "player_b": analyzed_b,
+                        "market_odds_a": listed_a,
+                        "market_odds_b": listed_b,
+                        "model_probability_a": model_probability,
+                        "fair_odds_a": fair_odds,
+                        "no_vig_probability_a": no_vig_a,
+                        "no_vig_edge": no_vig_edge,
+                        "decision": decision,
+                        "minimum_acceptable_odds_a": minimum_price,
+                        "estimated_roi": expected_roi,
+                        "confidence": confidence,
+                        "prediction": prediction.strip(),
+                        "upset_path": upset_path.strip(),
+                        "biggest_risk": biggest_risk.strip(),
+                        "assumptions": assumptions.strip(),
+                        "notes": analysis_notes.strip(),
+                        "result": "Pending",
+                        "closing_odds_a": np.nan,
+                        "prediction_correct": "",
+                        "closing_line_value": np.nan,
+                        "review": "",
+                        "lesson": "",
+                    }
+                    st.session_state.analyses = normalize_analyses(
+                        pd.concat([analyses, pd.DataFrame([row])], ignore_index=True)
+                    )
+                    st.success("Automatic analysis saved to the archive.")
+
+                st.caption(
+                    f"Model base probability: {result['base_probability']:.1%}. "
+                    f"Final pre-simulation model: {result['model_probability']:.1%}. "
+                    f"Simulation count: {simulation['simulations']:,}."
+                )
 
 with tabs[4]:
     st.subheader("Analysis Archive")
