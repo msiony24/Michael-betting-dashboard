@@ -7,7 +7,7 @@ import sys
 import requests
 
 
-BASE_URL = "https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master"
+BASE_URL = "https://github.com/JeffSackmann/tennis_atp/raw/refs/heads/master"
 DATA_DIR = Path(__file__).resolve().parent / "data"
 START_YEAR = 2021
 
