@@ -264,6 +264,108 @@ def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
     }
 
 
+def opponent_strength_profile(
+    matches: pd.DataFrame,
+    player: str,
+    event_date: date,
+    overall_elo: dict[str, float],
+    lookback_matches: int = 10,
+) -> dict:
+    """
+    Evaluate the quality of a player's recent opposition.
+
+    Uses the opponent's Elo at the analysis date, ranking recorded in the match,
+    and whether the player won or lost. The result is centered around 50%.
+    """
+    key = norm(player)
+    history = matches[
+        (
+            matches["winner_name"].map(norm).eq(key)
+            | matches["loser_name"].map(norm).eq(key)
+        )
+        & (matches["tourney_date"] < pd.Timestamp(event_date))
+    ].sort_values("tourney_date", ascending=False).head(lookback_matches)
+
+    if history.empty:
+        return {
+            "matches": 0,
+            "avg_opponent_rank": None,
+            "avg_opponent_elo": 1500.0,
+            "quality_form": 0.5,
+            "top_50_record": "0-0",
+            "top_100_record": "0-0",
+            "strength_score": 0.5,
+        }
+
+    opponent_ranks = []
+    opponent_elos = []
+    quality_results = []
+    top_50_wins = top_50_losses = 0
+    top_100_wins = top_100_losses = 0
+
+    for _, row in history.iterrows():
+        won = norm(row["winner_name"]) == key
+        opponent_name = row["loser_name"] if won else row["winner_name"]
+        opponent_rank = row.get("loser_rank" if won else "winner_rank", np.nan)
+        opponent_elo = overall_elo.get(norm(opponent_name), 1500.0)
+
+        opponent_elos.append(float(opponent_elo))
+        if pd.notna(opponent_rank):
+            opponent_rank = float(opponent_rank)
+            opponent_ranks.append(opponent_rank)
+
+            if opponent_rank <= 50:
+                if won:
+                    top_50_wins += 1
+                else:
+                    top_50_losses += 1
+            if opponent_rank <= 100:
+                if won:
+                    top_100_wins += 1
+                else:
+                    top_100_losses += 1
+
+        # A win over a strong opponent earns more credit; a loss to a strong
+        # opponent is penalized less than a loss to weak opposition.
+        opponent_quality = 1 / (1 + math.exp(-(opponent_elo - 1500.0) / 170.0))
+        quality_results.append(
+            0.55 + 0.45 * opponent_quality
+            if won
+            else 0.45 * opponent_quality
+        )
+
+    avg_rank = (
+        float(sum(opponent_ranks) / len(opponent_ranks))
+        if opponent_ranks else None
+    )
+    avg_elo = float(sum(opponent_elos) / len(opponent_elos))
+    quality_form = float(sum(quality_results) / len(quality_results))
+
+    elo_component = 1 / (1 + math.exp(-(avg_elo - 1500.0) / 160.0))
+    rank_component = (
+        1 / (1 + math.exp((avg_rank - 75.0) / 35.0))
+        if avg_rank is not None else 0.5
+    )
+
+    strength_score = float(np.clip(
+        0.45 * elo_component
+        + 0.30 * rank_component
+        + 0.25 * quality_form,
+        0.0,
+        1.0,
+    ))
+
+    return {
+        "matches": int(len(history)),
+        "avg_opponent_rank": avg_rank,
+        "avg_opponent_elo": avg_elo,
+        "quality_form": quality_form,
+        "top_50_record": f"{top_50_wins}-{top_50_losses}",
+        "top_100_record": f"{top_100_wins}-{top_100_losses}",
+        "strength_score": strength_score,
+    }
+
+
 def elo_tables(matches: pd.DataFrame, surface: str, event_date: date) -> tuple[dict, dict]:
     history = matches[
         (matches["tourney_date"] < pd.Timestamp(event_date))
@@ -368,6 +470,12 @@ def analyze(
     pb = profile(rows_b, surface, event_date)
 
     overall, surface_table = elo_tables(matches, surface, event_date)
+    opponent_strength_a = opponent_strength_profile(
+        matches, player_a, event_date, overall, lookback_matches=10
+    )
+    opponent_strength_b = opponent_strength_profile(
+        matches, player_b, event_date, overall, lookback_matches=10
+    )
     ka, kb = norm(player_a), norm(player_b)
     oa, ob = overall.get(ka, 1500.0), overall.get(kb, 1500.0)
     sa, sb = surface_table.get(ka, 1500.0), surface_table.get(kb, 1500.0)
@@ -413,6 +521,14 @@ def analyze(
         (pa["recent_win"] - pb["recent_win"]) * .04 * weights["form"],
         -.045, .045
     ))
+    opponent_strength = float(np.clip(
+        (
+            opponent_strength_a["strength_score"]
+            - opponent_strength_b["strength_score"]
+        ) * 0.055,
+        -0.035,
+        0.035,
+    ))
     surface_adj = float(np.clip(
         (pa["surface_win"] - pb["surface_win"]) * .045,
         -.04, .04
@@ -448,6 +564,12 @@ def analyze(
         ("Context-weighted recent form", form,
          f"Last-10 win rate: {player_a} {pa['recent_win']:.0%}; {player_b} "
          f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x."),
+        ("Opponent strength", opponent_strength,
+         f"Recent opposition score: {player_a} "
+         f"{opponent_strength_a['strength_score']:.0%} vs {player_b} "
+         f"{opponent_strength_b['strength_score']:.0%}. Average opponent Elo: "
+         f"{opponent_strength_a['avg_opponent_elo']:.0f} vs "
+         f"{opponent_strength_b['avg_opponent_elo']:.0f}."),
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
          f"{player_b} {pb['surface_win']:.0%}."),
@@ -482,6 +604,8 @@ def analyze(
         "environment": environment,
         "match_format": match_format,
         "context_weights": weights,
+        "opponent_strength_a": opponent_strength_a,
+        "opponent_strength_b": opponent_strength_b,
         "base_probability": base,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
