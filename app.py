@@ -63,6 +63,16 @@ def money(value):
     return f"${value:,.2f}"
 
 
+def safe_int(value, default: int = 0) -> int:
+    """Convert blank, missing, or numeric-looking values safely."""
+    try:
+        if value is None or (isinstance(value, str) and not value.strip()) or pd.isna(value):
+            return default
+        return int(float(value))
+    except (TypeError, ValueError, OverflowError):
+        return default
+
+
 def american_to_decimal(odds):
     if odds == 0:
         return 1.0
@@ -871,13 +881,13 @@ with tabs[3]:
             o1, o2, o3 = st.columns(3)
             market_odds_a = o1.number_input(
                 f"Sportsbook odds — {player_a}",
-                value=int(st.session_state.get("fle_market_a", -180)),
+                value=safe_int(st.session_state.get("fle_market_a", -180), -180),
                 step=5,
                 key="auto_market_a",
             )
             market_odds_b = o2.number_input(
                 f"Sportsbook odds — {player_b}",
-                value=int(st.session_state.get("fle_market_b", 155)),
+                value=safe_int(st.session_state.get("fle_market_b", 155), 155),
                 step=5,
                 key="auto_market_b",
             )
@@ -934,8 +944,8 @@ with tabs[3]:
                             draw_pressure_b=draw_pressure_b,
                         )
                         st.session_state.automatic_match_market = {
-                            "market_odds_a": int(market_odds_a),
-                            "market_odds_b": int(market_odds_b),
+                            "market_odds_a": safe_int(market_odds_a, -180),
+                            "market_odds_b": safe_int(market_odds_b, 155),
                             "match_date": match_date.isoformat(),
                             "considering_bet": considering_bet,
                             "tournament_category": tournament_category,
@@ -945,6 +955,7 @@ with tabs[3]:
                     except Exception as exc:
                         st.session_state.pop("automatic_match_result", None)
                         st.error(f"Analysis failed: {exc}")
+                        st.exception(exc)
 
             result = st.session_state.get("automatic_match_result")
             market_snapshot = st.session_state.get("automatic_match_market", {})
@@ -952,8 +963,8 @@ with tabs[3]:
             if result:
                 analyzed_a = result["player_a"]
                 analyzed_b = result["player_b"]
-                listed_a = int(market_snapshot.get("market_odds_a", market_odds_a))
-                listed_b = int(market_snapshot.get("market_odds_b", market_odds_b))
+                listed_a = safe_int(market_snapshot.get("market_odds_a", market_odds_a), safe_int(market_odds_a, -180))
+                listed_b = safe_int(market_snapshot.get("market_odds_b", market_odds_b), safe_int(market_odds_b, 155))
 
                 model_probability = float(result["win_probability"])
                 probability_b = 1 - model_probability
