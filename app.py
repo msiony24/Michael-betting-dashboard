@@ -8,6 +8,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+APP_VERSION = "Macabets Tennis v0.4"
+BUILD_DATE = "July 22, 2026"
+
 st.set_page_config(
     page_title="Michael Betting Dashboard",
     page_icon="📊",
@@ -20,8 +23,10 @@ BET_TYPES = ["Moneyline", "Spread", "Total", "Prop", "Parlay", "Live"]
 ANALYSIS_COLUMNS = [
     "analysis_id", "created_at", "match_date", "tournament", "surface", "round",
     "player_a", "player_b", "market_odds_a", "model_probability_a", "fair_odds_a",
-    "estimated_roi", "confidence", "prediction", "upset_path", "biggest_risk",
-    "assumptions", "notes", "result", "closing_odds_a", "prediction_correct",
+    "market_odds_b", "no_vig_probability_a", "no_vig_edge", "decision",
+    "minimum_acceptable_odds_a", "estimated_roi", "confidence", "prediction",
+    "upset_path", "biggest_risk", "assumptions", "notes", "result",
+    "closing_odds_a", "prediction_correct",
     "closing_line_value", "review", "lesson"
 ]
 
@@ -79,6 +84,62 @@ def implied_probability(odds):
     return 0.0
 
 
+def no_vig_probabilities(odds_a, odds_b):
+    """Remove sportsbook margin from a two-sided moneyline market."""
+    raw_a = implied_probability(int(odds_a))
+    raw_b = implied_probability(int(odds_b))
+    total = raw_a + raw_b
+    if total <= 0:
+        return 0.5, 0.5, 0.0
+    return raw_a / total, raw_b / total, total - 1
+
+
+def minimum_acceptable_odds(model_probability, required_roi=0.02):
+    """Worst American price that still preserves the required expected ROI."""
+    probability = min(max(float(model_probability), 0.0001), 0.9999)
+    required_decimal = (1 + required_roi) / probability
+    if required_decimal <= 1:
+        return -10000
+    if required_decimal >= 2:
+        return round((required_decimal - 1) * 100)
+    return -round(100 / (required_decimal - 1))
+
+
+def decision_label(expected_roi, confidence):
+    if expected_roi >= 0.05 and confidence >= 7:
+        return "BET", "The estimated edge is meaningful and supported by sufficient confidence."
+    if expected_roi >= 0.02 and confidence >= 6:
+        return "WATCH", "There may be value, but the edge or confidence is not strong enough yet."
+    return "PASS", "The current price does not provide enough model-supported value."
+
+
+def build_matchup_brief(player_a, player_b, scores_a, scores_b, weights):
+    contributions = []
+    for factor, weight in weights.items():
+        difference = scores_a[factor] - scores_b[factor]
+        contributions.append((factor, difference * weight, difference))
+    contributions.sort(key=lambda item: item[1], reverse=True)
+
+    strengths = [item for item in contributions if item[1] > 0][:3]
+    risks = sorted([item for item in contributions if item[1] < 0], key=lambda item: item[1])[:2]
+
+    strength_text = (
+        "; ".join(f"{factor} ({raw_diff:+.1f})" for factor, _, raw_diff in strengths)
+        if strengths else "no clear category-level advantage"
+    )
+    risk_text = (
+        "; ".join(f"{factor} ({raw_diff:+.1f})" for factor, _, raw_diff in risks)
+        if risks else "no major scorecard disadvantage"
+    )
+
+    return (
+        f"{player_a} grades best in {strength_text}. "
+        f"The clearest concerns relative to {player_b} are {risk_text}. "
+        "This summary reflects the current pre-match scorecard and should be revised if injury, "
+        "weather, scheduling, or market information changes."
+    )
+
+
 def stake_to_win(odds, target):
     if odds < 0:
         return target * abs(odds) / 100
@@ -134,8 +195,10 @@ def normalize_analyses(df):
     clean = clean[ANALYSIS_COLUMNS]
 
     numeric = [
-        "analysis_id", "market_odds_a", "model_probability_a", "fair_odds_a",
-        "estimated_roi", "confidence", "closing_odds_a", "closing_line_value"
+        "analysis_id", "market_odds_a", "market_odds_b", "model_probability_a",
+        "fair_odds_a", "no_vig_probability_a", "no_vig_edge",
+        "minimum_acceptable_odds_a", "estimated_roi", "confidence",
+        "closing_odds_a", "closing_line_value"
     ]
     for col in numeric:
         clean[col] = pd.to_numeric(clean[col], errors="coerce")
@@ -176,8 +239,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Michael Betting Dashboard")
-st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
+title_col, version_col = st.columns([4, 1])
+with title_col:
+    st.title("Michael Betting Dashboard")
+    st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
+with version_col:
+    st.markdown(
+        f"""
+        <div style="
+            margin-top: 0.65rem;
+            padding: 0.55rem 0.75rem;
+            border: 1px solid #d8d8d8;
+            border-radius: 0.55rem;
+            text-align: center;
+            font-weight: 600;
+        ">
+            {APP_VERSION}<br>
+            <span style="font-size: 0.78rem; font-weight: 400;">{BUILD_DATE}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 with st.sidebar:
     st.header("Core Settings")
@@ -235,6 +317,18 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
+    with st.expander("What's New in Macabets Tennis v0.4", expanded=True):
+        st.markdown(
+            """
+            - Two-sided sportsbook market entry with no-vig probabilities
+            - Macabets fair lines for both players
+            - Automatic Bet / Watch / Pass decision card
+            - Minimum acceptable price for Player A
+            - Model edge measured against both the listed price and the no-vig market
+            - Automatic matchup brief built from the largest factor advantages and risks
+            """
+        )
+
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Current Bankroll", money(current_bankroll), money(net_profit))
     c2.metric("Pending Exposure", money(pending_exposure))
@@ -417,10 +511,23 @@ with tabs[3]:
     surface = meta3.selectbox("Surface", ["Hard", "Clay", "Grass", "Indoor Hard"], key="fle_surface")
     round_name = meta4.selectbox("Round", ["R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"], key="fle_round")
 
-    top1, top2, top3 = st.columns([1.2, 1.2, 1])
+    top1, top2 = st.columns(2)
     favorite_name = top1.text_input("Player A", value="Favorite", key="fle_favorite")
     opponent_name = top2.text_input("Player B", value="Opponent", key="fle_opponent")
-    market_odds = top3.number_input("Sportsbook odds on Player A", value=-180, step=5, key="fle_market")
+
+    market1, market2 = st.columns(2)
+    market_odds = market1.number_input(
+        "Sportsbook odds on Player A",
+        value=-180,
+        step=5,
+        key="fle_market_a",
+    )
+    market_odds_b = market2.number_input(
+        "Sportsbook odds on Player B",
+        value=155,
+        step=5,
+        key="fle_market_b",
+    )
 
     weights = {
         "Base quality": 0.24,
@@ -458,22 +565,59 @@ with tabs[3]:
         favorite_scores, opponent_scores, weights, confidence
     )
     fair_odds = probability_to_american(model_probability)
+    fair_odds_b = probability_to_american(1 - model_probability)
     market_probability = implied_probability(int(market_odds))
+    no_vig_a, no_vig_b, sportsbook_hold = no_vig_probabilities(market_odds, market_odds_b)
     probability_edge = model_probability - market_probability
+    no_vig_edge = model_probability - no_vig_a
     expected_roi = model_probability * (american_to_decimal(int(market_odds)) - 1) - (1 - model_probability)
+    minimum_price = minimum_acceptable_odds(model_probability, required_roi=0.02)
+    decision, decision_reason = decision_label(expected_roi, confidence)
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Macabets win probability", f"{model_probability:.1%}")
-    m2.metric("Macabets fair line", format_american(fair_odds))
-    m3.metric("Sportsbook implied", f"{market_probability:.1%}")
-    m4.metric("Estimated ROI at market", f"{expected_roi:.1%}")
+    m2.metric("Macabets fair line — A", format_american(fair_odds))
+    m3.metric("Macabets fair line — B", format_american(fair_odds_b))
+    m4.metric("Estimated ROI at listed price", f"{expected_roi:.1%}")
 
-    if expected_roi >= 0.05 and confidence >= 7:
-        st.success(f"Potential value: Macabets prices {favorite_name} at {format_american(fair_odds)} versus the market's {format_american(market_odds)}.")
-    elif expected_roi > 0:
-        st.warning("Small or low-confidence edge. Continue researching before treating this as a bet.")
+    n1, n2, n3, n4 = st.columns(4)
+    n1.metric("No-vig market — A", f"{no_vig_a:.1%}")
+    n2.metric("No-vig market — B", f"{no_vig_b:.1%}")
+    n3.metric("Macabets edge vs no-vig", f"{no_vig_edge:+.1%}")
+    n4.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
+
+    st.markdown("#### Decision Card")
+    dcard1, dcard2, dcard3 = st.columns(3)
+    dcard1.metric("Decision", decision)
+    dcard2.metric("Current price", format_american(market_odds))
+    dcard3.metric("Minimum acceptable price", format_american(minimum_price))
+    st.caption(decision_reason)
+
+    if decision == "BET":
+        st.success(
+            f"Potential value: Macabets prices {favorite_name} at {format_american(fair_odds)} "
+            f"versus the market's {format_american(market_odds)}."
+        )
+    elif decision == "WATCH":
+        st.warning(
+            "The matchup is worth monitoring, but Macabets does not yet have a strong enough "
+            "combination of edge and confidence."
+        )
     else:
-        st.error(f"No value on {favorite_name} at the current price. Macabets requires {format_american(fair_odds)} or better.")
+        st.error(
+            f"Pass at the current price. Macabets needs approximately "
+            f"{format_american(minimum_price)} or better to preserve a 2% expected return."
+        )
+
+    auto_brief = build_matchup_brief(
+        favorite_name,
+        opponent_name,
+        favorite_scores,
+        opponent_scores,
+        weights,
+    )
+    with st.expander("Automatic Matchup Brief", expanded=True):
+        st.write(auto_brief)
 
     with st.expander("See factor contribution"):
         rows = []
@@ -512,8 +656,13 @@ with tabs[3]:
             "player_a": favorite_name.strip(),
             "player_b": opponent_name.strip(),
             "market_odds_a": int(market_odds),
+            "market_odds_b": int(market_odds_b),
             "model_probability_a": float(model_probability),
             "fair_odds_a": int(fair_odds),
+            "no_vig_probability_a": float(no_vig_a),
+            "no_vig_edge": float(no_vig_edge),
+            "decision": decision,
+            "minimum_acceptable_odds_a": int(minimum_price),
             "estimated_roi": float(expected_roi),
             "confidence": int(confidence),
             "prediction": prediction.strip(),
@@ -553,8 +702,8 @@ with tabs[4]:
 
         display_cols = [
             "analysis_id", "match_date", "tournament", "round", "player_a", "player_b",
-            "market_odds_a", "fair_odds_a", "model_probability_a", "estimated_roi",
-            "confidence", "result", "prediction_correct"
+            "market_odds_a", "fair_odds_a", "model_probability_a", "no_vig_edge",
+            "decision", "estimated_roi", "confidence", "result", "prediction_correct"
         ]
         archive_view = analyses[display_cols].sort_values("analysis_id", ascending=False)
         st.dataframe(archive_view, use_container_width=True, hide_index=True)
