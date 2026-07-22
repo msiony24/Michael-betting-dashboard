@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from datetime import date
@@ -8,42 +7,57 @@ import sys
 import requests
 
 
-BASE = "https://raw.githubusercontent.com/jeffSackmann/tennis_atp/master"
+BASE_URL = "https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master"
 DATA_DIR = Path(__file__).resolve().parent / "data"
 START_YEAR = 2021
 
 
-def download(url: str, destination: Path) -> None:
+def download_file(url: str, destination: Path) -> None:
     response = requests.get(
         url,
-        timeout=90,
-        headers={"User-Agent": "Macabets personal analytics"},
+        timeout=120,
+        headers={
+            "User-Agent": "Macabets-Tennis-Analytics/1.0",
+            "Accept": "text/csv,text/plain,*/*",
+        },
     )
     response.raise_for_status()
+
     if len(response.content) < 500:
-        raise RuntimeError(f"Downloaded file is unexpectedly small: {url}")
+        raise RuntimeError(
+            f"Downloaded file was unexpectedly small: {url}"
+        )
+
     destination.write_bytes(response.content)
-    print(f"Saved {destination.name}: {len(response.content):,} bytes")
+    print(
+        f"Saved {destination.name}: "
+        f"{len(response.content):,} bytes"
+    )
 
 
 def main() -> int:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     current_year = date.today().year
+    failures: list[str] = []
 
-    failed: list[str] = []
     for year in range(START_YEAR, current_year + 1):
         filename = f"atp_matches_{year}.csv"
-        try:
-            download(f"{BASE}/{filename}", DATA_DIR / filename)
-        except Exception as exc:
-            failed.append(f"{filename}: {exc}")
+        url = f"{BASE_URL}/{filename}"
+        destination = DATA_DIR / filename
 
-    if failed:
+        try:
+            print(f"Downloading {url}")
+            download_file(url, destination)
+        except Exception as exc:
+            failures.append(f"{filename}: {exc}")
+
+    if failures:
         print("\nSome downloads failed:")
-        for item in failed:
-            print(item)
+        for failure in failures:
+            print(failure)
         return 1
 
+    print("\nATP database update completed successfully.")
     return 0
 
 
