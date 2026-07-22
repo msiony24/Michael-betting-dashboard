@@ -23,7 +23,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.11.1"
+APP_VERSION = "Macabets Tennis v0.10"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
@@ -440,16 +440,15 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.11.1", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.10", expanded=True):
         st.markdown(
             """
-            - Advanced context now runs automatically
-            - Fatigue, workload, rest and surface transition require no manual entry
-            - Playing style is inferred from serve and return statistics
-            - Handedness is detected from ATP match records when available
-            - The full questionnaire has been removed
-            - Only injury, unusual travel, late finish and known motivation remain as optional overrides
-            - Unknown information stays neutral instead of being guessed
+            - Opponent Strength Index added to the fair-line calculation
+            - Recent records are adjusted for the quality of opposition
+            - Average opponent Elo and ranking over the last 10 matches
+            - Recent records against top-50 and top-100 opponents
+            - Quality-adjusted form score for both players
+            - Transparent probability impact in the model breakdown
             """
         )
 
@@ -626,7 +625,7 @@ with tabs[2]:
             st.rerun()
 
 with tabs[3]:
-    st.subheader("Automatic Match Analyzer — Tennis v7.1")
+    st.subheader("Automatic Match Analyzer — Tennis v6")
     st.caption(
         "Select the matchup and event context. Macabets builds the probability from "
         "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -739,92 +738,6 @@ with tabs[3]:
                 key="auto_match_format",
             )
 
-            # Macabets detects style, handedness, workload and surface transition
-            # automatically. These neutral defaults are changed only through the
-            # optional overrides below.
-            manual_style_a = "Auto"
-            manual_style_b = "Auto"
-            handedness_a = "Auto"
-            handedness_b = "Auto"
-            home_event_a = False
-            home_event_b = False
-            defending_status_a = "None"
-            defending_status_b = "None"
-            ranking_pressure_a = "None"
-            ranking_pressure_b = "None"
-            draw_pressure_a = "Normal"
-            draw_pressure_b = "Normal"
-
-            with st.expander("Optional manual overrides", expanded=False):
-                st.caption(
-                    "Use this only for reliable information Macabets cannot detect from "
-                    "the match database. Leaving everything neutral creates no adjustment."
-                )
-
-                o1, o2 = st.columns(2)
-                injury_options = [
-                    "Clear",
-                    "Minor concern",
-                    "Recent medical timeout",
-                    "Returning from layoff",
-                    "Recent retirement",
-                    "Significant concern",
-                ]
-                with o1:
-                    st.markdown("**Player A**")
-                    injury_status_a = st.selectbox(
-                        "Known health issue",
-                        injury_options,
-                        key="override_injury_a",
-                    )
-                    travel_load_a = st.selectbox(
-                        "Unusual travel load",
-                        ["None", "Moderate", "Heavy"],
-                        key="override_travel_a",
-                    )
-                    late_finish_a = st.checkbox(
-                        "Known late finish or short turnaround",
-                        key="override_late_a",
-                    )
-                    motivation_override_a = st.selectbox(
-                        "Known motivation context",
-                        ["Neutral", "Negative", "Positive"],
-                        key="override_motivation_a",
-                    )
-
-                with o2:
-                    st.markdown("**Player B**")
-                    injury_status_b = st.selectbox(
-                        "Known health issue",
-                        injury_options,
-                        key="override_injury_b",
-                    )
-                    travel_load_b = st.selectbox(
-                        "Unusual travel load",
-                        ["None", "Moderate", "Heavy"],
-                        key="override_travel_b",
-                    )
-                    late_finish_b = st.checkbox(
-                        "Known late finish or short turnaround",
-                        key="override_late_b",
-                    )
-                    motivation_override_b = st.selectbox(
-                        "Known motivation context",
-                        ["Neutral", "Negative", "Positive"],
-                        key="override_motivation_b",
-                    )
-
-            priority_a = {
-                "Negative": "Low",
-                "Neutral": "Normal",
-                "Positive": "High",
-            }[motivation_override_a]
-            priority_b = {
-                "Negative": "Low",
-                "Neutral": "Normal",
-                "Positive": "High",
-            }[motivation_override_b]
-
             p1, p2 = st.columns(2)
             default_a_index = player_a_options.index(existing_a) if existing_a in player_a_options else 0
             default_b_index = player_b_options.index(existing_b) if existing_b in player_b_options else min(1, len(player_b_options) - 1)
@@ -901,26 +814,6 @@ with tabs[3]:
                             tournament_category_label=tournament_category,
                             environment=environment,
                             match_format=match_format,
-                            style_a=manual_style_a,
-                            style_b=manual_style_b,
-                            handedness_a=handedness_a,
-                            handedness_b=handedness_b,
-                            injury_status_a=injury_status_a,
-                            injury_status_b=injury_status_b,
-                            travel_load_a=travel_load_a,
-                            travel_load_b=travel_load_b,
-                            late_finish_a=late_finish_a,
-                            late_finish_b=late_finish_b,
-                            home_event_a=home_event_a,
-                            home_event_b=home_event_b,
-                            defending_status_a=defending_status_a,
-                            defending_status_b=defending_status_b,
-                            priority_a=priority_a,
-                            priority_b=priority_b,
-                            ranking_pressure_a=ranking_pressure_a,
-                            ranking_pressure_b=ranking_pressure_b,
-                            draw_pressure_a=draw_pressure_a,
-                            draw_pressure_b=draw_pressure_b,
                         )
                         st.session_state.automatic_match_market = {
                             "market_odds_a": int(market_odds_a),
@@ -1271,60 +1164,6 @@ with tabs[3]:
                             "The recommendation is being made with limited data quality. "
                             "The calculated edge may be less reliable than the headline number."
                         )
-
-                st.markdown("#### Tier 1 & 2 Context")
-                fp_a = result.get("fatigue_profile_a", {})
-                fp_b = result.get("fatigue_profile_b", {})
-                tr_a = result.get("surface_transition_a", {})
-                tr_b = result.get("surface_transition_b", {})
-                ps_a = result.get("playing_style_a", {})
-                ps_b = result.get("playing_style_b", {})
-
-                tc1, tc2 = st.columns(2)
-                with tc1:
-                    st.markdown(f"**{analyzed_a}**")
-                    x1, x2, x3 = st.columns(3)
-                    x1.metric(
-                        "Detected style",
-                        ps_a.get("label", "—"),
-                    )
-                    x2.metric(
-                        "Detected hand",
-                        result.get("handedness_a", "Unknown"),
-                    )
-                    x3.metric(
-                        "7-day workload",
-                        f"{fp_a.get('matches_7', 0)} matches / {fp_a.get('sets_7', 0)} sets",
-                    )
-                    x4, x5, x6 = st.columns(3)
-                    x4.metric("Rest", f"{fp_a.get('rest_days', 0)} days")
-                    x5.metric("Surface adaptation", f"{tr_a.get('adaptation_score', .5):.0%}")
-                    x6.metric("Health override", result.get("injury_status_a", "Clear"))
-
-                with tc2:
-                    st.markdown(f"**{analyzed_b}**")
-                    y1, y2, y3 = st.columns(3)
-                    y1.metric(
-                        "Detected style",
-                        ps_b.get("label", "—"),
-                    )
-                    y2.metric(
-                        "Detected hand",
-                        result.get("handedness_b", "Unknown"),
-                    )
-                    y3.metric(
-                        "7-day workload",
-                        f"{fp_b.get('matches_7', 0)} matches / {fp_b.get('sets_7', 0)} sets",
-                    )
-                    y4, y5, y6 = st.columns(3)
-                    y4.metric("Rest", f"{fp_b.get('rest_days', 0)} days")
-                    y5.metric("Surface adaptation", f"{tr_b.get('adaptation_score', .5):.0%}")
-                    y6.metric("Health override", result.get("injury_status_b", "Clear"))
-
-                st.caption(
-                    "Style, handedness, workload, rest and surface transition are detected "
-                    "automatically. Optional overrides are applied only when you enter them."
-                )
 
                 st.markdown("#### Opponent Strength Index")
                 osa = result.get("opponent_strength_a", {})
