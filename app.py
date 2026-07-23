@@ -1973,7 +1973,7 @@ with tabs[1]:
             home_team = nfl_top4.selectbox("Home team", home_options, index=min(4, len(home_options)-1), key="nfl_home_team")
 
             st.markdown("#### Market")
-            market1, market2, market3, market4, market5 = st.columns(5)
+            market1, market2, market3, market4 = st.columns(4)
             market_spread_home = market1.number_input(
                 f"{home_team} spread", value=-3.0, step=0.5, format="%.1f", key="nfl_spread_home",
                 help="Enter the home-team line. Example: -3.5 means the home team is favored by 3.5."
@@ -1985,16 +1985,14 @@ with tabs[1]:
                 f"{home_team} moneyline", value=-165, step=5, key="nfl_ml_home"
             )
             market_total = market4.number_input("Game total", min_value=1.0, value=45.5, step=0.5, format="%.1f", key="nfl_total")
-            opening_spread = market5.number_input("Opening home spread", value=-3.0, step=0.5, format="%.1f", key="nfl_opening_spread")
-
+            
             st.markdown("#### Game context")
-            context1, context2, context3, context4, context5 = st.columns(5)
+            context1, context2, context3, context4 = st.columns(4)
             venue_type = context1.selectbox("Venue type", VENUE_TYPES, key="nfl_venue_type")
             weather = context2.selectbox("Weather", WEATHER_OPTIONS, key="nfl_weather")
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
             home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
-            context5.metric("Line movement", f"{market_spread_home - opening_spread:+.1f} pts")
-
+            
             away_overrides = dict(NFL_TEAM_RATINGS[away_team])
             home_overrides = dict(NFL_TEAM_RATINGS[home_team])
             with st.expander("Team Power Rating inputs — review or override"):
