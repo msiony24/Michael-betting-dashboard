@@ -28,7 +28,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.15"
+APP_VERSION = "Macabets Tennis v0.16"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -80,7 +80,7 @@ def _api_get_json(path, params):
     query = urllib.parse.urlencode(params)
     request = urllib.request.Request(
         f"{ODDS_API_BASE}{path}?{query}",
-        headers={"User-Agent": "Macabets/0.15"},
+        headers={"User-Agent": "Macabets/0.16"},
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -226,6 +226,120 @@ def _plain_factor_sentence(factor_name, player, opponent, reason):
         ),
     }
     return templates.get(factor_name, f"{player} holds an advantage in {factor_name.lower()}.")
+
+
+def build_head_to_head_summary(matches, player_a, player_b, current_surface):
+    """Summarize prior meetings using common ATP/WTA dataset column names.
+
+    The helper is deliberately defensive so the app keeps working when data
+    providers use slightly different names for winner, loser, event, or date.
+    """
+    if matches is None or matches.empty:
+        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
+                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
+
+    def first_column(options):
+        return next((name for name in options if name in matches.columns), None)
+
+    winner_col = first_column(["winner_name", "winner", "Winner", "w_name"])
+    loser_col = first_column(["loser_name", "loser", "Loser", "l_name"])
+    surface_col = first_column(["surface", "Surface"])
+    date_col = first_column(["tourney_date", "match_date", "date", "Date"])
+    event_col = first_column(["tourney_name", "tournament", "event", "Tournament"])
+    score_col = first_column(["score", "Score"])
+    round_col = first_column(["round", "Round"])
+
+    if not winner_col or not loser_col:
+        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
+                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
+
+    winner = matches[winner_col].astype(str).str.strip()
+    loser = matches[loser_col].astype(str).str.strip()
+    pair_mask = ((winner == player_a) & (loser == player_b)) | ((winner == player_b) & (loser == player_a))
+    meetings = matches.loc[pair_mask].copy()
+
+    if meetings.empty:
+        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
+                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
+
+    meetings["_winner"] = meetings[winner_col].astype(str).str.strip()
+    wins_a = int((meetings["_winner"] == player_a).sum())
+    wins_b = int((meetings["_winner"] == player_b).sum())
+
+    if surface_col:
+        surface_mask = meetings[surface_col].astype(str).str.casefold() == str(current_surface).casefold()
+        surface_meetings = meetings.loc[surface_mask]
+    else:
+        surface_meetings = meetings.iloc[0:0]
+
+    surface_wins_a = int((surface_meetings["_winner"] == player_a).sum())
+    surface_wins_b = int((surface_meetings["_winner"] == player_b).sum())
+
+    if date_col:
+        raw_dates = meetings[date_col]
+        numeric_dates = pd.to_numeric(raw_dates, errors="coerce")
+        parsed_numeric = pd.to_datetime(numeric_dates.astype("Int64").astype(str), format="%Y%m%d", errors="coerce")
+        parsed_general = pd.to_datetime(raw_dates, errors="coerce")
+        meetings["_parsed_date"] = parsed_numeric.fillna(parsed_general)
+        meetings = meetings.sort_values("_parsed_date", ascending=False, na_position="last")
+
+    latest = meetings.iloc[0]
+    latest_date = latest.get("_parsed_date")
+    if pd.notna(latest_date):
+        latest_date = pd.Timestamp(latest_date).date().isoformat()
+    else:
+        latest_date = "Date unavailable"
+
+    details = []
+    if event_col and str(latest.get(event_col, "")).strip() not in {"", "nan", "None"}:
+        details.append(str(latest.get(event_col)).strip())
+    if round_col and str(latest.get(round_col, "")).strip() not in {"", "nan", "None"}:
+        details.append(str(latest.get(round_col)).strip())
+
+    score = ""
+    if score_col and str(latest.get(score_col, "")).strip() not in {"", "nan", "None"}:
+        score = str(latest.get(score_col)).strip()
+
+    return {
+        "meetings": int(len(meetings)),
+        "wins_a": wins_a,
+        "wins_b": wins_b,
+        "surface_meetings": int(len(surface_meetings)),
+        "surface_wins_a": surface_wins_a,
+        "surface_wins_b": surface_wins_b,
+        "last_meeting": {
+            "date": latest_date,
+            "winner": str(latest["_winner"]),
+            "event": " — ".join(details) if details else "Event unavailable",
+            "score": score,
+        },
+    }
+
+
+def render_head_to_head_summary(matches, player_a, player_b, current_surface):
+    """Render a compact, decision-useful H2H card in the match analysis."""
+    h2h = build_head_to_head_summary(matches, player_a, player_b, current_surface)
+    st.markdown("#### Head-to-Head Summary")
+
+    if h2h["meetings"] == 0:
+        st.info("No previous meetings were found in the available Macabets match data.")
+        return
+
+    h1, h2, h3 = st.columns(3)
+    h1.metric("Overall meetings", h2h["meetings"])
+    h2.metric(f"{player_a} H2H wins", h2h["wins_a"])
+    h3.metric(f"{player_b} H2H wins", h2h["wins_b"])
+
+    s1, s2, s3 = st.columns(3)
+    s1.metric(f"Meetings on {current_surface}", h2h["surface_meetings"])
+    s2.metric(f"{player_a} {current_surface} wins", h2h["surface_wins_a"])
+    s3.metric(f"{player_b} {current_surface} wins", h2h["surface_wins_b"])
+
+    last = h2h["last_meeting"]
+    score_text = f" Score: {last['score']}." if last.get("score") else ""
+    st.caption(
+        f"Last meeting: {last['winner']} won on {last['date']} at {last['event']}.{score_text}"
+    )
 
 
 def build_matchup_analysis(result, selected_player=None):
@@ -691,9 +805,10 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.15", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.16", expanded=True):
         st.markdown(
             """
+            - Head-to-Head Summary: overall record, current-surface record and most recent meeting
             - Daily Slate now combines all active ATP and WTA tournaments into one tennis card
             - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
             - Surface Transition Engine: recent exposure and adaptation to the current surface
@@ -1171,6 +1286,10 @@ with tabs[1]:
                     cx3.metric("Surface", result.get("surface", "—"))
                     cx4.metric("Environment", result.get("environment", "—"))
                     cx5.metric("Format", result.get("match_format", "—"))
+
+                    render_head_to_head_summary(
+                        matches, analyzed_a, analyzed_b, result.get("surface", surface)
+                    )
 
                     st.markdown("#### Objective Match Price")
                     m1, m2, m3, m4 = st.columns(4)
