@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.24 — Team Quality Engine"
+APP_VERSION = "Macabets v0.25 — NFL Line Clarity"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -2066,13 +2066,48 @@ with tabs[1]:
 
             nfl_result = st.session_state.get("nfl_result")
             if nfl_result:
-                st.warning(nfl_result["foundation_notice"])
+                fair_home_spread = float(nfl_result["fair_spread_home"])
+                entered_market_home_spread = float(market_spread_home)
+                spread_difference = fair_home_spread - entered_market_home_spread
+
+                if fair_home_spread < -0.05:
+                    model_favorite = nfl_result["home_team"]
+                elif fair_home_spread > 0.05:
+                    model_favorite = nfl_result["away_team"]
+                else:
+                    model_favorite = "Pick'em"
+
+                if spread_difference > 0.50:
+                    value_team = nfl_result["away_team"]
+                    value_spread = -entered_market_home_spread
+                    spread_value_text = f"{value_team} {value_spread:+.1f}"
+                    market_direction = nfl_result["away_team"]
+                elif spread_difference < -0.50:
+                    value_team = nfl_result["home_team"]
+                    value_spread = entered_market_home_spread
+                    spread_value_text = f"{value_team} {value_spread:+.1f}"
+                    market_direction = nfl_result["home_team"]
+                else:
+                    value_team = None
+                    spread_value_text = "No material spread edge"
+                    market_direction = "neither side"
+
+                st.info(
+                    f"Team Quality Engine active: {len(NFL_QUALITY_RATINGS)} team profiles loaded. "
+                    "The spread and moneyline are independently driven by team-quality ratings and home field. "
+                    "The projected total remains market-anchored. Injury, depth-chart and late-news adjustments "
+                    "must still be reviewed before treating the output as actionable."
+                )
                 st.markdown(f"### {nfl_result['away_team']} at {nfl_result['home_team']} — Week {int(nfl_week)}")
                 st.caption(f"Game date: {nfl_date.strftime('%B %-d, %Y')}")
 
                 out1, out2, out3, out4, out5 = st.columns(5)
-                out1.metric("Pick", nfl_result["pick"])
-                out2.metric("Fair home spread", f"{nfl_result['fair_spread_home']:+.1f}", f"{nfl_result['market_edge_points']:+.1f} vs market")
+                out1.metric("Model favorite", model_favorite)
+                out2.metric(
+                    "Fair home spread",
+                    f"{fair_home_spread:+.1f}",
+                    f"{spread_difference:+.1f} points vs market",
+                )
                 out3.metric("Fair home ML", f"{nfl_result['fair_moneyline_home']:+d}")
                 out4.metric("Fair total", f"{nfl_result['fair_total']:.1f}", "Market-anchored")
                 out5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
@@ -2091,7 +2126,15 @@ with tabs[1]:
                     f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.1f} — "
                     f"{nfl_result['home_team']} {nfl_result['projected_home_score']:.1f}"
                 )
-                score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
+                score4.metric(
+                    "Spread assessment",
+                    f"Lean: {model_favorite}",
+                    spread_value_text,
+                )
+                st.caption(
+                    "This identifies the side and spread where the model sees potential value. "
+                    "It is not a final BET recommendation because spread price/juice was not entered or evaluated."
+                )
 
                 st.markdown("#### Expected game script")
                 st.write(nfl_result["game_script"])
@@ -2119,7 +2162,22 @@ with tabs[1]:
                         st.markdown(f"- {condition}")
 
                 st.markdown("#### Why Macabets differs from Vegas")
-                st.write(nfl_result["vegas_difference"])
+                if value_team:
+                    st.write(
+                        f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}. "
+                        f"Macabets makes the fair home line {fair_home_spread:+.1f}, a "
+                        f"{abs(spread_difference):.1f}-point difference toward {market_direction}. "
+                        f"At the entered market line, the potential spread-value side is "
+                        f"{spread_value_text}. This is a line comparison, not a final bet call, "
+                        "because the sportsbook juice was not entered."
+                    )
+                else:
+                    st.write(
+                        f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}, "
+                        f"while Macabets makes the fair home line {fair_home_spread:+.1f}. "
+                        f"The {abs(spread_difference):.1f}-point difference is not large enough "
+                        "to create a material spread edge."
+                    )
 
     with analysis_tabs[2]:
         st.subheader("Outcome Simulator")
