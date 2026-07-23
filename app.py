@@ -2070,10 +2070,14 @@ score3.write(
 
 
                 
-                score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
+                score4.metric(
+    "Recommendation",
+    nfl_result["recommendation"],
+    f"Upset risk: {nfl_result['upset_risk']}"
+)
 
-                st.markdown("#### Expected game script")
-                st.write(nfl_result["game_script"])
+st.markdown("#### Expected game script")
+st.write(nfl_result["game_script"])
 
                 home_path, away_path = st.columns(2)
                 with home_path:
