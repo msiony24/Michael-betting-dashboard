@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Run NFL quality engine test
-        run: python test_nfl_team_quality.py
+- name: Run NFL Engine Tests
+  run: |
+    python test_nfl_team_quality.py
+    python test_nfl_ratings_loader.py
