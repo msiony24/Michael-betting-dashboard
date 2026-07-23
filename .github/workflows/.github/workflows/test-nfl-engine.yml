@@ -1,0 +1,25 @@
+name: Test NFL Engine
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "engine/nfl_team_quality.py"
+      - "test_nfl_team_quality.py"
+      - ".github/workflows/test-nfl-engine.yml"
+
+jobs:
+  test-nfl-engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run NFL quality engine test
+        run: python test_nfl_team_quality.py
