@@ -2069,18 +2069,11 @@ with tabs[1]:
                 )
 
 
-                
-                 score4.metric(
-                "Recommendation",
+    score4.metric(
+    "Recommendation",
     nfl_result["recommendation"],
     f"Upset risk: {nfl_result['upset_risk']}"
 )
-
-st.markdown("#### Expected game script")
-st.write(nfl_result["game_script"])
-
-st.markdown("#### Expected game script")
-st.write(nfl_result["game_script"])
 
 st.markdown("#### Expected game script")
 st.write(nfl_result["game_script"])
