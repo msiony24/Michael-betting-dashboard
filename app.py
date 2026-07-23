@@ -34,13 +34,17 @@ try:
         NFL_TEAMS, NFL_TEAM_RATINGS, NFL_DATA_STATUS, TEAM_RATING_WEIGHTS,
         VENUE_TYPES, WEATHER_OPTIONS,
     )
+    from engine.nfl_ratings_loader import load_all_team_ratings
+
+    NFL_QUALITY_RATINGS = load_all_team_ratings()
     NFL_ENGINE_AVAILABLE = True
     NFL_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
+    NFL_QUALITY_RATINGS = {}
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.23 — NFL Data Pipeline"
+APP_VERSION = "Macabets v0.24 — Team Quality Engine"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -1993,10 +1997,27 @@ with tabs[1]:
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
             home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
             
+            # Start with the existing NFL data-pipeline ratings, then layer the
+            # new Team Quality Engine ratings on top wherever the categories match.
+            # This keeps the current NFL report stable while making the new 32-team
+            # ratings file the primary source for the model inputs.
             away_overrides = dict(NFL_TEAM_RATINGS[away_team])
             home_overrides = dict(NFL_TEAM_RATINGS[home_team])
-            with st.expander("Team Power Rating inputs — review or override"):
-                st.caption("These are the loaded nflverse ratings when a snapshot is available; otherwise Macabets uses starter priors. You can still override any category for injuries or current roster news.")
+            away_quality_source = NFL_QUALITY_RATINGS.get(away_team, {})
+            home_quality_source = NFL_QUALITY_RATINGS.get(home_team, {})
+
+            for category in TEAM_RATING_WEIGHTS:
+                if category in away_quality_source:
+                    away_overrides[category] = float(away_quality_source[category])
+                if category in home_quality_source:
+                    home_overrides[category] = float(home_quality_source[category])
+
+            with st.expander("Team Quality Engine inputs — review or override"):
+                st.caption(
+                    "Macabets is now loading these inputs from data/nfl_team_ratings.json. "
+                    "Any category not available there falls back to the existing NFL data pipeline. "
+                    "You can override a number for injuries or current roster news before generating the report."
+                )
                 away_col, home_col = st.columns(2)
                 with away_col:
                     st.markdown(f"#### {away_team}")
@@ -2014,6 +2035,13 @@ with tabs[1]:
                             value=float(home_overrides[category]), step=1.0,
                             key=f"nfl_home_{home_team}_{category}"
                         )
+
+            quality_teams_loaded = len(NFL_QUALITY_RATINGS)
+            if quality_teams_loaded:
+                st.caption(
+                    f"Team Quality Engine active: {quality_teams_loaded} team profiles loaded. "
+                    "The selected teams’ quality ratings now feed the NFL report."
+                )
 
             run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
             if run_nfl:
