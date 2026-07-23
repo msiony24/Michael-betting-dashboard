@@ -2069,7 +2069,7 @@ score3.write(
 )
 
 
-                )
+                
                 score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
 
                 st.markdown("#### Expected game script")
