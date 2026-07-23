@@ -28,7 +28,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.18"
+APP_VERSION = "Macabets Tennis v0.19"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -861,11 +861,12 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.17", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.19", expanded=True):
         st.markdown(
             """
-            - Tennis now always appears as a Daily Slate option, even when no active tennis feed is available
-            - Added tennis feed diagnostics showing discovered sport keys, API errors and request quota
+            - Added one-click tennis analysis directly from the Automatic Daily Slate
+            - Daily Slate matchups now prefill and automatically run the Tennis Analysis Engine
+            - Tennis always appears as a Daily Slate option, with feed diagnostics and API quota details
             - Head-to-Head Summary: overall record, current-surface record and most recent meeting
             - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
             - Surface Transition Engine: recent exposure and adaptation to the current surface
@@ -1189,12 +1190,17 @@ with tabs[1]:
                 if analyze_disabled:
                     st.warning("Select two different players.")
 
-                if st.button(
+                auto_analysis_requested = bool(
+                    st.session_state.pop("run_analysis_from_daily_slate", False)
+                )
+                manual_analysis_requested = st.button(
                     "Analyze Match",
                     type="primary",
                     use_container_width=True,
                     disabled=analyze_disabled,
-                ):
+                )
+
+                if manual_analysis_requested or (auto_analysis_requested and not analyze_disabled):
                     with st.spinner("Macabets is analyzing the matchup..."):
                         try:
                             st.session_state.automatic_match_result = analyze_tennis_match(
@@ -1239,6 +1245,11 @@ with tabs[1]:
                                 "environment": environment,
                                 "match_format": match_format,
                             }
+                            if auto_analysis_requested:
+                                st.session_state["daily_slate_analysis_ready"] = (
+                                    f"Analysis completed for {player_a} vs {player_b}. "
+                                    "Open the Analysis Engine tab to review the full result."
+                                )
                         except Exception as exc:
                             st.session_state.pop("automatic_match_result", None)
                             st.error(f"Analysis failed: {exc}")
@@ -2182,6 +2193,9 @@ with tabs[2]:
 
 with tabs[3]:
     st.subheader("Daily Slate")
+    analysis_ready_message = st.session_state.pop("daily_slate_analysis_ready", None)
+    if analysis_ready_message:
+        st.success(analysis_ready_message)
     st.caption(
         "Automatically load today's market card without changing the existing manual slate or Analysis Engine."
     )
@@ -2312,7 +2326,81 @@ with tabs[3]:
                         key="automatic_slate_event",
                     )
                     selected_event = automatic_slate.loc[selected_event_index]
-                    if st.button("Add Event to Manual Slate", type="primary", use_container_width=True):
+                    is_tennis_event = available_choices[selected_label] == "__all_tennis__"
+                    analyze_col, add_col = st.columns(2)
+
+                    if analyze_col.button(
+                        "Analyze This Tennis Match",
+                        type="primary",
+                        use_container_width=True,
+                        disabled=not is_tennis_event,
+                    ):
+                        if pd.isna(selected_event["odds_a"]) or pd.isna(selected_event["odds_b"]):
+                            st.error("Both sides need moneyline odds before this matchup can be analyzed.")
+                        else:
+                            tournament_name = str(selected_event["sport"])
+                            tournament_lower = tournament_name.lower()
+                            if any(name in tournament_lower for name in ["wimbledon"]):
+                                inferred_surface = "Grass"
+                            elif any(name in tournament_lower for name in [
+                                "french open", "roland garros", "monte carlo", "madrid",
+                                "rome", "italian open", "barcelona", "hamburg", "kitzbuhel",
+                                "umag", "bastad", "geneva", "estoril", "munich"
+                            ]):
+                                inferred_surface = "Clay"
+                            else:
+                                inferred_surface = "Hard"
+
+                            if any(name in tournament_lower for name in [
+                                "australian open", "french open", "roland garros",
+                                "wimbledon", "us open"
+                            ]):
+                                inferred_category = "Grand Slam"
+                            elif any(token in tournament_lower for token in ["masters", "1000"]):
+                                inferred_category = "Masters 1000"
+                            elif "500" in tournament_lower:
+                                inferred_category = "ATP 500"
+                            else:
+                                inferred_category = "ATP 250"
+
+                            inferred_format = (
+                                "Best of 5"
+                                if inferred_category == "Grand Slam" and "WTA" not in tournament_name.upper()
+                                else "Best of 3"
+                            )
+                            event_date = selected_event["start_time"].date()
+                            player_a_name = str(selected_event["participant_a"])
+                            player_b_name = str(selected_event["participant_b"])
+                            odds_a_value = int(selected_event["odds_a"])
+                            odds_b_value = int(selected_event["odds_b"])
+
+                            st.session_state.pending_fair_line_prefill = {
+                                "fle_date": event_date,
+                                "fle_tournament": tournament_name,
+                                "fle_surface": inferred_surface,
+                                "fle_round": "R32",
+                                "fle_favorite": player_a_name,
+                                "fle_opponent": player_b_name,
+                                "fle_market_a": odds_a_value,
+                                "fle_market_b": odds_b_value,
+                                "auto_match_date": event_date,
+                                "auto_tournament": tournament_name,
+                                "auto_surface": inferred_surface,
+                                "auto_round": "R32",
+                                "auto_tournament_category": inferred_category,
+                                "auto_environment": "Outdoor",
+                                "auto_match_format": inferred_format,
+                                "auto_player_a": player_a_name,
+                                "auto_player_b": player_b_name,
+                                "auto_considering_bet": "Just analyze",
+                                "auto_market_a": odds_a_value,
+                                "auto_market_b": odds_b_value,
+                                "auto_simulations": 20000,
+                            }
+                            st.session_state.run_analysis_from_daily_slate = True
+                            st.rerun()
+
+                    if add_col.button("Add Event to Manual Slate", use_container_width=True):
                         if pd.isna(selected_event["odds_a"]) or pd.isna(selected_event["odds_b"]):
                             st.error("Both sides need moneyline odds before this event can be added.")
                         else:
