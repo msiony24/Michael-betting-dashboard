@@ -30,14 +30,14 @@ except Exception as exc:
 
 try:
     from engine.nfl import analyze as analyze_nfl_match
-    from engine.nfl_data import NFL_TEAMS, VENUE_TYPES, WEATHER_OPTIONS
+    from engine.nfl_data import NFL_TEAMS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS, VENUE_TYPES, WEATHER_OPTIONS
     NFL_ENGINE_AVAILABLE = True
     NFL_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.21 — NFL Foundation"
+APP_VERSION = "Macabets v0.22 — NFL Power Ratings"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -931,7 +931,7 @@ with tabs[0]:
             plt.close(fig)
 
 with tabs[1]:
-    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Foundation", "Outcome Simulator"])
+    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Power Ratings", "Outcome Simulator"])
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
@@ -1927,10 +1927,10 @@ with tabs[1]:
                     )
 
     with analysis_tabs[1]:
-        st.subheader("Analysis Engine — NFL v0.1 Foundation")
+        st.subheader("Analysis Engine — NFL v0.22 Team Power Ratings")
         st.caption(
-            "Build the matchup, enter the current market and generate the complete Macabets NFL report shell. "
-            "This first version is intentionally market-derived until independent team ratings are added."
+            "Macabets now builds an independent fair spread from offense, defense, quarterback, coaching, "
+            "strength of schedule and special-teams ratings, then compares that line with Vegas."
         )
 
         if not NFL_ENGINE_AVAILABLE:
@@ -1962,11 +1962,34 @@ with tabs[1]:
             opening_spread = market5.number_input("Opening home spread", value=-3.0, step=0.5, format="%.1f", key="nfl_opening_spread")
 
             st.markdown("#### Game context")
-            context1, context2, context3, context4 = st.columns(4)
+            context1, context2, context3, context4, context5 = st.columns(5)
             venue_type = context1.selectbox("Venue type", VENUE_TYPES, key="nfl_venue_type")
             weather = context2.selectbox("Weather", WEATHER_OPTIONS, key="nfl_weather")
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
-            context4.metric("Line movement", f"{market_spread_home - opening_spread:+.1f} pts")
+            home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
+            context5.metric("Line movement", f"{market_spread_home - opening_spread:+.1f} pts")
+
+            away_overrides = dict(NFL_TEAM_RATINGS[away_team])
+            home_overrides = dict(NFL_TEAM_RATINGS[home_team])
+            with st.expander("Team Power Rating inputs — review or override"):
+                st.caption("These are Macabets starter priors on a 0–100 scale. Adjust them for current injuries, roster changes or your own view.")
+                away_col, home_col = st.columns(2)
+                with away_col:
+                    st.markdown(f"#### {away_team}")
+                    for category in TEAM_RATING_WEIGHTS:
+                        away_overrides[category] = st.number_input(
+                            category.replace("_", " ").title(), min_value=0.0, max_value=100.0,
+                            value=float(away_overrides[category]), step=1.0,
+                            key=f"nfl_away_{away_team}_{category}"
+                        )
+                with home_col:
+                    st.markdown(f"#### {home_team}")
+                    for category in TEAM_RATING_WEIGHTS:
+                        home_overrides[category] = st.number_input(
+                            category.replace("_", " ").title(), min_value=0.0, max_value=100.0,
+                            value=float(home_overrides[category]), step=1.0,
+                            key=f"nfl_home_{home_team}_{category}"
+                        )
 
             run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
             if run_nfl:
@@ -1981,6 +2004,9 @@ with tabs[1]:
                         venue_type=venue_type,
                         weather=weather,
                         neutral_site=neutral_site,
+                        away_rating_overrides=away_overrides,
+                        home_rating_overrides=home_overrides,
+                        home_field_points=home_field_points,
                     )
                     st.session_state.nfl_result = nfl_result
                 except Exception as exc:
@@ -1994,10 +2020,16 @@ with tabs[1]:
 
                 out1, out2, out3, out4, out5 = st.columns(5)
                 out1.metric("Pick", nfl_result["pick"])
-                out2.metric("Fair home spread", f"{nfl_result['fair_spread_home']:+.1f}")
+                out2.metric("Fair home spread", f"{nfl_result['fair_spread_home']:+.1f}", f"{nfl_result['market_edge_points']:+.1f} vs market")
                 out3.metric("Fair home ML", f"{nfl_result['fair_moneyline_home']:+d}")
-                out4.metric("Fair total", f"{nfl_result['fair_total']:.1f}")
+                out4.metric("Fair total", f"{nfl_result['fair_total']:.1f}", "Market-anchored")
                 out5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+
+                power1, power2, power3 = st.columns(3)
+                power1.metric(f"{nfl_result['away_team']} power rating", f"{nfl_result['away_power_rating']:+.2f}")
+                power2.metric(f"{nfl_result['home_team']} power rating", f"{nfl_result['home_power_rating']:+.2f}")
+                power3.metric("Home-field adjustment", f"{nfl_result['home_field_points']:+.1f}")
+                st.dataframe(pd.DataFrame(nfl_result["rating_breakdown"]), use_container_width=True, hide_index=True)
 
                 score1, score2, score3, score4 = st.columns(4)
                 score1.metric(f"{nfl_result['away_team']} win probability", f"{nfl_result['away_win_probability']:.1%}")

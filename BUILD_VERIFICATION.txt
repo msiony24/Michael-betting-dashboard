@@ -1,12 +1,16 @@
-Macabets v0.21 — NFL Foundation
-Verified: July 23, 2026
+Macabets v0.22 — NFL Power Ratings
 
-Checks completed:
-- Python syntax compilation passed for app.py, update_tennis_data.py, and all engine modules.
-- NFL engine import passed.
-- NFL smoke test passed using a sample Jets at Patriots market.
-- Existing tennis engine and data files were preserved from the supplied GitHub repository.
-- ZIP root contains repository files directly; there is no extra outer project folder.
+Verification performed:
+- app.py compiles successfully
+- all engine modules compile successfully
+- NFL engine imports successfully
+- all 32 teams have complete rating profiles
+- sample independent fair-line analysis runs successfully
+- tennis engine and ATP data files are preserved
+- no __pycache__ files are included in the release
 
-Limitation:
-- Full Streamlit server launch was not run in the build container because Streamlit was not installed there.
+Scope:
+- Adds independent NFL Team Power Rating Engine
+- Adds editable offense, defense, quarterback, coaching, SOS and special-teams inputs
+- Adds power-rating breakdown and model-vs-market spread edge
+- NFL total remains market-anchored in this release
