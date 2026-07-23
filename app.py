@@ -2068,11 +2068,6 @@ score3.write(
     f"{nfl_result['home_team']}: {nfl_result['projected_home_score']:.1f}"
 )
 
-score4.metric(
-    "Recommendation",
-    nfl_result["recommendation"],
-    ...
-
 
                 )
                 score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
