@@ -28,7 +28,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.19"
+APP_VERSION = "Macabets Tennis v0.20"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -80,7 +80,7 @@ def _api_get_json(path, params):
     query = urllib.parse.urlencode(params)
     request = urllib.request.Request(
         f"{ODDS_API_BASE}{path}?{query}",
-        headers={"User-Agent": "Macabets/0.18"},
+        headers={"User-Agent": "Macabets/0.20"},
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -256,9 +256,6 @@ def _plain_factor_sentence(factor_name, player, opponent, reason):
         "Surface": (
             f"{player} has produced the better recent results on this surface."
         ),
-        "Fatigue 2.0": (
-            f"{player} has the fresher workload and rest profile entering the match."
-        ),
         "Surface transition": (
             f"{player} appears better adapted to the current surface and has had the cleaner transition into this event."
         ),
@@ -409,6 +406,7 @@ def build_matchup_analysis(result, selected_player=None):
             "reason": str(item.get("reason", "")),
         }
         for item in result.get("factors", [])
+        if str(item.get("name", "")).strip() != "Fatigue 2.0"
     ]
 
     def side_rows(is_a):
@@ -463,7 +461,6 @@ def build_matchup_analysis(result, selected_player=None):
             "Context-weighted recent form": f"The bet is vulnerable if {selected_player}'s recent form proves temporary and {opponent} starts cleaner than the recent results suggest.",
             "Opponent strength": f"There is a risk that {selected_player}'s recent record has not prepared them for the level {opponent} brings in this matchup.",
             "Surface": f"The largest danger is that {opponent} settles into the surface faster and turns the match into the type of points where {selected_player} has been less reliable.",
-            "Fatigue 2.0": f"A long opening set or repeated extended games could expose {selected_player}'s workload and reduce their level later in the match.",
             "Surface transition": f"If {selected_player} struggles with timing or movement early, {opponent} can build scoreboard pressure before the adjustment arrives.",
             "Style matchup": f"{opponent}'s style can disrupt {selected_player}'s preferred patterns and force them to win through a less comfortable plan B.",
             "Injury / retirement risk": f"Any physical limitation could reduce {selected_player}'s serve, movement, or ability to sustain their level across the full match.",
@@ -861,14 +858,14 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.19", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.20", expanded=True):
         st.markdown(
             """
             - Added one-click tennis analysis directly from the Automatic Daily Slate
             - Daily Slate matchups now prefill and automatically run the Tennis Analysis Engine
             - Tennis always appears as a Daily Slate option, with feed diagnostics and API quota details
             - Head-to-Head Summary: overall record, current-surface record and most recent meeting
-            - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
+            - Removed 7-day workload and rest metrics because the available data was not reliable enough
             - Surface Transition Engine: recent exposure and adaptation to the current surface
             - Opponent Style Matchups with automatic or manual style tags
             - Injury and retirement-risk context
@@ -928,7 +925,7 @@ with tabs[1]:
         st.caption(
             "Select the matchup and event context. Macabets builds the probability from "
             "historical ATP results, Elo, surface performance, form, serve/return data, "
-            "fatigue, rest, and event-pressure history."
+            "and event-pressure history."
         )
 
         if not TENNIS_ENGINE_AVAILABLE:
@@ -1062,8 +1059,8 @@ with tabs[1]:
                         "Player B hand", ["Right", "Left"], key="auto_hand_b"
                     )
 
-                    st.markdown("##### Health, workload and travel")
-                    h1, h2, h3, h4 = st.columns(4)
+                    st.markdown("##### Health")
+                    h1, h2 = st.columns(2)
                     injury_options = [
                         "Clear", "Minor concern", "Recent medical timeout",
                         "Returning from layoff", "Recent retirement", "Significant concern"
@@ -1074,21 +1071,13 @@ with tabs[1]:
                     injury_status_b = h2.selectbox(
                         "Player B health", injury_options, key="auto_injury_b"
                     )
-                    travel_load_a = h3.selectbox(
-                        "Player A travel", ["None", "Moderate", "Heavy"], key="auto_travel_a"
-                    )
-                    travel_load_b = h4.selectbox(
-                        "Player B travel", ["None", "Moderate", "Heavy"], key="auto_travel_b"
-                    )
-                    lf1, lf2 = st.columns(2)
-                    late_finish_a = lf1.checkbox(
-                        "Player A had a late finish / short turnaround",
-                        key="auto_late_finish_a",
-                    )
-                    late_finish_b = lf2.checkbox(
-                        "Player B had a late finish / short turnaround",
-                        key="auto_late_finish_b",
-                    )
+
+                    # Workload, rest, travel and short-turnaround inputs are intentionally
+                    # disabled until Macabets has a sufficiently reliable scheduling source.
+                    travel_load_a = "None"
+                    travel_load_b = "None"
+                    late_finish_a = False
+                    late_finish_b = False
 
                     st.markdown("##### Motivation and tournament context")
                     mca1, mca2 = st.columns(2)
@@ -1509,6 +1498,8 @@ with tabs[1]:
                     # Build a decision-focused explanation from the same neutral model factors.
                     raw_factors = []
                     for factor in result["factors"]:
+                        if str(factor.get("name", "")).strip() == "Fatigue 2.0":
+                            continue
                         raw_factors.append({
                             "name": str(factor["name"]),
                             "impact_a": float(factor["impact"]),
@@ -1652,27 +1643,25 @@ with tabs[1]:
                         st.markdown(f"**{analyzed_a}**")
                         x1, x2, x3 = st.columns(3)
                         x1.metric("Style", ps_a.get("label", "—"))
-                        x2.metric("7-day workload", f"{fp_a.get('matches_7', 0)} matches / {fp_a.get('sets_7', 0)} sets")
-                        x3.metric("Rest", f"{fp_a.get('rest_days', 0)} days")
-                        x4, x5, x6 = st.columns(3)
-                        x4.metric("Surface adaptation", f"{tr_a.get('adaptation_score', .5):.0%}")
-                        x5.metric("Recent surface matches", tr_a.get("matches_current_surface_30", 0))
-                        x6.metric("Health", result.get("injury_status_a", "Clear"))
+                        x2.metric("Surface adaptation", f"{tr_a.get('adaptation_score', .5):.0%}")
+                        x3.metric("Recent surface matches", tr_a.get("matches_current_surface_30", 0))
+                        x4, x5 = st.columns(2)
+                        x4.metric("Health", result.get("injury_status_a", "Clear"))
+                        x5.metric("Hand", result.get("handedness_a", "—"))
 
                     with tc2:
                         st.markdown(f"**{analyzed_b}**")
                         y1, y2, y3 = st.columns(3)
                         y1.metric("Style", ps_b.get("label", "—"))
-                        y2.metric("7-day workload", f"{fp_b.get('matches_7', 0)} matches / {fp_b.get('sets_7', 0)} sets")
-                        y3.metric("Rest", f"{fp_b.get('rest_days', 0)} days")
-                        y4, y5, y6 = st.columns(3)
-                        y4.metric("Surface adaptation", f"{tr_b.get('adaptation_score', .5):.0%}")
-                        y5.metric("Recent surface matches", tr_b.get("matches_current_surface_30", 0))
-                        y6.metric("Health", result.get("injury_status_b", "Clear"))
+                        y2.metric("Surface adaptation", f"{tr_b.get('adaptation_score', .5):.0%}")
+                        y3.metric("Recent surface matches", tr_b.get("matches_current_surface_30", 0))
+                        y4, y5 = st.columns(2)
+                        y4.metric("Health", result.get("injury_status_b", "Clear"))
+                        y5.metric("Hand", result.get("handedness_b", "—"))
 
                     st.caption(
-                        "Automatic workload and surface-transition data are combined with any "
-                        "manual context entered before analysis. Neutral defaults create no adjustment."
+                        "Surface-transition data is combined with any manual health context "
+                        "entered before analysis. Neutral defaults create no adjustment."
                     )
 
                     st.markdown("#### Opponent Strength Index")
@@ -1798,9 +1787,6 @@ with tabs[1]:
                             f"{result['surface']} win rate": profile_a["surface_win"],
                             "Serve points won": profile_a["serve_points_won"],
                             "Return points won": profile_a["return_points_won"],
-                            "Matches — 7 days": profile_a["matches_7"],
-                            "Matches — 14 days": profile_a["matches_14"],
-                            "Rest days": profile_a["rest_days"],
                             "Historical sample": profile_a["sample"],
                         },
                         {
@@ -1810,9 +1796,6 @@ with tabs[1]:
                             f"{result['surface']} win rate": profile_b["surface_win"],
                             "Serve points won": profile_b["serve_points_won"],
                             "Return points won": profile_b["return_points_won"],
-                            "Matches — 7 days": profile_b["matches_7"],
-                            "Matches — 14 days": profile_b["matches_14"],
-                            "Rest days": profile_b["rest_days"],
                             "Historical sample": profile_b["sample"],
                         },
                     ])
