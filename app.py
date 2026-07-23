@@ -28,7 +28,7 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.17"
+APP_VERSION = "Macabets Tennis v0.18"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -80,7 +80,7 @@ def _api_get_json(path, params):
     query = urllib.parse.urlencode(params)
     request = urllib.request.Request(
         f"{ODDS_API_BASE}{path}?{query}",
-        headers={"User-Agent": "Macabets/0.17"},
+        headers={"User-Agent": "Macabets/0.18"},
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -94,8 +94,11 @@ def _api_get_json(path, params):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_active_sports(api_key):
-    payload, _ = _api_get_json("/sports", {"apiKey": api_key, "all": "true"})
-    return payload
+    payload, headers = _api_get_json("/sports", {"apiKey": api_key, "all": "true"})
+    return payload, {
+        "remaining": headers.get("x-requests-remaining", "—"),
+        "used": headers.get("x-requests-used", "—"),
+    }
 
 
 @st.cache_data(ttl=600, show_spinner=False)
@@ -861,8 +864,8 @@ with tabs[0]:
     with st.expander("What's New in Macabets Tennis v0.17", expanded=True):
         st.markdown(
             """
-            - Daily Slate tennis loader rebuilt to discover and combine all active ATP and WTA markets
-            - Added per-tournament error handling, event deduplication and a visible tennis event count
+            - Tennis now always appears as a Daily Slate option, even when no active tennis feed is available
+            - Added tennis feed diagnostics showing discovered sport keys, API errors and request quota
             - Head-to-Head Summary: overall record, current-surface record and most recent meeting
             - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
             - Surface Transition Engine: recent exposure and adaptation to the current surface
@@ -2192,7 +2195,7 @@ with tabs[3]:
         )
     else:
         try:
-            active_sports = fetch_active_sports(api_key)
+            active_sports, sports_usage = fetch_active_sports(api_key)
             fixed_choices = {
                 "MLB": "baseball_mlb",
                 "WNBA": "basketball_wnba",
@@ -2201,16 +2204,24 @@ with tabs[3]:
                 "NBA": "basketball_nba",
             }
             tennis_items = discover_active_tennis_sports(active_sports)
+            tennis_like_items = [
+                item for item in (active_sports or [])
+                if "tennis" in " ".join(
+                    str(item.get(field, "")) for field in ("key", "group", "title", "description")
+                ).lower()
+            ]
             available_choices = {
-                label: key for label, key in fixed_choices.items()
-                if any(item.get("key") == key and item.get("active", True) for item in active_sports)
+                "Tennis — All ATP & WTA": "__all_tennis__",
+                **{
+                    label: key for label, key in fixed_choices.items()
+                    if any(item.get("key") == key and item.get("active", True) for item in active_sports)
+                },
             }
-            if tennis_items:
-                available_choices = {"Tennis — All ATP & WTA": "__all_tennis__", **available_choices}
 
-            if not available_choices:
-                st.warning("The Odds API did not report any active supported leagues right now.")
-            else:
+            if len(available_choices) == 1 and not tennis_items:
+                st.caption("No other configured leagues are active right now, but Tennis diagnostics remain available.")
+
+            if available_choices:
                 auto_col1, auto_col2 = st.columns([2, 1])
                 selected_label = auto_col1.selectbox(
                     "Sport",
@@ -2224,10 +2235,36 @@ with tabs[3]:
                 with st.spinner("Loading today's market slate..."):
                     tennis_load_errors = []
                     if available_choices[selected_label] == "__all_tennis__":
-                        automatic_slate, usage, tennis_load_errors = combine_tennis_slate(api_key, tennis_items)
+                        if tennis_items:
+                            automatic_slate, usage, tennis_load_errors = combine_tennis_slate(api_key, tennis_items)
+                        else:
+                            automatic_slate = pd.DataFrame()
+                            usage = sports_usage
                     else:
                         api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
                         automatic_slate = normalize_api_slate(api_events, selected_label)
+
+                if available_choices[selected_label] == "__all_tennis__":
+                    with st.expander("Tennis API diagnostics", expanded=automatic_slate.empty):
+                        st.write(f"Active ATP/WTA feeds discovered: **{len(tennis_items)}**")
+                        if tennis_items:
+                            for item in tennis_items:
+                                st.caption(
+                                    f"{item.get('title', item.get('key', 'Tennis'))} — `{item.get('key', 'unknown')}`"
+                                )
+                        elif tennis_like_items:
+                            st.caption("The API returned tennis-related entries, but none matched an active ATP/WTA feed:")
+                            for item in tennis_like_items:
+                                st.caption(
+                                    f"{item.get('title', item.get('key', 'Tennis'))} — `{item.get('key', 'unknown')}` "
+                                    f"(active={item.get('active', 'unknown')})"
+                                )
+                        else:
+                            st.caption("The /sports endpoint returned no tennis-related sport keys.")
+                        st.caption(
+                            f"API requests remaining: {sports_usage.get('remaining', '—')} | "
+                            f"requests used: {sports_usage.get('used', '—')}"
+                        )
 
                 if tennis_load_errors:
                     st.warning(
@@ -2238,7 +2275,13 @@ with tabs[3]:
                             st.caption(message)
 
                 if automatic_slate.empty:
-                    st.info(f"No {selected_label} events with US moneyline odds are scheduled today.")
+                    if available_choices[selected_label] == "__all_tennis__" and not tennis_items:
+                        st.info(
+                            "Tennis is enabled in Macabets, but The Odds API is not currently reporting an active "
+                            "ATP or WTA feed for this account. Open the diagnostics above to confirm the returned keys and quota."
+                        )
+                    else:
+                        st.info(f"No {selected_label} events with US moneyline odds are scheduled today.")
                 else:
                     if available_choices[selected_label] == "__all_tennis__":
                         tournament_count = automatic_slate["sport"].nunique()
