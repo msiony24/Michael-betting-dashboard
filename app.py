@@ -23,11 +23,11 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.12"
+APP_VERSION = "Macabets Tennis v0.13"
 BUILD_DATE = "July 22, 2026"
 
 st.set_page_config(
-    page_title="Michael Betting Dashboard",
+    page_title="Macabets",
     page_icon="📊",
     layout="wide",
 )
@@ -503,7 +503,7 @@ st.markdown("""
 
 title_col, version_col = st.columns([4, 1])
 with title_col:
-    st.title("Michael Betting Dashboard")
+    st.title("Macabets")
     st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
 with version_col:
     st.markdown(
@@ -574,7 +574,7 @@ win_rate = wins / len(decisions) if len(decisions) else 0.0
 pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
 tabs = st.tabs([
-    "Dashboard", "New Bet", "Bet Ledger", "Fair Line Engine",
+    "Dashboard", "New Bet", "Bet Ledger", "Analysis Engine",
     "Analysis Archive", "Matchup Lab", "Outcome Simulator", "Performance",
     "Backup", "Daily Slate"
 ])
@@ -1294,7 +1294,7 @@ with tabs[3]:
                 matchup_analysis = build_matchup_analysis(result, considered_player)
                 st.markdown("#### Macabets Matchup Analysis")
                 st.caption(
-                    "A plain-English explanation generated from the same matchup data used by the fair-line engine. "
+                    "A plain-English explanation generated from the same matchup data used by the Analysis Engine. "
                     "It does not change the probability or recommendation."
                 )
                 why_a, why_b = st.columns(2)
@@ -2092,7 +2092,7 @@ with tabs[9]:
     st.subheader("Daily Slate")
     st.caption(
         "Enter the full card, rank every matchup, and move the strongest opportunities "
-        "into the Fair Line Engine for deeper analysis."
+        "into the Analysis Engine for deeper analysis."
     )
 
     with st.expander("Add Matchup", expanded=True):
@@ -2248,7 +2248,7 @@ with tabs[9]:
 
         load_col, delete_col = st.columns(2)
         if load_col.button(
-            "Load into Fair Line Engine",
+            "Load into Analysis Engine",
             type="primary",
             use_container_width=True,
         ):
@@ -2270,7 +2270,7 @@ with tabs[9]:
                 "fle_market_a": int(selected_slate["market_odds_a"]),
                 "fle_market_b": int(selected_slate["market_odds_b"]),
             }
-            st.success("Matchup loaded. Open the Fair Line Engine tab.")
+            st.success("Matchup loaded. Open the Analysis Engine tab.")
             st.rerun()
 
         if delete_col.button("Remove from Slate", use_container_width=True):
