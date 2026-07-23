@@ -2072,8 +2072,8 @@ score4.metric(
     "Recommendation",
     nfl_result["recommendation"],
     ...
-)
-)
+
+
                 )
                 score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
 
