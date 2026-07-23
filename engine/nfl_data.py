@@ -1,9 +1,6 @@
-"""Static NFL reference data and editable Macabets v0.22 starter priors.
+"""NFL reference data with nflverse-backed ratings and safe starter-prior fallback."""
 
-The ratings below are model priors, not live statistics. They exist so the Team
-Power Rating Engine can create an independent line before automated weekly data
-feeds are added. Every component is exposed in the UI and can be overridden.
-"""
+from pathlib import Path
 
 NFL_TEAMS = [
     "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
@@ -66,7 +63,7 @@ _TEAM_TIERS = {
     "Tennessee Titans": (75, 77, 76, 78, 79, 78),
 }
 
-NFL_TEAM_RATINGS = {
+STARTER_PRIOR_RATINGS = {
     team: {
         "offense": values[0],
         "defense": values[1],
@@ -77,3 +74,23 @@ NFL_TEAM_RATINGS = {
     }
     for team, values in _TEAM_TIERS.items()
 }
+
+COACHING_PRIORS = {team: profile["coaching"] for team, profile in STARTER_PRIOR_RATINGS.items()}
+
+def _snapshot_path():
+    return Path(__file__).resolve().parents[1] / "data" / "nfl" / "team_snapshot.csv"
+
+def _load_live_profiles():
+    try:
+        from engine.nfl_ratings import snapshot_profiles
+        return snapshot_profiles(_snapshot_path(), COACHING_PRIORS)
+    except Exception as exc:
+        return {}, {"available": False, "reason": f"Snapshot could not be loaded: {exc}"}
+
+_LIVE_RATINGS, NFL_DATA_STATUS = _load_live_profiles()
+NFL_TEAM_RATINGS = {
+    team: dict(_LIVE_RATINGS.get(team, STARTER_PRIOR_RATINGS[team]))
+    for team in NFL_TEAMS
+}
+NFL_DATA_STATUS.setdefault("rating_mode", "nflverse snapshot" if _LIVE_RATINGS else "starter priors")
+NFL_DATA_STATUS.setdefault("teams", len(_LIVE_RATINGS))

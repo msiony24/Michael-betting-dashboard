@@ -1,4 +1,4 @@
-"""Macabets NFL Team Power Rating Engine (v0.22)."""
+"""Macabets NFL Team Power Rating Engine (v0.23 data-pipeline build)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import math
 from dataclasses import asdict, dataclass
 
 from engine.confidence import confidence_band, recommendation_from_edge
-from engine.nfl_data import NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
+from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -181,8 +181,11 @@ def analyze(
             "Weather, rest and late market movement",
         ],
         biggest_risk=(
-            "The v0.22 ratings are editable starter priors rather than an automated weekly statistical feed. "
-            "They must be refreshed as injuries, form and roster quality change."
+            "The statistical snapshot does not yet include a complete injury/depth-chart adjustment, and coaching "
+            "remains a manual prior. Refresh the nflverse snapshot weekly and override material personnel changes."
+            if NFL_DATA_STATUS.get("available") else
+            "No nflverse snapshot is loaded, so Macabets is currently using editable starter priors. Run the NFL "
+            "data workflow before treating the line as data-driven."
         ),
         invalidation_conditions=[
             "A starting quarterback or major contributor is ruled out",
@@ -196,8 +199,9 @@ def analyze(
             "Macabets and the current market are effectively aligned on the side."
         ),
         foundation_notice=(
-            "NFL v0.22 now produces an independent spread from Macabets Team Power Ratings. The component "
-            "ratings are editable starter priors; the total remains market-anchored until the scoring model is added."
+            f"NFL v0.23 rating mode: {NFL_DATA_STATUS.get('rating_mode', 'starter priors')}. "
+            "Performance categories are loaded from the saved nflverse snapshot when available; coaching and "
+            "injury adjustments remain transparent manual inputs. The total is still market-anchored."
         ),
         away_power_rating=away_power,
         home_power_rating=home_power,

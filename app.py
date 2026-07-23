@@ -30,14 +30,17 @@ except Exception as exc:
 
 try:
     from engine.nfl import analyze as analyze_nfl_match
-    from engine.nfl_data import NFL_TEAMS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS, VENUE_TYPES, WEATHER_OPTIONS
+    from engine.nfl_data import (
+        NFL_TEAMS, NFL_TEAM_RATINGS, NFL_DATA_STATUS, TEAM_RATING_WEIGHTS,
+        VENUE_TYPES, WEATHER_OPTIONS,
+    )
     NFL_ENGINE_AVAILABLE = True
     NFL_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.22 — NFL Power Ratings"
+APP_VERSION = "Macabets v0.23 — NFL Data Pipeline"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -931,7 +934,7 @@ with tabs[0]:
             plt.close(fig)
 
 with tabs[1]:
-    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Power Ratings", "Outcome Simulator"])
+    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Data Pipeline", "Outcome Simulator"])
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
@@ -1927,11 +1930,34 @@ with tabs[1]:
                     )
 
     with analysis_tabs[1]:
-        st.subheader("Analysis Engine — NFL v0.22 Team Power Ratings")
+        st.subheader("Analysis Engine — NFL v0.23 Data Pipeline")
         st.caption(
-            "Macabets now builds an independent fair spread from offense, defense, quarterback, coaching, "
-            "strength of schedule and special-teams ratings, then compares that line with Vegas."
+            "Macabets can now load offense, defense, quarterback, schedule-strength and special-teams ratings "
+            "from a saved nflverse play-by-play snapshot, then build an independent fair line against Vegas."
         )
+
+        if NFL_ENGINE_AVAILABLE:
+            if NFL_DATA_STATUS.get("available"):
+                st.success(
+                    f"Real-data mode: {NFL_DATA_STATUS.get('teams', 0)} teams loaded from "
+                    f"{NFL_DATA_STATUS.get('data_source', 'nflverse')}. Season "
+                    f"{NFL_DATA_STATUS.get('season', '—')}; updated {NFL_DATA_STATUS.get('updated_at_utc', 'unknown')}."
+                )
+            else:
+                st.warning(
+                    "Starter-prior mode is active because no generated NFL snapshot is present yet. "
+                    "In GitHub, open Actions → Update Macabets NFL Data → Run workflow. The workflow will "
+                    "download nflverse play-by-play data, calculate team ratings and commit data/nfl/team_snapshot.csv."
+                )
+            with st.expander("How the real NFL ratings are calculated", expanded=False):
+                st.markdown(
+                    "**Offense:** EPA/play, success rate, explosive-play rate and turnover rate.  "
+                    "\n**Defense:** EPA allowed, success rate allowed, explosive plays allowed and takeaways.  "
+                    "\n**Quarterback:** team passing EPA/dropback, passing success rate and CPOE.  "
+                    "\n**Strength of schedule:** average opponent net EPA faced.  "
+                    "\n**Special teams:** special-teams EPA.  "
+                    "\n**Coaching:** remains a transparent manual prior until a defensible coaching model is added."
+                )
 
         if not NFL_ENGINE_AVAILABLE:
             st.error(
@@ -1972,7 +1998,7 @@ with tabs[1]:
             away_overrides = dict(NFL_TEAM_RATINGS[away_team])
             home_overrides = dict(NFL_TEAM_RATINGS[home_team])
             with st.expander("Team Power Rating inputs — review or override"):
-                st.caption("These are Macabets starter priors on a 0–100 scale. Adjust them for current injuries, roster changes or your own view.")
+                st.caption("These are the loaded nflverse ratings when a snapshot is available; otherwise Macabets uses starter priors. You can still override any category for injuries or current roster news.")
                 away_col, home_col = st.columns(2)
                 with away_col:
                     st.markdown(f"#### {away_team}")
