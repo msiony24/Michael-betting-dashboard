@@ -2058,25 +2058,15 @@ with tabs[1]:
                 score1, score2, score3, score4 = st.columns(4)
                 score1.metric(f"{nfl_result['away_team']} win probability", f"{nfl_result['away_win_probability']:.1%}")
                 score2.metric(f"{nfl_result['home_team']} win probability", f"{nfl_result['home_win_probability']:.1%}")
-                score3.markdown("**Projected Score**")
-
-                score3.write(
-                    f"{nfl_result['away_team']}: {nfl_result['projected_away_score']:.1f}"
+                score3.metric(
+                    "Projected score",
+                    f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.1f} — "
+                    f"{nfl_result['home_team']} {nfl_result['projected_home_score']:.1f}"
                 )
-                
-                score3.write(
-                    f"{nfl_result['home_team']}: {nfl_result['projected_home_score']:.1f}"
-                )
+                score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
 
-
-    score4.metric(
-    "Recommendation",
-    nfl_result["recommendation"],
-    f"Upset risk: {nfl_result['upset_risk']}"
-)
-
-st.markdown("#### Expected game script")
-st.write(nfl_result["game_script"])
+                st.markdown("#### Expected game script")
+                st.write(nfl_result["game_script"])
 
                 home_path, away_path = st.columns(2)
                 with home_path:
