@@ -1,0 +1,12 @@
+Macabets v0.21 — NFL Foundation
+Verified: July 23, 2026
+
+Checks completed:
+- Python syntax compilation passed for app.py, update_tennis_data.py, and all engine modules.
+- NFL engine import passed.
+- NFL smoke test passed using a sample Jets at Patriots market.
+- Existing tennis engine and data files were preserved from the supplied GitHub repository.
+- ZIP root contains repository files directly; there is no extra outer project folder.
+
+Limitation:
+- Full Streamlit server launch was not run in the build container because Streamlit was not installed there.

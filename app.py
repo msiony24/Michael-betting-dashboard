@@ -28,7 +28,16 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.20"
+try:
+    from engine.nfl import analyze as analyze_nfl_match
+    from engine.nfl_data import NFL_TEAMS, VENUE_TYPES, WEATHER_OPTIONS
+    NFL_ENGINE_AVAILABLE = True
+    NFL_ENGINE_IMPORT_ERROR = ""
+except Exception as exc:
+    NFL_ENGINE_AVAILABLE = False
+    NFL_ENGINE_IMPORT_ERROR = str(exc)
+
+APP_VERSION = "Macabets v0.21 — NFL Foundation"
 BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
@@ -80,7 +89,7 @@ def _api_get_json(path, params):
     query = urllib.parse.urlencode(params)
     request = urllib.request.Request(
         f"{ODDS_API_BASE}{path}?{query}",
-        headers={"User-Agent": "Macabets/0.20"},
+        headers={"User-Agent": "Macabets/0.21"},
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -858,9 +867,13 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.20", expanded=True):
+    with st.expander("What's New in Macabets v0.21", expanded=True):
         st.markdown(
             """
+            - Added the Macabets NFL v0.1 foundation workspace
+            - Added all 32 NFL teams, game context and Vegas market inputs
+            - Added a stable NFL report structure for fair lines, projected scores, win probability, confidence, upset risk and game scripts
+            - NFL v0.1 is explicitly market-derived and will not claim an independent betting edge before the Team Quality Engine exists
             - Added one-click tennis analysis directly from the Automatic Daily Slate
             - Daily Slate matchups now prefill and automatically run the Tennis Analysis Engine
             - Tennis always appears as a Daily Slate option, with feed diagnostics and API quota details
@@ -918,7 +931,7 @@ with tabs[0]:
             plt.close(fig)
 
 with tabs[1]:
-    analysis_tabs = st.tabs(["Match Analysis", "Outcome Simulator"])
+    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Foundation", "Outcome Simulator"])
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
@@ -1914,6 +1927,117 @@ with tabs[1]:
                     )
 
     with analysis_tabs[1]:
+        st.subheader("Analysis Engine — NFL v0.1 Foundation")
+        st.caption(
+            "Build the matchup, enter the current market and generate the complete Macabets NFL report shell. "
+            "This first version is intentionally market-derived until independent team ratings are added."
+        )
+
+        if not NFL_ENGINE_AVAILABLE:
+            st.error(
+                "The NFL engine could not be imported. Confirm that engine/nfl.py, engine/nfl_data.py and "
+                f"engine/confidence.py are in the repository. Import error: {NFL_ENGINE_IMPORT_ERROR}"
+            )
+        else:
+            nfl_top1, nfl_top2, nfl_top3, nfl_top4 = st.columns(4)
+            nfl_date = nfl_top1.date_input("Game date", value=date.today(), key="nfl_game_date")
+            nfl_week = nfl_top2.number_input("Week", min_value=1, max_value=22, value=1, step=1, key="nfl_week")
+            away_team = nfl_top3.selectbox("Away team", NFL_TEAMS, index=2, key="nfl_away_team")
+            home_options = [team for team in NFL_TEAMS if team != away_team]
+            home_team = nfl_top4.selectbox("Home team", home_options, index=min(4, len(home_options)-1), key="nfl_home_team")
+
+            st.markdown("#### Market")
+            market1, market2, market3, market4, market5 = st.columns(5)
+            market_spread_home = market1.number_input(
+                f"{home_team} spread", value=-3.0, step=0.5, format="%.1f", key="nfl_spread_home",
+                help="Enter the home-team line. Example: -3.5 means the home team is favored by 3.5."
+            )
+            market_ml_away = market2.number_input(
+                f"{away_team} moneyline", value=140, step=5, key="nfl_ml_away"
+            )
+            market_ml_home = market3.number_input(
+                f"{home_team} moneyline", value=-165, step=5, key="nfl_ml_home"
+            )
+            market_total = market4.number_input("Game total", min_value=1.0, value=45.5, step=0.5, format="%.1f", key="nfl_total")
+            opening_spread = market5.number_input("Opening home spread", value=-3.0, step=0.5, format="%.1f", key="nfl_opening_spread")
+
+            st.markdown("#### Game context")
+            context1, context2, context3, context4 = st.columns(4)
+            venue_type = context1.selectbox("Venue type", VENUE_TYPES, key="nfl_venue_type")
+            weather = context2.selectbox("Weather", WEATHER_OPTIONS, key="nfl_weather")
+            neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
+            context4.metric("Line movement", f"{market_spread_home - opening_spread:+.1f} pts")
+
+            run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
+            if run_nfl:
+                try:
+                    nfl_result = analyze_nfl_match(
+                        away_team=away_team,
+                        home_team=home_team,
+                        market_spread_home=market_spread_home,
+                        market_moneyline_away=market_ml_away,
+                        market_moneyline_home=market_ml_home,
+                        market_total=market_total,
+                        venue_type=venue_type,
+                        weather=weather,
+                        neutral_site=neutral_site,
+                    )
+                    st.session_state.nfl_result = nfl_result
+                except Exception as exc:
+                    st.error(f"Could not generate the NFL report: {exc}")
+
+            nfl_result = st.session_state.get("nfl_result")
+            if nfl_result:
+                st.warning(nfl_result["foundation_notice"])
+                st.markdown(f"### {nfl_result['away_team']} at {nfl_result['home_team']} — Week {int(nfl_week)}")
+                st.caption(f"Game date: {nfl_date.strftime('%B %-d, %Y')}")
+
+                out1, out2, out3, out4, out5 = st.columns(5)
+                out1.metric("Pick", nfl_result["pick"])
+                out2.metric("Fair home spread", f"{nfl_result['fair_spread_home']:+.1f}")
+                out3.metric("Fair home ML", f"{nfl_result['fair_moneyline_home']:+d}")
+                out4.metric("Fair total", f"{nfl_result['fair_total']:.1f}")
+                out5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+
+                score1, score2, score3, score4 = st.columns(4)
+                score1.metric(f"{nfl_result['away_team']} win probability", f"{nfl_result['away_win_probability']:.1%}")
+                score2.metric(f"{nfl_result['home_team']} win probability", f"{nfl_result['home_win_probability']:.1%}")
+                score3.metric(
+                    "Projected score",
+                    f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.1f} — "
+                    f"{nfl_result['home_team']} {nfl_result['projected_home_score']:.1f}"
+                )
+                score4.metric("Recommendation", nfl_result["recommendation"], f"Upset risk: {nfl_result['upset_risk']}")
+
+                st.markdown("#### Expected game script")
+                st.write(nfl_result["game_script"])
+
+                home_path, away_path = st.columns(2)
+                with home_path:
+                    st.markdown(f"#### Why {nfl_result['home_team']} can win")
+                    for reason in nfl_result["why_home_can_win"]:
+                        st.markdown(f"- {reason}")
+                with away_path:
+                    st.markdown(f"#### Why {nfl_result['away_team']} can win")
+                    for reason in nfl_result["why_away_can_win"]:
+                        st.markdown(f"- {reason}")
+
+                swing_col, risk_col = st.columns(2)
+                with swing_col:
+                    st.markdown("#### Biggest swing factors")
+                    for factor in nfl_result["swing_factors"]:
+                        st.markdown(f"- {factor}")
+                with risk_col:
+                    st.markdown("#### Biggest risk")
+                    st.write(nfl_result["biggest_risk"])
+                    st.markdown("#### Conditions that invalidate the report")
+                    for condition in nfl_result["invalidation_conditions"]:
+                        st.markdown(f"- {condition}")
+
+                st.markdown("#### Why Macabets differs from Vegas")
+                st.write(nfl_result["vegas_difference"])
+
+    with analysis_tabs[2]:
         st.subheader("Outcome Simulator")
         r1, r2, r3, r4 = st.columns(4)
         sim_bankroll = r1.number_input("Simulation bankroll", min_value=100.0, value=float(current_bankroll), step=1000.0)
