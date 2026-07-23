@@ -28,8 +28,8 @@ except Exception as exc:
     TENNIS_ENGINE_AVAILABLE = False
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets Tennis v0.14"
-BUILD_DATE = "July 22, 2026"
+APP_VERSION = "Macabets Tennis v0.15"
+BUILD_DATE = "July 23, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -94,7 +94,7 @@ def _api_get_json(path, params):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_active_sports(api_key):
-    payload, _ = _api_get_json("/sports", {"apiKey": api_key})
+    payload, _ = _api_get_json("/sports", {"apiKey": api_key, "all": "true"})
     return payload
 
 
@@ -691,9 +691,10 @@ tabs = st.tabs([
 ])
 
 with tabs[0]:
-    with st.expander("What's New in Macabets Tennis v0.14", expanded=True):
+    with st.expander("What's New in Macabets Tennis v0.15", expanded=True):
         st.markdown(
             """
+            - Daily Slate now combines all active ATP and WTA tournaments into one tennis card
             - Fatigue 2.0: matches, estimated sets, deciding matches, rest, travel and late finishes
             - Surface Transition Engine: recent exposure and adaptation to the current surface
             - Opponent Style Matchups with automatic or manual style tags
@@ -2026,25 +2027,30 @@ with tabs[3]:
                 "College Football": "americanfootball_ncaaf",
                 "NBA": "basketball_nba",
             }
-            tennis_sports = {
-                item.get("title", item.get("key", "ATP Tennis")): item.get("key")
-                for item in active_sports
+            tennis_items = [
+                item for item in active_sports
                 if str(item.get("group", "")).lower() == "tennis"
-                and "atp" in str(item.get("title", "")).lower()
+                and any(
+                    tour in str(item.get("title", "")).lower()
+                    or tour in str(item.get("key", "")).lower()
+                    for tour in ("atp", "wta")
+                )
                 and item.get("active", True)
-            }
+                and item.get("key")
+            ]
             available_choices = {
                 label: key for label, key in fixed_choices.items()
                 if any(item.get("key") == key and item.get("active", True) for item in active_sports)
             }
-            available_choices.update(tennis_sports)
+            if tennis_items:
+                available_choices = {"Tennis — All ATP & WTA": "__all_tennis__", **available_choices}
 
             if not available_choices:
                 st.warning("The Odds API did not report any active supported leagues right now.")
             else:
                 auto_col1, auto_col2 = st.columns([2, 1])
                 selected_label = auto_col1.selectbox(
-                    "League or active ATP tournament",
+                    "Sport",
                     list(available_choices.keys()),
                     key="automatic_slate_sport",
                 )
@@ -2053,8 +2059,24 @@ with tabs[3]:
                     fetch_sport_odds.clear()
 
                 with st.spinner("Loading today's market slate..."):
-                    api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
-                automatic_slate = normalize_api_slate(api_events, selected_label)
+                    if available_choices[selected_label] == "__all_tennis__":
+                        tennis_frames = []
+                        usage = {"remaining": "—", "used": "—"}
+                        for item in tennis_items:
+                            event_title = str(item.get("title") or item.get("key") or "Tennis")
+                            api_events, usage = fetch_sport_odds(api_key, item["key"])
+                            frame = normalize_api_slate(api_events, event_title)
+                            if not frame.empty:
+                                tennis_frames.append(frame)
+                        automatic_slate = (
+                            pd.concat(tennis_frames, ignore_index=True)
+                            .sort_values("start_time")
+                            .reset_index(drop=True)
+                            if tennis_frames else pd.DataFrame()
+                        )
+                    else:
+                        api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
+                        automatic_slate = normalize_api_slate(api_events, selected_label)
 
                 if automatic_slate.empty:
                     st.info(f"No {selected_label} events with US moneyline odds are scheduled today.")
@@ -2095,9 +2117,9 @@ with tabs[3]:
                             row = {
                                 "slate_id": next_id,
                                 "match_date": selected_event["start_time"].date().isoformat(),
-                                "tournament": selected_label,
-                                "surface": "Hard" if "Tennis" in selected_label or "ATP" in selected_label else "N/A",
-                                "round": "R32" if "Tennis" in selected_label or "ATP" in selected_label else "Game",
+                                "tournament": str(selected_event["sport"]),
+                                "surface": "Unverified" if "ATP" in str(selected_event["sport"]) or "WTA" in str(selected_event["sport"]) else "N/A",
+                                "round": "Unverified" if "ATP" in str(selected_event["sport"]) or "WTA" in str(selected_event["sport"]) else "Game",
                                 "player_a": str(selected_event["participant_a"]),
                                 "player_b": str(selected_event["participant_b"]),
                                 "market_odds_a": int(selected_event["odds_a"]),
