@@ -1,7 +1,12 @@
 
 import io
 import math
-from datetime import date, datetime
+import json
+import urllib.error
+import urllib.parse
+import urllib.request
+from zoneinfo import ZoneInfo
+from datetime import date, datetime, time, timedelta, timezone
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,6 +62,113 @@ SLATE_COLUMNS = [
     "player_a", "player_b", "market_odds_a", "market_odds_b",
     "model_probability_a", "confidence", "notes"
 ]
+
+
+ODDS_API_BASE = "https://api.the-odds-api.com/v4"
+EASTERN_TZ = ZoneInfo("America/New_York")
+
+
+def _odds_api_key():
+    """Read the API key safely from Streamlit secrets without exposing it."""
+    try:
+        return str(st.secrets.get("THE_ODDS_API_KEY", "")).strip()
+    except Exception:
+        return ""
+
+
+def _api_get_json(path, params):
+    query = urllib.parse.urlencode(params)
+    request = urllib.request.Request(
+        f"{ODDS_API_BASE}{path}?{query}",
+        headers={"User-Agent": "Macabets/0.15"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return json.loads(response.read().decode("utf-8")), dict(response.headers)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Odds API returned HTTP {exc.code}: {detail[:300]}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Could not reach the Odds API: {exc.reason}") from exc
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_active_sports(api_key):
+    payload, _ = _api_get_json("/sports", {"apiKey": api_key})
+    return payload
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def fetch_sport_odds(api_key, sport_key):
+    payload, headers = _api_get_json(
+        f"/sports/{sport_key}/odds",
+        {
+            "apiKey": api_key,
+            "regions": "us",
+            "markets": "h2h",
+            "oddsFormat": "american",
+            "dateFormat": "iso",
+        },
+    )
+    return payload, {
+        "remaining": headers.get("x-requests-remaining", "—"),
+        "used": headers.get("x-requests-used", "—"),
+    }
+
+
+def _best_h2h_prices(event):
+    best = {}
+    source = {}
+    for bookmaker in event.get("bookmakers", []):
+        for market in bookmaker.get("markets", []):
+            if market.get("key") != "h2h":
+                continue
+            for outcome in market.get("outcomes", []):
+                name = str(outcome.get("name", "")).strip()
+                price = outcome.get("price")
+                if not name or price is None:
+                    continue
+                try:
+                    price = int(price)
+                except (TypeError, ValueError):
+                    continue
+                # For American odds, the numerically larger price is always more favorable.
+                if name not in best or price > best[name]:
+                    best[name] = price
+                    source[name] = bookmaker.get("title", bookmaker.get("key", "Sportsbook"))
+    return best, source
+
+
+def normalize_api_slate(events, sport_title):
+    rows = []
+    today_eastern = datetime.now(EASTERN_TZ).date()
+    for event in events:
+        try:
+            start_utc = datetime.fromisoformat(str(event.get("commence_time", "")).replace("Z", "+00:00"))
+            start_et = start_utc.astimezone(EASTERN_TZ)
+        except (TypeError, ValueError):
+            continue
+        if start_et.date() != today_eastern:
+            continue
+
+        home = str(event.get("home_team", "")).strip()
+        away = str(event.get("away_team", "")).strip()
+        if not home or not away:
+            continue
+        prices, sources = _best_h2h_prices(event)
+        rows.append({
+            "event_id": str(event.get("id", "")),
+            "start_time": start_et,
+            "time_et": start_et.strftime("%-I:%M %p"),
+            "sport": sport_title,
+            "participant_a": away,
+            "participant_b": home,
+            "odds_a": prices.get(away),
+            "odds_b": prices.get(home),
+            "book_a": sources.get(away, "—"),
+            "book_b": sources.get(home, "—"),
+        })
+    return pd.DataFrame(rows).sort_values("start_time") if rows else pd.DataFrame()
 
 
 def money(value):
@@ -1894,11 +2006,125 @@ with tabs[2]:
 with tabs[3]:
     st.subheader("Daily Slate")
     st.caption(
-        "Enter the full card, rank every matchup, and move the strongest opportunities "
-        "into the Analysis Engine for deeper analysis."
+        "Automatically load today's market card without changing the existing manual slate or Analysis Engine."
     )
 
-    with st.expander("Add Matchup", expanded=True):
+    st.markdown("### Automatic Slate Preview")
+    api_key = _odds_api_key()
+    if not api_key:
+        st.info(
+            "Automatic loading is ready but inactive. Add THE_ODDS_API_KEY to Streamlit Secrets; "
+            "the key is never stored in GitHub or displayed in the app."
+        )
+    else:
+        try:
+            active_sports = fetch_active_sports(api_key)
+            fixed_choices = {
+                "MLB": "baseball_mlb",
+                "WNBA": "basketball_wnba",
+                "NFL": "americanfootball_nfl",
+                "College Football": "americanfootball_ncaaf",
+                "NBA": "basketball_nba",
+            }
+            tennis_sports = {
+                item.get("title", item.get("key", "ATP Tennis")): item.get("key")
+                for item in active_sports
+                if str(item.get("group", "")).lower() == "tennis"
+                and "atp" in str(item.get("title", "")).lower()
+                and item.get("active", True)
+            }
+            available_choices = {
+                label: key for label, key in fixed_choices.items()
+                if any(item.get("key") == key and item.get("active", True) for item in active_sports)
+            }
+            available_choices.update(tennis_sports)
+
+            if not available_choices:
+                st.warning("The Odds API did not report any active supported leagues right now.")
+            else:
+                auto_col1, auto_col2 = st.columns([2, 1])
+                selected_label = auto_col1.selectbox(
+                    "League or active ATP tournament",
+                    list(available_choices.keys()),
+                    key="automatic_slate_sport",
+                )
+                refresh = auto_col2.button("Refresh Slate", use_container_width=True)
+                if refresh:
+                    fetch_sport_odds.clear()
+
+                with st.spinner("Loading today's market slate..."):
+                    api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
+                automatic_slate = normalize_api_slate(api_events, selected_label)
+
+                if automatic_slate.empty:
+                    st.info(f"No {selected_label} events with US moneyline odds are scheduled today.")
+                else:
+                    st.caption(
+                        f"Best available US moneyline shown for each side. API requests remaining: {usage['remaining']}."
+                    )
+                    automatic_display = automatic_slate[
+                        ["time_et", "sport", "participant_a", "odds_a", "book_a", "participant_b", "odds_b", "book_b"]
+                    ].copy()
+                    automatic_display.columns = [
+                        "Time (ET)", "League", "Participant A", "Best Odds A", "Book A",
+                        "Participant B", "Best Odds B", "Book B"
+                    ]
+                    st.dataframe(automatic_display, use_container_width=True, hide_index=True)
+
+                    st.markdown("#### Send an Event to the Existing Manual Slate")
+                    event_options = automatic_slate.index.tolist()
+                    selected_event_index = st.selectbox(
+                        "Automatic event",
+                        event_options,
+                        format_func=lambda idx: (
+                            f"{automatic_slate.loc[idx, 'time_et']} — "
+                            f"{automatic_slate.loc[idx, 'participant_a']} vs {automatic_slate.loc[idx, 'participant_b']}"
+                        ),
+                        key="automatic_slate_event",
+                    )
+                    selected_event = automatic_slate.loc[selected_event_index]
+                    if st.button("Add Event to Manual Slate", type="primary", use_container_width=True):
+                        if pd.isna(selected_event["odds_a"]) or pd.isna(selected_event["odds_b"]):
+                            st.error("Both sides need moneyline odds before this event can be added.")
+                        else:
+                            slate = normalize_slate(st.session_state.daily_slate)
+                            next_id = int(slate["slate_id"].max()) + 1 if not slate.empty else 1
+                            implied_a, implied_b, _ = no_vig_probabilities(
+                                int(selected_event["odds_a"]), int(selected_event["odds_b"])
+                            )
+                            row = {
+                                "slate_id": next_id,
+                                "match_date": selected_event["start_time"].date().isoformat(),
+                                "tournament": selected_label,
+                                "surface": "Hard" if "Tennis" in selected_label or "ATP" in selected_label else "N/A",
+                                "round": "R32" if "Tennis" in selected_label or "ATP" in selected_label else "Game",
+                                "player_a": str(selected_event["participant_a"]),
+                                "player_b": str(selected_event["participant_b"]),
+                                "market_odds_a": int(selected_event["odds_a"]),
+                                "market_odds_b": int(selected_event["odds_b"]),
+                                "model_probability_a": float(implied_a),
+                                "confidence": 1,
+                                "notes": (
+                                    "Imported automatically from market odds. Model probability has not been run yet. "
+                                    "Do not treat the slate grade as a Macabets recommendation until analyzed."
+                                ),
+                            }
+                            st.session_state.daily_slate = normalize_slate(
+                                pd.concat([slate, pd.DataFrame([row])], ignore_index=True)
+                            )
+                            st.success("Event added safely to the existing manual slate.")
+                            st.rerun()
+        except Exception as exc:
+            st.error(f"Automatic slate could not load: {exc}")
+            st.caption("The manual Daily Slate below remains fully available and unaffected.")
+
+    st.divider()
+    st.markdown("### Manual Slate and Ranking")
+    st.caption(
+        "This is the existing slate workflow. It remains independent from the automatic preview."
+    )
+
+    with st.expander("Add Matchup Manually", expanded=False):
         s1, s2, s3, s4 = st.columns(4)
         slate_date = s1.date_input("Match date", value=date.today(), key="slate_date")
         slate_tournament = s2.text_input("Tournament", placeholder="Montreal", key="slate_tournament")
