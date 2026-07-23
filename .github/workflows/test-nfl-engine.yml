@@ -5,7 +5,10 @@ on:
   push:
     paths:
       - "engine/nfl_team_quality.py"
+      - "engine/nfl_ratings_loader.py"
+      - "data/nfl_team_ratings.json"
       - "test_nfl_team_quality.py"
+      - "test_nfl_ratings_loader.py"
       - ".github/workflows/test-nfl-engine.yml"
 
 jobs:
@@ -20,7 +23,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-- name: Run NFL Engine Tests
-  run: |
-    python test_nfl_team_quality.py
-    python test_nfl_ratings_loader.py
+
+      - name: Run NFL Engine Tests
+        run: |
+          python test_nfl_team_quality.py
+          python test_nfl_ratings_loader.py
