@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.30 — Category Verdicts"
+APP_VERSION = "Macabets v0.31 — Clean NFL Analysis"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -1132,7 +1132,7 @@ with tabs[0]:
             plt.close(fig)
 
 with tabs[1]:
-    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Data Pipeline", "Outcome Simulator"])
+    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Analysis", "Outcome Simulator"])
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
@@ -2128,26 +2128,26 @@ with tabs[1]:
                     )
 
     with analysis_tabs[1]:
-        st.subheader("Analysis Engine — NFL v0.23 Data Pipeline")
+        st.subheader("NFL Matchup Analysis")
         st.caption(
-            "Macabets can now load offense, defense, quarterback, schedule-strength and special-teams ratings "
-            "from a saved nflverse play-by-play snapshot, then build an independent fair line against Vegas."
+            "Compare the Macabets fair line with Vegas, evaluate a specific wager and review "
+            "the matchup's clearest category advantages."
         )
 
         if NFL_ENGINE_AVAILABLE:
-            if NFL_DATA_STATUS.get("available"):
-                st.success(
-                    f"Real-data mode: {NFL_DATA_STATUS.get('teams', 0)} teams loaded from "
-                    f"{NFL_DATA_STATUS.get('data_source', 'nflverse')}. Season "
-                    f"{NFL_DATA_STATUS.get('season', '—')}; updated {NFL_DATA_STATUS.get('updated_at_utc', 'unknown')}."
-                )
-            else:
-                st.warning(
-                    "Starter-prior mode is active because no generated NFL snapshot is present yet. "
-                    "In GitHub, open Actions → Update Macabets NFL Data → Run workflow. The workflow will "
-                    "download nflverse play-by-play data, calculate team ratings and commit data/nfl/team_snapshot.csv."
-                )
-            with st.expander("How the real NFL ratings are calculated", expanded=False):
+            with st.expander("Model information", expanded=False):
+                if NFL_DATA_STATUS.get("available"):
+                    st.success(
+                        f"Performance ratings active: {NFL_DATA_STATUS.get('teams', 0)} teams "
+                        f"loaded from {NFL_DATA_STATUS.get('data_source', 'nflverse')}. "
+                        f"Season {NFL_DATA_STATUS.get('season', '—')}; updated "
+                        f"{NFL_DATA_STATUS.get('updated_at_utc', 'unknown')}."
+                    )
+                else:
+                    st.warning(
+                        "Starter ratings are active because no generated NFL performance snapshot "
+                        "is present. Run the Update Macabets NFL Data workflow to refresh them."
+                    )
                 st.markdown(
                     "**Offense:** EPA/play, success rate, explosive-play rate and turnover rate.  "
                     "\n**Defense:** EPA allowed, success rate allowed, explosive plays allowed and takeaways.  "
@@ -2349,11 +2349,10 @@ with tabs[1]:
                 if category in home_quality_source:
                     home_overrides[category] = float(home_quality_source[category])
 
-            with st.expander("Team Quality Engine inputs — review or override"):
+            with st.expander("Advanced rating adjustments", expanded=False):
                 st.caption(
-                    "Macabets is now loading these inputs from data/nfl_team_ratings.json. "
-                    "Any category not available there falls back to the existing NFL data pipeline. "
-                    "You can override a number for injuries or current roster news before generating the report."
+                    "The saved team ratings load automatically. Override a number only when current "
+                    "injuries or roster news materially change a team."
                 )
                 away_col, home_col = st.columns(2)
                 with away_col:
@@ -2372,13 +2371,6 @@ with tabs[1]:
                             value=float(home_overrides[category]), step=1.0,
                             key=f"nfl_home_{home_team}_{category}"
                         )
-
-            quality_teams_loaded = len(NFL_QUALITY_RATINGS)
-            if quality_teams_loaded:
-                st.caption(
-                    f"Team Quality Engine active: {quality_teams_loaded} team profiles loaded. "
-                    "The selected teams’ quality ratings now feed the NFL report."
-                )
 
             run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
             if run_nfl:
@@ -2456,14 +2448,11 @@ with tabs[1]:
                 else:
                     edge_text = f"No edge ({abs(spread_difference):.1f} pts)"
 
-                st.info(
-                    f"Team Quality Engine active: {len(NFL_QUALITY_RATINGS)} team profiles loaded. "
-                    "The spread and moneyline are independently driven by team-quality ratings and home field. "
-                    "The projected total remains market-anchored. Injury, depth-chart and late-news adjustments "
-                    "must still be reviewed before treating the output as actionable."
-                )
                 st.markdown(f"### {nfl_result['away_team']} at {nfl_result['home_team']} — Week {int(nfl_week)}")
-                st.caption(f"Game date: {nfl_date.strftime('%B %-d, %Y')}")
+                st.caption(
+                    f"Game date: {nfl_date.strftime('%B %-d, %Y')} · "
+                    f"{len(NFL_QUALITY_RATINGS)} team profiles loaded"
+                )
 
                 st.markdown("#### Line Comparison")
                 line1, line2, line3, line4 = st.columns(4)
@@ -2479,6 +2468,32 @@ with tabs[1]:
                 st.caption(
                     "Edge measures the difference between the Macabets fair spread and the entered "
                     "Vegas spread. An edge of 0.5 points or less is treated as no material edge."
+                )
+
+                summary1, summary2, summary3 = st.columns(3)
+                with summary1:
+                    st.markdown("**Projected Score**")
+                    st.write(
+                        f"{nfl_result['away_team']}: "
+                        f"{nfl_result['projected_away_score']:.1f}"
+                    )
+                    st.write(
+                        f"{nfl_result['home_team']}: "
+                        f"{nfl_result['projected_home_score']:.1f}"
+                    )
+                summary2.metric(
+                    f"{nfl_result['away_team']} Win Probability",
+                    f"{nfl_result['away_win_probability']:.1%}",
+                    f"Fair ML {fair_away_moneyline:+d}",
+                )
+                summary3.metric(
+                    f"{nfl_result['home_team']} Win Probability",
+                    f"{nfl_result['home_win_probability']:.1%}",
+                    f"Fair ML {nfl_result['fair_moneyline_home']:+d}",
+                )
+                st.caption(
+                    f"Projected total: {nfl_result['fair_total']:.1f} "
+                    "(currently market-anchored)."
                 )
 
                 if nfl_considered_side != "Just analyze":
@@ -2595,43 +2610,6 @@ with tabs[1]:
                         "a direct BET or PASS decision."
                     )
 
-                score1, score2, score3 = st.columns(3)
-                score1.markdown("**Projected Score**")
-                score1.write(
-                    f"{nfl_result['away_team']}: {nfl_result['projected_away_score']:.1f}"
-                )
-                score1.write(
-                    f"{nfl_result['home_team']}: {nfl_result['projected_home_score']:.1f}"
-                )
-                score2.metric(
-                    f"{nfl_result['away_team']} Win Probability",
-                    f"{nfl_result['away_win_probability']:.1%}",
-                )
-                score3.metric(
-                    f"{nfl_result['home_team']} Win Probability",
-                    f"{nfl_result['home_win_probability']:.1%}",
-                )
-
-                market1, market2, market3 = st.columns(3)
-                market1.metric(
-                    f"Fair {nfl_result['home_team']} Moneyline",
-                    f"{nfl_result['fair_moneyline_home']:+d}",
-                )
-                market2.metric(
-                    f"Fair {nfl_result['away_team']} Moneyline",
-                    f"{fair_away_moneyline:+d}",
-                )
-                market3.metric(
-                    "Projected Total",
-                    f"{nfl_result['fair_total']:.1f}",
-                    "Market-anchored",
-                )
-
-                power1, power2, power3 = st.columns(3)
-                power1.metric(f"{nfl_result['away_team']} power rating", f"{nfl_result['away_power_rating']:+.2f}")
-                power2.metric(f"{nfl_result['home_team']} power rating", f"{nfl_result['home_power_rating']:+.2f}")
-                power3.metric("Home-field adjustment", f"{nfl_result['home_field_points']:+.1f}")
-
                 st.markdown("#### Category Advantages")
                 category_verdicts, category_wins, strongest_edge, category_leader = (
                     build_nfl_category_verdicts(
@@ -2707,31 +2685,45 @@ with tabs[1]:
                     )
 
                 with st.expander("Technical fair-line model audit", expanded=False):
+                    audit1, audit2, audit3 = st.columns(3)
+                    audit1.metric(
+                        f"{nfl_result['away_team']} Power Rating",
+                        f"{nfl_result['away_power_rating']:+.2f}",
+                    )
+                    audit2.metric(
+                        f"{nfl_result['home_team']} Power Rating",
+                        f"{nfl_result['home_power_rating']:+.2f}",
+                    )
+                    audit3.metric(
+                        "Home-Field Adjustment",
+                        f"{nfl_result['home_field_points']:+.1f}",
+                    )
                     st.dataframe(
                         pd.DataFrame(nfl_result["rating_breakdown"]),
                         use_container_width=True,
                         hide_index=True,
                     )
 
-                st.markdown("#### Context Analysis")
-                context1, context2 = st.columns(2)
-                with context1:
-                    st.markdown("**Game setting**")
-                    st.write(f"Week: {int(nfl_week)}")
-                    st.write(f"Venue: {venue_type}")
-                    st.write(f"Weather: {weather}")
-                    st.write(f"Neutral site: {'Yes' if neutral_site else 'No'}")
-                with context2:
-                    st.markdown("**Model interpretation**")
-                    st.write(f"Macabets favorite: {model_favorite}")
-                    st.write(f"Spread-value side: {spread_value_text}")
-                    st.write(
-                        f"Home-field adjustment: {nfl_result['home_field_points']:+.1f} points"
-                    )
-                    st.write("Projected total: market-anchored")
+                with st.expander("Game setting and expected script", expanded=False):
+                    context1, context2 = st.columns(2)
+                    with context1:
+                        st.markdown("**Game setting**")
+                        st.write(f"Week: {int(nfl_week)}")
+                        st.write(f"Venue: {venue_type}")
+                        st.write(f"Weather: {weather}")
+                        st.write(f"Neutral site: {'Yes' if neutral_site else 'No'}")
+                    with context2:
+                        st.markdown("**Model interpretation**")
+                        st.write(f"Macabets favorite: {model_favorite}")
+                        st.write(f"Spread-value side: {spread_value_text}")
+                        st.write(
+                            f"Home-field adjustment: "
+                            f"{nfl_result['home_field_points']:+.1f} points"
+                        )
+                        st.write("Projected total: market-anchored")
 
-                st.markdown("**Expected game script**")
-                st.write(nfl_result["game_script"])
+                    st.markdown("**Expected game script**")
+                    st.write(nfl_result["game_script"])
 
                 st.markdown("#### Upset Path")
                 if abs(entered_market_home_spread) <= 0.05:
@@ -2812,27 +2804,28 @@ with tabs[1]:
                             for factor in nfl_result["swing_factors"][1:3]:
                                 st.markdown(f"- {factor}")
 
-                home_path, away_path = st.columns(2)
-                with home_path:
-                    st.markdown(f"#### Why {nfl_result['home_team']} can win")
-                    for reason in nfl_result["why_home_can_win"]:
-                        st.markdown(f"- {reason}")
-                with away_path:
-                    st.markdown(f"#### Why {nfl_result['away_team']} can win")
-                    for reason in nfl_result["why_away_can_win"]:
-                        st.markdown(f"- {reason}")
+                with st.expander("Supporting arguments, swing factors and risks", expanded=False):
+                    home_path, away_path = st.columns(2)
+                    with home_path:
+                        st.markdown(f"**Why {nfl_result['home_team']} can win**")
+                        for reason in nfl_result["why_home_can_win"]:
+                            st.markdown(f"- {reason}")
+                    with away_path:
+                        st.markdown(f"**Why {nfl_result['away_team']} can win**")
+                        for reason in nfl_result["why_away_can_win"]:
+                            st.markdown(f"- {reason}")
 
-                swing_col, risk_col = st.columns(2)
-                with swing_col:
-                    st.markdown("#### Biggest swing factors")
-                    for factor in nfl_result["swing_factors"]:
-                        st.markdown(f"- {factor}")
-                with risk_col:
-                    st.markdown("#### Biggest risk")
-                    st.write(nfl_result["biggest_risk"])
-                    st.markdown("#### Conditions that invalidate the report")
-                    for condition in nfl_result["invalidation_conditions"]:
-                        st.markdown(f"- {condition}")
+                    swing_col, risk_col = st.columns(2)
+                    with swing_col:
+                        st.markdown("**Biggest swing factors**")
+                        for factor in nfl_result["swing_factors"]:
+                            st.markdown(f"- {factor}")
+                    with risk_col:
+                        st.markdown("**Biggest risk**")
+                        st.write(nfl_result["biggest_risk"])
+                        st.markdown("**Conditions that invalidate the report**")
+                        for condition in nfl_result["invalidation_conditions"]:
+                            st.markdown(f"- {condition}")
 
                 st.markdown("#### Why Macabets differs from Vegas")
                 if value_team:
