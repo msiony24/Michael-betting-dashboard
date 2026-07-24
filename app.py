@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.28 — NFL Team Profiles"
+APP_VERSION = "Macabets v0.29 — NFL Bet Threshold"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -616,6 +616,26 @@ def minimum_acceptable_odds(model_probability, required_roi=0.02):
     if required_decimal >= 2:
         return round((required_decimal - 1) * 100)
     return -round(100 / (required_decimal - 1))
+
+
+def estimated_nfl_cover_probability(point_edge, margin_std=13.86):
+    """Estimate cover probability from the gap between market and fair spread."""
+    z_score = float(point_edge) / float(margin_std)
+    return 0.5 * (1 + math.erf(z_score / math.sqrt(2)))
+
+
+def required_nfl_spread_edge(american_odds, required_roi=0.05, margin_std=13.86):
+    """Point edge required to reach a target ROI at the entered spread price."""
+    decimal_price = american_to_decimal(int(american_odds))
+    target_probability = min(max((1 + required_roi) / decimal_price, 0.0001), 0.9999)
+    low, high = -30.0, 30.0
+    for _ in range(60):
+        midpoint = (low + high) / 2
+        if estimated_nfl_cover_probability(midpoint, margin_std) < target_probability:
+            low = midpoint
+        else:
+            high = midpoint
+    return (low + high) / 2
 
 
 def decision_label(expected_roi, confidence):
@@ -2165,6 +2185,36 @@ with tabs[1]:
             weather = context2.selectbox("Weather", WEATHER_OPTIONS, key="nfl_weather")
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
             home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
+
+            st.markdown("#### Bet consideration")
+            nfl_considered_side = st.radio(
+                "Who are you considering betting on?",
+                ["Just analyze", away_team, home_team],
+                horizontal=True,
+                key="nfl_considered_side",
+                help=(
+                    "Your selection does not influence the Macabets fair line. "
+                    "It only determines which wager is evaluated."
+                ),
+            )
+            bet_input1, bet_input2 = st.columns(2)
+            nfl_considered_market = bet_input1.selectbox(
+                "Wager type",
+                ["Spread", "Moneyline"],
+                disabled=nfl_considered_side == "Just analyze",
+                key="nfl_considered_market",
+            )
+            nfl_spread_price = bet_input2.number_input(
+                "Spread price",
+                value=-110,
+                step=5,
+                disabled=(
+                    nfl_considered_side == "Just analyze"
+                    or nfl_considered_market != "Spread"
+                ),
+                key="nfl_spread_price",
+                help="Enter the American odds attached to the spread, such as -110.",
+            )
             
             # Start with the existing NFL data-pipeline ratings, then layer the
             # new Team Quality Engine ratings on top wherever the categories match.
@@ -2312,6 +2362,120 @@ with tabs[1]:
                     "Edge measures the difference between the Macabets fair spread and the entered "
                     "Vegas spread. An edge of 0.5 points or less is treated as no material edge."
                 )
+
+                if nfl_considered_side != "Just analyze":
+                    if nfl_considered_side == nfl_result["away_team"]:
+                        considered_probability = float(nfl_result["away_win_probability"])
+                        considered_fair_moneyline = fair_away_moneyline
+                        considered_market_moneyline = int(market_ml_away)
+                        considered_fair_spread = -fair_home_spread
+                        considered_market_spread = -entered_market_home_spread
+                        no_vig_away, _, _ = no_vig_probabilities(
+                            int(market_ml_away), int(market_ml_home)
+                        )
+                        considered_no_vig_probability = no_vig_away
+                    else:
+                        considered_probability = float(nfl_result["home_win_probability"])
+                        considered_fair_moneyline = int(nfl_result["fair_moneyline_home"])
+                        considered_market_moneyline = int(market_ml_home)
+                        considered_fair_spread = fair_home_spread
+                        considered_market_spread = entered_market_home_spread
+                        _, no_vig_home, _ = no_vig_probabilities(
+                            int(market_ml_away), int(market_ml_home)
+                        )
+                        considered_no_vig_probability = no_vig_home
+
+                    if nfl_considered_market == "Moneyline":
+                        considered_price = considered_market_moneyline
+                        considered_roi = (
+                            considered_probability
+                            * (american_to_decimal(considered_price) - 1)
+                            - (1 - considered_probability)
+                        )
+                        bet_threshold = minimum_acceptable_odds(
+                            considered_probability,
+                            required_roi=0.05,
+                        )
+                        threshold_text = format_american(bet_threshold)
+                        current_wager_text = (
+                            f"{nfl_considered_side} ML "
+                            f"{format_american(considered_market_moneyline)}"
+                        )
+                        fair_wager_text = format_american(considered_fair_moneyline)
+                        wager_edge_text = (
+                            f"{considered_probability - considered_no_vig_probability:+.1%}"
+                        )
+                        edge_label = "Probability edge"
+                        threshold_label = "BET price or better"
+                    else:
+                        considered_price = int(nfl_spread_price)
+                        considered_point_edge = (
+                            considered_market_spread - considered_fair_spread
+                        )
+                        considered_cover_probability = estimated_nfl_cover_probability(
+                            considered_point_edge
+                        )
+                        considered_roi = (
+                            considered_cover_probability
+                            * american_to_decimal(considered_price)
+                            - 1
+                        )
+                        required_point_edge = required_nfl_spread_edge(
+                            considered_price,
+                            required_roi=0.05,
+                        )
+                        bet_threshold = considered_fair_spread + required_point_edge
+                        threshold_text = (
+                            f"{nfl_considered_side} {bet_threshold:+.1f} or better"
+                        )
+                        current_wager_text = (
+                            f"{nfl_considered_side} {considered_market_spread:+.1f} "
+                            f"({format_american(considered_price)})"
+                        )
+                        fair_wager_text = (
+                            f"{nfl_considered_side} {considered_fair_spread:+.1f}"
+                        )
+                        wager_edge_text = f"{considered_point_edge:+.1f} points"
+                        edge_label = "Spread edge"
+                        threshold_label = "BET line"
+
+                    nfl_bet_decision = "BET" if considered_roi >= 0.05 else "PASS"
+
+                    st.markdown(f"#### Your Considered Bet: {nfl_considered_side}")
+                    bet1, bet2, bet3, bet4, bet5 = st.columns(5)
+                    bet1.metric("Decision", nfl_bet_decision)
+                    bet2.metric("Your Wager", current_wager_text)
+                    bet3.metric("Macabets Fair", fair_wager_text)
+                    bet4.metric(edge_label, wager_edge_text)
+                    bet5.metric("Estimated ROI", f"{considered_roi:+.1%}")
+
+                    threshold1, threshold2 = st.columns([2, 3])
+                    threshold1.metric(threshold_label, threshold_text)
+                    with threshold2:
+                        if nfl_bet_decision == "BET":
+                            st.success(
+                                f"BET: The available {nfl_considered_market.lower()} clears "
+                                "Macabets' 5% expected-return threshold."
+                            )
+                        else:
+                            st.error(
+                                f"PASS: The available {nfl_considered_market.lower()} does not "
+                                f"clear the 5% expected-return threshold. Macabets needs "
+                                f"{threshold_text}."
+                            )
+
+                    if nfl_considered_market == "Spread":
+                        st.caption(
+                            "Spread ROI is estimated from the difference between the Macabets fair "
+                            "line and the entered market line using a 13.86-point NFL scoring-margin "
+                            "distribution. Treat this as a transparent first-pass estimate until the "
+                            "NFL engine adds a full margin simulation."
+                        )
+                else:
+                    st.caption(
+                        "Select a team under Bet consideration and generate the report to receive "
+                        "a direct BET or PASS decision."
+                    )
 
                 score1, score2, score3 = st.columns(3)
                 score1.markdown("**Projected Score**")
