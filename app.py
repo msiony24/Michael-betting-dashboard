@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.26 — NFL Report"
+APP_VERSION = "Macabets v0.27 — NFL Upset Path"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -2201,6 +2201,85 @@ with tabs[1]:
 
                 st.markdown("**Expected game script**")
                 st.write(nfl_result["game_script"])
+
+                st.markdown("#### Upset Path")
+                if abs(entered_market_home_spread) <= 0.05:
+                    st.info(
+                        "Vegas lists this game as a pick'em, so there is no true market underdog "
+                        "and no traditional upset path."
+                    )
+                else:
+                    market_prob_away, market_prob_home, _ = no_vig_probabilities(
+                        int(market_ml_away), int(market_ml_home)
+                    )
+
+                    if entered_market_home_spread < 0:
+                        underdog_team = nfl_result["away_team"]
+                        favorite_team = nfl_result["home_team"]
+                        underdog_spread = -entered_market_home_spread
+                        underdog_model_probability = float(nfl_result["away_win_probability"])
+                        underdog_market_probability = float(market_prob_away)
+                        underdog_market_moneyline = int(market_ml_away)
+                        underdog_fair_moneyline = fair_away_moneyline
+                        underdog_reasons = list(nfl_result["why_away_can_win"])
+                    else:
+                        underdog_team = nfl_result["home_team"]
+                        favorite_team = nfl_result["away_team"]
+                        underdog_spread = entered_market_home_spread
+                        underdog_model_probability = float(nfl_result["home_win_probability"])
+                        underdog_market_probability = float(market_prob_home)
+                        underdog_market_moneyline = int(market_ml_home)
+                        underdog_fair_moneyline = int(nfl_result["fair_moneyline_home"])
+                        underdog_reasons = list(nfl_result["why_home_can_win"])
+
+                    upset_probability_edge = (
+                        underdog_model_probability - underdog_market_probability
+                    )
+                    if underdog_model_probability >= 0.50:
+                        upset_label = "Macabets makes the underdog the more likely winner"
+                    elif underdog_model_probability >= 0.40:
+                        upset_label = "Live upset threat"
+                    elif underdog_model_probability >= 0.30:
+                        upset_label = "Plausible upset path"
+                    else:
+                        upset_label = "Narrow upset path"
+
+                    upset1, upset2, upset3, upset4 = st.columns(4)
+                    upset1.metric(
+                        "Vegas Underdog",
+                        f"{underdog_team} +{underdog_spread:.1f}",
+                    )
+                    upset2.metric(
+                        "Macabets Upset Probability",
+                        f"{underdog_model_probability:.1%}",
+                        f"{upset_probability_edge:+.1%} vs no-vig market",
+                    )
+                    upset3.metric(
+                        "Market Moneyline",
+                        format_american(underdog_market_moneyline),
+                    )
+                    upset4.metric(
+                        "Macabets Fair Moneyline",
+                        format_american(underdog_fair_moneyline),
+                    )
+                    st.markdown(f"**Assessment: {upset_label}.**")
+
+                    path_col, failure_col = st.columns([3, 2])
+                    with path_col:
+                        st.markdown(f"**How {underdog_team} can upset {favorite_team}**")
+                        for step_number, reason in enumerate(underdog_reasons[:3], start=1):
+                            st.markdown(f"{step_number}. {reason}")
+                        if nfl_result["swing_factors"]:
+                            st.markdown(
+                                f"**Deciding swing factor:** {nfl_result['swing_factors'][0]}"
+                            )
+                    with failure_col:
+                        st.markdown("**What must be avoided**")
+                        st.write(nfl_result["biggest_risk"])
+                        if len(nfl_result["swing_factors"]) > 1:
+                            st.markdown("**Secondary swing factors**")
+                            for factor in nfl_result["swing_factors"][1:3]:
+                                st.markdown(f"- {factor}")
 
                 home_path, away_path = st.columns(2)
                 with home_path:
