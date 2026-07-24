@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.27 — NFL Upset Path"
+APP_VERSION = "Macabets v0.28 — NFL Team Profiles"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -71,6 +71,19 @@ DEFAULT_COLUMNS = [
     "stake", "target_profit", "status", "result_profit", "book",
     "confidence", "notes"
 ]
+
+NFL_PROFILE_WEIGHTS = {
+    "quarterback": 0.20,
+    "offense": 0.12,
+    "defense": 0.12,
+    "coaching": 0.10,
+    "offensive_line": 0.10,
+    "defensive_line": 0.10,
+    "skill_positions": 0.08,
+    "secondary": 0.08,
+    "special_teams": 0.04,
+    "continuity": 0.06,
+}
 
 
 SLATE_COLUMNS = [
@@ -510,6 +523,49 @@ def probability_to_american(probability):
     if probability >= 0.5:
         return -round(100 * probability / (1 - probability))
     return round(100 * (1 - probability) / probability)
+
+
+def nfl_profile_summary(ratings):
+    """Build transparent composite grades from the saved NFL team profile."""
+    clean = {
+        category: float(ratings.get(category, 50.0))
+        for category in NFL_PROFILE_WEIGHTS
+    }
+    overall = sum(clean[category] * weight for category, weight in NFL_PROFILE_WEIGHTS.items())
+    overall += float(ratings.get("injury_adjustment", 0.0))
+    overall += float(ratings.get("rookie_adjustment", 0.0))
+    return {
+        "overall": max(0.0, min(100.0, overall)),
+        "offense": np.mean([
+            clean["quarterback"],
+            clean["offense"],
+            clean["offensive_line"],
+            clean["skill_positions"],
+        ]),
+        "defense": np.mean([
+            clean["defense"],
+            clean["defensive_line"],
+            clean["secondary"],
+        ]),
+        "coaching": clean["coaching"],
+        "special_teams": clean["special_teams"],
+        "continuity": clean["continuity"],
+        "units": clean,
+    }
+
+
+def nfl_grade_band(grade):
+    if grade >= 88:
+        return "Elite"
+    if grade >= 82:
+        return "Strong"
+    if grade >= 76:
+        return "Above Average"
+    if grade >= 70:
+        return "Average"
+    if grade >= 64:
+        return "Below Average"
+    return "Weak"
 
 
 def format_american(odds):
@@ -1962,6 +2018,119 @@ with tabs[1]:
                     "\n**Special teams:** special-teams EPA.  "
                     "\n**Coaching:** remains a transparent manual prior until a defensible coaching model is added."
                 )
+
+        if NFL_QUALITY_RATINGS:
+            with st.expander("NFL Team Profiles", expanded=False):
+                st.caption(
+                    "Review every team by unit, identify its strongest and weakest areas, and compare "
+                    "two teams before opening the full game analysis."
+                )
+                profile_teams = sorted(NFL_QUALITY_RATINGS)
+                profile_col1, profile_col2 = st.columns(2)
+                profile_team = profile_col1.selectbox(
+                    "Team profile",
+                    profile_teams,
+                    key="nfl_profile_team",
+                )
+                comparison_options = ["No comparison"] + [
+                    team for team in profile_teams if team != profile_team
+                ]
+                comparison_team = profile_col2.selectbox(
+                    "Compare with",
+                    comparison_options,
+                    key="nfl_profile_comparison",
+                )
+
+                selected_ratings = NFL_QUALITY_RATINGS[profile_team]
+                selected_profile = nfl_profile_summary(selected_ratings)
+                profile1, profile2, profile3, profile4, profile5 = st.columns(5)
+                profile1.metric(
+                    "Overall Profile",
+                    f"{selected_profile['overall']:.1f}",
+                    nfl_grade_band(selected_profile["overall"]),
+                )
+                profile2.metric("Offense", f"{selected_profile['offense']:.1f}")
+                profile3.metric("Defense", f"{selected_profile['defense']:.1f}")
+                profile4.metric("Coaching", f"{selected_profile['coaching']:.1f}")
+                profile5.metric("Continuity", f"{selected_profile['continuity']:.1f}")
+
+                unit_labels = {
+                    "quarterback": "Quarterback",
+                    "offense": "Overall Offense",
+                    "offensive_line": "Offensive Line",
+                    "skill_positions": "Skill Positions",
+                    "defense": "Overall Defense",
+                    "defensive_line": "Defensive Line",
+                    "secondary": "Secondary",
+                    "coaching": "Coaching",
+                    "special_teams": "Special Teams",
+                    "continuity": "Continuity",
+                }
+                profile_rows = []
+                comparison_profile = None
+                if comparison_team != "No comparison":
+                    comparison_profile = nfl_profile_summary(
+                        NFL_QUALITY_RATINGS[comparison_team]
+                    )
+
+                for category, label in unit_labels.items():
+                    selected_grade = selected_profile["units"][category]
+                    row = {
+                        "Unit": label,
+                        profile_team: round(selected_grade, 1),
+                        "Grade": nfl_grade_band(selected_grade),
+                    }
+                    if comparison_profile:
+                        comparison_grade = comparison_profile["units"][category]
+                        row[comparison_team] = round(comparison_grade, 1)
+                        row["Difference"] = round(selected_grade - comparison_grade, 1)
+                    profile_rows.append(row)
+
+                st.dataframe(
+                    pd.DataFrame(profile_rows),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                ranked_units = sorted(
+                    selected_profile["units"].items(),
+                    key=lambda item: item[1],
+                    reverse=True,
+                )
+                strength_col, weakness_col, modifier_col = st.columns(3)
+                with strength_col:
+                    st.markdown("**Core strengths**")
+                    for category, grade in ranked_units[:3]:
+                        st.write(f"{unit_labels[category]}: {grade:.0f}")
+                with weakness_col:
+                    st.markdown("**Areas to attack**")
+                    for category, grade in reversed(ranked_units[-3:]):
+                        st.write(f"{unit_labels[category]}: {grade:.0f}")
+                with modifier_col:
+                    st.markdown("**Current modifiers**")
+                    st.write(
+                        f"Injury adjustment: "
+                        f"{float(selected_ratings.get('injury_adjustment', 0.0)):+.1f}"
+                    )
+                    st.write(
+                        f"Rookie adjustment: "
+                        f"{float(selected_ratings.get('rookie_adjustment', 0.0)):+.1f}"
+                    )
+                    st.write(f"Special teams: {selected_profile['special_teams']:.0f}")
+
+                if comparison_profile:
+                    overall_gap = (
+                        selected_profile["overall"] - comparison_profile["overall"]
+                    )
+                    if abs(overall_gap) < 0.5:
+                        comparison_read = "The overall profiles are effectively even."
+                    else:
+                        stronger_team = profile_team if overall_gap > 0 else comparison_team
+                        comparison_read = (
+                            f"{stronger_team} owns the stronger overall profile by "
+                            f"{abs(overall_gap):.1f} points."
+                        )
+                    st.info(comparison_read)
 
         if not NFL_ENGINE_AVAILABLE:
             st.error(
