@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.31 — Category Advantage Board"
+APP_VERSION = "Macabets v0.29 — NFL Bet Threshold"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -566,69 +566,6 @@ def nfl_grade_band(grade):
     if grade >= 64:
         return "Below Average"
     return "Weak"
-
-
-def build_nfl_category_board(away_team, home_team, team_ratings):
-    """Create a plain-language category comparison from saved team profiles."""
-    category_labels = {
-        "quarterback": "Quarterback",
-        "offensive_line": "Offensive Line",
-        "skill_positions": "Skill Positions",
-        "offense": "Overall Offense",
-        "defensive_line": "Defensive Line",
-        "secondary": "Secondary",
-        "defense": "Overall Defense",
-        "coaching": "Coaching",
-        "special_teams": "Special Teams",
-        "continuity": "Continuity / Depth",
-    }
-    away_ratings = team_ratings.get(away_team, {})
-    home_ratings = team_ratings.get(home_team, {})
-    rows = []
-    category_wins = {away_team: 0, home_team: 0, "Even": 0}
-
-    for category, label in category_labels.items():
-        away_grade = float(away_ratings.get(category, 50.0))
-        home_grade = float(home_ratings.get(category, 50.0))
-        difference = away_grade - home_grade
-        gap = abs(difference)
-
-        if gap <= 1.5:
-            advantage = "Even"
-            category_wins["Even"] += 1
-        elif difference > 0:
-            advantage = away_team
-            category_wins[away_team] += 1
-        else:
-            advantage = home_team
-            category_wins[home_team] += 1
-
-        if gap <= 1.5:
-            advantage_size = "Even"
-        elif gap < 4:
-            advantage_size = "Slight"
-        elif gap < 8:
-            advantage_size = "Clear"
-        else:
-            advantage_size = "Major"
-
-        rows.append({
-            "Category": label,
-            away_team: round(away_grade, 1),
-            home_team: round(home_grade, 1),
-            "Advantage": advantage,
-            "Gap": round(gap, 1),
-            "Advantage Size": advantage_size,
-        })
-
-    board = pd.DataFrame(rows)
-    decisive_rows = board[board["Advantage"] != "Even"]
-    strongest = (
-        decisive_rows.sort_values("Gap", ascending=False).iloc[0].to_dict()
-        if not decisive_rows.empty
-        else None
-    )
-    return board, category_wins, strongest
 
 
 def format_american(odds):
@@ -2249,158 +2186,6 @@ with tabs[1]:
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
             home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
 
-            with st.expander("Context Engine inputs", expanded=True):
-                st.caption(
-                    "Known circumstances can move the fair line. Uncertain information lowers "
-                    "confidence separately. Every adjustment will be shown in the final report."
-                )
-                ctx1, ctx2, ctx3 = st.columns(3)
-                game_stage = ctx1.selectbox(
-                    "Game stage",
-                    [
-                        "Regular season",
-                        "Wild Card",
-                        "Divisional Round",
-                        "Conference Championship",
-                        "Super Bowl",
-                    ],
-                    key="nfl_context_game_stage",
-                )
-                division_game = ctx2.checkbox(
-                    "Division game",
-                    value=False,
-                    key="nfl_context_division",
-                )
-                context_certainty = ctx3.selectbox(
-                    "Context information certainty",
-                    ["High", "Medium", "Low"],
-                    key="nfl_context_certainty",
-                )
-
-                rest1, rest2, rest3 = st.columns(3)
-                away_rest_days = rest1.number_input(
-                    f"{away_team} rest days",
-                    min_value=3,
-                    max_value=21,
-                    value=7,
-                    step=1,
-                    key="nfl_away_rest_days",
-                )
-                home_rest_days = rest2.number_input(
-                    f"{home_team} rest days",
-                    min_value=3,
-                    max_value=21,
-                    value=7,
-                    step=1,
-                    key="nfl_home_rest_days",
-                )
-                away_travel_burden = rest3.selectbox(
-                    f"{away_team} travel burden",
-                    ["Standard", "Cross-country", "International / unusual"],
-                    key="nfl_away_travel_burden",
-                )
-
-                qb1, qb2 = st.columns(2)
-                qb_status_options = [
-                    "Healthy starter",
-                    "Limited starter",
-                    "Questionable / uncertain",
-                    "Confirmed backup",
-                    "Emergency / third-string",
-                ]
-                away_qb_status = qb1.selectbox(
-                    f"{away_team} quarterback",
-                    qb_status_options,
-                    key="nfl_away_qb_status",
-                )
-                home_qb_status = qb2.selectbox(
-                    f"{home_team} quarterback",
-                    qb_status_options,
-                    key="nfl_home_qb_status",
-                )
-
-                injury1, injury2 = st.columns(2)
-                away_non_qb_injury_points = injury1.slider(
-                    f"{away_team} non-QB injury deduction",
-                    0.0,
-                    6.0,
-                    0.0,
-                    0.5,
-                    key="nfl_away_injury_points",
-                    help="Estimated points lost from unavailable non-quarterbacks.",
-                )
-                home_non_qb_injury_points = injury2.slider(
-                    f"{home_team} non-QB injury deduction",
-                    0.0,
-                    6.0,
-                    0.0,
-                    0.5,
-                    key="nfl_home_injury_points",
-                    help="Estimated points lost from unavailable non-quarterbacks.",
-                )
-
-                motivation_options = [
-                    "Normal",
-                    "Must win",
-                    "Elimination game",
-                    "Resting starters / meaningless",
-                ]
-                motivation1, motivation2 = st.columns(2)
-                away_motivation = motivation1.selectbox(
-                    f"{away_team} motivation",
-                    motivation_options,
-                    key="nfl_away_motivation",
-                )
-                home_motivation = motivation2.selectbox(
-                    f"{home_team} motivation",
-                    motivation_options,
-                    key="nfl_home_motivation",
-                )
-
-                coaching_options = [
-                    "None",
-                    "Recent coordinator change",
-                    "Recent head-coach change",
-                ]
-                coaching1, coaching2 = st.columns(2)
-                away_coaching_change = coaching1.selectbox(
-                    f"{away_team} coaching/personnel disruption",
-                    coaching_options,
-                    key="nfl_away_coaching_change",
-                )
-                home_coaching_change = coaching2.selectbox(
-                    f"{home_team} coaching/personnel disruption",
-                    coaching_options,
-                    key="nfl_home_coaching_change",
-                )
-
-                manual1, manual2 = st.columns(2)
-                manual_advantage_team = manual1.selectbox(
-                    "Additional matchup/weather advantage",
-                    ["Neutral", away_team, home_team],
-                    key="nfl_manual_advantage_team",
-                )
-                manual_advantage_points = manual2.number_input(
-                    "Additional advantage points",
-                    min_value=0.0,
-                    max_value=4.0,
-                    value=0.0,
-                    step=0.25,
-                    disabled=manual_advantage_team == "Neutral",
-                    key="nfl_manual_advantage_points",
-                )
-                manual_advantage_reason = st.text_input(
-                    "Reason for additional advantage",
-                    placeholder="Example: major offensive-line mismatch in high wind",
-                    disabled=manual_advantage_team == "Neutral",
-                    key="nfl_manual_advantage_reason",
-                )
-                weather_already_priced = st.checkbox(
-                    "The entered Vegas total already reflects the weather",
-                    value=True,
-                    key="nfl_weather_already_priced",
-                )
-
             st.markdown("#### Bet consideration")
             nfl_considered_side = st.radio(
                 "Who are you considering betting on?",
@@ -2493,33 +2278,6 @@ with tabs[1]:
                         away_rating_overrides=away_overrides,
                         home_rating_overrides=home_overrides,
                         home_field_points=home_field_points,
-                        context={
-                            "week": int(nfl_week),
-                            "game_stage": game_stage,
-                            "division_game": division_game,
-                            "context_certainty": context_certainty,
-                            "away_rest_days": int(away_rest_days),
-                            "home_rest_days": int(home_rest_days),
-                            "away_travel_burden": away_travel_burden,
-                            "away_qb_status": away_qb_status,
-                            "home_qb_status": home_qb_status,
-                            "away_non_qb_injury_points": float(
-                                away_non_qb_injury_points
-                            ),
-                            "home_non_qb_injury_points": float(
-                                home_non_qb_injury_points
-                            ),
-                            "away_motivation": away_motivation,
-                            "home_motivation": home_motivation,
-                            "away_coaching_change": away_coaching_change,
-                            "home_coaching_change": home_coaching_change,
-                            "manual_advantage_team": manual_advantage_team,
-                            "manual_advantage_points": float(
-                                manual_advantage_points
-                            ),
-                            "manual_advantage_reason": manual_advantage_reason,
-                            "weather_already_priced": weather_already_priced,
-                        },
                     )
                     st.session_state.nfl_result = nfl_result
                 except Exception as exc:
@@ -2582,9 +2340,9 @@ with tabs[1]:
 
                 st.info(
                     f"Team Quality Engine active: {len(NFL_QUALITY_RATINGS)} team profiles loaded. "
-                    "The Context Engine now separates the base team-quality line from situational "
-                    "adjustments for rest, travel, quarterbacks, injuries, motivation and personnel changes. "
-                    "Review the context inputs and breakdown before treating the output as actionable."
+                    "The spread and moneyline are independently driven by team-quality ratings and home field. "
+                    "The projected total remains market-anchored. Injury, depth-chart and late-news adjustments "
+                    "must still be reviewed before treating the output as actionable."
                 )
                 st.markdown(f"### {nfl_result['away_team']} at {nfl_result['home_team']} — Week {int(nfl_week)}")
                 st.caption(f"Game date: {nfl_date.strftime('%B %-d, %Y')}")
@@ -2755,126 +2513,12 @@ with tabs[1]:
                 power1.metric(f"{nfl_result['away_team']} power rating", f"{nfl_result['away_power_rating']:+.2f}")
                 power2.metric(f"{nfl_result['home_team']} power rating", f"{nfl_result['home_power_rating']:+.2f}")
                 power3.metric("Home-field adjustment", f"{nfl_result['home_field_points']:+.1f}")
-
-                st.markdown("#### Category Advantage Board")
-                category_board, category_wins, strongest_category = (
-                    build_nfl_category_board(
-                        nfl_result["away_team"],
-                        nfl_result["home_team"],
-                        NFL_QUALITY_RATINGS,
-                    )
-                )
-                advantage1, advantage2, advantage3, advantage4 = st.columns(4)
-                advantage1.metric(
-                    f"{nfl_result['away_team']} Advantages",
-                    category_wins[nfl_result["away_team"]],
-                )
-                advantage2.metric(
-                    f"{nfl_result['home_team']} Advantages",
-                    category_wins[nfl_result["home_team"]],
-                )
-                advantage3.metric("Even Categories", category_wins["Even"])
-                if strongest_category:
-                    advantage4.metric(
-                        "Strongest Advantage",
-                        strongest_category["Advantage"],
-                        (
-                            f"{strongest_category['Category']} "
-                            f"({strongest_category['Gap']:.1f})"
-                        ),
-                    )
-                else:
-                    advantage4.metric("Strongest Advantage", "None")
-
-                st.dataframe(
-                    category_board,
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "Gap": st.column_config.NumberColumn(format="%.1f"),
-                    },
-                )
-                st.caption(
-                    "A category is marked Even when the ratings are within 1.5 points. "
-                    "Category wins are an unweighted matchup count; the Macabets fair line still "
-                    "uses the engine's weighted team-quality model."
-                )
-
-                with st.expander("Technical model component audit", expanded=False):
-                    st.caption(
-                        "These are the weighted nflverse/starter-prior components used directly "
-                        "to calculate the base fair line."
-                    )
-                    st.dataframe(
-                        pd.DataFrame(nfl_result["rating_breakdown"]),
-                        use_container_width=True,
-                        hide_index=True,
-                    )
+                st.dataframe(pd.DataFrame(nfl_result["rating_breakdown"]), use_container_width=True, hide_index=True)
 
                 st.markdown("#### Context Analysis")
-                base_fair_home_spread = float(
-                    nfl_result.get("base_fair_spread_home", fair_home_spread)
-                )
-                if base_fair_home_spread < -0.05:
-                    base_line_text = (
-                        f"{nfl_result['home_team']} {base_fair_home_spread:+.1f}"
-                    )
-                elif base_fair_home_spread > 0.05:
-                    base_line_text = (
-                        f"{nfl_result['away_team']} {-base_fair_home_spread:+.1f}"
-                    )
-                else:
-                    base_line_text = "Pick'em"
-
-                context_home_adjustment = float(
-                    nfl_result.get("context_adjustment_home", 0.0)
-                )
-                if context_home_adjustment > 0.05:
-                    context_move_text = (
-                        f"{nfl_result['home_team']} +{context_home_adjustment:.1f} pts"
-                    )
-                elif context_home_adjustment < -0.05:
-                    context_move_text = (
-                        f"{nfl_result['away_team']} +{abs(context_home_adjustment):.1f} pts"
-                    )
-                else:
-                    context_move_text = "No movement"
-
-                context_metric1, context_metric2, context_metric3, context_metric4 = st.columns(4)
-                context_metric1.metric("Base Team-Quality Line", base_line_text)
-                context_metric2.metric("Situational Adjustment", context_move_text)
-                context_metric3.metric("Final Macabets Line", fair_line_text)
-                context_metric4.metric(
-                    "Confidence Penalty",
-                    f"-{float(nfl_result.get('context_confidence_penalty', 0.0)):.1f}",
-                )
-
-                context_breakdown = nfl_result.get("context_breakdown", [])
-                if context_breakdown:
-                    st.dataframe(
-                        pd.DataFrame(context_breakdown),
-                        use_container_width=True,
-                        hide_index=True,
-                        column_config={
-                            "Home margin adjustment": st.column_config.NumberColumn(
-                                format="%+.2f"
-                            ),
-                            "Confidence impact": st.column_config.NumberColumn(
-                                format="%+.1f"
-                            ),
-                        },
-                    )
-                else:
-                    st.caption(
-                        "No situational factor moved the base line or reduced confidence."
-                    )
-
                 context1, context2 = st.columns(2)
                 with context1:
                     st.markdown("**Game setting**")
-                    st.write(
-                        f"Stage: {nfl_result.get('context_game_stage', game_stage)}"
-                    )
                     st.write(f"Week: {int(nfl_week)}")
                     st.write(f"Venue: {venue_type}")
                     st.write(f"Weather: {weather}")
@@ -2886,15 +2530,7 @@ with tabs[1]:
                     st.write(
                         f"Home-field adjustment: {nfl_result['home_field_points']:+.1f} points"
                     )
-                    total_context_adjustment = float(
-                        nfl_result.get("context_total_adjustment", 0.0)
-                    )
-                    if total_context_adjustment:
-                        st.write(
-                            f"Total context adjustment: {total_context_adjustment:+.1f} points"
-                        )
-                    else:
-                        st.write("Projected total: market-anchored")
+                    st.write("Projected total: market-anchored")
 
                 st.markdown("**Expected game script**")
                 st.write(nfl_result["game_script"])
@@ -3004,8 +2640,7 @@ with tabs[1]:
                 if value_team:
                     st.write(
                         f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}. "
-                        f"Macabets' base team-quality line was {base_fair_home_spread:+.1f}; "
-                        f"context moved the final fair home line to {fair_home_spread:+.1f}, a "
+                        f"Macabets makes the fair home line {fair_home_spread:+.1f}, a "
                         f"{abs(spread_difference):.1f}-point difference toward {market_direction}. "
                         f"At the entered market line, the potential spread-value side is "
                         f"{spread_value_text}. This is a line comparison, not a final bet call, "
@@ -3014,8 +2649,7 @@ with tabs[1]:
                 else:
                     st.write(
                         f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}, "
-                        f"while Macabets' base line of {base_fair_home_spread:+.1f} becomes "
-                        f"{fair_home_spread:+.1f} after context. "
+                        f"while Macabets makes the fair home line {fair_home_spread:+.1f}. "
                         f"The {abs(spread_difference):.1f}-point difference is not large enough "
                         "to create a material spread edge."
                     )
