@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.29 — NFL Bet Threshold"
+APP_VERSION = "Macabets v0.30 — Category Verdicts"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -566,6 +566,124 @@ def nfl_grade_band(grade):
     if grade >= 64:
         return "Below Average"
     return "Weak"
+
+
+def build_nfl_category_verdicts(away_team, home_team, team_ratings):
+    """Turn saved team grades into direct, matchup-specific category verdicts."""
+    away = team_ratings.get(away_team, {})
+    home = team_ratings.get(home_team, {})
+
+    def grade(profile, category, default=50.0):
+        return float(profile.get(category, default))
+
+    category_formulas = [
+        (
+            "Quarterback",
+            grade(away, "quarterback"),
+            grade(home, "quarterback"),
+        ),
+        (
+            "Running Game",
+            (
+                grade(away, "offense") * 0.45
+                + grade(away, "offensive_line") * 0.35
+                + grade(away, "skill_positions") * 0.20
+            ),
+            (
+                grade(home, "offense") * 0.45
+                + grade(home, "offensive_line") * 0.35
+                + grade(home, "skill_positions") * 0.20
+            ),
+        ),
+        (
+            "Receiving Weapons",
+            (
+                grade(away, "skill_positions") * 0.70
+                + grade(away, "offense") * 0.30
+            ),
+            (
+                grade(home, "skill_positions") * 0.70
+                + grade(home, "offense") * 0.30
+            ),
+        ),
+        (
+            "Offensive Line",
+            grade(away, "offensive_line"),
+            grade(home, "offensive_line"),
+        ),
+        (
+            "Defensive Front",
+            grade(away, "defensive_line"),
+            grade(home, "defensive_line"),
+        ),
+        (
+            "Secondary",
+            grade(away, "secondary"),
+            grade(home, "secondary"),
+        ),
+        (
+            "Overall Defense",
+            grade(away, "defense"),
+            grade(home, "defense"),
+        ),
+        (
+            "Coaching",
+            grade(away, "coaching"),
+            grade(home, "coaching"),
+        ),
+        (
+            "Special Teams",
+            grade(away, "special_teams"),
+            grade(home, "special_teams"),
+        ),
+        (
+            "Depth / Continuity",
+            grade(away, "continuity"),
+            grade(home, "continuity"),
+        ),
+    ]
+
+    rows = []
+    wins = {away_team: 0, home_team: 0, "Even": 0}
+    for category, away_grade, home_grade in category_formulas:
+        difference = away_grade - home_grade
+        gap = abs(difference)
+        if gap <= 1.5:
+            winner = "Even"
+            strength = "Even"
+        else:
+            winner = away_team if difference > 0 else home_team
+            if gap < 4:
+                strength = "Slight"
+            elif gap < 8:
+                strength = "Clear"
+            else:
+                strength = "Major"
+        wins[winner] += 1
+        rows.append({
+            "Category": category,
+            "Advantage": winner,
+            "Strength": strength,
+            "Rating Gap": round(gap, 1),
+            away_team: round(away_grade, 1),
+            home_team: round(home_grade, 1),
+        })
+
+    verdicts = pd.DataFrame(rows)
+    decisive = verdicts[verdicts["Advantage"] != "Even"].sort_values(
+        "Rating Gap",
+        ascending=False,
+    )
+    strongest = decisive.iloc[0].to_dict() if not decisive.empty else None
+
+    if wins[away_team] > wins[home_team]:
+        category_leader = away_team
+    elif wins[home_team] > wins[away_team]:
+        category_leader = home_team
+    else:
+        category_leader = "Even"
+
+    return verdicts, wins, strongest, category_leader
 
 
 def format_american(odds):
@@ -2513,7 +2631,87 @@ with tabs[1]:
                 power1.metric(f"{nfl_result['away_team']} power rating", f"{nfl_result['away_power_rating']:+.2f}")
                 power2.metric(f"{nfl_result['home_team']} power rating", f"{nfl_result['home_power_rating']:+.2f}")
                 power3.metric("Home-field adjustment", f"{nfl_result['home_field_points']:+.1f}")
-                st.dataframe(pd.DataFrame(nfl_result["rating_breakdown"]), use_container_width=True, hide_index=True)
+
+                st.markdown("#### Category Advantages")
+                category_verdicts, category_wins, strongest_edge, category_leader = (
+                    build_nfl_category_verdicts(
+                        nfl_result["away_team"],
+                        nfl_result["home_team"],
+                        NFL_QUALITY_RATINGS,
+                    )
+                )
+
+                category1, category2, category3, category4 = st.columns(4)
+                category1.metric(
+                    nfl_result["away_team"],
+                    f"{category_wins[nfl_result['away_team']]} advantages",
+                )
+                category2.metric(
+                    nfl_result["home_team"],
+                    f"{category_wins[nfl_result['home_team']]} advantages",
+                )
+                category3.metric("Even", f"{category_wins['Even']} categories")
+                category4.metric("Category Leader", category_leader)
+
+                visible_verdicts = category_verdicts[
+                    ["Category", "Advantage", "Strength"]
+                ].copy()
+                st.dataframe(
+                    visible_verdicts,
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                if strongest_edge:
+                    st.success(
+                        f"Strongest category edge: {strongest_edge['Advantage']} has a "
+                        f"{strongest_edge['Strength'].lower()} advantage in "
+                        f"{strongest_edge['Category']}."
+                    )
+
+                away_wins = category_wins[nfl_result["away_team"]]
+                home_wins = category_wins[nfl_result["home_team"]]
+                if category_leader == "Even":
+                    category_summary = (
+                        f"The category comparison is balanced at {away_wins}-{home_wins}, "
+                        f"with {category_wins['Even']} even categor"
+                        f"{'y' if category_wins['Even'] == 1 else 'ies'}."
+                    )
+                else:
+                    trailing_team = (
+                        nfl_result["home_team"]
+                        if category_leader == nfl_result["away_team"]
+                        else nfl_result["away_team"]
+                    )
+                    category_summary = (
+                        f"{category_leader} wins the category comparison "
+                        f"{category_wins[category_leader]}-{category_wins[trailing_team]}. "
+                        "This is a matchup verdict, not a standalone betting recommendation."
+                    )
+                st.info(category_summary)
+
+                with st.expander("Show the ratings behind each verdict", expanded=False):
+                    st.dataframe(
+                        category_verdicts,
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                            "Rating Gap": st.column_config.NumberColumn(format="%.1f"),
+                        },
+                    )
+                    st.caption(
+                        "Running Game combines overall offense, offensive line and skill-position "
+                        "ratings. Receiving Weapons combines skill-position and overall offense "
+                        "ratings. Madden 27 data will eventually replace these provisional composites "
+                        "with position-specific player grades."
+                    )
+
+                with st.expander("Technical fair-line model audit", expanded=False):
+                    st.dataframe(
+                        pd.DataFrame(nfl_result["rating_breakdown"]),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
 
                 st.markdown("#### Context Analysis")
                 context1, context2 = st.columns(2)
