@@ -44,8 +44,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.25 — NFL Line Clarity"
-BUILD_DATE = "July 23, 2026"
+APP_VERSION = "Macabets v0.26 — NFL Report"
+BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -2069,6 +2069,12 @@ with tabs[1]:
                 fair_home_spread = float(nfl_result["fair_spread_home"])
                 entered_market_home_spread = float(market_spread_home)
                 spread_difference = fair_home_spread - entered_market_home_spread
+                fair_away_moneyline = int(
+                    nfl_result.get(
+                        "fair_moneyline_away",
+                        probability_to_american(nfl_result["away_win_probability"]),
+                    )
+                )
 
                 if fair_home_spread < -0.05:
                     model_favorite = nfl_result["home_team"]
@@ -2092,6 +2098,27 @@ with tabs[1]:
                     spread_value_text = "No material spread edge"
                     market_direction = "neither side"
 
+                if fair_home_spread < -0.05:
+                    fair_line_text = f"{nfl_result['home_team']} {fair_home_spread:+.1f}"
+                elif fair_home_spread > 0.05:
+                    fair_line_text = f"{nfl_result['away_team']} {-fair_home_spread:+.1f}"
+                else:
+                    fair_line_text = "Pick'em"
+
+                if entered_market_home_spread < -0.05:
+                    vegas_line_text = f"{nfl_result['home_team']} {entered_market_home_spread:+.1f}"
+                elif entered_market_home_spread > 0.05:
+                    vegas_line_text = (
+                        f"{nfl_result['away_team']} {-entered_market_home_spread:+.1f}"
+                    )
+                else:
+                    vegas_line_text = "Pick'em"
+
+                if value_team:
+                    edge_text = f"{value_team} by {abs(spread_difference):.1f} pts"
+                else:
+                    edge_text = f"No edge ({abs(spread_difference):.1f} pts)"
+
                 st.info(
                     f"Team Quality Engine active: {len(NFL_QUALITY_RATINGS)} team profiles loaded. "
                     "The spread and moneyline are independently driven by team-quality ratings and home field. "
@@ -2101,16 +2128,53 @@ with tabs[1]:
                 st.markdown(f"### {nfl_result['away_team']} at {nfl_result['home_team']} — Week {int(nfl_week)}")
                 st.caption(f"Game date: {nfl_date.strftime('%B %-d, %Y')}")
 
-                out1, out2, out3, out4, out5 = st.columns(5)
-                out1.metric("Model favorite", model_favorite)
-                out2.metric(
-                    "Fair home spread",
-                    f"{fair_home_spread:+.1f}",
-                    f"{spread_difference:+.1f} points vs market",
+                st.markdown("#### Line Comparison")
+                line1, line2, line3, line4 = st.columns(4)
+                line1.metric("Macabets Fair Line", fair_line_text)
+                line2.metric("Vegas Line", vegas_line_text)
+                line3.metric("Edge", edge_text)
+                line4.metric(
+                    "Confidence",
+                    f"{nfl_result['confidence']:.0f}/100",
+                    nfl_result["confidence_band"],
                 )
-                out3.metric("Fair home ML", f"{nfl_result['fair_moneyline_home']:+d}")
-                out4.metric("Fair total", f"{nfl_result['fair_total']:.1f}", "Market-anchored")
-                out5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+
+                st.caption(
+                    "Edge measures the difference between the Macabets fair spread and the entered "
+                    "Vegas spread. An edge of 0.5 points or less is treated as no material edge."
+                )
+
+                score1, score2, score3 = st.columns(3)
+                score1.markdown("**Projected Score**")
+                score1.write(
+                    f"{nfl_result['away_team']}: {nfl_result['projected_away_score']:.1f}"
+                )
+                score1.write(
+                    f"{nfl_result['home_team']}: {nfl_result['projected_home_score']:.1f}"
+                )
+                score2.metric(
+                    f"{nfl_result['away_team']} Win Probability",
+                    f"{nfl_result['away_win_probability']:.1%}",
+                )
+                score3.metric(
+                    f"{nfl_result['home_team']} Win Probability",
+                    f"{nfl_result['home_win_probability']:.1%}",
+                )
+
+                market1, market2, market3 = st.columns(3)
+                market1.metric(
+                    f"Fair {nfl_result['home_team']} Moneyline",
+                    f"{nfl_result['fair_moneyline_home']:+d}",
+                )
+                market2.metric(
+                    f"Fair {nfl_result['away_team']} Moneyline",
+                    f"{fair_away_moneyline:+d}",
+                )
+                market3.metric(
+                    "Projected Total",
+                    f"{nfl_result['fair_total']:.1f}",
+                    "Market-anchored",
+                )
 
                 power1, power2, power3 = st.columns(3)
                 power1.metric(f"{nfl_result['away_team']} power rating", f"{nfl_result['away_power_rating']:+.2f}")
@@ -2118,25 +2182,24 @@ with tabs[1]:
                 power3.metric("Home-field adjustment", f"{nfl_result['home_field_points']:+.1f}")
                 st.dataframe(pd.DataFrame(nfl_result["rating_breakdown"]), use_container_width=True, hide_index=True)
 
-                score1, score2, score3, score4 = st.columns(4)
-                score1.metric(f"{nfl_result['away_team']} win probability", f"{nfl_result['away_win_probability']:.1%}")
-                score2.metric(f"{nfl_result['home_team']} win probability", f"{nfl_result['home_win_probability']:.1%}")
-                score3.metric(
-                    "Projected score",
-                    f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.1f} — "
-                    f"{nfl_result['home_team']} {nfl_result['projected_home_score']:.1f}"
-                )
-                score4.metric(
-                    "Spread assessment",
-                    f"Lean: {model_favorite}",
-                    spread_value_text,
-                )
-                st.caption(
-                    "This identifies the side and spread where the model sees potential value. "
-                    "It is not a final BET recommendation because spread price/juice was not entered or evaluated."
-                )
+                st.markdown("#### Context Analysis")
+                context1, context2 = st.columns(2)
+                with context1:
+                    st.markdown("**Game setting**")
+                    st.write(f"Week: {int(nfl_week)}")
+                    st.write(f"Venue: {venue_type}")
+                    st.write(f"Weather: {weather}")
+                    st.write(f"Neutral site: {'Yes' if neutral_site else 'No'}")
+                with context2:
+                    st.markdown("**Model interpretation**")
+                    st.write(f"Macabets favorite: {model_favorite}")
+                    st.write(f"Spread-value side: {spread_value_text}")
+                    st.write(
+                        f"Home-field adjustment: {nfl_result['home_field_points']:+.1f} points"
+                    )
+                    st.write("Projected total: market-anchored")
 
-                st.markdown("#### Expected game script")
+                st.markdown("**Expected game script**")
                 st.write(nfl_result["game_script"])
 
                 home_path, away_path = st.columns(2)
