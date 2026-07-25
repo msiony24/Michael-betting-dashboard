@@ -1,0 +1,114 @@
+name: Test API Tennis Connection
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-connection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Test API Tennis safely
+        env:
+          API_TENNIS_KEY: ${{ secrets.API_TENNIS_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+          from datetime import date, timedelta
+
+          API_URL = "https://api.api-tennis.com/tennis/"
+          api_key = os.environ.get("API_TENNIS_KEY", "").strip()
+
+          if not api_key:
+              raise SystemExit(
+                  "API_TENNIS_KEY was not found in repository secrets."
+              )
+
+          def request(method, **params):
+              query = urllib.parse.urlencode({
+                  "method": method,
+                  "APIkey": api_key,
+                  **params,
+              })
+
+              req = urllib.request.Request(
+                  f"{API_URL}?{query}",
+                  headers={
+                      "User-Agent": "Macabets API connection test"
+                  },
+              )
+
+              with urllib.request.urlopen(
+                  req,
+                  timeout=30,
+              ) as response:
+                  payload = json.loads(
+                      response.read().decode("utf-8")
+                  )
+
+              if int(payload.get("success", 0)) != 1:
+                  raise RuntimeError(
+                      f"{method} failed: "
+                      f"{payload.get('error', 'Unknown API error')}"
+                  )
+
+              return payload.get("result", [])
+
+          today = date.today()
+          tomorrow = today + timedelta(days=1)
+
+          standings = request(
+              "get_standings",
+              event_type="ATP",
+          )
+
+          fixtures = request(
+              "get_fixtures",
+              date_start=today.isoformat(),
+              date_stop=tomorrow.isoformat(),
+              timezone="America/New_York",
+          )
+
+          atp_matches = [
+              match
+              for match in fixtures
+              if str(
+                  match.get("event_type_type", "")
+              ).strip().casefold() == "atp singles"
+          ]
+
+          print("API TENNIS CONNECTION SUCCESSFUL")
+          print(
+              f"ATP ranking rows received: {len(standings)}"
+          )
+          print(
+              f"All fixtures received: {len(fixtures)}"
+          )
+          print(
+              f"ATP singles fixtures received: {len(atp_matches)}"
+          )
+
+          if standings:
+              sample = standings[0]
+              print(
+                  "Ranking sample: "
+                  f"#{sample.get('place', '?')} "
+                  f"{sample.get('player', 'Unknown')}"
+              )
+
+          if atp_matches:
+              sample = atp_matches[0]
+              print(
+                  "Fixture sample: "
+                  f"{sample.get('event_first_player', 'Unknown')} "
+                  "vs "
+                  f"{sample.get('event_second_player', 'Unknown')}"
+              )
+          PY
