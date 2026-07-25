@@ -44,8 +44,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.32 — Tennis Confidence Meter"
-BUILD_DATE = "July 24, 2026"
+APP_VERSION = "Macabets v0.33 — Clear Set Score Display"
+BUILD_DATE = "July 25, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -2227,20 +2227,51 @@ with tabs[1]:
                     s3.metric(f"{analyzed_b} straight sets", f"{simulation['straight_sets_b']:.1%}")
                     s4.metric("Deciding set", f"{simulation['deciding_set']:.1%}")
 
-                    score_df = pd.DataFrame(
-                        [
-                            {"Set score": score, "Probability": probability}
-                            for score, probability in simulation["set_scores"].items()
-                        ]
-                    ).sort_values("Probability", ascending=False)
-                    st.dataframe(
-                        score_df,
-                        use_container_width=True,
-                        hide_index=True,
-                        column_config={
-                            "Probability": st.column_config.NumberColumn(format="%.1%%")
-                        },
+                    st.markdown("#### Exact Set Score")
+                    set_score_results = []
+                    for raw_score, probability in simulation["set_scores"].items():
+                        try:
+                            a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
+                        except (TypeError, ValueError):
+                            # Defensive fallback in case the simulation format changes later.
+                            set_score_results.append({
+                                "label": str(raw_score),
+                                "probability": probability,
+                                "winner_order": 2,
+                                "loser_sets": 99,
+                            })
+                            continue
+
+                        if a_sets > b_sets:
+                            winner = analyzed_a
+                            winner_sets, loser_sets = a_sets, b_sets
+                            winner_order = 0
+                        else:
+                            winner = analyzed_b
+                            winner_sets, loser_sets = b_sets, a_sets
+                            winner_order = 1
+
+                        set_score_results.append({
+                            "label": f"{winner} wins {winner_sets}-{loser_sets}",
+                            "probability": probability,
+                            "winner_order": winner_order,
+                            "loser_sets": loser_sets,
+                        })
+
+                    # Keep each player's possible wins together and show the most decisive score first.
+                    set_score_results.sort(
+                        key=lambda item: (item["winner_order"], item["loser_sets"])
                     )
+
+                    cards_per_row = 4 if len(set_score_results) <= 4 else 3
+                    for row_start in range(0, len(set_score_results), cards_per_row):
+                        row_results = set_score_results[row_start:row_start + cards_per_row]
+                        score_columns = st.columns(len(row_results))
+                        for column, score_result in zip(score_columns, row_results):
+                            column.metric(
+                                score_result["label"],
+                                f"{score_result['probability']:.1%}",
+                            )
 
                     st.markdown("#### Pre-Match Decision Record")
                     d1, d2 = st.columns(2)
