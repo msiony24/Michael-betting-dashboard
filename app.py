@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.31 — Clean NFL Analysis"
+APP_VERSION = "Macabets v0.32 — Tennis Confidence Meter"
 BUILD_DATE = "July 24, 2026"
 
 st.set_page_config(
@@ -268,6 +268,92 @@ def safe_int(value, default: int = 0) -> int:
         return int(float(value))
     except (TypeError, ValueError, OverflowError):
         return default
+
+
+def tennis_confidence_meter(result):
+    """Combine model stability, data quality, sample size and context clarity."""
+    model_score = min(max(float(result.get("confidence", 5)) * 10, 0), 100)
+    data_score = min(max(float(result.get("data_quality", 5)) * 10, 0), 100)
+
+    samples = []
+    for profile_key in ("profile_a", "profile_b"):
+        try:
+            sample_value = float(result.get(profile_key, {}).get("sample", 0))
+            samples.append(sample_value if math.isfinite(sample_value) else 0.0)
+        except (TypeError, ValueError):
+            samples.append(0.0)
+    minimum_sample = min(samples) if samples else 0.0
+    sample_score = min(max(minimum_sample / 40.0 * 100.0, 0), 100)
+
+    health_penalties = {
+        "Clear": 0,
+        "Minor concern": 10,
+        "Recent medical timeout": 18,
+        "Returning from layoff": 22,
+        "Recent retirement": 28,
+        "Significant concern": 35,
+    }
+    health_a = str(result.get("injury_status_a", "Clear"))
+    health_b = str(result.get("injury_status_b", "Clear"))
+    context_penalty = min(
+        health_penalties.get(health_a, 10) + health_penalties.get(health_b, 10),
+        60,
+    )
+    context_score = 100 - context_penalty
+
+    overall = round(
+        model_score * 0.35
+        + data_score * 0.35
+        + sample_score * 0.20
+        + context_score * 0.10
+    )
+    if overall >= 85:
+        band = "High"
+    elif overall >= 70:
+        band = "Solid"
+    elif overall >= 55:
+        band = "Moderate"
+    else:
+        band = "Low"
+
+    return {
+        "overall": int(min(max(overall, 0), 100)),
+        "band": band,
+        "model": round(model_score),
+        "data": round(data_score),
+        "sample": round(sample_score),
+        "context": round(context_score),
+        "minimum_sample": int(minimum_sample),
+    }
+
+
+def tennis_bet_confidence(analysis_confidence, edge, expected_roi):
+    """Grade confidence in a specific price without changing the match analysis."""
+    positive_edge = max(float(edge), 0.0)
+    positive_roi = max(float(expected_roi), 0.0)
+    edge_score = min(positive_edge / 0.10 * 100.0, 100.0)
+    roi_score = min(positive_roi / 0.10 * 100.0, 100.0)
+    score = (
+        float(analysis_confidence) * 0.55
+        + edge_score * 0.20
+        + roi_score * 0.25
+    )
+
+    if expected_roi < 0.02:
+        score = min(score, 49)
+    elif expected_roi < 0.05:
+        score = min(score, 69)
+    score = int(round(min(max(score, 0), 100)))
+
+    if score >= 80:
+        band = "High"
+    elif score >= 65:
+        band = "Solid"
+    elif score >= 50:
+        band = "Cautious"
+    else:
+        band = "Low / Pass"
+    return {"overall": score, "band": band}
 
 
 def _plain_factor_sentence(factor_name, player, opponent, reason):
@@ -1543,6 +1629,17 @@ with tabs[1]:
                             "objectively."
                         )
 
+                    analysis_confidence = tennis_confidence_meter(result)
+                    bet_confidence = (
+                        tennis_bet_confidence(
+                            analysis_confidence["overall"],
+                            considered_edge,
+                            considered_roi,
+                        )
+                        if considered_player
+                        else None
+                    )
+
                     # Preserve Player A fields for the existing archive structure.
                     no_vig_edge = edge_a
                     expected_roi = roi_a
@@ -1562,6 +1659,60 @@ with tabs[1]:
                         matches, analyzed_a, analyzed_b, result.get("surface", surface)
                     )
 
+                    # Decision summary: separate the likely winner from the quality of the price.
+                    projected_winner = analyzed_a if model_probability >= probability_b else analyzed_b
+                    projected_winner_probability = max(model_probability, probability_b)
+                    projected_winner_fair_odds = fair_odds if projected_winner == analyzed_a else fair_odds_b
+
+                    if max(roi_a, roi_b) >= 0.05:
+                        best_betting_side = analyzed_a if roi_a >= roi_b else analyzed_b
+                        best_betting_label = f"{best_betting_side} — BETTABLE EDGE"
+                    elif max(roi_a, roi_b) >= 0.00:
+                        best_betting_side = analyzed_a if roi_a >= roi_b else analyzed_b
+                        best_betting_label = f"{best_betting_side} — SLIGHT VALUE"
+                    else:
+                        best_betting_side = None
+                        best_betting_label = "NO CLEAR BET"
+
+                    winner_market_odds = listed_a if projected_winner == analyzed_a else listed_b
+                    winner_roi = roi_a if projected_winner == analyzed_a else roi_b
+                    if winner_roi >= 0.05:
+                        price_assessment = "Good value"
+                    elif winner_roi >= 0.00:
+                        price_assessment = "Fair / slight value"
+                    elif winner_roi >= -0.05:
+                        price_assessment = "Slightly overpriced"
+                    elif winner_roi >= -0.10:
+                        price_assessment = "Overpriced"
+                    else:
+                        price_assessment = "Significantly overpriced"
+
+                    st.markdown("#### Macabets Verdict")
+                    verdict1, verdict2, verdict3, verdict4 = st.columns(4)
+                    verdict1.metric("Projected Winner", projected_winner)
+                    verdict2.metric(
+                        "Win Probability",
+                        f"{projected_winner_probability:.1%}",
+                        f"Fair {format_american(projected_winner_fair_odds)}",
+                    )
+                    verdict3.metric("Best Betting Side", best_betting_label)
+                    verdict4.metric(
+                        "Projected Winner's Price",
+                        price_assessment,
+                        f"Market {format_american(winner_market_odds)}",
+                    )
+                    if best_betting_side:
+                        st.info(
+                            f"Macabets' prediction is {projected_winner}, while the best available "
+                            f"price opportunity is {best_betting_side}. These can be different."
+                        )
+                    else:
+                        st.info(
+                            f"Macabets predicts {projected_winner} to win, but does not see a clear "
+                            "price advantage on either side. This is a price assessment—not a claim "
+                            "that the projected winner will lose."
+                        )
+
                     st.markdown("#### Objective Match Price")
                     m1, m2, m3, m4 = st.columns(4)
                     m1.metric(
@@ -1575,7 +1726,47 @@ with tabs[1]:
                         f"Fair {format_american(fair_odds_b)}",
                     )
                     m3.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
-                    m4.metric("Model confidence", f"{confidence}/10")
+                    m4.metric(
+                        "Analysis Confidence",
+                        f"{analysis_confidence['overall']}/100",
+                        analysis_confidence["band"],
+                    )
+
+                    st.markdown("#### Confidence Meters")
+                    confidence_col1, confidence_col2 = st.columns(2)
+                    with confidence_col1:
+                        st.markdown("**Confidence in Macabets’ Analysis**")
+                        st.progress(analysis_confidence["overall"] / 100)
+                        st.write(
+                            f"{analysis_confidence['overall']}/100 — "
+                            f"{analysis_confidence['band']}"
+                        )
+                        st.caption(
+                            "Combines model stability, data quality, the smaller historical "
+                            f"sample ({analysis_confidence['minimum_sample']} matches) and "
+                            "health/context clarity."
+                        )
+
+                    with confidence_col2:
+                        if considered_player and bet_confidence:
+                            st.markdown(
+                                f"**Confidence in Your {considered_player} Bet**"
+                            )
+                            st.progress(bet_confidence["overall"] / 100)
+                            st.write(
+                                f"{bet_confidence['overall']}/100 — "
+                                f"{bet_confidence['band']}"
+                            )
+                            st.caption(
+                                "Combines analysis confidence with the selected player’s "
+                                "edge and expected return at the available sportsbook price."
+                            )
+                        else:
+                            st.markdown("**Confidence in a Specific Bet**")
+                            st.info(
+                                "Select a player before analyzing to receive a separate "
+                                "bet-confidence score."
+                            )
 
                     if considered_player:
                         st.markdown(f"#### Your Considered Bet: {considered_player}")
@@ -1622,24 +1813,26 @@ with tabs[1]:
                                 else ""
                             )
                             st.success(
-                                f"BET: Macabets prices {considered_player} at "
+                                f"BETTABLE EDGE: Macabets prices {considered_player} at "
                                 f"{format_american(considered_fair_odds)} versus your available "
                                 f"price of {format_american(considered_market_odds)}. "
                                 f"Estimated ROI is {considered_roi:+.1%}. "
-                                f"Your price is also better than the minimum acceptable price of "
+                                f"Your price is also better than the minimum target price of "
                                 f"{format_american(minimum_price)}.{caution}"
                             )
                         elif decision == "WATCH":
                             st.warning(
-                                f"WATCH: {decision_reason} Macabets needs approximately "
-                                f"{format_american(minimum_price)} or better for a 2% expected return."
+                                f"PRICE WATCH: {decision_reason} Macabets needs approximately "
+                                f"{format_american(minimum_price)} or better for a 2% expected return. "
+                                "This does not change Macabets' projected winner."
                             )
                         else:
-                            st.error(
-                                f"PASS: {format_american(considered_market_odds)} is too expensive "
-                                f"relative to Macabets' fair price of "
-                                f"{format_american(considered_fair_odds)}. "
-                                f"A price near {format_american(minimum_price)} or better is required."
+                            st.info(
+                                f"PRICE ASSESSMENT: {format_american(considered_market_odds)} is "
+                                f"more expensive than Macabets' fair price of "
+                                f"{format_american(considered_fair_odds)}. A price near "
+                                f"{format_american(minimum_price)} or better would create a stronger "
+                                "value case. An overpriced favorite may still be Macabets' projected winner."
                             )
 
                         if opposite_roi > considered_roi:
@@ -2454,6 +2647,43 @@ with tabs[1]:
                     f"{len(NFL_QUALITY_RATINGS)} team profiles loaded"
                 )
 
+                projected_nfl_winner = (
+                    nfl_result["away_team"]
+                    if nfl_result["away_win_probability"] >= nfl_result["home_win_probability"]
+                    else nfl_result["home_team"]
+                )
+                projected_nfl_probability = max(
+                    float(nfl_result["away_win_probability"]),
+                    float(nfl_result["home_win_probability"]),
+                )
+                projected_nfl_score_side = (
+                    f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.1f}"
+                    if projected_nfl_winner == nfl_result["away_team"]
+                    else f"{nfl_result['home_team']} {nfl_result['projected_home_score']:.1f}"
+                )
+                if value_team and abs(spread_difference) >= 2.0:
+                    nfl_best_bet = f"{value_team} — BETTABLE EDGE"
+                elif value_team and abs(spread_difference) > 0.5:
+                    nfl_best_bet = f"{value_team} — LEAN"
+                else:
+                    nfl_best_bet = "NO CLEAR BET"
+
+                st.markdown("#### Macabets Verdict")
+                nv1, nv2, nv3 = st.columns(3)
+                nv1.metric("Projected Winner", projected_nfl_winner)
+                nv2.metric("Win Probability", f"{projected_nfl_probability:.1%}", projected_nfl_score_side)
+                nv3.metric("Best Spread Side", nfl_best_bet)
+                if value_team and value_team != projected_nfl_winner:
+                    st.info(
+                        f"Macabets projects {projected_nfl_winner} to win, but sees the better "
+                        f"spread position on {value_team}. Winner and best bet are separate questions."
+                    )
+                elif nfl_best_bet == "NO CLEAR BET":
+                    st.info(
+                        f"Macabets projects {projected_nfl_winner} to win, but does not see a "
+                        "meaningful spread advantage at the entered line."
+                    )
+
                 st.markdown("#### Line Comparison")
                 line1, line2, line3, line4 = st.columns(4)
                 line1.metric("Macabets Fair Line", fair_line_text)
@@ -2587,14 +2817,14 @@ with tabs[1]:
                     with threshold2:
                         if nfl_bet_decision == "BET":
                             st.success(
-                                f"BET: The available {nfl_considered_market.lower()} clears "
+                                f"BETTABLE EDGE: The available {nfl_considered_market.lower()} clears "
                                 "Macabets' 5% expected-return threshold."
                             )
                         else:
-                            st.error(
-                                f"PASS: The available {nfl_considered_market.lower()} does not "
-                                f"clear the 5% expected-return threshold. Macabets needs "
-                                f"{threshold_text}."
+                            st.info(
+                                f"PRICE ASSESSMENT: The available {nfl_considered_market.lower()} does not "
+                                f"clear the 5% expected-return threshold. Macabets needs {threshold_text}. "
+                                "This price assessment does not reverse the projected winner."
                             )
 
                     if nfl_considered_market == "Spread":
