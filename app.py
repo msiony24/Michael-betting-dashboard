@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.37 — Clean Moneyline View"
+APP_VERSION = "Macabets v0.38 — Simplified Matchup Context"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -1939,43 +1939,27 @@ with tabs[1]:
                         )
 
                     st.markdown("#### Matchup Context")
+                    st.markdown("**Macabets Take**")
                     if matchup_context["active"]:
-                        adjustment_points = matchup_context["adjustment_a"] * 100
-                        warning_text = (
-                            f"**{matchup_context['severity']} opponent-specific matchup signal — "
-                            f"{matchup_context['leader']} advantage.** "
-                            f"{matchup_context['message']} "
-                            f"Player A probability adjustment: {adjustment_points:+.1f} percentage points."
+                        st.info(matchup_context["message"])
+                    elif h2h["meetings"] == 0:
+                        st.info(
+                            "These players have no previous meetings in the available Macabets data. "
+                            "The evaluation is driven by current form, surface performance, playing style "
+                            "and overall player strength."
                         )
-                        if matchup_context["leader"] != projected_winner:
-                            st.warning(warning_text)
-                        else:
-                            st.info(warning_text)
-                        context_cols = st.columns(4)
-                        context_cols[0].metric(
-                            "Base Model",
-                            f"{base_model_probability:.1%}",
-                            f"{analyzed_a} probability",
-                        )
-                        context_cols[1].metric(
-                            "Adjusted Model",
-                            f"{model_probability:.1%}",
-                            f"{adjustment_points:+.1f} pts",
-                        )
-                        context_cols[2].metric(
-                            "Relevant H2H",
-                            f"{matchup_context['wins_a']}-{matchup_context['wins_b']}",
-                            matchup_context["scope"].title(),
-                        )
-                        context_cols[3].metric(
-                            "Confidence Impact",
-                            f"-{matchup_context['confidence_penalty']} pts",
-                            "Capped context penalty",
+                    elif h2h["meetings"] < 4:
+                        st.info(
+                            f"These players have met only {h2h['meetings']} time"
+                            f"{'s' if h2h['meetings'] != 1 else ''}, so Macabets places very little weight "
+                            "on the head-to-head record. Current form and underlying performance remain "
+                            "the primary drivers of the prediction."
                         )
                     else:
-                        st.caption(
-                            "No reliable opponent-specific adjustment was applied. Macabets requires "
-                            "enough relevant meetings and a persistent advantage before changing the line."
+                        st.info(
+                            "The available head-to-head history does not show a strong enough persistent "
+                            "matchup advantage to materially influence the evaluation. Macabets therefore "
+                            "relies primarily on current form, surface performance and overall player strength."
                         )
 
                     st.markdown("#### Objective Match Price")
