@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.36 — Tennis Totals"
+APP_VERSION = "Macabets v0.37 — Clean Moneyline View"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -2033,103 +2033,52 @@ with tabs[1]:
                                 "bet-confidence score."
                             )
 
-                    if considered_player:
-                        st.markdown(f"#### Your Considered Bet: {considered_player}")
-                        n1, n2, n3, n4 = st.columns(4)
-                        n1.metric(
-                            "Your market price",
-                            format_american(considered_market_odds),
-                        )
-                        n2.metric(
-                            "Macabets fair price",
-                            format_american(considered_fair_odds),
-                        )
-                        n3.metric(
-                            "Edge vs no-vig market",
-                            f"{considered_edge:+.1%}",
-                        )
-                        n4.metric(
-                            "Expected ROI",
-                            f"{considered_roi:+.1%}",
-                        )
+                    matchup_analysis = build_matchup_analysis(result, considered_player)
 
-                        d1, d2, d3, d4 = st.columns(4)
-                        d1.metric("Decision", decision)
-                        d2.metric(
-                            "Recommendation strength",
-                            (
-                                "Strong"
-                                if confidence >= 7 and int(result["data_quality"]) >= 7
-                                else "Moderate"
-                                if confidence >= 5 and int(result["data_quality"]) >= 5
-                                else "Low"
-                            ),
-                        )
-                        d3.metric(
-                            "Minimum acceptable price",
-                            format_american(minimum_price),
-                        )
-                        d4.metric("Data quality", f"{int(result['data_quality'])}/10")
+                    # Compact decision summary for the moneyline evaluator.
+                    if considered_player:
+                        st.markdown(f"#### Moneyline Evaluation: {considered_player}")
+                        bet1, bet2, bet3, bet4 = st.columns(4)
+                        bet1.metric("Market Price", format_american(considered_market_odds))
+                        bet2.metric("Macabets Fair Price", format_american(considered_fair_odds))
+                        bet3.metric("Expected ROI", f"{considered_roi:+.1%}")
+                        bet4.metric("Decision", decision)
 
                         if decision == "BET":
-                            caution = (
-                                " Data quality is limited, so this is a low-confidence value signal."
-                                if int(result["data_quality"]) < 5 or confidence < 5
-                                else ""
-                            )
-                            st.success(
-                                f"BETTABLE EDGE: Macabets prices {considered_player} at "
-                                f"{format_american(considered_fair_odds)} versus your available "
-                                f"price of {format_american(considered_market_odds)}. "
-                                f"Estimated ROI is {considered_roi:+.1%}. "
-                                f"Your price is also better than the minimum target price of "
-                                f"{format_american(minimum_price)}.{caution}"
-                            )
+                            st.success(decision_reason)
                         elif decision == "WATCH":
-                            st.warning(
-                                f"PRICE WATCH: {decision_reason} Macabets needs approximately "
-                                f"{format_american(minimum_price)} or better for a 2% expected return. "
-                                "This does not change Macabets' projected winner."
-                            )
+                            st.warning(decision_reason)
                         else:
-                            st.info(
-                                f"PRICE ASSESSMENT: {format_american(considered_market_odds)} is "
-                                f"more expensive than Macabets' fair price of "
-                                f"{format_american(considered_fair_odds)}. A price near "
-                                f"{format_american(minimum_price)} or better would create a stronger "
-                                "value case. An overpriced favorite may still be Macabets' projected winner."
-                            )
+                            st.info(decision_reason)
 
-                        if opposite_roi > considered_roi:
-                            if opposite_roi > 0:
-                                st.info(
-                                    f"Macabets currently sees more value on {opposite_player} "
-                                    f"({opposite_roi:+.1%} estimated ROI) than on your considered side."
-                                )
-                            else:
-                                st.caption(
-                                    f"The opposite side grades better than your considered bet, "
-                                    f"but it still does not show positive expected value "
-                                    f"({opposite_roi:+.1%})."
-                                )
+                    # Show only the strongest decision-useful advantages.
+                    raw_factors = [
+                        {
+                            "name": str(factor.get("name", "Matchup factor")),
+                            "impact_a": float(factor.get("impact", 0.0)),
+                            "reason": str(factor.get("reason", "")),
+                        }
+                        for factor in result.get("factors", [])
+                        if str(factor.get("name", "")).strip() != "Fatigue 2.0"
+                    ]
+
+                    st.markdown("#### Key Advantages")
+                    advantage_rows = []
+                    for factor in raw_factors:
+                        impact = factor["impact_a"]
+                        if abs(impact) < 0.001:
+                            continue
+                        leader = analyzed_a if impact > 0 else analyzed_b
+                        advantage_rows.append((abs(impact), leader, factor["name"]))
+                    advantage_rows.sort(reverse=True)
+
+                    if advantage_rows:
+                        for _, leader, factor_name in advantage_rows[:6]:
+                            st.markdown(f"- **{leader}:** {factor_name}")
                     else:
-                        st.info(
-                            "No betting side selected. Macabets has priced both players objectively. "
-                            "Select a player above and analyze again to receive a direct BET / WATCH / "
-                            "PASS evaluation."
-                        )
-                        n1, n2, n3, n4 = st.columns(4)
-                        n1.metric(f"{analyzed_a} ROI", f"{roi_a:+.1%}")
-                        n2.metric(f"{analyzed_b} ROI", f"{roi_b:+.1%}")
-                        n3.metric(f"{analyzed_a} no-vig edge", f"{edge_a:+.1%}")
-                        n4.metric(f"{analyzed_b} no-vig edge", f"{edge_b:+.1%}")
+                        st.caption("Macabets does not identify a clear matchup advantage for either player.")
 
-                    matchup_analysis = build_matchup_analysis(result, considered_player)
-                    st.markdown("#### Macabets Matchup Analysis")
-                    st.caption(
-                        "A plain-English explanation generated from the same matchup data used by the Analysis Engine. "
-                        "It does not change the probability or recommendation."
-                    )
+                    st.markdown("#### Why Each Player Can Win")
                     why_a, why_b = st.columns(2)
                     with why_a:
                         st.markdown(f"**Why {analyzed_a} can win**")
@@ -2139,350 +2088,6 @@ with tabs[1]:
                         st.markdown(f"**Why {analyzed_b} can win**")
                         for point in matchup_analysis.get("player_b_reasons", []):
                             st.markdown(f"- {point}")
-
-                    if considered_player:
-                        st.markdown(f"**Bet-specific analysis: {considered_player}**")
-                        ba1, ba2 = st.columns(2)
-                        with ba1:
-                            st.success(
-                                "**Strongest reason to back the bet**\n\n"
-                                + matchup_analysis.get(
-                                    "supporting_factor",
-                                    "The selected player holds the stronger overall matchup profile."
-                                )
-                            )
-                        with ba2:
-                            st.warning(
-                                "**Biggest risk to the bet**\n\n"
-                                + matchup_analysis.get(
-                                    "biggest_risk",
-                                    "The opponent has a credible path to disrupt the preferred match pattern."
-                                )
-                            )
-                        st.info(
-                            "**Most realistic loss path:** "
-                            + matchup_analysis.get(
-                                "loss_path",
-                                f"{opposite_player} extends the match and prevents {considered_player} from imposing the expected advantage."
-                            )
-                        )
-
-                    # Build a decision-focused explanation from the same neutral model factors.
-                    raw_factors = []
-                    for factor in result["factors"]:
-                        if str(factor.get("name", "")).strip() == "Fatigue 2.0":
-                            continue
-                        raw_factors.append({
-                            "name": str(factor["name"]),
-                            "impact_a": float(factor["impact"]),
-                            "reason": str(factor["reason"]),
-                        })
-
-                    if considered_player:
-                        considered_is_a = considered_player == analyzed_a
-                        considered_factor_rows = []
-                        for factor in raw_factors:
-                            side_impact = (
-                                factor["impact_a"]
-                                if considered_is_a
-                                else -factor["impact_a"]
-                            )
-                            considered_factor_rows.append({
-                                "name": factor["name"],
-                                "impact": side_impact,
-                                "reason": factor["reason"],
-                            })
-
-                        support_factors = sorted(
-                            [f for f in considered_factor_rows if f["impact"] > 0],
-                            key=lambda item: item["impact"],
-                            reverse=True,
-                        )[:3]
-                        opposition_factors = sorted(
-                            [f for f in considered_factor_rows if f["impact"] < 0],
-                            key=lambda item: item["impact"],
-                        )[:3]
-
-                        model_favors_considered = considered_probability > 0.50
-                        market_favors_considered = considered_no_vig > 0.50
-                        has_positive_value = considered_roi > 0
-                        meaningful_value = considered_roi >= 0.05
-                        price_gap = considered_probability - considered_no_vig
-
-                        if model_favors_considered and not has_positive_value:
-                            verdict_type = "Good player, bad price"
-                            verdict_text = (
-                                f"Macabets expects {considered_player} to win more often than lose, "
-                                f"but {format_american(considered_market_odds)} is too expensive. "
-                                f"The player and the bet are not the same decision."
-                            )
-                        elif not model_favors_considered and has_positive_value:
-                            verdict_type = "Underdog value"
-                            verdict_text = (
-                                f"Macabets does not make {considered_player} the most likely winner, "
-                                f"but the offered price is large enough to create positive expected value."
-                            )
-                        elif model_favors_considered and meaningful_value:
-                            verdict_type = "Player and price align"
-                            verdict_text = (
-                                f"Macabets favors {considered_player} in the matchup and also believes "
-                                f"your price is better than the model's fair price."
-                            )
-                        elif has_positive_value:
-                            verdict_type = "Small price advantage"
-                            verdict_text = (
-                                f"The offered price is slightly better than Macabets' fair value, "
-                                f"but the margin is not yet strong enough for a full BET grade."
-                            )
-                        else:
-                            verdict_type = "No betting advantage"
-                            verdict_text = (
-                                f"Macabets does not see enough compensation at "
-                                f"{format_american(considered_market_odds)} for the matchup risk."
-                            )
-
-                        st.markdown("#### Why Macabets Gave This Decision")
-                        v1, v2, v3 = st.columns(3)
-                        v1.metric(
-                            "Player outlook",
-                            "Favored" if model_favors_considered else "Underdog",
-                            f"{considered_probability:.1%} win probability",
-                        )
-                        v2.metric(
-                            "Price outlook",
-                            "Positive value" if has_positive_value else "Negative value",
-                            f"{price_gap:+.1%} vs no-vig market",
-                        )
-                        v3.metric("Bet diagnosis", verdict_type)
-
-                        if decision == "BET":
-                            st.success(verdict_text)
-                        elif decision == "WATCH":
-                            st.warning(verdict_text)
-                        else:
-                            st.error(verdict_text)
-
-                        reason_col_a, reason_col_b = st.columns(2)
-                        with reason_col_a:
-                            st.markdown(f"**What supports {considered_player}**")
-                            if support_factors:
-                                for factor in support_factors:
-                                    st.markdown(
-                                        f"- **{factor['name']}** "
-                                        f"({factor['impact']:+.1%}): {factor['reason']}"
-                                    )
-                            else:
-                                st.caption(
-                                    "The current model does not identify a meaningful statistical "
-                                    "factor supporting this side."
-                                )
-
-                        with reason_col_b:
-                            st.markdown(f"**What works against {considered_player}**")
-                            if opposition_factors:
-                                for factor in opposition_factors:
-                                    st.markdown(
-                                        f"- **{factor['name']}** "
-                                        f"({factor['impact']:+.1%}): {factor['reason']}"
-                                    )
-                            else:
-                                st.caption(
-                                    "The current model does not identify a meaningful statistical "
-                                    "factor working against this side."
-                                )
-
-                        if confidence < 6:
-                            st.warning(
-                                "Model confidence is limited. Treat the fair line as less stable "
-                                "until the data sample or matchup context improves."
-                            )
-                        elif int(result["data_quality"]) < 6:
-                            st.warning(
-                                "The recommendation is being made with limited data quality. "
-                                "The calculated edge may be less reliable than the headline number."
-                            )
-
-                    st.markdown("#### Tier 1 & 2 Context")
-                    fp_a = result.get("fatigue_profile_a", {})
-                    fp_b = result.get("fatigue_profile_b", {})
-                    tr_a = result.get("surface_transition_a", {})
-                    tr_b = result.get("surface_transition_b", {})
-                    ps_a = result.get("playing_style_a", {})
-                    ps_b = result.get("playing_style_b", {})
-
-                    tc1, tc2 = st.columns(2)
-                    with tc1:
-                        st.markdown(f"**{analyzed_a}**")
-                        x1, x2, x3 = st.columns(3)
-                        x1.metric("Style", ps_a.get("label", "—"))
-                        x2.metric("Surface adaptation", f"{tr_a.get('adaptation_score', .5):.0%}")
-                        x3.metric("Recent surface matches", tr_a.get("matches_current_surface_30", 0))
-                        x4, x5 = st.columns(2)
-                        x4.metric("Health", result.get("injury_status_a", "Clear"))
-                        x5.metric("Hand", result.get("handedness_a", "—"))
-
-                    with tc2:
-                        st.markdown(f"**{analyzed_b}**")
-                        y1, y2, y3 = st.columns(3)
-                        y1.metric("Style", ps_b.get("label", "—"))
-                        y2.metric("Surface adaptation", f"{tr_b.get('adaptation_score', .5):.0%}")
-                        y3.metric("Recent surface matches", tr_b.get("matches_current_surface_30", 0))
-                        y4, y5 = st.columns(2)
-                        y4.metric("Health", result.get("injury_status_b", "Clear"))
-                        y5.metric("Hand", result.get("handedness_b", "—"))
-
-                    st.caption(
-                        "Surface-transition data is combined with any manual health context "
-                        "entered before analysis. Neutral defaults create no adjustment."
-                    )
-
-                    st.markdown("#### Opponent Strength Index")
-                    osa = result.get("opponent_strength_a", {})
-                    osb = result.get("opponent_strength_b", {})
-
-                    if osa and osb:
-                        osi1, osi2 = st.columns(2)
-
-                        with osi1:
-                            st.markdown(f"**{analyzed_a} — recent opposition**")
-                            a1, a2, a3 = st.columns(3)
-                            a1.metric("Strength score", f"{osa.get('strength_score', 0.5):.0%}")
-                            a2.metric("Average opponent Elo", f"{osa.get('avg_opponent_elo', 1500):.0f}")
-                            avg_rank_a = osa.get("avg_opponent_rank")
-                            a3.metric(
-                                "Average opponent rank",
-                                f"{avg_rank_a:.0f}" if avg_rank_a is not None else "N/A",
-                            )
-                            a4, a5, a6 = st.columns(3)
-                            a4.metric("Top-50 record", osa.get("top_50_record", "0-0"))
-                            a5.metric("Top-100 record", osa.get("top_100_record", "0-0"))
-                            a6.metric("Quality form", f"{osa.get('quality_form', 0.5):.0%}")
-
-                        with osi2:
-                            st.markdown(f"**{analyzed_b} — recent opposition**")
-                            b1, b2, b3 = st.columns(3)
-                            b1.metric("Strength score", f"{osb.get('strength_score', 0.5):.0%}")
-                            b2.metric("Average opponent Elo", f"{osb.get('avg_opponent_elo', 1500):.0f}")
-                            avg_rank_b = osb.get("avg_opponent_rank")
-                            b3.metric(
-                                "Average opponent rank",
-                                f"{avg_rank_b:.0f}" if avg_rank_b is not None else "N/A",
-                            )
-                            b4, b5, b6 = st.columns(3)
-                            b4.metric("Top-50 record", osb.get("top_50_record", "0-0"))
-                            b5.metric("Top-100 record", osb.get("top_100_record", "0-0"))
-                            b6.metric("Quality form", f"{osb.get('quality_form', 0.5):.0%}")
-
-                        st.caption(
-                            "This score combines recent opponent Elo, opponent ranking, and "
-                            "the quality of the player's results. It directly changes the fair line."
-                        )
-
-                    st.markdown("#### Context Engine Weights")
-                    context_weights_result = result.get("context_weights", {})
-                    if context_weights_result:
-                        cw1, cw2, cw3, cw4 = st.columns(4)
-                        cw1.metric(
-                            "Base Elo mix",
-                            f"{context_weights_result.get('overall_elo', 0):.0%} overall",
-                            f"{context_weights_result.get('surface_elo', 0):.0%} surface",
-                        )
-                        cw2.metric(
-                            "Serve / return",
-                            f"{context_weights_result.get('serve', 1):.2f}x serve",
-                            f"{context_weights_result.get('return', 1):.2f}x return",
-                        )
-                        cw3.metric(
-                            "Form / fatigue",
-                            f"{context_weights_result.get('form', 1):.2f}x form",
-                            f"{context_weights_result.get('fatigue', 1):.2f}x fatigue",
-                        )
-                        cw4.metric(
-                            "Pressure",
-                            f"{context_weights_result.get('pressure', 1):.2f}x",
-                            f"{context_weights_result.get('deciding', 1):.2f}x deciding",
-                        )
-                        st.caption(
-                            "These weights are selected before the player comparison. They depend "
-                            "only on the match context and do not change based on the side you want to bet."
-                        )
-
-                    st.markdown("#### Model Foundation")
-                    e1, e2, e3, e4 = st.columns(4)
-                    e1.metric(
-                        f"{analyzed_a} overall Elo",
-                        f"{result['overall_elo'][0]:.0f}",
-                    )
-                    e2.metric(
-                        f"{analyzed_b} overall Elo",
-                        f"{result['overall_elo'][1]:.0f}",
-                    )
-                    e3.metric(
-                        f"{analyzed_a} surface Elo",
-                        f"{result['surface_elo'][0]:.0f}",
-                    )
-                    e4.metric(
-                        f"{analyzed_b} surface Elo",
-                        f"{result['surface_elo'][1]:.0f}",
-                    )
-
-                    factor_rows = []
-                    for factor in raw_factors:
-                        impact = factor["impact_a"]
-                        factor_rows.append({
-                            "Factor": factor["name"],
-                            "Probability impact": impact,
-                            "Direction": analyzed_a if impact > 0 else analyzed_b if impact < 0 else "Neutral",
-                            "Explanation": factor["reason"],
-                        })
-                    factor_df = pd.DataFrame(factor_rows).sort_values(
-                        "Probability impact",
-                        ascending=False,
-                    )
-                    st.markdown("#### Why Macabets Made This Line")
-                    st.dataframe(
-                        factor_df,
-                        use_container_width=True,
-                        hide_index=True,
-                        column_config={
-                            "Probability impact": st.column_config.NumberColumn(format="%+.1%%")
-                        },
-                    )
-
-                    profile_a = result["profile_a"]
-                    profile_b = result["profile_b"]
-                    profile_df = pd.DataFrame([
-                        {
-                            "Player": analyzed_a,
-                            "Rank": profile_a["rank"],
-                            "Last-10 win rate": profile_a["recent_win"],
-                            f"{result['surface']} win rate": profile_a["surface_win"],
-                            "Serve points won": profile_a["serve_points_won"],
-                            "Return points won": profile_a["return_points_won"],
-                            "Historical sample": profile_a["sample"],
-                        },
-                        {
-                            "Player": analyzed_b,
-                            "Rank": profile_b["rank"],
-                            "Last-10 win rate": profile_b["recent_win"],
-                            f"{result['surface']} win rate": profile_b["surface_win"],
-                            "Serve points won": profile_b["serve_points_won"],
-                            "Return points won": profile_b["return_points_won"],
-                            "Historical sample": profile_b["sample"],
-                        },
-                    ])
-                    st.markdown("#### Player Profiles")
-                    st.dataframe(
-                        profile_df,
-                        use_container_width=True,
-                        hide_index=True,
-                        column_config={
-                            "Last-10 win rate": st.column_config.NumberColumn(format="%.1%%"),
-                            f"{result['surface']} win rate": st.column_config.NumberColumn(format="%.1%%"),
-                            "Serve points won": st.column_config.NumberColumn(format="%.1%%"),
-                            "Return points won": st.column_config.NumberColumn(format="%.1%%"),
-                        },
-                    )
 
                     simulation = result["simulation"]
 
