@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.41 — Decision Report"
+APP_VERSION = "Macabets v0.42 — Price Intelligence"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -936,53 +936,88 @@ def required_nfl_spread_edge(american_odds, required_roi=0.05, margin_std=13.86)
     return (low + high) / 2
 
 
-def decision_label(expected_roi, confidence):
-    """
-    Grade the offered price independently from model confidence.
-
-    Confidence affects the strength/caution attached to the recommendation,
-    but it must not turn a clearly positive-value price into WATCH or PASS.
-    """
-    expected_roi = float(expected_roi)
-    confidence = int(confidence)
-
-    if expected_roi >= 0.05:
-        if confidence >= 7:
-            return "BET", "The offered price shows meaningful expected value with strong model confidence."
-        if confidence >= 5:
-            return "BET", "The offered price shows meaningful expected value, but model confidence is moderate."
-        return "BET", "The offered price shows meaningful expected value, but model confidence is low; treat the fair line cautiously."
-
-    if expected_roi >= 0.02:
-        return "WATCH", "The offered price shows a smaller positive edge that does not yet reach the full BET threshold."
-
-    return "PASS", "The current price does not provide enough model-supported value."
-
-
-
 def moneyline_price_quality(model_probability, market_odds, confidence_score):
-    """Separate likely winner from price quality with a practical tolerance band."""
+    """Grade price and recommendation separately using a stable ROI tolerance band.
+
+    Bet Quality describes the offered price versus Macabets fair value.
+    Recommendation also considers confidence, allowing a highly trusted winner to
+    remain Worth Considering when the price is fair or only modestly expensive.
+    """
     probability = min(max(float(model_probability), 0.0001), 0.9999)
     market_odds = int(market_odds)
     confidence_score = float(confidence_score)
-    expected_roi = probability * (american_to_decimal(market_odds) - 1) - (1 - probability)
+    if confidence_score <= 10:
+        confidence_score *= 10
+
+    expected_roi = probability * american_to_decimal(market_odds) - 1
+
     if expected_roi >= 0.08:
-        quality, recommendation = "Strong Value", "Recommended"
+        quality = "Strong Value"
     elif expected_roi >= 0.04:
-        quality, recommendation = "Good Value", "Recommended"
+        quality = "Good Value"
     elif expected_roi >= 0.015:
-        quality, recommendation = "Slight Value", "Worth Considering"
+        quality = "Slight Value"
     elif expected_roi >= -0.015:
         quality = "Fair Price"
-        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
     elif expected_roi >= -0.05:
         quality = "Slightly Overpriced"
-        recommendation = "Worth Considering" if confidence_score >= 82 else "Lean Pass"
-    elif expected_roi >= -0.09:
-        quality, recommendation = "Overpriced", "Lean Pass"
     else:
-        quality, recommendation = "Significantly Overpriced", "Pass"
-    return {"expected_roi": expected_roi, "quality": quality, "recommendation": recommendation}
+        quality = "Overpriced"
+
+    if quality in {"Strong Value", "Good Value"}:
+        recommendation = "Recommended" if confidence_score >= 60 else "Worth Considering"
+    elif quality == "Slight Value":
+        recommendation = "Recommended" if confidence_score >= 82 else "Worth Considering"
+    elif quality == "Fair Price":
+        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
+    elif quality == "Slightly Overpriced":
+        recommendation = "Worth Considering" if confidence_score >= 88 else "Lean Pass"
+    else:
+        recommendation = "Lean Pass" if expected_roi >= -0.09 and confidence_score >= 80 else "Pass"
+
+    return {
+        "expected_roi": expected_roi,
+        "quality": quality,
+        "recommendation": recommendation,
+    }
+
+
+def decision_label(expected_roi, confidence):
+    """Compatibility wrapper for tennis and slate reports using the v0.42 scale."""
+    expected_roi = float(expected_roi)
+    confidence_score = float(confidence)
+    if confidence_score <= 10:
+        confidence_score *= 10
+
+    if expected_roi >= 0.08:
+        quality = "Strong Value"
+    elif expected_roi >= 0.04:
+        quality = "Good Value"
+    elif expected_roi >= 0.015:
+        quality = "Slight Value"
+    elif expected_roi >= -0.015:
+        quality = "Fair Price"
+    elif expected_roi >= -0.05:
+        quality = "Slightly Overpriced"
+    else:
+        quality = "Overpriced"
+
+    if quality in {"Strong Value", "Good Value"}:
+        recommendation = "Recommended" if confidence_score >= 60 else "Worth Considering"
+    elif quality == "Slight Value":
+        recommendation = "Recommended" if confidence_score >= 82 else "Worth Considering"
+    elif quality == "Fair Price":
+        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
+    elif quality == "Slightly Overpriced":
+        recommendation = "Worth Considering" if confidence_score >= 88 else "Lean Pass"
+    else:
+        recommendation = "Lean Pass" if expected_roi >= -0.09 and confidence_score >= 80 else "Pass"
+
+    reason = (
+        f"Price quality: {quality}. The recommendation is {recommendation.lower()} "
+        f"based on the model edge and {confidence_score:.0f}/100 confidence."
+    )
+    return recommendation, reason
 
 
 def nfl_bottom_line(team, probability, quality, recommendation, confidence_band):
@@ -2640,8 +2675,7 @@ with tabs[1]:
                     "Fair Price": "The market is essentially aligned with the model.",
                     "Slightly Overpriced": "The price is a little expensive, but still close enough to fair value to remain worth considering.",
                     "Overpriced": "The winner may still be correct, but the market price has removed most of the appeal.",
-                    "Significantly Overpriced": "The market is charging too much for the projected winner.",
-                }[price_report["quality"]]
+                                    }[price_report["quality"]]
                 st.write(f"Macabets makes {projected_nfl_winner} the more likely winner, led by advantages in {advantage_text}. {pricing_sentence} Recommendation: **{price_report['recommendation']}**.")
 
                 st.markdown("#### Key Advantages")
