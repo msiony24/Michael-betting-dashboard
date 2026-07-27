@@ -44,8 +44,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.35 — Unified Tennis Outcomes"
-BUILD_DATE = "July 27, 2026 (Patched)"
+APP_VERSION = "Macabets v0.36 — Tennis Totals"
+BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -905,6 +905,69 @@ def no_vig_probabilities(odds_a, odds_b):
     return raw_a / total, raw_b / total, total - 1
 
 
+def tennis_total_projection(set_scores, match_format, win_probability_a, analysis_confidence):
+    """Estimate total games from synchronized exact-set probabilities.
+
+    The first version is deliberately transparent: expected sets come directly
+    from the simulation, while expected games per set rises when the matchup is
+    closer and falls when one player is strongly favored.
+    """
+    expected_sets = 0.0
+    deciding_probability = 0.0
+
+    for raw_score, probability in set_scores.items():
+        try:
+            a_sets, b_sets = (int(value) for value in str(raw_score).split("-", 1))
+        except (TypeError, ValueError):
+            continue
+
+        total_sets = a_sets + b_sets
+        expected_sets += total_sets * float(probability)
+
+        required_sets = 3 if str(match_format) == "Best of 5" else 2
+        if total_sets == required_sets * 2 - 1:
+            deciding_probability += float(probability)
+
+    closeness = 1.0 - min(abs(float(win_probability_a) - 0.5) / 0.5, 1.0)
+    games_per_set = 8.85 + 1.15 * closeness
+    projected_total = expected_sets * games_per_set
+
+    # Wider uncertainty for best-of-five and for matchups likely to go the distance.
+    standard_deviation = (
+        (5.7 if str(match_format) == "Best of 5" else 3.9)
+        + deciding_probability * (1.6 if str(match_format) == "Best of 5" else 1.0)
+    )
+
+    confidence = int(round(
+        min(max(float(analysis_confidence), 0), 100) * 0.70
+        + (1.0 - deciding_probability) * 100 * 0.15
+        + (0.65 if str(match_format) == "Best of 3" else 0.55) * 100 * 0.15
+    ))
+    confidence = min(max(confidence, 0), 100)
+
+    return {
+        "projected_total": projected_total,
+        "fair_total": round(projected_total * 2) / 2,
+        "expected_sets": expected_sets,
+        "games_per_set": games_per_set,
+        "standard_deviation": standard_deviation,
+        "deciding_probability": deciding_probability,
+        "confidence": confidence,
+    }
+
+
+def tennis_total_probabilities(projected_total, market_total, standard_deviation):
+    """Convert the projected-total edge into Over and Under probabilities."""
+    standard_deviation = max(float(standard_deviation), 0.5)
+    z_score = (float(market_total) - float(projected_total)) / standard_deviation
+    under_probability = 0.5 * (1 + math.erf(z_score / math.sqrt(2)))
+    over_probability = 1.0 - under_probability
+    return (
+        min(max(over_probability, 0.01), 0.99),
+        min(max(under_probability, 0.01), 0.99),
+    )
+
+
 def minimum_acceptable_odds(model_probability, required_roi=0.02):
     """Worst American price that still preserves the required expected ROI."""
     probability = min(max(float(model_probability), 0.0001), 0.9999)
@@ -1567,6 +1630,29 @@ with tabs[1]:
                     [5000, 10000, 20000, 50000],
                     index=2,
                     key="auto_simulations",
+                )
+
+                st.markdown("##### Total Games Market")
+                total_col, over_col, under_col = st.columns(3)
+                market_total_games = total_col.number_input(
+                    "Sportsbook total games",
+                    min_value=5.5,
+                    max_value=80.5,
+                    value=float(st.session_state.get("auto_total_games", 22.5)),
+                    step=0.5,
+                    key="auto_total_games",
+                )
+                market_over_odds = over_col.number_input(
+                    "Over odds",
+                    value=safe_int(st.session_state.get("auto_over_odds", -110), -110),
+                    step=5,
+                    key="auto_over_odds",
+                )
+                market_under_odds = under_col.number_input(
+                    "Under odds",
+                    value=safe_int(st.session_state.get("auto_under_odds", -110), -110),
+                    step=5,
+                    key="auto_under_odds",
                 )
 
                 analyze_disabled = player_a == player_b
@@ -2523,6 +2609,94 @@ with tabs[1]:
                                 score_result["label"],
                                 f"{score_result['probability']:.1%}",
                             )
+
+                    st.markdown("#### Total Games Analysis")
+                    total_projection = tennis_total_projection(
+                        synchronized_set_scores,
+                        match_format,
+                        model_probability,
+                        confidence_details["overall"],
+                    )
+                    over_probability, under_probability = tennis_total_probabilities(
+                        total_projection["projected_total"],
+                        market_total_games,
+                        total_projection["standard_deviation"],
+                    )
+
+                    over_roi = (
+                        over_probability * (american_to_decimal(int(market_over_odds)) - 1)
+                        - (1 - over_probability)
+                    )
+                    under_roi = (
+                        under_probability * (american_to_decimal(int(market_under_odds)) - 1)
+                        - (1 - under_probability)
+                    )
+
+                    over_decision, over_reason = decision_label(
+                        over_roi,
+                        max(1, round(total_projection["confidence"] / 10)),
+                    )
+                    under_decision, under_reason = decision_label(
+                        under_roi,
+                        max(1, round(total_projection["confidence"] / 10)),
+                    )
+
+                    total_edge = total_projection["projected_total"] - market_total_games
+                    if abs(total_edge) < 0.75:
+                        totals_lean = "No meaningful lean"
+                    elif total_edge > 0:
+                        totals_lean = f"Lean Over {market_total_games:g}"
+                    else:
+                        totals_lean = f"Lean Under {market_total_games:g}"
+
+                    t1, t2, t3, t4 = st.columns(4)
+                    t1.metric(
+                        "Projected total games",
+                        f"{total_projection['projected_total']:.1f}",
+                        f"{total_edge:+.1f} vs. market",
+                    )
+                    t2.metric("Fair total line", f"{total_projection['fair_total']:.1f}")
+                    t3.metric("Over probability", f"{over_probability:.1%}")
+                    t4.metric("Under probability", f"{under_probability:.1%}")
+
+                    tv1, tv2, tv3 = st.columns(3)
+                    tv1.metric("Totals confidence", f"{total_projection['confidence']}/100")
+                    tv2.metric("Expected sets", f"{total_projection['expected_sets']:.2f}")
+                    tv3.metric("Macabets lean", totals_lean)
+
+                    total_rows = pd.DataFrame([
+                        {
+                            "Side": f"Over {market_total_games:g}",
+                            "Sportsbook odds": format_american(market_over_odds),
+                            "Model probability": over_probability,
+                            "Expected ROI": over_roi,
+                            "Decision": over_decision,
+                            "Reason": over_reason,
+                        },
+                        {
+                            "Side": f"Under {market_total_games:g}",
+                            "Sportsbook odds": format_american(market_under_odds),
+                            "Model probability": under_probability,
+                            "Expected ROI": under_roi,
+                            "Decision": under_decision,
+                            "Reason": under_reason,
+                        },
+                    ])
+                    st.dataframe(
+                        total_rows,
+                        use_container_width=True,
+                        hide_index=True,
+                        column_config={
+                            "Model probability": st.column_config.NumberColumn(format="%.1%%"),
+                            "Expected ROI": st.column_config.NumberColumn(format="%+.1%%"),
+                        },
+                    )
+                    st.caption(
+                        "This first totals model derives expected sets from the exact-score "
+                        "simulation and estimates games per set from matchup competitiveness. "
+                        "The entered sportsbook line and prices do not change the projection; "
+                        "they are used only to measure value."
+                    )
 
                     st.markdown("#### Pre-Match Decision Record")
                     d1, d2 = st.columns(2)
