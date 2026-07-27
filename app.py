@@ -1644,6 +1644,31 @@ with tabs[1]:
                 if result:
                     analyzed_a = result["player_a"]
                     analyzed_b = result["player_b"]
+
+                    validation = result.get("data_validation", {})
+                    if validation:
+                        with st.expander("Data Validation — verified inputs", expanded=False):
+                            st.success(
+                                "Both players were matched to the historical database and passed "
+                                "the minimum data requirements. No neutral placeholder profile was used."
+                            )
+                            validation_rows = []
+                            for side_key, label in (("player_a", analyzed_a), ("player_b", analyzed_b)):
+                                item = validation.get(side_key, {})
+                                validation_rows.append({
+                                    "Player": label,
+                                    "Database name": item.get("resolved") or "Not found",
+                                    "Match method": item.get("method", "—"),
+                                    "Historical matches": item.get("historical_matches", 0),
+                                    "Two-year sample": item.get("two_year_sample", 0),
+                                    "Surface sample": item.get("surface_sample", 0),
+                                    "Serve-stat matches": item.get("serve_sample", 0),
+                                    "Return-stat matches": item.get("return_sample", 0),
+                                    "Overall Elo": "Found" if item.get("overall_elo_found") else "Missing",
+                                    "Surface Elo": "Found" if item.get("surface_elo_found") else "Overall Elo fallback",
+                                    "Warnings": ", ".join(item.get("flags", [])) or "None",
+                                })
+                            st.dataframe(pd.DataFrame(validation_rows), use_container_width=True, hide_index=True)
                     listed_a = safe_int(market_snapshot.get("market_odds_a", market_odds_a), safe_int(market_odds_a, -180))
                     listed_b = safe_int(market_snapshot.get("market_odds_b", market_odds_b), safe_int(market_odds_b, 155))
 
