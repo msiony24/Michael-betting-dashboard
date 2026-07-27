@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.43 — Explanation Engine"
+APP_VERSION = "Macabets v0.44 — Score Card"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -2765,7 +2765,50 @@ with tabs[1]:
                 fv3.metric("Fair Moneyline", format_american(winner_fair_ml))
                 fv4.metric("Market Moneyline", format_american(winner_market_ml))
                 fv5, fv6, fv7 = st.columns(3)
-                fv5.metric("Projected Score", f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.0f} — {nfl_result['home_team']} {nfl_result['projected_home_score']:.0f}")
+                
+away = nfl_result["away_team"]
+home = nfl_result["home_team"]
+
+away_score = round(nfl_result["projected_away_score"])
+home_score = round(nfl_result["projected_home_score"])
+
+if away_score >= home_score:
+    winner, winner_score = away, away_score
+    loser, loser_score = home, home_score
+else:
+    winner, winner_score = home, home_score
+    loser, loser_score = away, away_score
+
+margin = winner_score - loser_score
+
+if margin >= 7:
+    outlook = "Comfortable Win"
+elif margin >= 3:
+    outlook = "Competitive Win"
+else:
+    outlook = "Toss-Up"
+
+st.markdown("#### Projected Score")
+st.markdown(f"""
+### 🏈 {winner}
+
+# {winner_score}
+
+---
+
+### 🏈 {loser}
+
+# {loser_score}
+
+**Projected Margin**
+
+{winner} +{margin}
+
+**Game Outlook**
+
+{outlook}
+""")
+
                 fv6.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
                 fv7.metric("Bet Quality", price_report["quality"], price_report["recommendation"])
 
