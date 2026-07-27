@@ -2611,11 +2611,12 @@ with tabs[1]:
                             )
 
                     st.markdown("#### Total Games Analysis")
+                    totals_confidence_details = tennis_confidence_meter(result)
                     total_projection = tennis_total_projection(
                         synchronized_set_scores,
                         match_format,
                         model_probability,
-                        confidence_details["overall"],
+                        totals_confidence_details["overall"],
                     )
                     over_probability, under_probability = tennis_total_probabilities(
                         total_projection["projected_total"],
