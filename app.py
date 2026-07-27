@@ -2765,49 +2765,43 @@ with tabs[1]:
                 fv3.metric("Fair Moneyline", format_american(winner_fair_ml))
                 fv4.metric("Market Moneyline", format_american(winner_market_ml))
                 fv5, fv6, fv7 = st.columns(3)
-                
-away = nfl_result["away_team"]
-home = nfl_result["home_team"]
 
-away_score = round(nfl_result["projected_away_score"])
-home_score = round(nfl_result["projected_home_score"])
+                away = nfl_result["away_team"]
+                home = nfl_result["home_team"]
+                away_score = round(nfl_result["projected_away_score"])
+                home_score = round(nfl_result["projected_home_score"])
 
-if away_score >= home_score:
-    winner, winner_score = away, away_score
-    loser, loser_score = home, home_score
-else:
-    winner, winner_score = home, home_score
-    loser, loser_score = away, away_score
+                if away_score >= home_score:
+                    winner, winner_score = away, away_score
+                    loser, loser_score = home, home_score
+                else:
+                    winner, winner_score = home, home_score
+                    loser, loser_score = away, away_score
 
-margin = winner_score - loser_score
+                margin = winner_score - loser_score
+                if margin >= 7:
+                    outlook = "Comfortable Win"
+                elif margin >= 3:
+                    outlook = "Competitive Win"
+                else:
+                    outlook = "Toss-Up"
 
-if margin >= 7:
-    outlook = "Comfortable Win"
-elif margin >= 3:
-    outlook = "Competitive Win"
-else:
-    outlook = "Toss-Up"
-
-st.markdown("#### Projected Score")
-st.markdown(f"""
-### 🏈 {winner}
-
-# {winner_score}
-
----
-
-### 🏈 {loser}
-
-# {loser_score}
-
-**Projected Margin**
-
-{winner} +{margin}
-
-**Game Outlook**
-
-{outlook}
-""")
+                with fv5:
+                    st.markdown("**Projected Score**")
+                    st.markdown(
+                        f"""
+                        <div style="padding:0.35rem 0;">
+                            <div style="font-size:1.05rem;font-weight:600;">{winner}</div>
+                            <div style="font-size:2rem;font-weight:700;line-height:1.15;">{winner_score}</div>
+                            <hr style="margin:0.55rem 0;">
+                            <div style="font-size:1.05rem;font-weight:600;">{loser}</div>
+                            <div style="font-size:2rem;font-weight:700;line-height:1.15;">{loser_score}</div>
+                            <div style="margin-top:0.65rem;font-size:0.9rem;"><strong>Projected Margin:</strong> {winner} +{margin}</div>
+                            <div style="font-size:0.9rem;"><strong>Game Outlook:</strong> {outlook}</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
                 fv6.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
                 fv7.metric("Bet Quality", price_report["quality"], price_report["recommendation"])
