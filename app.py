@@ -44,8 +44,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.33 — Clear Set Score Display"
-BUILD_DATE = "July 25, 2026"
+APP_VERSION = "Macabets v0.34 — Matchup Context"
+BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -483,6 +483,100 @@ def build_head_to_head_summary(matches, player_a, player_b, current_surface):
         },
     }
 
+
+
+def tennis_matchup_context(h2h, player_a, player_b, base_probability_a):
+    """Apply a deliberately capped H2H adjustment and return display context.
+
+    Same-surface history is preferred when at least three meetings exist. The
+    feature requires four overall meetings before changing probability, caps the
+    move at six percentage points, and mainly reduces confidence when historical
+    matchup evidence conflicts with the base model.
+    """
+    base_probability_a = float(base_probability_a)
+    meetings = int(h2h.get("meetings", 0) or 0)
+    surface_meetings = int(h2h.get("surface_meetings", 0) or 0)
+
+    if surface_meetings >= 3:
+        sample = surface_meetings
+        wins_a = int(h2h.get("surface_wins_a", 0) or 0)
+        wins_b = int(h2h.get("surface_wins_b", 0) or 0)
+        scope = "on this surface"
+    else:
+        sample = meetings
+        wins_a = int(h2h.get("wins_a", 0) or 0)
+        wins_b = int(h2h.get("wins_b", 0) or 0)
+        scope = "overall"
+
+    neutral = {
+        "active": False,
+        "scope": scope,
+        "sample": sample,
+        "wins_a": wins_a,
+        "wins_b": wins_b,
+        "leader": None,
+        "leader_rate": 0.5,
+        "adjustment_a": 0.0,
+        "adjusted_probability_a": base_probability_a,
+        "confidence_penalty": 0,
+        "severity": "None",
+        "message": "No reliable opponent-specific matchup adjustment was applied.",
+    }
+    if meetings < 4 or sample < 3 or sample <= 0 or wins_a == wins_b:
+        return neutral
+
+    leader = player_a if wins_a > wins_b else player_b
+    leader_wins = max(wins_a, wins_b)
+    leader_rate = leader_wins / sample
+    if leader_rate < 0.67:
+        return neutral
+
+    # Shrink aggressively so H2H refines current-strength analysis rather than replacing it.
+    dominance = (leader_rate - 0.50) / 0.50
+    sample_strength = min(sample / 8.0, 1.0)
+    raw_move = 0.06 * dominance * sample_strength
+    adjustment_a = raw_move if leader == player_a else -raw_move
+    adjustment_a = max(-0.06, min(0.06, adjustment_a))
+    adjusted_a = max(0.05, min(0.95, base_probability_a + adjustment_a))
+
+    base_leader = player_a if base_probability_a >= 0.50 else player_b
+    conflict = leader != base_leader
+    confidence_penalty = 0
+    if conflict:
+        confidence_penalty = min(12, 4 + round(abs(adjustment_a) * 100))
+    elif abs(adjustment_a) >= 0.04:
+        confidence_penalty = 3
+
+    if leader_rate >= 0.80 and sample >= 5:
+        severity = "Strong"
+    elif leader_rate >= 0.70:
+        severity = "Meaningful"
+    else:
+        severity = "Modest"
+
+    conflict_text = (
+        "This conflicts with the base player-strength model, so confidence is reduced."
+        if conflict else
+        "This supports the base model but remains a secondary, capped input."
+    )
+    message = (
+        f"{leader} leads the relevant head-to-head {leader_wins}-{sample - leader_wins} "
+        f"{scope}. {conflict_text}"
+    )
+    return {
+        "active": True,
+        "scope": scope,
+        "sample": sample,
+        "wins_a": wins_a,
+        "wins_b": wins_b,
+        "leader": leader,
+        "leader_rate": leader_rate,
+        "adjustment_a": adjustment_a,
+        "adjusted_probability_a": adjusted_a,
+        "confidence_penalty": confidence_penalty,
+        "severity": severity,
+        "message": message,
+    }
 
 def render_head_to_head_summary(matches, player_a, player_b, current_surface):
     """Render a compact, decision-useful H2H card in the match analysis."""
@@ -1553,9 +1647,16 @@ with tabs[1]:
                     listed_a = safe_int(market_snapshot.get("market_odds_a", market_odds_a), safe_int(market_odds_a, -180))
                     listed_b = safe_int(market_snapshot.get("market_odds_b", market_odds_b), safe_int(market_odds_b, 155))
 
-                    model_probability = float(result["win_probability"])
+                    base_model_probability = float(result["win_probability"])
+                    h2h_context = build_head_to_head_summary(
+                        matches, analyzed_a, analyzed_b, result.get("surface", surface)
+                    )
+                    matchup_context = tennis_matchup_context(
+                        h2h_context, analyzed_a, analyzed_b, base_model_probability
+                    )
+                    model_probability = float(matchup_context["adjusted_probability_a"])
                     probability_b = 1 - model_probability
-                    fair_odds = int(result["fair_line"])
+                    fair_odds = probability_to_american(model_probability)
                     fair_odds_b = probability_to_american(probability_b)
                     no_vig_a, no_vig_b, sportsbook_hold = no_vig_probabilities(listed_a, listed_b)
 
@@ -1630,6 +1731,19 @@ with tabs[1]:
                         )
 
                     analysis_confidence = tennis_confidence_meter(result)
+                    if matchup_context["confidence_penalty"]:
+                        analysis_confidence["overall"] = max(
+                            0,
+                            analysis_confidence["overall"] - matchup_context["confidence_penalty"],
+                        )
+                        if analysis_confidence["overall"] >= 85:
+                            analysis_confidence["band"] = "High"
+                        elif analysis_confidence["overall"] >= 70:
+                            analysis_confidence["band"] = "Solid"
+                        elif analysis_confidence["overall"] >= 55:
+                            analysis_confidence["band"] = "Moderate"
+                        else:
+                            analysis_confidence["band"] = "Low"
                     bet_confidence = (
                         tennis_bet_confidence(
                             analysis_confidence["overall"],
@@ -1711,6 +1825,46 @@ with tabs[1]:
                             f"Macabets predicts {projected_winner} to win, but does not see a clear "
                             "price advantage on either side. This is a price assessment—not a claim "
                             "that the projected winner will lose."
+                        )
+
+                    st.markdown("#### Matchup Context")
+                    if matchup_context["active"]:
+                        adjustment_points = matchup_context["adjustment_a"] * 100
+                        warning_text = (
+                            f"**{matchup_context['severity']} opponent-specific matchup signal — "
+                            f"{matchup_context['leader']} advantage.** "
+                            f"{matchup_context['message']} "
+                            f"Player A probability adjustment: {adjustment_points:+.1f} percentage points."
+                        )
+                        if matchup_context["leader"] != projected_winner:
+                            st.warning(warning_text)
+                        else:
+                            st.info(warning_text)
+                        context_cols = st.columns(4)
+                        context_cols[0].metric(
+                            "Base Model",
+                            f"{base_model_probability:.1%}",
+                            f"{analyzed_a} probability",
+                        )
+                        context_cols[1].metric(
+                            "Adjusted Model",
+                            f"{model_probability:.1%}",
+                            f"{adjustment_points:+.1f} pts",
+                        )
+                        context_cols[2].metric(
+                            "Relevant H2H",
+                            f"{matchup_context['wins_a']}-{matchup_context['wins_b']}",
+                            matchup_context["scope"].title(),
+                        )
+                        context_cols[3].metric(
+                            "Confidence Impact",
+                            f"-{matchup_context['confidence_penalty']} pts",
+                            "Capped context penalty",
+                        )
+                    else:
+                        st.caption(
+                            "No reliable opponent-specific adjustment was applied. Macabets requires "
+                            "enough relevant meetings and a persistent advantage before changing the line."
                         )
 
                     st.markdown("#### Objective Match Price")
