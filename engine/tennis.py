@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from datetime import date
 import math
 import re
+import unicodedata
 
 import numpy as np
 import pandas as pd
@@ -21,8 +22,41 @@ ROUND_MAP = {
 }
 
 
+class TennisDataValidationError(ValueError):
+    """Raised when Macabets cannot build a trustworthy player profile."""
+
+
 def norm(value: str) -> str:
     return re.sub(r"\s+", " ", str(value).strip()).casefold()
+
+
+def canonical_player_key(value: str) -> str:
+    """Normalize provider-specific player-name variants into a stable lookup key."""
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
+    tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
+    # Provider feeds sometimes add or remove a one-letter middle initial.
+    tokens = [token for token in tokens if len(token) > 1]
+    return " ".join(tokens)
+
+
+def resolve_player_name(matches: pd.DataFrame, requested_name: str) -> tuple[str | None, dict]:
+    """Resolve a UI/API name to the exact historical-database display name."""
+    names = pd.concat([matches["winner_name"], matches["loser_name"]]).dropna().astype(str)
+    exact_key = norm(requested_name)
+    exact_matches = names[names.map(norm).eq(exact_key)]
+    if not exact_matches.empty:
+        resolved = exact_matches.value_counts().index[0]
+        return resolved, {"requested": requested_name, "resolved": resolved, "method": "exact"}
+
+    canonical_key = canonical_player_key(requested_name)
+    canonical_matches = names[names.map(canonical_player_key).eq(canonical_key)]
+    if not canonical_matches.empty:
+        resolved = canonical_matches.value_counts().index[0]
+        return resolved, {"requested": requested_name, "resolved": resolved, "method": "canonical"}
+
+    return None, {"requested": requested_name, "resolved": None, "method": "not_found"}
 
 
 def safe_int(value, default: int = 0) -> int:
@@ -188,18 +222,18 @@ def context_weights(
 
 
 def perspective(matches: pd.DataFrame, player: str, event_date: date) -> pd.DataFrame:
-    key = norm(player)
+    key = canonical_player_key(player)
     subset = matches[
         (
-            matches["winner_name"].map(norm).eq(key)
-            | matches["loser_name"].map(norm).eq(key)
+            matches["winner_name"].map(canonical_player_key).eq(key)
+            | matches["loser_name"].map(canonical_player_key).eq(key)
         )
         & (matches["tourney_date"] < pd.Timestamp(event_date))
     ].sort_values("tourney_date")
 
     rows = []
     for _, match in subset.iterrows():
-        won = norm(match["winner_name"]) == key
+        won = canonical_player_key(match["winner_name"]) == key
         side = "w" if won else "l"
         other = "l" if won else "w"
         rows.append({
@@ -228,42 +262,55 @@ def safe_ratio(num: float, den: float, default: float) -> float:
 
 
 def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
+    """Build a player profile without disguising missing data as real statistics."""
     if rows.empty:
         return {
-            "rank": np.nan, "recent_win": .5, "surface_win": .5,
-            "serve_points_won": .62, "return_points_won": .38,
+            "rank": np.nan, "recent_win": np.nan, "surface_win": np.nan,
+            "serve_points_won": np.nan, "return_points_won": np.nan,
             "matches_7": 0, "matches_14": 0, "rest_days": 30,
             "advanced_win": .5, "big_event_win": .5,
             "deciding_win": .5, "sample": 0,
+            "surface_sample": 0, "serve_sample": 0, "return_sample": 0,
+            "data_flags": ["no_match_history"],
         }
 
     event_ts = pd.Timestamp(event_date)
     two_year = rows[rows["date"] >= event_ts - pd.Timedelta(days=730)]
     one_year = rows[rows["date"] >= event_ts - pd.Timedelta(days=365)]
     recent = rows.tail(10)
-    surf = two_year[two_year["surface"].str.casefold() == surface.casefold()]
+    surf = two_year[two_year["surface"].astype(str).str.casefold() == surface.casefold()]
     advanced = two_year[two_year["round"].isin(["QF", "SF", "F"])]
     big = two_year[two_year["level"].isin(["G", "M", "F"])]
-    deciding = two_year[two_year["score"].str.count(r"\d+-\d+") >= 3]
+    deciding = two_year[two_year["score"].astype(str).str.count(r"\d+-\d+") >= 3]
 
-    serve_den = one_year["svpt"].sum()
-    serve_num = (one_year["first_won"].fillna(0) + one_year["second_won"].fillna(0)).sum()
-    return_den = one_year["opp_svpt"].sum()
+    valid_serve = one_year[["svpt", "first_won", "second_won"]].dropna()
+    valid_return = one_year[["opp_svpt", "opp_first_won", "opp_second_won"]].dropna()
+    serve_den = valid_serve["svpt"].sum() if not valid_serve.empty else 0
+    serve_num = (valid_serve["first_won"] + valid_serve["second_won"]).sum() if not valid_serve.empty else 0
+    return_den = valid_return["opp_svpt"].sum() if not valid_return.empty else 0
     return_num = (
-        one_year["opp_svpt"].fillna(0)
-        - one_year["opp_first_won"].fillna(0)
-        - one_year["opp_second_won"].fillna(0)
-    ).sum()
+        valid_return["opp_svpt"] - valid_return["opp_first_won"] - valid_return["opp_second_won"]
+    ).sum() if not valid_return.empty else 0
 
     ranks = rows["rank"].dropna()
     last_date = rows["date"].max()
+    recent_win = float(recent["won"].mean()) if len(recent) else np.nan
+    flags = []
+    if surf.empty:
+        flags.append("no_surface_history")
+    if len(valid_serve) < 3:
+        flags.append("insufficient_serve_stats")
+    if len(valid_return) < 3:
+        flags.append("insufficient_return_stats")
+    if ranks.empty:
+        flags.append("missing_ranking")
 
     return {
         "rank": float(ranks.iloc[-1]) if len(ranks) else np.nan,
-        "recent_win": float(recent["won"].mean()) if len(recent) else .5,
-        "surface_win": float(surf["won"].mean()) if len(surf) else .5,
-        "serve_points_won": safe_ratio(serve_num, serve_den, .62),
-        "return_points_won": safe_ratio(return_num, return_den, .38),
+        "recent_win": recent_win,
+        "surface_win": float(surf["won"].mean()) if len(surf) else recent_win,
+        "serve_points_won": float(serve_num / serve_den) if serve_den > 0 else np.nan,
+        "return_points_won": float(return_num / return_den) if return_den > 0 else np.nan,
         "matches_7": int((rows["date"] >= event_ts - pd.Timedelta(days=7)).sum()),
         "matches_14": int((rows["date"] >= event_ts - pd.Timedelta(days=14)).sum()),
         "rest_days": max(0, safe_int((event_ts - last_date).days, 30)),
@@ -271,6 +318,10 @@ def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
         "big_event_win": float(big["won"].mean()) if len(big) >= 5 else .5,
         "deciding_win": float(deciding["won"].mean()) if len(deciding) >= 4 else .5,
         "sample": len(two_year),
+        "surface_sample": len(surf),
+        "serve_sample": len(valid_serve),
+        "return_sample": len(valid_return),
+        "data_flags": flags,
     }
 
 
@@ -287,11 +338,11 @@ def opponent_strength_profile(
     Uses the opponent's Elo at the analysis date, ranking recorded in the match,
     and whether the player won or lost. The result is centered around 50%.
     """
-    key = norm(player)
+    key = canonical_player_key(player)
     history = matches[
         (
-            matches["winner_name"].map(norm).eq(key)
-            | matches["loser_name"].map(norm).eq(key)
+            matches["winner_name"].map(canonical_player_key).eq(key)
+            | matches["loser_name"].map(canonical_player_key).eq(key)
         )
         & (matches["tourney_date"] < pd.Timestamp(event_date))
     ].sort_values("tourney_date", ascending=False).head(lookback_matches)
@@ -314,10 +365,10 @@ def opponent_strength_profile(
     top_100_wins = top_100_losses = 0
 
     for _, row in history.iterrows():
-        won = norm(row["winner_name"]) == key
+        won = canonical_player_key(row["winner_name"]) == key
         opponent_name = row["loser_name"] if won else row["winner_name"]
         opponent_rank = row.get("loser_rank" if won else "winner_rank", np.nan)
-        opponent_elo = overall_elo.get(norm(opponent_name), 1500.0)
+        opponent_elo = overall_elo.get(canonical_player_key(opponent_name), 1500.0)
 
         opponent_elos.append(float(opponent_elo))
         if pd.notna(opponent_rank):
@@ -394,7 +445,7 @@ def elo_tables(matches: pd.DataFrame, surface: str, event_date: date) -> tuple[d
         table[loser] = rl - k * (1 - expected)
 
     for _, row in history.iterrows():
-        winner, loser = norm(row["winner_name"]), norm(row["loser_name"])
+        winner, loser = canonical_player_key(row["winner_name"]), canonical_player_key(row["loser_name"])
         update(overall, winner, loser)
         if str(row["surface"]).casefold() == surface.casefold():
             update(surface_table, winner, loser)
@@ -726,10 +777,37 @@ def analyze(
     draw_pressure_a: str = "Normal",
     draw_pressure_b: str = "Normal",
 ) -> dict:
-    rows_a = perspective(matches, player_a, event_date)
-    rows_b = perspective(matches, player_b, event_date)
+    resolved_a, resolution_a = resolve_player_name(matches, player_a)
+    resolved_b, resolution_b = resolve_player_name(matches, player_b)
+    unresolved = [item["requested"] for item in (resolution_a, resolution_b) if item["resolved"] is None]
+    if unresolved:
+        raise TennisDataValidationError(
+            "Insufficient verified data: could not match " + ", ".join(unresolved)
+            + " to the historical tennis database. No projection was generated."
+        )
+
+    rows_a = perspective(matches, resolved_a, event_date)
+    rows_b = perspective(matches, resolved_b, event_date)
     pa = profile(rows_a, surface, event_date)
     pb = profile(rows_b, surface, event_date)
+
+    validation_errors = []
+    for requested, resolved, profile_data in (
+        (player_a, resolved_a, pa), (player_b, resolved_b, pb)
+    ):
+        if profile_data["sample"] < 5:
+            validation_errors.append(f"{requested}: only {profile_data['sample']} matches in the two-year sample")
+        if pd.isna(profile_data["rank"]):
+            validation_errors.append(f"{requested}: ranking unavailable")
+        if pd.isna(profile_data["serve_points_won"]):
+            validation_errors.append(f"{requested}: serve statistics unavailable")
+        if pd.isna(profile_data["return_points_won"]):
+            validation_errors.append(f"{requested}: return statistics unavailable")
+
+    if validation_errors:
+        raise TennisDataValidationError(
+            "Insufficient verified data. No projection was generated. " + "; ".join(validation_errors)
+        )
 
     fatigue_profile_a = fatigue_profile(rows_a, event_date)
     fatigue_profile_b = fatigue_profile(rows_b, event_date)
@@ -745,9 +823,17 @@ def analyze(
     opponent_strength_b = opponent_strength_profile(
         matches, player_b, event_date, overall, lookback_matches=10
     )
-    ka, kb = norm(player_a), norm(player_b)
-    oa, ob = overall.get(ka, 1500.0), overall.get(kb, 1500.0)
-    sa, sb = surface_table.get(ka, 1500.0), surface_table.get(kb, 1500.0)
+    ka, kb = canonical_player_key(resolved_a), canonical_player_key(resolved_b)
+    if ka not in overall or kb not in overall:
+        missing = [name for name, key in ((player_a, ka), (player_b, kb)) if key not in overall]
+        raise TennisDataValidationError(
+            "Insufficient verified data: Elo could not be calculated for "
+            + ", ".join(missing) + ". No projection was generated."
+        )
+    oa, ob = overall[ka], overall[kb]
+    # Surface Elo may be unavailable for a player new to the surface. In that case,
+    # use the verified overall Elo and disclose the fallback in diagnostics.
+    sa, sb = surface_table.get(ka, oa), surface_table.get(kb, ob)
 
     overall_p = rating_probability(oa, ob)
     surface_p = rating_probability(sa, sb)
@@ -767,8 +853,8 @@ def analyze(
         match_format=match_format,
     )
 
-    rank_a = pa["rank"] if not pd.isna(pa["rank"]) else 250
-    rank_b = pb["rank"] if not pd.isna(pb["rank"]) else 250
+    rank_a = pa["rank"]
+    rank_b = pb["rank"]
     rank_p = 1 / (1 + math.exp(-((-math.log(max(rank_a, 1))) - (-math.log(max(rank_b, 1)))) * .9))
 
     base = (
@@ -997,6 +1083,31 @@ def analyze(
         "surface_elo": (sa, sb),
         "profile_a": pa,
         "profile_b": pb,
+        "data_validation": {
+            "status": "verified",
+            "player_a": {
+                **resolution_a,
+                "historical_matches": int(len(rows_a)),
+                "two_year_sample": int(pa["sample"]),
+                "surface_sample": int(pa["surface_sample"]),
+                "serve_sample": int(pa["serve_sample"]),
+                "return_sample": int(pa["return_sample"]),
+                "overall_elo_found": ka in overall,
+                "surface_elo_found": ka in surface_table,
+                "flags": pa["data_flags"],
+            },
+            "player_b": {
+                **resolution_b,
+                "historical_matches": int(len(rows_b)),
+                "two_year_sample": int(pb["sample"]),
+                "surface_sample": int(pb["surface_sample"]),
+                "serve_sample": int(pb["serve_sample"]),
+                "return_sample": int(pb["return_sample"]),
+                "overall_elo_found": kb in overall,
+                "surface_elo_found": kb in surface_table,
+                "flags": pb["data_flags"],
+            },
+        },
         "factors": [
             {"name": name, "impact": impact, "reason": reason}
             for name, impact, reason in factors
