@@ -44,8 +44,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.34 — Matchup Context"
-BUILD_DATE = "July 27, 2026"
+APP_VERSION = "Macabets v0.35 — Unified Tennis Outcomes"
+BUILD_DATE = "July 27, 2026 (Patched)"
 
 st.set_page_config(
     page_title="Macabets",
