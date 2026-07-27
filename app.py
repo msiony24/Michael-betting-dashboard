@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.42 — Price Intelligence"
+APP_VERSION = "Macabets v0.43 — Explanation Engine"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -864,6 +864,107 @@ def build_nfl_category_verdicts(away_team, home_team, team_ratings):
         category_leader = "Even"
 
     return verdicts, wins, strongest, category_leader
+
+
+def build_nfl_explanation_report(nfl_result, projected_winner, category_verdicts, price_report):
+    """Build concise, matchup-specific NFL explanations from existing model output."""
+    away_team = str(nfl_result["away_team"])
+    home_team = str(nfl_result["home_team"])
+    opponent = home_team if projected_winner == away_team else away_team
+
+    winner_rows = category_verdicts[
+        category_verdicts["Advantage"] == projected_winner
+    ].sort_values("Rating Gap", ascending=False)
+    opponent_rows = category_verdicts[
+        category_verdicts["Advantage"] == opponent
+    ].sort_values("Rating Gap", ascending=False)
+
+    def category_sentence(row, team, other):
+        category = str(row["Category"])
+        strength = str(row["Strength"]).lower()
+        templates = {
+            "Quarterback": f"{team} owns the {strength} quarterback advantage, the most important individual edge in the matchup.",
+            "Running Game": f"{team} has the stronger projected rushing structure and should be better positioned to stay on schedule.",
+            "Receiving Weapons": f"{team} has the more dangerous receiving group and a better chance to create explosive plays.",
+            "Offensive Line": f"{team}'s offensive line projects to protect more reliably and create the cleaner down-to-down environment.",
+            "Defensive Front": f"{team}'s defensive front can disrupt {other}'s timing and create pressure without constant blitzing.",
+            "Secondary": f"{team} has the stronger secondary and is better equipped to limit explosive passes.",
+            "Overall Defense": f"{team} carries the more dependable overall defensive profile.",
+            "Coaching": f"{team} has the coaching edge in adjustments, clock management and late-game decisions.",
+            "Special Teams": f"{team} has the special-teams advantage and the better chance to win hidden-yardage situations.",
+            "Depth / Continuity": f"{team} has the stronger depth and continuity profile.",
+        }
+        return templates.get(category, f"{team} has a {strength} advantage in {category.lower()}.")
+
+    key_advantages = [
+        category_sentence(row, projected_winner, opponent)
+        for _, row in winner_rows.head(4).iterrows()
+    ] or [f"{projected_winner} holds the stronger overall model profile, although no single category creates major separation."]
+
+    why_away = list(nfl_result.get("why_away_can_win", []))[:3]
+    why_home = list(nfl_result.get("why_home_can_win", []))[:3]
+
+    if not why_away:
+        rows = category_verdicts[category_verdicts["Advantage"] == away_team].sort_values("Rating Gap", ascending=False)
+        why_away = [category_sentence(row, away_team, home_team) for _, row in rows.head(3).iterrows()]
+    if not why_home:
+        rows = category_verdicts[category_verdicts["Advantage"] == home_team].sort_values("Rating Gap", ascending=False)
+        why_home = [category_sentence(row, home_team, away_team) for _, row in rows.head(3).iterrows()]
+
+    why_away = why_away or [f"{away_team} can win by controlling turnovers and outperforming the model in high-leverage situations."]
+    why_home = why_home or [f"{home_team} can win by using home field, creating short fields and forcing a higher-variance game."]
+
+    risks = []
+    biggest_risk = str(nfl_result.get("biggest_risk", "")).strip()
+    if biggest_risk:
+        risks.append(biggest_risk)
+    for item in list(nfl_result.get("swing_factors", [])):
+        item = str(item).strip()
+        if item and item not in risks:
+            risks.append(item)
+    for _, row in opponent_rows.head(2).iterrows():
+        item = category_sentence(row, opponent, projected_winner)
+        if item not in risks:
+            risks.append(item)
+    risks = risks[:4] or ["Turnovers, injuries or explosive plays could overturn the projected edge."]
+
+    names = [str(row["Category"]).lower() for _, row in winner_rows.head(3).iterrows()]
+    advantage_phrase = (
+        names[0] if len(names) == 1
+        else ", ".join(names[:-1]) + f" and {names[-1]}" if names
+        else "overall team quality"
+    )
+
+    price_sentence = {
+        "Strong Value": "The market is giving Macabets a meaningful price advantage.",
+        "Good Value": "The current price offers a useful cushion relative to fair value.",
+        "Slight Value": "The price contains a modest edge, but not a major market mistake.",
+        "Fair Price": "The market is close to Macabets' fair number.",
+        "Slightly Overpriced": "The projected winner is a little expensive, though still near the model's tolerance range.",
+        "Overpriced": "Macabets still prefers the winner, but the market price has removed most of the betting appeal.",
+    }.get(price_report["quality"], "The market price should be weighed separately from the predicted winner.")
+
+    take = (
+        f"Macabets makes {projected_winner} the more likely winner because of the stronger "
+        f"{advantage_phrase} profile. {price_sentence} "
+        f"The clearest upset path for {opponent} is to create disruption early and force the game "
+        f"away from Macabets' expected script. Recommendation: {price_report['recommendation']}."
+    )
+
+    game_script = str(nfl_result.get("game_script", "")).strip() or (
+        f"Macabets expects {projected_winner} to establish the more stable offense, play from a favorable "
+        f"scoreboard position and force {opponent} into higher-variance situations. If {opponent} avoids "
+        f"turnovers and creates early explosive plays, the game can remain close into the fourth quarter."
+    )
+
+    return {
+        "take": take,
+        "key_advantages": key_advantages,
+        "risks": risks,
+        "why_away": why_away[:3],
+        "why_home": why_home[:3],
+        "game_script": game_script,
+    }
 
 
 def format_american(odds):
@@ -2650,10 +2751,12 @@ with tabs[1]:
                 category_verdicts, category_wins, strongest_edge, category_leader = build_nfl_category_verdicts(
                     nfl_result["away_team"], nfl_result["home_team"], NFL_QUALITY_RATINGS
                 )
-                winner_edges = category_verdicts[category_verdicts["Advantage"] == projected_nfl_winner].sort_values("Rating Gap", ascending=False).head(3)
-                key_advantages = [f"{row['Category']}: {row['Strength'].lower()} matchup advantage." for _, row in winner_edges.iterrows()]
-                if not key_advantages:
-                    key_advantages = ["The overall model profile gives the projected winner a narrow edge."]
+                explanation_report = build_nfl_explanation_report(
+                    nfl_result,
+                    projected_nfl_winner,
+                    category_verdicts,
+                    price_report,
+                )
 
                 st.markdown("## Final Verdict")
                 fv1, fv2, fv3, fv4 = st.columns(4)
@@ -2667,36 +2770,30 @@ with tabs[1]:
                 fv7.metric("Bet Quality", price_report["quality"], price_report["recommendation"])
 
                 st.markdown("### Macabets Take")
-                advantage_text = ", ".join(item.split(":")[0].lower() for item in key_advantages[:3])
-                pricing_sentence = {
-                    "Strong Value": "The market is offering a clearly favorable price.",
-                    "Good Value": "The current price leaves a useful margin over fair value.",
-                    "Slight Value": "The edge is positive but modest.",
-                    "Fair Price": "The market is essentially aligned with the model.",
-                    "Slightly Overpriced": "The price is a little expensive, but still close enough to fair value to remain worth considering.",
-                    "Overpriced": "The winner may still be correct, but the market price has removed most of the appeal.",
-                                    }[price_report["quality"]]
-                st.write(f"Macabets makes {projected_nfl_winner} the more likely winner, led by advantages in {advantage_text}. {pricing_sentence} Recommendation: **{price_report['recommendation']}**.")
+                st.info(explanation_report["take"])
 
                 st.markdown("#### Key Advantages")
-                for item in key_advantages:
+                for item in explanation_report["key_advantages"]:
                     st.markdown(f"- {item}")
+
                 risk_col, paths_col = st.columns(2)
                 with risk_col:
                     st.markdown("#### Biggest Risks")
-                    st.write(nfl_result["biggest_risk"])
-                    for factor in list(nfl_result.get("swing_factors", []))[:2]:
-                        st.markdown(f"- {factor}")
+                    for item in explanation_report["risks"]:
+                        st.markdown(f"- {item}")
+
                 with paths_col:
                     st.markdown("#### Why Each Team Can Win")
-                    st.markdown(f"**{nfl_result['away_team']}**")
-                    for reason in list(nfl_result.get("why_away_can_win", []))[:2]:
+                    st.markdown(f"**Why {nfl_result['away_team']} can win**")
+                    for reason in explanation_report["why_away"]:
                         st.markdown(f"- {reason}")
-                    st.markdown(f"**{nfl_result['home_team']}**")
-                    for reason in list(nfl_result.get("why_home_can_win", []))[:2]:
+                    st.markdown(f"**Why {nfl_result['home_team']} can win**")
+                    for reason in explanation_report["why_home"]:
                         st.markdown(f"- {reason}")
+
                 st.markdown("#### Expected Game Script")
-                st.write(nfl_result["game_script"])
+                st.write(explanation_report["game_script"])
+
                 st.markdown("#### Macabets vs. Market")
                 st.write(f"Macabets' fair moneyline on {projected_nfl_winner} is {format_american(winner_fair_ml)}, compared with the current market price of {format_american(winner_market_ml)}. That produces an estimated return at the offered price of {price_report['expected_roi']:+.1%}. Price assessment: **{price_report['quality']}**.")
                 st.markdown("#### Bottom Line")
