@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.40 — Clear Market Comparison"
+APP_VERSION = "Macabets v0.41 — Decision Report"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -958,6 +958,46 @@ def decision_label(expected_roi, confidence):
 
     return "PASS", "The current price does not provide enough model-supported value."
 
+
+
+def moneyline_price_quality(model_probability, market_odds, confidence_score):
+    """Separate likely winner from price quality with a practical tolerance band."""
+    probability = min(max(float(model_probability), 0.0001), 0.9999)
+    market_odds = int(market_odds)
+    confidence_score = float(confidence_score)
+    expected_roi = probability * (american_to_decimal(market_odds) - 1) - (1 - probability)
+    if expected_roi >= 0.08:
+        quality, recommendation = "Strong Value", "Recommended"
+    elif expected_roi >= 0.04:
+        quality, recommendation = "Good Value", "Recommended"
+    elif expected_roi >= 0.015:
+        quality, recommendation = "Slight Value", "Worth Considering"
+    elif expected_roi >= -0.015:
+        quality = "Fair Price"
+        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
+    elif expected_roi >= -0.05:
+        quality = "Slightly Overpriced"
+        recommendation = "Worth Considering" if confidence_score >= 82 else "Lean Pass"
+    elif expected_roi >= -0.09:
+        quality, recommendation = "Overpriced", "Lean Pass"
+    else:
+        quality, recommendation = "Significantly Overpriced", "Pass"
+    return {"expected_roi": expected_roi, "quality": quality, "recommendation": recommendation}
+
+
+def nfl_bottom_line(team, probability, quality, recommendation, confidence_band):
+    likely = f"Macabets expects {team} to win and assigns a {probability:.1%} win probability."
+    if quality in {"Strong Value", "Good Value"}:
+        price = "The current moneyline offers a meaningful cushion versus the model's fair price."
+    elif quality == "Slight Value":
+        price = "The current moneyline offers a modest edge rather than a major pricing mistake."
+    elif quality == "Fair Price":
+        price = "The market is close to the model's fair price, so the case rests more on conviction than value."
+    elif quality == "Slightly Overpriced":
+        price = "The favorite is a little expensive, but the price remains within a reasonable tolerance band."
+    else:
+        price = "The likely winner and the attractive bet are not the same thing at this price."
+    return f"{likely} {price} Recommendation: {recommendation}. Confidence: {confidence_band}."
 
 def build_matchup_brief(player_a, player_b, scores_a, scores_b, weights):
     contributions = []
@@ -2567,7 +2607,68 @@ with tabs[1]:
                 else:
                     nfl_best_bet = "NO CLEAR BET"
 
-                st.markdown("#### Macabets Verdict")
+                # Decision-first moneyline report
+                winner_market_ml = int(market_ml_away) if projected_nfl_winner == nfl_result["away_team"] else int(market_ml_home)
+                winner_fair_ml = fair_away_moneyline if projected_nfl_winner == nfl_result["away_team"] else int(nfl_result["fair_moneyline_home"])
+                price_report = moneyline_price_quality(projected_nfl_probability, winner_market_ml, nfl_result["confidence"])
+
+                category_verdicts, category_wins, strongest_edge, category_leader = build_nfl_category_verdicts(
+                    nfl_result["away_team"], nfl_result["home_team"], NFL_QUALITY_RATINGS
+                )
+                winner_edges = category_verdicts[category_verdicts["Advantage"] == projected_nfl_winner].sort_values("Rating Gap", ascending=False).head(3)
+                key_advantages = [f"{row['Category']}: {row['Strength'].lower()} matchup advantage." for _, row in winner_edges.iterrows()]
+                if not key_advantages:
+                    key_advantages = ["The overall model profile gives the projected winner a narrow edge."]
+
+                st.markdown("## Final Verdict")
+                fv1, fv2, fv3, fv4 = st.columns(4)
+                fv1.metric("Projected Winner", projected_nfl_winner)
+                fv2.metric("Win Probability", f"{projected_nfl_probability:.1%}")
+                fv3.metric("Fair Moneyline", format_american(winner_fair_ml))
+                fv4.metric("Market Moneyline", format_american(winner_market_ml))
+                fv5, fv6, fv7 = st.columns(3)
+                fv5.metric("Projected Score", f"{nfl_result['away_team']} {nfl_result['projected_away_score']:.0f} — {nfl_result['home_team']} {nfl_result['projected_home_score']:.0f}")
+                fv6.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+                fv7.metric("Bet Quality", price_report["quality"], price_report["recommendation"])
+
+                st.markdown("### Macabets Take")
+                advantage_text = ", ".join(item.split(":")[0].lower() for item in key_advantages[:3])
+                pricing_sentence = {
+                    "Strong Value": "The market is offering a clearly favorable price.",
+                    "Good Value": "The current price leaves a useful margin over fair value.",
+                    "Slight Value": "The edge is positive but modest.",
+                    "Fair Price": "The market is essentially aligned with the model.",
+                    "Slightly Overpriced": "The price is a little expensive, but still close enough to fair value to remain worth considering.",
+                    "Overpriced": "The winner may still be correct, but the market price has removed most of the appeal.",
+                    "Significantly Overpriced": "The market is charging too much for the projected winner.",
+                }[price_report["quality"]]
+                st.write(f"Macabets makes {projected_nfl_winner} the more likely winner, led by advantages in {advantage_text}. {pricing_sentence} Recommendation: **{price_report['recommendation']}**.")
+
+                st.markdown("#### Key Advantages")
+                for item in key_advantages:
+                    st.markdown(f"- {item}")
+                risk_col, paths_col = st.columns(2)
+                with risk_col:
+                    st.markdown("#### Biggest Risks")
+                    st.write(nfl_result["biggest_risk"])
+                    for factor in list(nfl_result.get("swing_factors", []))[:2]:
+                        st.markdown(f"- {factor}")
+                with paths_col:
+                    st.markdown("#### Why Each Team Can Win")
+                    st.markdown(f"**{nfl_result['away_team']}**")
+                    for reason in list(nfl_result.get("why_away_can_win", []))[:2]:
+                        st.markdown(f"- {reason}")
+                    st.markdown(f"**{nfl_result['home_team']}**")
+                    for reason in list(nfl_result.get("why_home_can_win", []))[:2]:
+                        st.markdown(f"- {reason}")
+                st.markdown("#### Expected Game Script")
+                st.write(nfl_result["game_script"])
+                st.markdown("#### Macabets vs. Market")
+                st.write(f"Macabets' fair moneyline on {projected_nfl_winner} is {format_american(winner_fair_ml)}, compared with the current market price of {format_american(winner_market_ml)}. That produces an estimated return at the offered price of {price_report['expected_roi']:+.1%}. Price assessment: **{price_report['quality']}**.")
+                st.markdown("#### Bottom Line")
+                st.info(nfl_bottom_line(projected_nfl_winner, projected_nfl_probability, price_report["quality"], price_report["recommendation"], nfl_result["confidence_band"]))
+
+                st.markdown("#### Supporting Model Summary")
                 nv1, nv2, nv3 = st.columns(3)
                 nv1.metric("Projected Winner", projected_nfl_winner)
                 nv2.metric("Win Probability", f"{projected_nfl_probability:.1%}", projected_nfl_score_side)
@@ -2854,85 +2955,6 @@ with tabs[1]:
                     st.markdown("**Expected game script**")
                     st.write(nfl_result["game_script"])
 
-                st.markdown("#### Upset Path")
-                if abs(entered_market_home_spread) <= 0.05:
-                    st.info(
-                        "Vegas lists this game as a pick'em, so there is no true market underdog "
-                        "and no traditional upset path."
-                    )
-                else:
-                    market_prob_away, market_prob_home, _ = no_vig_probabilities(
-                        int(market_ml_away), int(market_ml_home)
-                    )
-
-                    if entered_market_home_spread < 0:
-                        underdog_team = nfl_result["away_team"]
-                        favorite_team = nfl_result["home_team"]
-                        underdog_spread = -entered_market_home_spread
-                        underdog_model_probability = float(nfl_result["away_win_probability"])
-                        underdog_market_probability = float(market_prob_away)
-                        underdog_market_moneyline = int(market_ml_away)
-                        underdog_fair_moneyline = fair_away_moneyline
-                        underdog_reasons = list(nfl_result["why_away_can_win"])
-                    else:
-                        underdog_team = nfl_result["home_team"]
-                        favorite_team = nfl_result["away_team"]
-                        underdog_spread = entered_market_home_spread
-                        underdog_model_probability = float(nfl_result["home_win_probability"])
-                        underdog_market_probability = float(market_prob_home)
-                        underdog_market_moneyline = int(market_ml_home)
-                        underdog_fair_moneyline = int(nfl_result["fair_moneyline_home"])
-                        underdog_reasons = list(nfl_result["why_home_can_win"])
-
-                    upset_probability_edge = (
-                        underdog_model_probability - underdog_market_probability
-                    )
-                    if underdog_model_probability >= 0.50:
-                        upset_label = "Macabets makes the underdog the more likely winner"
-                    elif underdog_model_probability >= 0.40:
-                        upset_label = "Live upset threat"
-                    elif underdog_model_probability >= 0.30:
-                        upset_label = "Plausible upset path"
-                    else:
-                        upset_label = "Narrow upset path"
-
-                    upset1, upset2, upset3, upset4 = st.columns(4)
-                    upset1.metric(
-                        "Vegas Underdog",
-                        f"{underdog_team} +{underdog_spread:.1f}",
-                    )
-                    upset2.metric(
-                        "Macabets Upset Probability",
-                        f"{underdog_model_probability:.1%}",
-                        f"{upset_probability_edge:+.1%} vs no-vig market",
-                    )
-                    upset3.metric(
-                        "Market Moneyline",
-                        format_american(underdog_market_moneyline),
-                    )
-                    upset4.metric(
-                        "Macabets Fair Moneyline",
-                        format_american(underdog_fair_moneyline),
-                    )
-                    st.markdown(f"**Assessment: {upset_label}.**")
-
-                    path_col, failure_col = st.columns([3, 2])
-                    with path_col:
-                        st.markdown(f"**How {underdog_team} can upset {favorite_team}**")
-                        for step_number, reason in enumerate(underdog_reasons[:3], start=1):
-                            st.markdown(f"{step_number}. {reason}")
-                        if nfl_result["swing_factors"]:
-                            st.markdown(
-                                f"**Deciding swing factor:** {nfl_result['swing_factors'][0]}"
-                            )
-                    with failure_col:
-                        st.markdown("**What must be avoided**")
-                        st.write(nfl_result["biggest_risk"])
-                        if len(nfl_result["swing_factors"]) > 1:
-                            st.markdown("**Secondary swing factors**")
-                            for factor in nfl_result["swing_factors"][1:3]:
-                                st.markdown(f"- {factor}")
-
                 with st.expander("Supporting arguments, swing factors and risks", expanded=False):
                     home_path, away_path = st.columns(2)
                     with home_path:
@@ -2956,7 +2978,7 @@ with tabs[1]:
                         for condition in nfl_result["invalidation_conditions"]:
                             st.markdown(f"- {condition}")
 
-                st.markdown("#### Why Macabets differs from Vegas")
+                st.markdown("#### Supporting Spread Comparison")
                 if value_team:
                     st.write(
                         f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}. "
