@@ -44,7 +44,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.39 — Moneyline Focus"
+APP_VERSION = "Macabets v0.40 — Clear Market Comparison"
 BUILD_DATE = "July 27, 2026"
 
 st.set_page_config(
@@ -1895,43 +1895,33 @@ with tabs[1]:
                         analysis_confidence["band"],
                     )
 
-                    st.markdown("#### Market Consensus")
-                    consensus_a, consensus_b, consensus_edge = st.columns(3)
-                    consensus_a.metric(
-                        f"Market probability — {analyzed_a}",
-                        f"{no_vig_a:.1%}",
-                        "No-vig consensus",
+                    st.markdown("#### Macabets vs. Market")
+
+                    comparison = pd.DataFrame(
+                        {
+                            "Player": [analyzed_a, analyzed_b],
+                            "Market": [f"{no_vig_a:.1%}", f"{no_vig_b:.1%}"],
+                            "Macabets": [f"{model_probability:.1%}", f"{probability_b:.1%}"],
+                        }
                     )
-                    consensus_b.metric(
-                        f"Macabets probability — {analyzed_a}",
-                        f"{model_probability:.1%}",
-                        f"{no_vig_edge:+.1%} vs. market",
-                    )
-                    consensus_edge.metric(
-                        "Market disagreement",
-                        f"{abs(no_vig_edge):.1%}",
-                        (
-                            f"Macabets favors {analyzed_a} more"
-                            if no_vig_edge > 0
-                            else f"Market favors {analyzed_a} more"
-                            if no_vig_edge < 0
-                            else "Model and market agree"
-                        ),
+                    st.dataframe(
+                        comparison,
+                        use_container_width=True,
+                        hide_index=True,
                     )
 
-                    st.markdown(f"**{analyzed_a}: Macabets vs. market**")
-                    st.progress(model_probability)
-                    st.caption(
-                        f"Macabets {model_probability:.1%}  |  "
-                        f"No-vig market {no_vig_a:.1%}"
-                    )
-
-                    st.markdown(f"**{analyzed_b}: Macabets vs. market**")
-                    st.progress(probability_b)
-                    st.caption(
-                        f"Macabets {probability_b:.1%}  |  "
-                        f"No-vig market {no_vig_b:.1%}"
-                    )
+                    if abs(no_vig_edge) < 0.03:
+                        st.info(
+                            "Macabets is largely in agreement with the betting market on this matchup."
+                        )
+                    else:
+                        model_favored_player = analyzed_a if no_vig_edge > 0 else analyzed_b
+                        market_favored_player = analyzed_b if no_vig_edge > 0 else analyzed_a
+                        st.info(
+                            f"Macabets is substantially more bullish on {model_favored_player} than the "
+                            f"betting market. The market is comparatively higher on {market_favored_player}. "
+                            f"The difference is {abs(no_vig_edge):.1%}."
+                        )
 
                     st.markdown("#### Confidence Meters")
                     confidence_col1, confidence_col2 = st.columns(2)
