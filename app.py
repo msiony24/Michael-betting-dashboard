@@ -2399,16 +2399,88 @@ with tabs[1]:
                     )
 
                     simulation = result["simulation"]
+
+                    # Reconcile the simulation with the final matchup-adjusted verdict.
+                    # Preserve the simulation's conditional set-score distribution for each
+                    # player, while forcing each side's exact scores to sum to the same
+                    # headline win probability shown everywhere else in the report.
+                    raw_set_scores = {
+                        str(score): float(probability)
+                        for score, probability in simulation.get("set_scores", {}).items()
+                    }
+                    raw_a_total = 0.0
+                    raw_b_total = 0.0
+                    parsed_scores = {}
+
+                    for raw_score, probability in raw_set_scores.items():
+                        try:
+                            a_sets, b_sets = (
+                                int(value) for value in raw_score.split("-", 1)
+                            )
+                        except (TypeError, ValueError):
+                            continue
+                        parsed_scores[raw_score] = (a_sets, b_sets)
+                        if a_sets > b_sets:
+                            raw_a_total += probability
+                        elif b_sets > a_sets:
+                            raw_b_total += probability
+
+                    synchronized_set_scores = {}
+                    for raw_score, probability in raw_set_scores.items():
+                        parsed = parsed_scores.get(raw_score)
+                        if parsed is None:
+                            synchronized_set_scores[raw_score] = probability
+                            continue
+
+                        a_sets, b_sets = parsed
+                        if a_sets > b_sets:
+                            synchronized_set_scores[raw_score] = (
+                                probability / raw_a_total * model_probability
+                                if raw_a_total > 0 else 0.0
+                            )
+                        elif b_sets > a_sets:
+                            synchronized_set_scores[raw_score] = (
+                                probability / raw_b_total * probability_b
+                                if raw_b_total > 0 else 0.0
+                            )
+                        else:
+                            synchronized_set_scores[raw_score] = 0.0
+
+                    straight_sets_a = sum(
+                        probability
+                        for raw_score, probability in synchronized_set_scores.items()
+                        if raw_score in parsed_scores
+                        and parsed_scores[raw_score][0] > parsed_scores[raw_score][1]
+                        and parsed_scores[raw_score][1] == 0
+                    )
+                    straight_sets_b = sum(
+                        probability
+                        for raw_score, probability in synchronized_set_scores.items()
+                        if raw_score in parsed_scores
+                        and parsed_scores[raw_score][1] > parsed_scores[raw_score][0]
+                        and parsed_scores[raw_score][0] == 0
+                    )
+                    deciding_set_probability = sum(
+                        probability
+                        for raw_score, probability in synchronized_set_scores.items()
+                        if raw_score in parsed_scores
+                        and abs(parsed_scores[raw_score][0] - parsed_scores[raw_score][1]) == 1
+                        and max(parsed_scores[raw_score]) >= 2
+                    )
+
                     st.markdown("#### Outcome Simulation")
-                    s1, s2, s3, s4 = st.columns(4)
-                    s1.metric(f"{analyzed_a} wins", f"{simulation['win_probability']:.1%}")
-                    s2.metric(f"{analyzed_a} straight sets", f"{simulation['straight_sets_a']:.1%}")
-                    s3.metric(f"{analyzed_b} straight sets", f"{simulation['straight_sets_b']:.1%}")
-                    s4.metric("Deciding set", f"{simulation['deciding_set']:.1%}")
+                    win_col_a, win_col_b = st.columns(2)
+                    win_col_a.metric(f"{analyzed_a} wins", f"{model_probability:.1%}")
+                    win_col_b.metric(f"{analyzed_b} wins", f"{probability_b:.1%}")
+
+                    s1, s2, s3 = st.columns(3)
+                    s1.metric(f"{analyzed_a} straight sets", f"{straight_sets_a:.1%}")
+                    s2.metric(f"{analyzed_b} straight sets", f"{straight_sets_b:.1%}")
+                    s3.metric("Deciding set", f"{deciding_set_probability:.1%}")
 
                     st.markdown("#### Exact Set Score")
                     set_score_results = []
-                    for raw_score, probability in simulation["set_scores"].items():
+                    for raw_score, probability in synchronized_set_scores.items():
                         try:
                             a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
                         except (TypeError, ValueError):
