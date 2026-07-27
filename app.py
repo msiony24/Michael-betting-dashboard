@@ -2400,11 +2400,14 @@ with tabs[1]:
 
                     simulation = result["simulation"]
                     st.markdown("#### Outcome Simulation")
-                    s1, s2, s3, s4 = st.columns(4)
-                    s1.metric(f"{analyzed_a} wins", f"{simulation['win_probability']:.1%}")
-                    s2.metric(f"{analyzed_a} straight sets", f"{simulation['straight_sets_a']:.1%}")
-                    s3.metric(f"{analyzed_b} straight sets", f"{simulation['straight_sets_b']:.1%}")
-                    s4.metric("Deciding set", f"{simulation['deciding_set']:.1%}")
+                    s1, s2, s3, s4, s5 = st.columns(5)
+                    win_a = simulation["win_probability"]
+                    win_b = 1.0 - win_a
+                    s1.metric(f"{analyzed_a} wins", f"{win_a:.1%}")
+                    s2.metric(f"{analyzed_b} wins", f"{win_b:.1%}")
+                    s3.metric(f"{analyzed_a} straight sets", f"{simulation['straight_sets_a']:.1%}")
+                    s4.metric(f"{analyzed_b} straight sets", f"{simulation['straight_sets_b']:.1%}")
+                    s5.metric("Deciding set", f"{simulation['deciding_set']:.1%}")
 
                     st.markdown("#### Exact Set Score")
                     set_score_results = []
