@@ -9,6 +9,12 @@ import unicodedata
 import numpy as np
 import pandas as pd
 
+from .player_profiles import (
+    build_player_profile,
+    compare_experience,
+    experience_reliability,
+)
+
 
 ROUND_MAP = {
     "Qualifying": "Q",
@@ -831,6 +837,21 @@ def analyze(
     pa = profile(rows_a, surface, event_date)
     pb = profile(rows_b, surface, event_date)
 
+    # Build reusable long-term player intelligence profiles. API enrichment is
+    # optional and safely falls back to the historical database when unavailable.
+    intelligence_a = build_player_profile(
+        matches, resolved_a, event_date, include_api=True
+    )
+    intelligence_b = build_player_profile(
+        matches, resolved_b, event_date, include_api=True
+    )
+    intelligence_a.requested_name = player_a
+    intelligence_b.requested_name = player_b
+    experience = compare_experience(
+        intelligence_a, intelligence_b, surface,
+        maximum_probability_adjustment=0.04,
+    )
+
     validation_errors = []
     for requested, resolved, profile_data in (
         (player_a, resolved_a, pa), (player_b, resolved_b, pb)
@@ -1015,7 +1036,19 @@ def analyze(
     opponent_strength *= correlated_discount
     surface_adj *= correlated_discount
 
+    experience_adjustment = float(experience["probability_adjustment_a"])
+    experience_reason = (
+        f"Career matches: {player_a} {intelligence_a.career_matches}, "
+        f"{player_b} {intelligence_b.career_matches}. {surface} matches: "
+        f"{player_a} {experience['surface_matches_a']}, "
+        f"{player_b} {experience['surface_matches_b']}. Grand Slam/Masters matches: "
+        f"{player_a} {intelligence_a.grand_slam_matches + intelligence_a.masters_matches}, "
+        f"{player_b} {intelligence_b.grand_slam_matches + intelligence_b.masters_matches}. "
+        f"The experience impact is capped at ±{experience['maximum_adjustment']:.0%}."
+    )
+
     factors = [
+        ("Experience Engine", experience_adjustment, experience_reason),
         ("Context-weighted matchup", matchup, matchup_reason),
         ("Context-weighted recent form", form,
          f"Last-10 win rate: {player_a} {pa['recent_win']:.0%}; {player_b} "
@@ -1164,6 +1197,13 @@ def analyze(
         "surface_elo": (sa, sb),
         "profile_a": pa,
         "profile_b": pb,
+        "player_intelligence_a": intelligence_a.to_dict(),
+        "player_intelligence_b": intelligence_b.to_dict(),
+        "experience_engine": {
+            **experience,
+            "reliability_a": experience_reliability(intelligence_a),
+            "reliability_b": experience_reliability(intelligence_b),
+        },
         "data_validation": {
             "status": "verified",
             "player_a": {
