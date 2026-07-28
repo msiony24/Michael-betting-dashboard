@@ -1155,24 +1155,69 @@ def _analysis_market_line(row):
         return str(odds) if odds not in (None, "") else "—"
 
 
-def _analysis_price_assessment(row):
+def _analysis_pricing_report(row):
+    """Return a normalized price report for both new and legacy log entries."""
     snapshot = row.get("analysis_snapshot") or {}
     if isinstance(snapshot, dict):
-        explicit = snapshot.get("price_assessment")
-        if explicit:
-            return str(explicit)
+        explicit_assessment = snapshot.get("price_assessment")
+        explicit_verdict = snapshot.get("verdict")
         report = snapshot.get("price_report") or {}
         if isinstance(report, dict):
-            return str(report.get("price_assessment") or report.get("quality") or "—")
+            explicit_assessment = explicit_assessment or report.get("price_assessment") or report.get("quality")
+            explicit_verdict = explicit_verdict or report.get("verdict") or report.get("recommendation")
+        if explicit_assessment and explicit_verdict in {
+            "Strong Bet", "Worth Betting", "Lean", "Pass", "Complete Pass"
+        }:
+            return {
+                "price_assessment": str(explicit_assessment),
+                "verdict": str(explicit_verdict),
+            }
+
+    # Legacy rows may not contain predicted_probability. Rebuild it from the
+    # stored fair American line when necessary.
+    probability = row.get("predicted_probability")
     try:
-        probability = float(row.get("predicted_probability"))
-        confidence = float(row.get("confidence") or 0)
-        actual_line = _analysis_market_line(row)
-        if actual_line != "—":
-            return moneyline_price_quality(probability, int(actual_line), confidence)["price_assessment"]
+        probability = float(probability)
     except (TypeError, ValueError):
-        pass
-    return "—"
+        probability = None
+
+    if probability is None or not 0 < probability < 1:
+        fair_line = row.get("fair_line")
+        try:
+            fair_odds = int(float(str(fair_line).replace("+", "").replace(",", "").strip()))
+            probability = american_to_implied(fair_odds)
+        except (TypeError, ValueError):
+            probability = None
+
+    confidence = row.get("confidence") or 0
+    try:
+        confidence = float(confidence)
+    except (TypeError, ValueError):
+        confidence = 0
+
+    actual_line = _analysis_market_line(row)
+    try:
+        market_odds = int(float(str(actual_line).replace("+", "").replace(",", "").strip()))
+    except (TypeError, ValueError):
+        market_odds = None
+
+    if probability is not None and market_odds is not None:
+        report = moneyline_price_quality(probability, market_odds, confidence)
+        return {
+            "price_assessment": report["price_assessment"],
+            "verdict": report["verdict"],
+        }
+
+    return {"price_assessment": "—", "verdict": "—"}
+
+
+def _analysis_price_assessment(row):
+    return _analysis_pricing_report(row)["price_assessment"]
+
+
+def _analysis_verdict(row):
+    """Show the new verdict language and replace legacy recommendation strings."""
+    return _analysis_pricing_report(row)["verdict"]
 
 
 def build_matchup_brief(player_a, player_b, scores_a, scores_b, weights):
@@ -4181,7 +4226,7 @@ with tabs[4]:
                     "Actual Line": _analysis_market_line(row),
                     "Fair Line": row.get("fair_line", ""),
                     "Price Assessment": _analysis_price_assessment(row),
-                    "Verdict": row.get("recommendation", ""),
+                    "Verdict": _analysis_verdict(row),
                     "Prediction Result": _prediction_result(row),
                 } for row in universal_rows])
                 st.dataframe(
@@ -4205,7 +4250,7 @@ with tabs[4]:
                 d3.metric("Actual Line", _analysis_market_line(selected_row))
                 d4.metric("Fair Line", selected_row.get("fair_line") or "—")
                 d5.metric("Price Assessment", _analysis_price_assessment(selected_row))
-                d6.metric("Verdict", selected_row.get("recommendation") or "—")
+                d6.metric("Verdict", _analysis_verdict(selected_row))
 
                 with st.expander("Frozen Analysis Snapshot", expanded=False):
                     st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
