@@ -52,7 +52,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.46 — Prediction Report Card"
+APP_VERSION = "Macabets v0.47 — Price Assessment & Verdict"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -956,7 +956,7 @@ def build_nfl_explanation_report(nfl_result, projected_winner, category_verdicts
         f"Macabets makes {projected_winner} the more likely winner because of the stronger "
         f"{advantage_phrase} profile. {price_sentence} "
         f"The clearest upset path for {opponent} is to create disruption early and force the game "
-        f"away from Macabets' expected script. Recommendation: {price_report['recommendation']}."
+        f"away from Macabets' expected script. Verdict: {price_report['recommendation']}."
     )
 
     game_script = str(nfl_result.get("game_script", "")).strip() or (
@@ -1046,12 +1046,7 @@ def required_nfl_spread_edge(american_odds, required_roi=0.05, margin_std=13.86)
 
 
 def moneyline_price_quality(model_probability, market_odds, confidence_score):
-    """Grade price and recommendation separately using a stable ROI tolerance band.
-
-    Bet Quality describes the offered price versus Macabets fair value.
-    Recommendation also considers confidence, allowing a highly trusted winner to
-    remain Worth Considering when the price is fair or only modestly expensive.
-    """
+    """Separate the mathematical price assessment from the flexible final verdict."""
     probability = min(max(float(model_probability), 0.0001), 0.9999)
     market_odds = int(market_odds)
     confidence_score = float(confidence_score)
@@ -1061,87 +1056,124 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     expected_roi = probability * american_to_decimal(market_odds) - 1
 
     if expected_roi >= 0.08:
-        quality = "Strong Value"
-    elif expected_roi >= 0.04:
-        quality = "Good Value"
-    elif expected_roi >= 0.015:
-        quality = "Slight Value"
+        quality = "Significantly Underpriced"
+    elif expected_roi >= 0.035:
+        quality = "Underpriced"
     elif expected_roi >= -0.015:
-        quality = "Fair Price"
+        quality = "Fairly Priced"
     elif expected_roi >= -0.05:
         quality = "Slightly Overpriced"
-    else:
+    elif expected_roi >= -0.10:
         quality = "Overpriced"
-
-    if quality in {"Strong Value", "Good Value"}:
-        recommendation = "Recommended" if confidence_score >= 60 else "Worth Considering"
-    elif quality == "Slight Value":
-        recommendation = "Recommended" if confidence_score >= 82 else "Worth Considering"
-    elif quality == "Fair Price":
-        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
-    elif quality == "Slightly Overpriced":
-        recommendation = "Worth Considering" if confidence_score >= 88 else "Lean Pass"
     else:
-        recommendation = "Lean Pass" if expected_roi >= -0.09 and confidence_score >= 80 else "Pass"
+        quality = "Significantly Overpriced"
+
+    # Verdict remains flexible: price matters most, but strong model conviction can
+    # keep a modestly expensive favorite playable rather than forcing an automatic pass.
+    if expected_roi >= 0.08 and confidence_score >= 70:
+        verdict = "Strong Bet"
+    elif expected_roi >= 0.025 and confidence_score >= 62:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.015 and confidence_score >= 82:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.05 and confidence_score >= 88:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.075 and confidence_score >= 78:
+        verdict = "Lean"
+    elif expected_roi <= -0.12 or (expected_roi <= -0.08 and confidence_score < 78):
+        verdict = "Complete Pass"
+    else:
+        verdict = "Pass"
 
     return {
         "expected_roi": expected_roi,
         "quality": quality,
-        "recommendation": recommendation,
+        "price_assessment": quality,
+        "verdict": verdict,
+        # Backward compatibility for older display code and the existing DB column.
+        "recommendation": verdict,
     }
 
 
 def decision_label(expected_roi, confidence):
-    """Compatibility wrapper for tennis and slate reports using the v0.42 scale."""
+    """Compatibility wrapper returning the new verdict language."""
     expected_roi = float(expected_roi)
     confidence_score = float(confidence)
     if confidence_score <= 10:
         confidence_score *= 10
 
-    if expected_roi >= 0.08:
-        quality = "Strong Value"
-    elif expected_roi >= 0.04:
-        quality = "Good Value"
-    elif expected_roi >= 0.015:
-        quality = "Slight Value"
-    elif expected_roi >= -0.015:
-        quality = "Fair Price"
-    elif expected_roi >= -0.05:
-        quality = "Slightly Overpriced"
+    # Convert ROI back through the same thresholds used by the main price engine.
+    if expected_roi >= 0.08 and confidence_score >= 70:
+        verdict = "Strong Bet"
+    elif expected_roi >= 0.025 and confidence_score >= 62:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.015 and confidence_score >= 82:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.05 and confidence_score >= 88:
+        verdict = "Worth Betting"
+    elif expected_roi >= -0.075 and confidence_score >= 78:
+        verdict = "Lean"
+    elif expected_roi <= -0.12 or (expected_roi <= -0.08 and confidence_score < 78):
+        verdict = "Complete Pass"
     else:
-        quality = "Overpriced"
-
-    if quality in {"Strong Value", "Good Value"}:
-        recommendation = "Recommended" if confidence_score >= 60 else "Worth Considering"
-    elif quality == "Slight Value":
-        recommendation = "Recommended" if confidence_score >= 82 else "Worth Considering"
-    elif quality == "Fair Price":
-        recommendation = "Worth Considering" if confidence_score >= 82 else "No Edge"
-    elif quality == "Slightly Overpriced":
-        recommendation = "Worth Considering" if confidence_score >= 88 else "Lean Pass"
-    else:
-        recommendation = "Lean Pass" if expected_roi >= -0.09 and confidence_score >= 80 else "Pass"
+        verdict = "Pass"
 
     reason = (
-        f"Price quality: {quality}. The recommendation is {recommendation.lower()} "
-        f"based on the model edge and {confidence_score:.0f}/100 confidence."
+        f"Macabets' final verdict is {verdict.lower()} after weighing the offered price "
+        f"against the model edge and {confidence_score:.0f}/100 prediction confidence."
     )
-    return recommendation, reason
+    return verdict, reason
 
 
-def nfl_bottom_line(team, probability, quality, recommendation, confidence_band):
+def nfl_bottom_line(team, probability, quality, verdict, confidence_band):
     likely = f"Macabets expects {team} to win and assigns a {probability:.1%} win probability."
-    if quality in {"Strong Value", "Good Value"}:
-        price = "The current moneyline offers a meaningful cushion versus the model's fair price."
-    elif quality == "Slight Value":
-        price = "The current moneyline offers a modest edge rather than a major pricing mistake."
-    elif quality == "Fair Price":
-        price = "The market is close to the model's fair price, so the case rests more on conviction than value."
+    if quality in {"Significantly Underpriced", "Underpriced"}:
+        price = "The current moneyline is favorable relative to Macabets' fair price."
+    elif quality == "Fairly Priced":
+        price = "The market is close to Macabets' fair price, so the case rests more on conviction than value."
     elif quality == "Slightly Overpriced":
-        price = "The favorite is a little expensive, but the price remains within a reasonable tolerance band."
+        price = "The projected winner is a little expensive, but the number can remain playable when conviction is high."
+    elif quality == "Overpriced":
+        price = "The projected winner is expensive, so Macabets requires stronger conviction before accepting the number."
     else:
-        price = "The likely winner and the attractive bet are not the same thing at this price."
-    return f"{likely} {price} Recommendation: {recommendation}. Confidence: {confidence_band}."
+        price = "The projected winner is priced well beyond Macabets' fair number."
+    return f"{likely} {price} Verdict: {verdict}. Prediction confidence: {confidence_band}."
+
+
+def _analysis_market_line(row):
+    """Return the actual market moneyline attached to the logged prediction."""
+    prediction = str(row.get("prediction", ""))
+    if prediction and prediction == str(row.get("participant_a", "")):
+        odds = row.get("market_odds_a")
+    elif prediction and prediction == str(row.get("participant_b", "")):
+        odds = row.get("market_odds_b")
+    else:
+        odds = row.get("market_line")
+    try:
+        return format_american(float(odds)) if odds is not None else "—"
+    except (TypeError, ValueError):
+        return str(odds) if odds not in (None, "") else "—"
+
+
+def _analysis_price_assessment(row):
+    snapshot = row.get("analysis_snapshot") or {}
+    if isinstance(snapshot, dict):
+        explicit = snapshot.get("price_assessment")
+        if explicit:
+            return str(explicit)
+        report = snapshot.get("price_report") or {}
+        if isinstance(report, dict):
+            return str(report.get("price_assessment") or report.get("quality") or "—")
+    try:
+        probability = float(row.get("predicted_probability"))
+        confidence = float(row.get("confidence") or 0)
+        actual_line = _analysis_market_line(row)
+        if actual_line != "—":
+            return moneyline_price_quality(probability, int(actual_line), confidence)["price_assessment"]
+    except (TypeError, ValueError):
+        pass
+    return "—"
+
 
 def build_matchup_brief(player_a, player_b, scores_a, scores_b, weights):
     contributions = []
@@ -2003,13 +2035,14 @@ with tabs[1]:
                     if tennis_log_token:
                         projected_winner_for_log = analyzed_a if model_probability >= probability_b else analyzed_b
                         projected_probability_for_log = max(model_probability, probability_b)
-                        best_roi_for_log = max(roi_a, roi_b)
-                        best_side_for_log = analyzed_a if roi_a >= roi_b else analyzed_b
-                        recommendation_for_log = (
-                            f"{best_side_for_log} — BETTABLE EDGE" if best_roi_for_log >= 0.05
-                            else f"{best_side_for_log} — SLIGHT VALUE" if best_roi_for_log >= 0
-                            else "NO CLEAR BET"
+                        projected_market_odds_for_log = listed_a if projected_winner_for_log == analyzed_a else listed_b
+                        projected_confidence_for_log = analysis_confidence["overall"]
+                        projected_price_report_for_log = moneyline_price_quality(
+                            projected_probability_for_log,
+                            projected_market_odds_for_log,
+                            projected_confidence_for_log,
                         )
+                        recommendation_for_log = projected_price_report_for_log["verdict"]
                         tennis_inputs = {
                             **market_snapshot,
                             "player_a": analyzed_a, "player_b": analyzed_b,
@@ -2033,12 +2066,15 @@ with tabs[1]:
                             "bet_confidence": bet_confidence,
                             "selected_bet_decision": decision,
                             "selected_bet_reason": decision_reason,
+                            "projected_winner_market_line": projected_market_odds_for_log,
+                            "price_assessment": projected_price_report_for_log["price_assessment"],
+                            "verdict": projected_price_report_for_log["verdict"],
                         }
                         _save_universal_analysis({
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
-                            "model_version": "Macabets Tennis v0.45",
+                            "model_version": "Macabets Tennis v0.47",
                             "event_name": f"{analyzed_a} vs {analyzed_b}",
                             "participant_a": analyzed_a, "participant_b": analyzed_b,
                             "market_type": "Moneyline",
@@ -2075,28 +2111,13 @@ with tabs[1]:
                     projected_winner_probability = max(model_probability, probability_b)
                     projected_winner_fair_odds = fair_odds if projected_winner == analyzed_a else fair_odds_b
 
-                    if max(roi_a, roi_b) >= 0.05:
-                        best_betting_side = analyzed_a if roi_a >= roi_b else analyzed_b
-                        best_betting_label = f"{best_betting_side} — BETTABLE EDGE"
-                    elif max(roi_a, roi_b) >= 0.00:
-                        best_betting_side = analyzed_a if roi_a >= roi_b else analyzed_b
-                        best_betting_label = f"{best_betting_side} — SLIGHT VALUE"
-                    else:
-                        best_betting_side = None
-                        best_betting_label = "NO CLEAR BET"
-
                     winner_market_odds = listed_a if projected_winner == analyzed_a else listed_b
-                    winner_roi = roi_a if projected_winner == analyzed_a else roi_b
-                    if winner_roi >= 0.05:
-                        price_assessment = "Good value"
-                    elif winner_roi >= 0.00:
-                        price_assessment = "Fair / slight value"
-                    elif winner_roi >= -0.05:
-                        price_assessment = "Slightly overpriced"
-                    elif winner_roi >= -0.10:
-                        price_assessment = "Overpriced"
-                    else:
-                        price_assessment = "Significantly overpriced"
+                    projected_price_report = moneyline_price_quality(
+                        projected_winner_probability,
+                        winner_market_odds,
+                        analysis_confidence["overall"],
+                    )
+                    price_assessment = projected_price_report["price_assessment"]
 
                     st.markdown("#### Macabets Verdict")
                     verdict1, verdict2, verdict3, verdict4 = st.columns(4)
@@ -2106,23 +2127,17 @@ with tabs[1]:
                         f"{projected_winner_probability:.1%}",
                         f"Fair {format_american(projected_winner_fair_odds)}",
                     )
-                    verdict3.metric("Best Betting Side", best_betting_label)
+                    verdict3.metric("Verdict", projected_price_report["verdict"])
                     verdict4.metric(
-                        "Projected Winner's Price",
+                        "Price Assessment",
                         price_assessment,
                         f"Market {format_american(winner_market_odds)}",
                     )
-                    if best_betting_side:
-                        st.info(
-                            f"Macabets' prediction is {projected_winner}, while the best available "
-                            f"price opportunity is {best_betting_side}. These can be different."
-                        )
-                    else:
-                        st.info(
-                            f"Macabets predicts {projected_winner} to win, but does not see a clear "
-                            "price advantage on either side. This is a price assessment—not a claim "
-                            "that the projected winner will lose."
-                        )
+                    st.info(
+                        f"Macabets picks {projected_winner}. The {format_american(winner_market_odds)} "
+                        f"market line is {price_assessment.lower()}, producing a final verdict of "
+                        f"{projected_price_report['verdict']}."
+                    )
 
                     st.markdown("#### Matchup Context")
                     st.markdown("**Macabets Take**")
@@ -2881,12 +2896,14 @@ with tabs[1]:
                         "winner_market_moneyline": winner_market_ml,
                         "winner_fair_moneyline": winner_fair_ml,
                         "price_report": price_report,
+                        "price_assessment": price_report["price_assessment"],
+                        "verdict": price_report["verdict"],
                     }
                     _save_universal_analysis({
                         "client_event_id": nfl_log_token,
                         "event_date": nfl_date.isoformat(),
                         "sport": "NFL",
-                        "model_version": "Macabets NFL v0.23 / App v0.45",
+                        "model_version": "Macabets NFL v0.23 / App v0.47",
                         "event_name": f"{away_team} at {home_team}",
                         "participant_a": away_team, "participant_b": home_team,
                         "market_type": nfl_considered_market if nfl_considered_side != "Just analyze" else "Analysis",
@@ -2895,7 +2912,7 @@ with tabs[1]:
                         "market_odds_b": int(market_ml_home),
                         "prediction": projected_nfl_winner,
                         "predicted_probability": projected_nfl_probability,
-                        "fair_line": fair_line_text,
+                        "fair_line": format_american(winner_fair_ml),
                         "confidence": float(nfl_result["confidence"]),
                         "recommendation": price_report["recommendation"],
                         "status": "Pending",
@@ -2959,7 +2976,7 @@ with tabs[1]:
                     )
 
                 fv6.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
-                fv7.metric("Bet Quality", price_report["quality"], price_report["recommendation"])
+                fv7.metric("Price Assessment", price_report["quality"], price_report["verdict"])
 
                 st.markdown("### Macabets Take")
                 st.info(explanation_report["take"])
@@ -3013,7 +3030,7 @@ with tabs[1]:
                 line2.metric("Vegas Line", vegas_line_text)
                 line3.metric("Edge", edge_text)
                 line4.metric(
-                    "Confidence",
+                    "Prediction Confidence",
                     f"{nfl_result['confidence']:.0f}/100",
                     nfl_result["confidence_band"],
                 )
@@ -4131,7 +4148,7 @@ with tabs[4]:
                 "Prediction Result", ["All", "Pending", "Correct", "Incorrect", "Push", "Void"],
                 key="analysis_log_status_filter",
             )
-            search_filter = filter3.text_input("Search", placeholder="Player, team, event or recommendation", key="analysis_log_search")
+            search_filter = filter3.text_input("Search", placeholder="Player, team, event, price assessment or verdict", key="analysis_log_search")
 
             universal_rows = list(all_universal_rows)
             if sport_filter != "All":
@@ -4143,10 +4160,12 @@ with tabs[4]:
                 q = search_filter.strip().casefold()
                 universal_rows = [
                     row for row in universal_rows
-                    if q in " ".join(str(row.get(field, "")) for field in (
-                        "event_name", "participant_a", "participant_b", "prediction",
-                        "recommendation", "sport", "model_version"
-                    )).casefold()
+                    if q in (
+                        " ".join(str(row.get(field, "")) for field in (
+                            "event_name", "participant_a", "participant_b", "prediction",
+                            "recommendation", "sport", "model_version"
+                        )) + " " + _analysis_price_assessment(row)
+                    ).casefold()
                 ]
 
             if not universal_rows:
@@ -4158,15 +4177,15 @@ with tabs[4]:
                     "Sport": row.get("sport", ""),
                     "Event": row.get("event_name", ""),
                     "Prediction": row.get("prediction", ""),
-                    "Probability": row.get("predicted_probability"),
+                    "Prediction Confidence": row.get("confidence"),
+                    "Actual Line": _analysis_market_line(row),
                     "Fair Line": row.get("fair_line", ""),
-                    "Confidence": row.get("confidence"),
-                    "Recommendation": row.get("recommendation", ""),
+                    "Price Assessment": _analysis_price_assessment(row),
+                    "Verdict": row.get("recommendation", ""),
                     "Prediction Result": _prediction_result(row),
                 } for row in universal_rows])
                 st.dataframe(
                     log_frame, use_container_width=True, hide_index=True,
-                    column_config={"Probability": st.column_config.NumberColumn(format="%.1%%")},
                 )
 
                 selected_id = st.selectbox(
@@ -4180,12 +4199,13 @@ with tabs[4]:
                 )
                 selected_row = next(row for row in universal_rows if row["id"] == selected_id)
 
-                d1, d2, d3, d4 = st.columns(4)
+                d1, d2, d3, d4, d5, d6 = st.columns(6)
                 d1.metric("Prediction", selected_row.get("prediction") or "—")
-                probability_value = selected_row.get("predicted_probability")
-                d2.metric("Probability", f"{float(probability_value):.1%}" if probability_value is not None else "—")
-                d3.metric("Confidence", f"{float(selected_row.get('confidence')):.0f}/100" if selected_row.get("confidence") is not None else "—")
-                d4.metric("Recommendation", selected_row.get("recommendation") or "—")
+                d2.metric("Prediction Confidence", f"{float(selected_row.get('confidence')):.0f}/100" if selected_row.get("confidence") is not None else "—")
+                d3.metric("Actual Line", _analysis_market_line(selected_row))
+                d4.metric("Fair Line", selected_row.get("fair_line") or "—")
+                d5.metric("Price Assessment", _analysis_price_assessment(selected_row))
+                d6.metric("Verdict", selected_row.get("recommendation") or "—")
 
                 with st.expander("Frozen Analysis Snapshot", expanded=False):
                     st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
