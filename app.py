@@ -52,7 +52,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.45 — Permanent Analysis Log"
+APP_VERSION = "Macabets v0.46 — Prediction Report Card"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -4047,19 +4047,97 @@ with tabs[4]:
             )
             st.info("Run the included supabase_analysis_log.sql file once in the Supabase SQL Editor, then add these two values to Streamlit secrets.")
         else:
+            # Load the complete archive first so the report card is not affected by display filters.
+            try:
+                all_universal_rows = db_list_analyses(500)
+            except Exception as exc:
+                all_universal_rows = []
+                st.error(f"Could not load the permanent Analysis Log: {exc}")
+
+            def _prediction_result(row):
+                status = str(row.get("status", "Pending"))
+                if status == "Won":
+                    return "Correct"
+                if status == "Lost":
+                    return "Incorrect"
+                return status if status in {"Pending", "Push", "Void"} else "Pending"
+
+            completed_rows = [row for row in all_universal_rows if _prediction_result(row) in {"Correct", "Incorrect"}]
+            correct_rows = [row for row in completed_rows if _prediction_result(row) == "Correct"]
+            incorrect_rows = [row for row in completed_rows if _prediction_result(row) == "Incorrect"]
+            pending_rows = [row for row in all_universal_rows if _prediction_result(row) == "Pending"]
+            overall_accuracy = len(correct_rows) / len(completed_rows) if completed_rows else None
+
+            st.markdown("### Prediction Report Card")
+            report1, report2, report3, report4, report5 = st.columns(5)
+            report1.metric("Prediction Accuracy", f"{overall_accuracy:.1%}" if overall_accuracy is not None else "—")
+            report2.metric("Graded", len(completed_rows))
+            report3.metric("Correct", len(correct_rows))
+            report4.metric("Incorrect", len(incorrect_rows))
+            report5.metric("Pending", len(pending_rows))
+
+            sport_cards = []
+            for report_sport in ("Tennis", "NFL"):
+                sport_completed = [row for row in completed_rows if str(row.get("sport", "")) == report_sport]
+                sport_correct = sum(_prediction_result(row) == "Correct" for row in sport_completed)
+                sport_accuracy = sport_correct / len(sport_completed) if sport_completed else None
+                sport_cards.append((report_sport, sport_correct, len(sport_completed) - sport_correct, sport_accuracy))
+
+            tennis_card, nfl_card = st.columns(2)
+            for card, (report_sport, sport_correct, sport_incorrect, sport_accuracy) in zip(
+                (tennis_card, nfl_card), sport_cards
+            ):
+                record = f"{sport_correct}-{sport_incorrect}" if sport_correct + sport_incorrect else "0-0"
+                card.metric(
+                    report_sport,
+                    f"{sport_accuracy:.1%}" if sport_accuracy is not None else "—",
+                    f"Record: {record}",
+                )
+
+            with st.expander("Confidence calibration", expanded=False):
+                confidence_bands = [(90, 100), (80, 89), (70, 79), (60, 69), (0, 59)]
+                calibration_rows = []
+                for low, high in confidence_bands:
+                    band_rows = []
+                    for row in completed_rows:
+                        try:
+                            confidence_value = float(row.get("confidence"))
+                        except (TypeError, ValueError):
+                            continue
+                        if confidence_value <= 10:
+                            confidence_value *= 10
+                        if low <= confidence_value <= high:
+                            band_rows.append(row)
+                    band_correct = sum(_prediction_result(row) == "Correct" for row in band_rows)
+                    band_incorrect = len(band_rows) - band_correct
+                    calibration_rows.append({
+                        "Confidence": f"{low}–{high}" if low else "Below 60",
+                        "Record": f"{band_correct}-{band_incorrect}",
+                        "Graded": len(band_rows),
+                        "Actual Accuracy": band_correct / len(band_rows) if band_rows else None,
+                    })
+                st.dataframe(
+                    pd.DataFrame(calibration_rows),
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={"Actual Accuracy": st.column_config.NumberColumn(format="%.1%%")},
+                )
+                st.caption("Pending, Push and Void entries are excluded. Confidence is tested against actual prediction accuracy.")
+
+            st.divider()
             filter1, filter2, filter3 = st.columns([1, 1, 2])
             sport_filter = filter1.selectbox("Sport", ["All", "Tennis", "NFL"], key="analysis_log_sport_filter")
-            status_filter = filter2.selectbox(
-                "Status", ["All", "Pending", "Won", "Lost", "Push", "Void"],
+            result_filter = filter2.selectbox(
+                "Prediction Result", ["All", "Pending", "Correct", "Incorrect", "Push", "Void"],
                 key="analysis_log_status_filter",
             )
             search_filter = filter3.text_input("Search", placeholder="Player, team, event or recommendation", key="analysis_log_search")
 
-            try:
-                universal_rows = db_list_analyses(500, sport=sport_filter, status=status_filter)
-            except Exception as exc:
-                universal_rows = []
-                st.error(f"Could not load the permanent Analysis Log: {exc}")
+            universal_rows = list(all_universal_rows)
+            if sport_filter != "All":
+                universal_rows = [row for row in universal_rows if str(row.get("sport", "")) == sport_filter]
+            if result_filter != "All":
+                universal_rows = [row for row in universal_rows if _prediction_result(row) == result_filter]
 
             if search_filter.strip():
                 q = search_filter.strip().casefold()
@@ -4084,7 +4162,7 @@ with tabs[4]:
                     "Fair Line": row.get("fair_line", ""),
                     "Confidence": row.get("confidence"),
                     "Recommendation": row.get("recommendation", ""),
-                    "Status": row.get("status", "Pending"),
+                    "Prediction Result": _prediction_result(row),
                 } for row in universal_rows])
                 st.dataframe(
                     log_frame, use_container_width=True, hide_index=True,
@@ -4115,13 +4193,19 @@ with tabs[4]:
                     st.json(selected_row.get("input_snapshot", {}), expanded=False)
 
                 edit1, edit2 = st.columns(2)
-                status_options = ["Pending", "Won", "Lost", "Push", "Void"]
-                current_status = selected_row.get("status", "Pending")
-                updated_status = edit1.selectbox(
-                    "Result", status_options,
-                    index=status_options.index(current_status) if current_status in status_options else 0,
+                result_options = ["Pending", "Correct", "Incorrect", "Push", "Void"]
+                current_result = _prediction_result(selected_row)
+                updated_result = edit1.selectbox(
+                    "Was Macabets' prediction correct?", result_options,
+                    index=result_options.index(current_result) if current_result in result_options else 0,
                     key=f"universal_status_{selected_id}",
+                    help="Grade only the predicted winner. Correct is stored as Won and Incorrect as Lost for database compatibility.",
                 )
+                status_storage_map = {
+                    "Pending": "Pending", "Correct": "Won", "Incorrect": "Lost",
+                    "Push": "Push", "Void": "Void",
+                }
+                updated_status = status_storage_map[updated_result]
                 updated_favorite = edit2.checkbox(
                     "Favorite / keep", value=bool(selected_row.get("favorite", False)),
                     key=f"universal_favorite_{selected_id}",
