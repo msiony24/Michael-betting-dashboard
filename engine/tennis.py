@@ -1008,20 +1008,29 @@ def analyze(
         -.03, .03
     ))
 
+    # Form, opponent strength and surface win rate overlap with Elo and ranking.
+    # Discount them as a group so the same underlying performance is not counted repeatedly.
+    correlated_discount = 0.65
+    form *= correlated_discount
+    opponent_strength *= correlated_discount
+    surface_adj *= correlated_discount
+
     factors = [
         ("Context-weighted matchup", matchup, matchup_reason),
         ("Context-weighted recent form", form,
          f"Last-10 win rate: {player_a} {pa['recent_win']:.0%}; {player_b} "
-         f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x."),
+         f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x. "
+         f"A correlation discount is applied because recent form overlaps with Elo."),
         ("Opponent strength", opponent_strength,
          f"Recent opposition score: {player_a} "
          f"{opponent_strength_a['strength_score']:.0%} vs {player_b} "
          f"{opponent_strength_b['strength_score']:.0%}. Average opponent Elo: "
          f"{opponent_strength_a['avg_opponent_elo']:.0f} vs "
-         f"{opponent_strength_b['avg_opponent_elo']:.0f}."),
+         f"{opponent_strength_b['avg_opponent_elo']:.0f}. A correlation discount is applied."),
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
-         f"{player_b} {pb['surface_win']:.0%}."),
+         f"{player_b} {pb['surface_win']:.0%}. A correlation discount is applied because "
+         f"surface results overlap with surface Elo."),
         ("Fatigue 2.0", fatigue,
          f"{player_a}: {fatigue_profile_a['matches_7']} matches, "
          f"{fatigue_profile_a['sets_7']} sets, {fatigue_profile_a['deciders_7']} deciders "
@@ -1060,7 +1069,24 @@ def analyze(
          f"{player_b} {pb['deciding_win']:.0%}."),
     ]
 
-    final_model = float(np.clip(base + sum(v for _, v, _ in factors), .05, .95))
+    # Cap the combined secondary adjustment. Context should refine the core rating,
+    # not overpower it when several related factors all point in the same direction.
+    total_adjustment = float(np.clip(sum(v for _, v, _ in factors), -0.12, 0.12))
+    raw_model = float(np.clip(base + total_adjustment, 0.05, 0.95))
+
+    # Calibrate extreme outputs back toward 50%. Sparse data receives more shrinkage.
+    minimum_sample = min(pa["sample"], pb["sample"])
+    if minimum_sample >= 40 and serve_return_available:
+        calibration_strength = 0.88
+    elif minimum_sample >= 20:
+        calibration_strength = 0.82
+    else:
+        calibration_strength = 0.76
+    final_model = float(np.clip(
+        0.50 + (raw_model - 0.50) * calibration_strength,
+        0.08,
+        0.92,
+    ))
     best_of_five = str(match_format).casefold() == "best of 5"
     simulation = simulate_matches(final_model, simulations, best_of_five)
 
@@ -1074,11 +1100,13 @@ def analyze(
         + int(style_a == "Auto")
         + int(style_b == "Auto")
     ) * 0.25
+    sample_reliability = min(sample / 40.0, 1.0)
     confidence = int(np.clip(
         round(
-            5
-            + abs(simulation["win_probability"] - .5) * 8
-            + (quality - 6) * .3
+            4.5
+            + abs(simulation["win_probability"] - .5) * 6
+            + (quality - 6) * .4
+            + sample_reliability
             - uncertainty_penalty
         ),
         1,
@@ -1124,6 +1152,9 @@ def analyze(
             },
         },
         "base_probability": base,
+        "raw_model_probability": raw_model,
+        "total_secondary_adjustment": total_adjustment,
+        "calibration_strength": calibration_strength,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
         "fair_line": american_from_probability(simulation["win_probability"]),
