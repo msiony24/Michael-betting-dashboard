@@ -13,6 +13,14 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from analysis_store import (
+    create_analysis as db_create_analysis,
+    delete_analysis as db_delete_analysis,
+    is_configured as analysis_db_configured,
+    list_analyses as db_list_analyses,
+    update_analysis as db_update_analysis,
+)
+
 try:
     from engine.data import load_matches
     from engine.tennis import (
@@ -44,8 +52,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.44 — Score Card"
-BUILD_DATE = "July 27, 2026"
+APP_VERSION = "Macabets v0.45 — Permanent Analysis Log"
+BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -1187,6 +1195,29 @@ def kelly_fraction(model_prob, odds):
     return max(0.0, (b * model_prob - q) / b)
 
 
+def _analysis_event_token(sport, inputs):
+    """Create one stable token per explicit analysis click to prevent Streamlit duplicates."""
+    raw = json.dumps(inputs, sort_keys=True, default=str)
+    return f"{sport.lower()}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f')}-{abs(hash(raw))}"
+
+
+def _save_universal_analysis(record):
+    """Write one frozen analysis snapshot to the permanent Analysis Log."""
+    if not analysis_db_configured():
+        st.session_state["analysis_log_warning"] = (
+            "Analysis completed, but permanent logging is not configured yet. "
+            "Add SUPABASE_URL and SUPABASE_KEY to Streamlit secrets."
+        )
+        return None
+    try:
+        saved = db_create_analysis(record)
+        st.session_state["analysis_log_last_saved"] = record.get("event_name", "Analysis")
+        return saved
+    except Exception as exc:
+        st.session_state["analysis_log_warning"] = f"Analysis completed, but could not be saved: {exc}"
+        return None
+
+
 def empty_bets():
     return pd.DataFrame(columns=DEFAULT_COLUMNS)
 
@@ -1804,6 +1835,15 @@ with tabs[1]:
                                 "environment": environment,
                                 "match_format": match_format,
                             }
+                            st.session_state["tennis_analysis_log_pending"] = _analysis_event_token(
+                                "Tennis",
+                                {
+                                    "player_a": player_a, "player_b": player_b,
+                                    "match_date": match_date.isoformat(),
+                                    "market_odds_a": int(market_odds_a),
+                                    "market_odds_b": int(market_odds_b),
+                                },
+                            )
                             if auto_analysis_requested:
                                 st.session_state["daily_slate_analysis_ready"] = (
                                     f"Analysis completed for {player_a} vs {player_b}. "
@@ -1958,6 +1998,62 @@ with tabs[1]:
                     # Preserve Player A fields for the existing archive structure.
                     no_vig_edge = edge_a
                     expected_roi = roi_a
+
+                    tennis_log_token = st.session_state.pop("tennis_analysis_log_pending", None)
+                    if tennis_log_token:
+                        projected_winner_for_log = analyzed_a if model_probability >= probability_b else analyzed_b
+                        projected_probability_for_log = max(model_probability, probability_b)
+                        best_roi_for_log = max(roi_a, roi_b)
+                        best_side_for_log = analyzed_a if roi_a >= roi_b else analyzed_b
+                        recommendation_for_log = (
+                            f"{best_side_for_log} — BETTABLE EDGE" if best_roi_for_log >= 0.05
+                            else f"{best_side_for_log} — SLIGHT VALUE" if best_roi_for_log >= 0
+                            else "NO CLEAR BET"
+                        )
+                        tennis_inputs = {
+                            **market_snapshot,
+                            "player_a": analyzed_a, "player_b": analyzed_b,
+                            "tournament": result.get("tournament", tournament),
+                            "round": result.get("round", round_name),
+                            "surface": result.get("surface", surface),
+                            "simulations": int(simulations),
+                        }
+                        tennis_snapshot = {
+                            "engine_result": result,
+                            "head_to_head": h2h_context,
+                            "matchup_context": matchup_context,
+                            "probability_a": model_probability,
+                            "probability_b": probability_b,
+                            "fair_odds_a": fair_odds,
+                            "fair_odds_b": fair_odds_b,
+                            "no_vig_probability_a": no_vig_a,
+                            "no_vig_probability_b": no_vig_b,
+                            "roi_a": roi_a, "roi_b": roi_b,
+                            "analysis_confidence": analysis_confidence,
+                            "bet_confidence": bet_confidence,
+                            "selected_bet_decision": decision,
+                            "selected_bet_reason": decision_reason,
+                        }
+                        _save_universal_analysis({
+                            "client_event_id": tennis_log_token,
+                            "event_date": market_snapshot.get("match_date"),
+                            "sport": "Tennis",
+                            "model_version": "Macabets Tennis v0.45",
+                            "event_name": f"{analyzed_a} vs {analyzed_b}",
+                            "participant_a": analyzed_a, "participant_b": analyzed_b,
+                            "market_type": "Moneyline",
+                            "market_odds_a": listed_a, "market_odds_b": listed_b,
+                            "prediction": projected_winner_for_log,
+                            "predicted_probability": projected_probability_for_log,
+                            "fair_line": format_american(
+                                fair_odds if projected_winner_for_log == analyzed_a else fair_odds_b
+                            ),
+                            "confidence": analysis_confidence["overall"],
+                            "recommendation": recommendation_for_log,
+                            "status": "Pending",
+                            "input_snapshot": tennis_inputs,
+                            "analysis_snapshot": tennis_snapshot,
+                        })
 
                     st.divider()
                     st.markdown(f"### {analyzed_a} vs {analyzed_b}")
@@ -2658,6 +2754,15 @@ with tabs[1]:
                         home_field_points=home_field_points,
                     )
                     st.session_state.nfl_result = nfl_result
+                    st.session_state["nfl_analysis_log_pending"] = _analysis_event_token(
+                        "NFL",
+                        {
+                            "away_team": away_team, "home_team": home_team,
+                            "game_date": nfl_date.isoformat(),
+                            "market_spread_home": float(market_spread_home),
+                            "market_total": float(market_total),
+                        },
+                    )
                 except Exception as exc:
                     st.error(f"Could not generate the NFL report: {exc}")
 
@@ -2747,6 +2852,56 @@ with tabs[1]:
                 winner_market_ml = int(market_ml_away) if projected_nfl_winner == nfl_result["away_team"] else int(market_ml_home)
                 winner_fair_ml = fair_away_moneyline if projected_nfl_winner == nfl_result["away_team"] else int(nfl_result["fair_moneyline_home"])
                 price_report = moneyline_price_quality(projected_nfl_probability, winner_market_ml, nfl_result["confidence"])
+
+                nfl_log_token = st.session_state.pop("nfl_analysis_log_pending", None)
+                if nfl_log_token:
+                    nfl_inputs = {
+                        "away_team": away_team, "home_team": home_team,
+                        "game_date": nfl_date.isoformat(), "week": int(nfl_week),
+                        "market_spread_home": float(market_spread_home),
+                        "market_moneyline_away": int(market_ml_away),
+                        "market_moneyline_home": int(market_ml_home),
+                        "market_total": float(market_total),
+                        "venue_type": venue_type, "weather": weather,
+                        "neutral_site": bool(neutral_site),
+                        "home_field_points": float(home_field_points),
+                        "considered_side": nfl_considered_side,
+                        "considered_market": nfl_considered_market,
+                        "spread_price": int(nfl_spread_price),
+                        "away_rating_overrides": away_overrides,
+                        "home_rating_overrides": home_overrides,
+                    }
+                    nfl_snapshot = {
+                        "engine_result": nfl_result,
+                        "fair_line_text": fair_line_text,
+                        "vegas_line_text": vegas_line_text,
+                        "spread_edge_text": edge_text,
+                        "projected_winner": projected_nfl_winner,
+                        "projected_winner_probability": projected_nfl_probability,
+                        "winner_market_moneyline": winner_market_ml,
+                        "winner_fair_moneyline": winner_fair_ml,
+                        "price_report": price_report,
+                    }
+                    _save_universal_analysis({
+                        "client_event_id": nfl_log_token,
+                        "event_date": nfl_date.isoformat(),
+                        "sport": "NFL",
+                        "model_version": "Macabets NFL v0.23 / App v0.45",
+                        "event_name": f"{away_team} at {home_team}",
+                        "participant_a": away_team, "participant_b": home_team,
+                        "market_type": nfl_considered_market if nfl_considered_side != "Just analyze" else "Analysis",
+                        "market_line": float(market_spread_home),
+                        "market_odds_a": int(market_ml_away),
+                        "market_odds_b": int(market_ml_home),
+                        "prediction": projected_nfl_winner,
+                        "predicted_probability": projected_nfl_probability,
+                        "fair_line": fair_line_text,
+                        "confidence": float(nfl_result["confidence"]),
+                        "recommendation": price_report["recommendation"],
+                        "status": "Pending",
+                        "input_snapshot": nfl_inputs,
+                        "analysis_snapshot": nfl_snapshot,
+                    })
 
                 category_verdicts, category_wins, strongest_edge, category_leader = build_nfl_category_verdicts(
                     nfl_result["away_team"], nfl_result["home_team"], NFL_QUALITY_RATINGS
@@ -3870,10 +4025,157 @@ with tabs[3]:
         )
 
 with tabs[4]:
-    archive_tabs = st.tabs(["Analysis Archive", "Matchup Lab"])
+    archive_tabs = st.tabs(["Analysis Log", "Legacy Tennis Archive", "Matchup Lab"])
 
     with archive_tabs[0]:
-        st.subheader("Analysis Archive")
+        st.subheader("Universal Analysis Log")
+        st.caption("Every Tennis and NFL analysis is saved automatically as a frozen snapshot.")
+
+        warning = st.session_state.pop("analysis_log_warning", None)
+        if warning:
+            st.warning(warning)
+        saved_name = st.session_state.pop("analysis_log_last_saved", None)
+        if saved_name:
+            st.success(f"Saved to Analysis Log: {saved_name}")
+
+        if not analysis_db_configured():
+            st.error("Permanent storage is not configured yet.")
+            st.code(
+                'SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"\n'
+                'SUPABASE_KEY = "YOUR-SUPABASE-ANON-KEY"',
+                language="toml",
+            )
+            st.info("Run the included supabase_analysis_log.sql file once in the Supabase SQL Editor, then add these two values to Streamlit secrets.")
+        else:
+            filter1, filter2, filter3 = st.columns([1, 1, 2])
+            sport_filter = filter1.selectbox("Sport", ["All", "Tennis", "NFL"], key="analysis_log_sport_filter")
+            status_filter = filter2.selectbox(
+                "Status", ["All", "Pending", "Won", "Lost", "Push", "Void"],
+                key="analysis_log_status_filter",
+            )
+            search_filter = filter3.text_input("Search", placeholder="Player, team, event or recommendation", key="analysis_log_search")
+
+            try:
+                universal_rows = db_list_analyses(500, sport=sport_filter, status=status_filter)
+            except Exception as exc:
+                universal_rows = []
+                st.error(f"Could not load the permanent Analysis Log: {exc}")
+
+            if search_filter.strip():
+                q = search_filter.strip().casefold()
+                universal_rows = [
+                    row for row in universal_rows
+                    if q in " ".join(str(row.get(field, "")) for field in (
+                        "event_name", "participant_a", "participant_b", "prediction",
+                        "recommendation", "sport", "model_version"
+                    )).casefold()
+                ]
+
+            if not universal_rows:
+                st.write("No analyses match the current filters.")
+            else:
+                log_frame = pd.DataFrame([{
+                    "ID": str(row.get("id", ""))[:8],
+                    "Date": str(row.get("event_date") or row.get("created_at", ""))[:10],
+                    "Sport": row.get("sport", ""),
+                    "Event": row.get("event_name", ""),
+                    "Prediction": row.get("prediction", ""),
+                    "Probability": row.get("predicted_probability"),
+                    "Fair Line": row.get("fair_line", ""),
+                    "Confidence": row.get("confidence"),
+                    "Recommendation": row.get("recommendation", ""),
+                    "Status": row.get("status", "Pending"),
+                } for row in universal_rows])
+                st.dataframe(
+                    log_frame, use_container_width=True, hide_index=True,
+                    column_config={"Probability": st.column_config.NumberColumn(format="%.1%%")},
+                )
+
+                selected_id = st.selectbox(
+                    "Open analysis",
+                    [row["id"] for row in universal_rows],
+                    format_func=lambda analysis_id: next(
+                        f"{row.get('event_date', '')} — {row.get('sport', '')}: {row.get('event_name', '')}"
+                        for row in universal_rows if row["id"] == analysis_id
+                    ),
+                    key="universal_analysis_selected_id",
+                )
+                selected_row = next(row for row in universal_rows if row["id"] == selected_id)
+
+                d1, d2, d3, d4 = st.columns(4)
+                d1.metric("Prediction", selected_row.get("prediction") or "—")
+                probability_value = selected_row.get("predicted_probability")
+                d2.metric("Probability", f"{float(probability_value):.1%}" if probability_value is not None else "—")
+                d3.metric("Confidence", f"{float(selected_row.get('confidence')):.0f}/100" if selected_row.get("confidence") is not None else "—")
+                d4.metric("Recommendation", selected_row.get("recommendation") or "—")
+
+                with st.expander("Frozen Analysis Snapshot", expanded=False):
+                    st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
+                with st.expander("Original Inputs", expanded=False):
+                    st.json(selected_row.get("input_snapshot", {}), expanded=False)
+
+                edit1, edit2 = st.columns(2)
+                status_options = ["Pending", "Won", "Lost", "Push", "Void"]
+                current_status = selected_row.get("status", "Pending")
+                updated_status = edit1.selectbox(
+                    "Result", status_options,
+                    index=status_options.index(current_status) if current_status in status_options else 0,
+                    key=f"universal_status_{selected_id}",
+                )
+                updated_favorite = edit2.checkbox(
+                    "Favorite / keep", value=bool(selected_row.get("favorite", False)),
+                    key=f"universal_favorite_{selected_id}",
+                )
+                updated_notes = st.text_area(
+                    "Notes", value=str(selected_row.get("notes", "")),
+                    key=f"universal_notes_{selected_id}",
+                )
+                updated_review = st.text_area(
+                    "Post-event review", value=str(selected_row.get("review", "")),
+                    key=f"universal_review_{selected_id}",
+                )
+                updated_lesson = st.text_area(
+                    "What should Macabets learn?", value=str(selected_row.get("lesson", "")),
+                    key=f"universal_lesson_{selected_id}",
+                )
+
+                save_log_col, delete_log_col = st.columns(2)
+                if save_log_col.button("Save Analysis Updates", type="primary", use_container_width=True, key=f"save_universal_{selected_id}"):
+                    try:
+                        db_update_analysis(selected_id, {
+                            "status": updated_status, "favorite": updated_favorite,
+                            "notes": updated_notes.strip(), "review": updated_review.strip(),
+                            "lesson": updated_lesson.strip(),
+                        })
+                        st.success("Analysis updated.")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Could not update analysis: {exc}")
+
+                confirm_delete = st.checkbox(
+                    "Confirm permanent deletion", key=f"confirm_delete_universal_{selected_id}"
+                )
+                if delete_log_col.button(
+                    "Delete Analysis Permanently", use_container_width=True,
+                    disabled=not confirm_delete, key=f"delete_universal_{selected_id}"
+                ):
+                    try:
+                        db_delete_analysis(selected_id)
+                        st.success("Analysis permanently deleted.")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Could not delete analysis: {exc}")
+
+                export_frame = pd.DataFrame(universal_rows)
+                st.download_button(
+                    "Download Analysis Log CSV",
+                    export_frame.to_csv(index=False).encode("utf-8"),
+                    f"macabets_analysis_log_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    "text/csv", use_container_width=True,
+                )
+
+    with archive_tabs[1]:
+        st.subheader("Legacy Tennis Analysis Archive")
         analyses = normalize_analyses(st.session_state.analyses)
 
         if analyses.empty:
@@ -3994,7 +4296,7 @@ with tabs[4]:
                 use_container_width=True,
             )
 
-    with archive_tabs[1]:
+    with archive_tabs[2]:
         st.subheader("Matchup Lab")
         sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
 
