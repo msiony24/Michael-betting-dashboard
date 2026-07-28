@@ -52,7 +52,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.49 — Price & Verdict Guide"
+APP_VERSION = "Macabets v0.51 — Recalibrated Log Gauge"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -1055,15 +1055,15 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
 
     expected_roi = probability * american_to_decimal(market_odds) - 1
 
-    if expected_roi >= 0.08:
+    if expected_roi >= 0.15:
         quality = "Very Underpriced"
-    elif expected_roi >= 0.035:
+    elif expected_roi >= 0.04:
         quality = "Underpriced"
-    elif expected_roi >= -0.015:
+    elif expected_roi >= -0.02:
         quality = "Fair"
-    elif expected_roi >= -0.05:
+    elif expected_roi >= -0.07:
         quality = "Premium"
-    elif expected_roi >= -0.10:
+    elif expected_roi >= -0.12:
         quality = "Overpriced"
     else:
         quality = "Very Overpriced"
@@ -1202,23 +1202,22 @@ def _analysis_market_line(row):
 
 
 def _analysis_pricing_report(row):
-    """Return a normalized price report for both new and legacy log entries."""
+    """Recalculate pricing with current thresholds, including older saved analyses."""
     snapshot = row.get("analysis_snapshot") or {}
+    explicit_assessment = None
+    explicit_verdict = None
+    saved_report = {}
     if isinstance(snapshot, dict):
         explicit_assessment = snapshot.get("price_assessment")
         explicit_verdict = snapshot.get("verdict")
-        report = snapshot.get("price_report") or {}
-        if isinstance(report, dict):
-            explicit_assessment = explicit_assessment or report.get("price_assessment") or report.get("quality")
-            explicit_verdict = explicit_verdict or report.get("verdict") or report.get("recommendation")
-        if explicit_assessment and explicit_verdict in {
-            "Strong Bet", "Worth Betting", "Lean", "Pass", "Complete Pass"
-        }:
-            return {
-                "price_assessment": normalize_price_assessment(explicit_assessment),
-                "verdict": str(explicit_verdict),
-                "expected_roi": report.get("expected_roi") if isinstance(report, dict) else None,
-            }
+        saved_report = snapshot.get("price_report") or {}
+        if isinstance(saved_report, dict):
+            explicit_assessment = explicit_assessment or saved_report.get("price_assessment") or saved_report.get("quality")
+            explicit_verdict = explicit_verdict or saved_report.get("verdict") or saved_report.get("recommendation")
+
+    # Always rebuild the assessment from the stored probability/fair line and
+    # market line so threshold changes also update existing Analysis Log rows.
+    # Saved labels are used only when the underlying pricing inputs are missing.
 
     # Legacy rows may not contain predicted_probability. Rebuild it from the
     # stored fair American line when necessary.
@@ -1254,6 +1253,13 @@ def _analysis_pricing_report(row):
             "price_assessment": normalize_price_assessment(report["price_assessment"]),
             "verdict": report["verdict"],
             "expected_roi": report.get("expected_roi"),
+        }
+
+    if explicit_assessment or explicit_verdict:
+        return {
+            "price_assessment": normalize_price_assessment(explicit_assessment) if explicit_assessment else "—",
+            "verdict": str(explicit_verdict) if explicit_verdict else "—",
+            "expected_roi": saved_report.get("expected_roi") if isinstance(saved_report, dict) else None,
         }
 
     return {"price_assessment": "—", "verdict": "—", "expected_roi": None}
