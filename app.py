@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from analysis_store import (
     create_analysis as db_create_analysis,
@@ -52,7 +53,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.51 — Recalibrated Log Gauge"
+APP_VERSION = "Macabets v0.52 — Reopen Analysis From Log"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -1621,6 +1622,26 @@ tabs = st.tabs([
     "Daily Slate", "Archive", "Settings"
 ])
 
+# Streamlit does not expose a native API for selecting a top-level tab. When an
+# Analysis Log entry is reopened, this small client-side bridge selects the
+# Analysis Engine tab after the rerun so the user lands directly on the matchup.
+if st.session_state.pop("open_analysis_engine_tab", False):
+    components.html(
+        """
+        <script>
+        const tabs = window.parent.document.querySelectorAll('button[role="tab"]');
+        const target = Array.from(tabs).find(
+            (tab) => tab.textContent.trim().startsWith('Analysis Engine')
+        );
+        if (target) {
+            target.click();
+            target.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        </script>
+        """,
+        height=0,
+    )
+
 with tabs[0]:
     with st.expander("What's New in Macabets v0.21", expanded=True):
         st.markdown(
@@ -1690,6 +1711,9 @@ with tabs[1]:
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
+        reopened_notice = st.session_state.pop("reopened_analysis_notice", None)
+        if reopened_notice:
+            st.success(reopened_notice)
         st.caption(
             "Select the matchup and event context. Macabets builds the probability from "
             "historical ATP results, Elo, surface performance, form, serve/return data, "
@@ -4349,10 +4373,110 @@ with tabs[4]:
                     st.markdown(f"**{_analysis_price_assessment(selected_row)}:** {assessment_definition}")
                     st.markdown(f"**{_analysis_verdict(selected_row)}:** {verdict_definition}")
 
-                with st.expander("Frozen Analysis Snapshot", expanded=False):
-                    st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
-                with st.expander("Original Inputs", expanded=False):
-                    st.json(selected_row.get("input_snapshot", {}), expanded=False)
+                action_cols = st.columns([1, 1])
+                with action_cols[0]:
+                    if str(selected_row.get("sport", "")) == "Tennis":
+                        if st.button(
+                            "Open in Tennis Analysis",
+                            type="primary",
+                            use_container_width=True,
+                            key=f"reopen_tennis_{selected_id}",
+                        ):
+                            original_inputs = selected_row.get("input_snapshot") or {}
+                            if not isinstance(original_inputs, dict):
+                                original_inputs = {}
+
+                            event_date_value = (
+                                original_inputs.get("match_date")
+                                or original_inputs.get("event_date")
+                                or selected_row.get("event_date")
+                                or date.today()
+                            )
+                            try:
+                                event_date_value = pd.to_datetime(event_date_value).date()
+                            except Exception:
+                                event_date_value = date.today()
+
+                            participant_a = str(
+                                original_inputs.get("player_a")
+                                or original_inputs.get("participant_a")
+                                or selected_row.get("participant_a")
+                                or ""
+                            ).strip()
+                            participant_b = str(
+                                original_inputs.get("player_b")
+                                or original_inputs.get("participant_b")
+                                or selected_row.get("participant_b")
+                                or ""
+                            ).strip()
+                            tournament_value = str(
+                                original_inputs.get("tournament")
+                                or selected_row.get("event_name")
+                                or "Montreal"
+                            ).strip()
+                            surface_value = str(
+                                original_inputs.get("surface")
+                                or "Hard"
+                            ).title()
+                            if surface_value not in {"Hard", "Clay", "Grass", "Carpet"}:
+                                surface_value = "Hard"
+                            round_value = str(original_inputs.get("round") or original_inputs.get("round_label") or "R32")
+                            category_value = str(original_inputs.get("tournament_category") or original_inputs.get("event_category") or "ATP 250")
+                            if category_value not in {
+                                "Grand Slam", "Masters 1000", "ATP 500", "ATP 250",
+                                "Challenger", "Tour Finals", "Davis Cup"
+                            }:
+                                category_value = "ATP 250"
+                            format_value = str(original_inputs.get("match_format") or "Best of 3")
+                            if format_value not in {"Best of 3", "Best of 5"}:
+                                format_value = "Best of 3"
+
+                            odds_a = original_inputs.get("market_odds_a", selected_row.get("market_odds_a", -180))
+                            odds_b = original_inputs.get("market_odds_b", selected_row.get("market_odds_b", 155))
+                            st.session_state.pending_fair_line_prefill = {
+                                "fle_date": event_date_value,
+                                "fle_tournament": tournament_value,
+                                "fle_surface": surface_value,
+                                "fle_round": round_value,
+                                "fle_favorite": participant_a,
+                                "fle_opponent": participant_b,
+                                "fle_market_a": safe_int(odds_a, -180),
+                                "fle_market_b": safe_int(odds_b, 155),
+                                "auto_match_date": event_date_value,
+                                "auto_tournament": tournament_value,
+                                "auto_surface": surface_value,
+                                "auto_round": round_value,
+                                "auto_tournament_category": category_value,
+                                "auto_environment": str(original_inputs.get("environment") or "Outdoor"),
+                                "auto_match_format": format_value,
+                                "auto_player_a": participant_a,
+                                "auto_player_b": participant_b,
+                                "auto_considering_bet": "Just analyze",
+                                "auto_market_a": safe_int(odds_a, -180),
+                                "auto_market_b": safe_int(odds_b, 155),
+                                "auto_simulations": safe_int(original_inputs.get("simulations", 20000), 20000),
+                            }
+                            st.session_state.run_analysis_from_daily_slate = True
+                            st.session_state.open_analysis_engine_tab = True
+                            st.session_state.reopened_analysis_notice = (
+                                f"Reopened {participant_a} vs {participant_b} from the Analysis Log. "
+                                "The matchup has been rerun using the current Macabets model."
+                            )
+                            st.rerun()
+                    else:
+                        st.button(
+                            "Open in Analysis Engine",
+                            use_container_width=True,
+                            disabled=True,
+                            key=f"reopen_disabled_{selected_id}",
+                            help="Direct reopening is currently available for Tennis analyses.",
+                        )
+                with action_cols[1]:
+                    with st.popover("View Frozen Snapshot", use_container_width=True):
+                        st.caption("This is the original saved output and does not change when the model is updated.")
+                        st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
+                        st.markdown("#### Original Inputs")
+                        st.json(selected_row.get("input_snapshot", {}), expanded=False)
 
                 edit1, edit2 = st.columns(2)
                 result_options = ["Pending", "Correct", "Incorrect", "Push", "Void"]
