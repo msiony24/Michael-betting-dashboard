@@ -52,7 +52,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.47 — Price Assessment & Verdict"
+APP_VERSION = "Macabets v0.49 — Price & Verdict Guide"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -948,7 +948,7 @@ def build_nfl_explanation_report(nfl_result, projected_winner, category_verdicts
         "Good Value": "The current price offers a useful cushion relative to fair value.",
         "Slight Value": "The price contains a modest edge, but not a major market mistake.",
         "Fair Price": "The market is close to Macabets' fair number.",
-        "Slightly Overpriced": "The projected winner is a little expensive, though still near the model's tolerance range.",
+        "Premium": "The projected winner is a little expensive, but the premium is understandable for the more likely winner.",
         "Overpriced": "Macabets still prefers the winner, but the market price has removed most of the betting appeal.",
     }.get(price_report["quality"], "The market price should be weighed separately from the predicted winner.")
 
@@ -1056,17 +1056,17 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     expected_roi = probability * american_to_decimal(market_odds) - 1
 
     if expected_roi >= 0.08:
-        quality = "Significantly Underpriced"
+        quality = "Very Underpriced"
     elif expected_roi >= 0.035:
         quality = "Underpriced"
     elif expected_roi >= -0.015:
-        quality = "Fairly Priced"
+        quality = "Fair"
     elif expected_roi >= -0.05:
-        quality = "Slightly Overpriced"
+        quality = "Premium"
     elif expected_roi >= -0.10:
         quality = "Overpriced"
     else:
-        quality = "Significantly Overpriced"
+        quality = "Very Overpriced"
 
     # Verdict remains flexible: price matters most, but strong model conviction can
     # keep a modestly expensive favorite playable rather than forcing an automatic pass.
@@ -1093,6 +1093,52 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
         # Backward compatibility for older display code and the existing DB column.
         "recommendation": verdict,
     }
+
+
+
+
+PRICE_ASSESSMENT_DEFINITIONS = {
+    "Very Underpriced": "The market is offering a much better price than Macabets' fair line.",
+    "Underpriced": "The market is offering a better price than Macabets' fair line.",
+    "Fair": "The market price is close to Macabets' projected fair line.",
+    "Premium": "The price is a little expensive, but the premium is understandable for the more likely winner.",
+    "Overpriced": "The market is charging more than Macabets believes is justified.",
+    "Very Overpriced": "The market price is far beyond Macabets' fair line and leaves very little betting value.",
+}
+
+VERDICT_DEFINITIONS = {
+    "Strong Bet": "One of the strongest betting opportunities identified by Macabets.",
+    "Worth Betting": "The combination of price and confidence is strong enough to justify a wager.",
+    "Lean": "There is a slight betting case, but not enough for a full recommendation.",
+    "Pass": "Macabets has a preferred winner, but the current price does not justify a wager.",
+    "Complete Pass": "Stay away because the price is too poor, confidence is too low, or uncertainty is too high.",
+}
+
+LEGACY_PRICE_LABELS = {
+    "Significantly Underpriced": "Very Underpriced",
+    "Fairly Priced": "Fair",
+    "Slightly Overpriced": "Premium",
+    "Significantly Overpriced": "Very Overpriced",
+}
+
+
+def normalize_price_assessment(label):
+    label = str(label or "").strip()
+    return LEGACY_PRICE_LABELS.get(label, label or "—")
+
+
+def render_price_verdict_guide():
+    """Show compact definitions without taking permanent space in the Analysis Log."""
+    with st.expander("Price Assessment & Verdict Guide", expanded=False):
+        left, right = st.columns(2)
+        with left:
+            st.markdown("#### Price Assessment")
+            for label, definition in PRICE_ASSESSMENT_DEFINITIONS.items():
+                st.markdown(f"**{label}** — {definition}")
+        with right:
+            st.markdown("#### Verdict")
+            for label, definition in VERDICT_DEFINITIONS.items():
+                st.markdown(f"**{label}** — {definition}")
 
 
 def decision_label(expected_roi, confidence):
@@ -1127,12 +1173,12 @@ def decision_label(expected_roi, confidence):
 
 def nfl_bottom_line(team, probability, quality, verdict, confidence_band):
     likely = f"Macabets expects {team} to win and assigns a {probability:.1%} win probability."
-    if quality in {"Significantly Underpriced", "Underpriced"}:
+    if quality in {"Very Underpriced", "Underpriced"}:
         price = "The current moneyline is favorable relative to Macabets' fair price."
-    elif quality == "Fairly Priced":
+    elif quality == "Fair":
         price = "The market is close to Macabets' fair price, so the case rests more on conviction than value."
-    elif quality == "Slightly Overpriced":
-        price = "The projected winner is a little expensive, but the number can remain playable when conviction is high."
+    elif quality == "Premium":
+        price = "The projected winner is a little expensive, but the premium is understandable and can remain playable when conviction is high."
     elif quality == "Overpriced":
         price = "The projected winner is expensive, so Macabets requires stronger conviction before accepting the number."
     else:
@@ -1169,8 +1215,9 @@ def _analysis_pricing_report(row):
             "Strong Bet", "Worth Betting", "Lean", "Pass", "Complete Pass"
         }:
             return {
-                "price_assessment": str(explicit_assessment),
+                "price_assessment": normalize_price_assessment(explicit_assessment),
                 "verdict": str(explicit_verdict),
+                "expected_roi": report.get("expected_roi") if isinstance(report, dict) else None,
             }
 
     # Legacy rows may not contain predicted_probability. Rebuild it from the
@@ -1204,11 +1251,12 @@ def _analysis_pricing_report(row):
     if probability is not None and market_odds is not None:
         report = moneyline_price_quality(probability, market_odds, confidence)
         return {
-            "price_assessment": report["price_assessment"],
+            "price_assessment": normalize_price_assessment(report["price_assessment"]),
             "verdict": report["verdict"],
+            "expected_roi": report.get("expected_roi"),
         }
 
-    return {"price_assessment": "—", "verdict": "—"}
+    return {"price_assessment": "—", "verdict": "—", "expected_roi": None}
 
 
 def _analysis_price_assessment(row):
@@ -1218,6 +1266,42 @@ def _analysis_price_assessment(row):
 def _analysis_verdict(row):
     """Show the new verdict language and replace legacy recommendation strings."""
     return _analysis_pricing_report(row)["verdict"]
+
+
+def _analysis_price_verdict_explanation(row):
+    """Explain the selected log entry using its own market line, fair line, confidence and labels."""
+    pricing = _analysis_pricing_report(row)
+    assessment = pricing.get("price_assessment", "—")
+    verdict = pricing.get("verdict", "—")
+    prediction = str(row.get("prediction") or "The predicted winner")
+    actual_line = _analysis_market_line(row)
+    fair_line = str(row.get("fair_line") or "—")
+
+    assessment_text = PRICE_ASSESSMENT_DEFINITIONS.get(assessment, "This label compares the market line with Macabets' fair line.")
+    verdict_text = VERDICT_DEFINITIONS.get(verdict, "This verdict weighs both price and prediction confidence.")
+
+    if assessment == "Premium":
+        specific = (
+            f"{prediction} is priced at {actual_line} versus a Macabets fair line of {fair_line}. "
+            "The favorite is somewhat pricey, but Macabets can understand paying the premium for the more likely winner."
+        )
+    elif assessment in {"Overpriced", "Very Overpriced"}:
+        specific = (
+            f"{prediction} is priced at {actual_line} versus a Macabets fair line of {fair_line}. "
+            "The offered price is meaningfully more expensive than the model's estimate."
+        )
+    elif assessment in {"Underpriced", "Very Underpriced"}:
+        specific = (
+            f"{prediction} is priced at {actual_line} versus a Macabets fair line of {fair_line}. "
+            "The market is offering a more favorable number than the model believes is fair."
+        )
+    else:
+        specific = (
+            f"{prediction} is priced at {actual_line} versus a Macabets fair line of {fair_line}. "
+            "The market and model are close enough that price alone does not create a major edge."
+        )
+
+    return specific, assessment_text, verdict_text
 
 
 def build_matchup_brief(player_a, player_b, scores_a, scores_b, weights):
@@ -4092,6 +4176,7 @@ with tabs[4]:
     with archive_tabs[0]:
         st.subheader("Universal Analysis Log")
         st.caption("Every Tennis and NFL analysis is saved automatically as a frozen snapshot.")
+        render_price_verdict_guide()
 
         warning = st.session_state.pop("analysis_log_warning", None)
         if warning:
@@ -4251,6 +4336,12 @@ with tabs[4]:
                 d4.metric("Fair Line", selected_row.get("fair_line") or "—")
                 d5.metric("Price Assessment", _analysis_price_assessment(selected_row))
                 d6.metric("Verdict", _analysis_verdict(selected_row))
+
+                with st.expander("Why did Macabets give these labels?", expanded=False):
+                    specific, assessment_definition, verdict_definition = _analysis_price_verdict_explanation(selected_row)
+                    st.write(specific)
+                    st.markdown(f"**{_analysis_price_assessment(selected_row)}:** {assessment_definition}")
+                    st.markdown(f"**{_analysis_verdict(selected_row)}:** {verdict_definition}")
 
                 with st.expander("Frozen Analysis Snapshot", expanded=False):
                     st.json(selected_row.get("analysis_snapshot", {}), expanded=False)
