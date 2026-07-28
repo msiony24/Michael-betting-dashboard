@@ -53,7 +53,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.53 — Reopen Analysis From Log"
+APP_VERSION = "Macabets v0.54 — Player Intelligence Foundation"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -2084,6 +2084,37 @@ with tabs[1]:
                                     "Warnings": ", ".join(item.get("flags", [])) or "None",
                                 })
                             st.dataframe(pd.DataFrame(validation_rows), use_container_width=True, hide_index=True)
+
+                    intelligence_a = result.get("player_intelligence_a", {})
+                    intelligence_b = result.get("player_intelligence_b", {})
+                    experience_engine = result.get("experience_engine", {})
+                    if intelligence_a or intelligence_b:
+                        with st.expander("Player Intelligence — v0.54", expanded=False):
+                            profile_rows = []
+                            for label, item, reliability in (
+                                (analyzed_a, intelligence_a, experience_engine.get("reliability_a", 0)),
+                                (analyzed_b, intelligence_b, experience_engine.get("reliability_b", 0)),
+                            ):
+                                profile_rows.append({
+                                    "Player": label,
+                                    "Live ranking": item.get("ranking") or "Unavailable",
+                                    "Career matches": item.get("career_matches", 0),
+                                    f"{result.get('surface', surface)} matches": item.get("surface_matches", {}).get(result.get("surface", surface), 0),
+                                    "Grand Slam matches": item.get("grand_slam_matches", 0),
+                                    "Masters matches": item.get("masters_matches", 0),
+                                    "Top-10 record": item.get("top_10_record", "0-0"),
+                                    "Top-50 record": item.get("top_50_record", "0-0"),
+                                    "Experience reliability": f"{float(reliability):.0%}",
+                                    "API status": item.get("api_source", "unavailable"),
+                                    "Warnings": ", ".join(item.get("data_flags", [])) or "None",
+                                })
+                            st.dataframe(pd.DataFrame(profile_rows), use_container_width=True, hide_index=True)
+                            adjustment = float(experience_engine.get("probability_adjustment_a", 0.0))
+                            advantage = experience_engine.get("advantage", "Even")
+                            st.caption(
+                                f"Experience advantage: {advantage}. Probability adjustment to "
+                                f"{analyzed_a}: {adjustment:+.1%}. This input is capped at ±4%."
+                            )
                     listed_a = safe_int(market_snapshot.get("market_odds_a", market_odds_a), safe_int(market_odds_a, -180))
                     listed_b = safe_int(market_snapshot.get("market_odds_b", market_odds_b), safe_int(market_odds_b, 155))
 

@@ -9,6 +9,12 @@ import unicodedata
 import numpy as np
 import pandas as pd
 
+from .player_profiles import (
+    build_player_profile,
+    compare_experience,
+    experience_reliability,
+)
+
 
 ROUND_MAP = {
     "Qualifying": "Q",
@@ -41,20 +47,59 @@ def canonical_player_key(value: str) -> str:
     return " ".join(tokens)
 
 
+def player_name_signature(value: str) -> tuple[str, str]:
+    """Return (surname, first initial) for full names and provider forms like 'Fritz T.'."""
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    tokens = re.findall(r"[A-Za-z]+", text.casefold())
+    tokens = [t for t in tokens if t not in {"jr", "sr", "ii", "iii", "iv"}]
+    if not tokens:
+        return "", ""
+
+    # tennis-data.co.uk commonly stores players as 'Surname F.' while APIs use 'First Surname'.
+    if len(tokens) >= 2 and len(tokens[-1]) == 1:
+        return tokens[0], tokens[-1]
+    if len(tokens) >= 2:
+        return tokens[-1], tokens[0][0]
+    return tokens[0], ""
+
+
 def resolve_player_name(matches: pd.DataFrame, requested_name: str) -> tuple[str | None, dict]:
-    """Resolve a UI/API name to the exact historical-database display name."""
+    """Resolve API/full names to the historical provider's exact display name."""
     names = pd.concat([matches["winner_name"], matches["loser_name"]]).dropna().astype(str)
+    counts = names.value_counts()
+    unique_names = counts.index.to_series()
+
     exact_key = norm(requested_name)
-    exact_matches = names[names.map(norm).eq(exact_key)]
+    exact_matches = unique_names[unique_names.map(norm).eq(exact_key)]
     if not exact_matches.empty:
-        resolved = exact_matches.value_counts().index[0]
+        resolved = exact_matches.iloc[0]
         return resolved, {"requested": requested_name, "resolved": resolved, "method": "exact"}
 
     canonical_key = canonical_player_key(requested_name)
-    canonical_matches = names[names.map(canonical_player_key).eq(canonical_key)]
+    canonical_matches = unique_names[unique_names.map(canonical_player_key).eq(canonical_key)]
     if not canonical_matches.empty:
-        resolved = canonical_matches.value_counts().index[0]
+        resolved = canonical_matches.iloc[0]
         return resolved, {"requested": requested_name, "resolved": resolved, "method": "canonical"}
+
+    requested_signature = player_name_signature(requested_name)
+    signature_matches = unique_names[unique_names.map(lambda value: player_name_signature(value) == requested_signature)]
+    if len(signature_matches) == 1:
+        resolved = signature_matches.iloc[0]
+        return resolved, {"requested": requested_name, "resolved": resolved, "method": "surname_initial"}
+    if len(signature_matches) > 1:
+        # Use the most frequently occurring database spelling only when it clearly dominates.
+        ranked = [(name, int(counts.get(name, 0))) for name in signature_matches.tolist()]
+        ranked.sort(key=lambda item: item[1], reverse=True)
+        if len(ranked) == 1 or ranked[0][1] >= ranked[1][1] * 2:
+            resolved = ranked[0][0]
+            return resolved, {"requested": requested_name, "resolved": resolved, "method": "surname_initial_frequency"}
+        return None, {
+            "requested": requested_name,
+            "resolved": None,
+            "method": "ambiguous_surname_initial",
+            "candidates": [name for name, _ in ranked[:5]],
+        }
 
     return None, {"requested": requested_name, "resolved": None, "method": "not_found"}
 
@@ -632,18 +677,22 @@ def surface_transition_profile(
 
 
 def style_profile(profile_data: dict, manual_style: str = "Auto") -> dict:
-    """Create a transparent high-level playing-style label."""
+    """Create a style label only when serve/return inputs are actually available."""
+    serve = profile_data.get("serve_points_won", np.nan)
+    ret = profile_data.get("return_points_won", np.nan)
     if manual_style and manual_style != "Auto":
+        return {"label": manual_style, "serve_score": serve, "return_score": ret, "manual": True, "available": True}
+    if pd.isna(serve) or pd.isna(ret):
         return {
-            "label": manual_style,
-            "serve_score": float(profile_data["serve_points_won"]),
-            "return_score": float(profile_data["return_points_won"]),
-            "manual": True,
+            "label": "Style data unavailable",
+            "serve_score": np.nan,
+            "return_score": np.nan,
+            "manual": False,
+            "available": False,
         }
 
-    serve = float(profile_data["serve_points_won"])
-    ret = float(profile_data["return_points_won"])
-
+    serve = float(serve)
+    ret = float(ret)
     if serve >= 0.665 and ret < 0.385:
         label = "Big Server"
     elif ret >= 0.405 and serve < 0.635:
@@ -654,13 +703,7 @@ def style_profile(profile_data: dict, manual_style: str = "Auto") -> dict:
         label = "Counterpuncher"
     else:
         label = "Balanced Baseliner"
-
-    return {
-        "label": label,
-        "serve_score": serve,
-        "return_score": ret,
-        "manual": False,
-    }
+    return {"label": label, "serve_score": serve, "return_score": ret, "manual": False, "available": True}
 
 
 def style_matchup_adjustment(
@@ -671,6 +714,9 @@ def style_matchup_adjustment(
     surface: str,
 ) -> tuple[float, str]:
     """Small matchup adjustment; capped because style tags are coarse."""
+    if not style_a.get("available", True) or not style_b.get("available", True):
+        return 0.0, "Automatic style adjustment skipped because verified serve/return inputs are unavailable"
+
     a = style_a["label"]
     b = style_b["label"]
     surface_key = str(surface).casefold()
@@ -791,6 +837,21 @@ def analyze(
     pa = profile(rows_a, surface, event_date)
     pb = profile(rows_b, surface, event_date)
 
+    # Build reusable long-term player intelligence profiles. API enrichment is
+    # optional and safely falls back to the historical database when unavailable.
+    intelligence_a = build_player_profile(
+        matches, resolved_a, event_date, include_api=True
+    )
+    intelligence_b = build_player_profile(
+        matches, resolved_b, event_date, include_api=True
+    )
+    intelligence_a.requested_name = player_a
+    intelligence_b.requested_name = player_b
+    experience = compare_experience(
+        intelligence_a, intelligence_b, surface,
+        maximum_probability_adjustment=0.04,
+    )
+
     validation_errors = []
     for requested, resolved, profile_data in (
         (player_a, resolved_a, pa), (player_b, resolved_b, pb)
@@ -799,10 +860,6 @@ def analyze(
             validation_errors.append(f"{requested}: only {profile_data['sample']} matches in the two-year sample")
         if pd.isna(profile_data["rank"]):
             validation_errors.append(f"{requested}: ranking unavailable")
-        if pd.isna(profile_data["serve_points_won"]):
-            validation_errors.append(f"{requested}: serve statistics unavailable")
-        if pd.isna(profile_data["return_points_won"]):
-            validation_errors.append(f"{requested}: return statistics unavailable")
 
     if validation_errors:
         raise TennisDataValidationError(
@@ -863,15 +920,31 @@ def analyze(
         + weights["ranking"] * rank_p
     )
 
-    serve_difference = pa["serve_points_won"] - pb["serve_points_won"]
-    return_difference = pa["return_points_won"] - pb["return_points_won"]
-    matchup = float(np.clip(
-        (
-            serve_difference * weights["serve"]
-            + return_difference * weights["return"]
-        ) * .35,
-        -.055, .055
-    ))
+    serve_return_available = all(
+        pd.notna(value) for value in (
+            pa["serve_points_won"], pb["serve_points_won"],
+            pa["return_points_won"], pb["return_points_won"],
+        )
+    )
+    if serve_return_available:
+        serve_difference = pa["serve_points_won"] - pb["serve_points_won"]
+        return_difference = pa["return_points_won"] - pb["return_points_won"]
+        matchup = float(np.clip(
+            (serve_difference * weights["serve"] + return_difference * weights["return"]) * .35,
+            -.055, .055
+        ))
+        matchup_reason = (
+            f"{surface}, {environment}, {match_format}: serve weight {weights['serve']:.2f}x and "
+            f"return weight {weights['return']:.2f}x. Profiles: {player_a} "
+            f"{pa['serve_points_won']:.1%}/{pa['return_points_won']:.1%}; "
+            f"{player_b} {pb['serve_points_won']:.1%}/{pb['return_points_won']:.1%}."
+        )
+    else:
+        matchup = 0.0
+        matchup_reason = (
+            "Serve/return point totals are not supplied by the current historical provider, "
+            "so this factor was excluded rather than filled with placeholder values."
+        )
     form = float(np.clip(
         (pa["recent_win"] - pb["recent_win"]) * .04 * weights["form"],
         -.045, .045
@@ -956,24 +1029,41 @@ def analyze(
         -.03, .03
     ))
 
+    # Form, opponent strength and surface win rate overlap with Elo and ranking.
+    # Discount them as a group so the same underlying performance is not counted repeatedly.
+    correlated_discount = 0.65
+    form *= correlated_discount
+    opponent_strength *= correlated_discount
+    surface_adj *= correlated_discount
+
+    experience_adjustment = float(experience["probability_adjustment_a"])
+    experience_reason = (
+        f"Career matches: {player_a} {intelligence_a.career_matches}, "
+        f"{player_b} {intelligence_b.career_matches}. {surface} matches: "
+        f"{player_a} {experience['surface_matches_a']}, "
+        f"{player_b} {experience['surface_matches_b']}. Grand Slam/Masters matches: "
+        f"{player_a} {intelligence_a.grand_slam_matches + intelligence_a.masters_matches}, "
+        f"{player_b} {intelligence_b.grand_slam_matches + intelligence_b.masters_matches}. "
+        f"The experience impact is capped at ±{experience['maximum_adjustment']:.0%}."
+    )
+
     factors = [
-        ("Context-weighted matchup", matchup,
-         f"{surface}, {environment}, {match_format}: serve weight {weights['serve']:.2f}x and "
-         f"return weight {weights['return']:.2f}x. Profiles: {player_a} "
-         f"{pa['serve_points_won']:.1%}/{pa['return_points_won']:.1%}; "
-         f"{player_b} {pb['serve_points_won']:.1%}/{pb['return_points_won']:.1%}."),
+        ("Experience Engine", experience_adjustment, experience_reason),
+        ("Context-weighted matchup", matchup, matchup_reason),
         ("Context-weighted recent form", form,
          f"Last-10 win rate: {player_a} {pa['recent_win']:.0%}; {player_b} "
-         f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x."),
+         f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x. "
+         f"A correlation discount is applied because recent form overlaps with Elo."),
         ("Opponent strength", opponent_strength,
          f"Recent opposition score: {player_a} "
          f"{opponent_strength_a['strength_score']:.0%} vs {player_b} "
          f"{opponent_strength_b['strength_score']:.0%}. Average opponent Elo: "
          f"{opponent_strength_a['avg_opponent_elo']:.0f} vs "
-         f"{opponent_strength_b['avg_opponent_elo']:.0f}."),
+         f"{opponent_strength_b['avg_opponent_elo']:.0f}. A correlation discount is applied."),
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
-         f"{player_b} {pb['surface_win']:.0%}."),
+         f"{player_b} {pb['surface_win']:.0%}. A correlation discount is applied because "
+         f"surface results overlap with surface Elo."),
         ("Fatigue 2.0", fatigue,
          f"{player_a}: {fatigue_profile_a['matches_7']} matches, "
          f"{fatigue_profile_a['sets_7']} sets, {fatigue_profile_a['deciders_7']} deciders "
@@ -1012,23 +1102,44 @@ def analyze(
          f"{player_b} {pb['deciding_win']:.0%}."),
     ]
 
-    final_model = float(np.clip(base + sum(v for _, v, _ in factors), .05, .95))
+    # Cap the combined secondary adjustment. Context should refine the core rating,
+    # not overpower it when several related factors all point in the same direction.
+    total_adjustment = float(np.clip(sum(v for _, v, _ in factors), -0.12, 0.12))
+    raw_model = float(np.clip(base + total_adjustment, 0.05, 0.95))
+
+    # Calibrate extreme outputs back toward 50%. Sparse data receives more shrinkage.
+    minimum_sample = min(pa["sample"], pb["sample"])
+    if minimum_sample >= 40 and serve_return_available:
+        calibration_strength = 0.88
+    elif minimum_sample >= 20:
+        calibration_strength = 0.82
+    else:
+        calibration_strength = 0.76
+    final_model = float(np.clip(
+        0.50 + (raw_model - 0.50) * calibration_strength,
+        0.08,
+        0.92,
+    ))
     best_of_five = str(match_format).casefold() == "best of 5"
     simulation = simulate_matches(final_model, simulations, best_of_five)
 
     sample = min(pa["sample"], pb["sample"])
     quality = int(np.clip(round(3 + min(sample, 50) / 8), 3, 10))
+    if not serve_return_available:
+        quality = max(3, quality - 2)
     uncertainty_penalty = (
         int(injury_status_a != "Clear")
         + int(injury_status_b != "Clear")
         + int(style_a == "Auto")
         + int(style_b == "Auto")
     ) * 0.25
+    sample_reliability = min(sample / 40.0, 1.0)
     confidence = int(np.clip(
         round(
-            5
-            + abs(simulation["win_probability"] - .5) * 8
-            + (quality - 6) * .3
+            4.5
+            + abs(simulation["win_probability"] - .5) * 6
+            + (quality - 6) * .4
+            + sample_reliability
             - uncertainty_penalty
         ),
         1,
@@ -1074,6 +1185,9 @@ def analyze(
             },
         },
         "base_probability": base,
+        "raw_model_probability": raw_model,
+        "total_secondary_adjustment": total_adjustment,
+        "calibration_strength": calibration_strength,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
         "fair_line": american_from_probability(simulation["win_probability"]),
@@ -1083,6 +1197,13 @@ def analyze(
         "surface_elo": (sa, sb),
         "profile_a": pa,
         "profile_b": pb,
+        "player_intelligence_a": intelligence_a.to_dict(),
+        "player_intelligence_b": intelligence_b.to_dict(),
+        "experience_engine": {
+            **experience,
+            "reliability_a": experience_reliability(intelligence_a),
+            "reliability_b": experience_reliability(intelligence_b),
+        },
         "data_validation": {
             "status": "verified",
             "player_a": {
