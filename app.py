@@ -2032,16 +2032,16 @@ with tabs[1]:
                     st.markdown("**Macabets Take**")
                     if matchup_context["active"]:
                         st.info(matchup_context["message"])
-                    elif h2h["meetings"] == 0:
+                    elif h2h_context["meetings"] == 0:
                         st.info(
                             "These players have no previous meetings in the available Macabets data. "
                             "The evaluation is driven by current form, surface performance, playing style "
                             "and overall player strength."
                         )
-                    elif h2h["meetings"] < 4:
+                    elif h2h_context["meetings"] < 4:
                         st.info(
-                            f"These players have met only {h2h['meetings']} time"
-                            f"{'s' if h2h['meetings'] != 1 else ''}, so Macabets places very little weight "
+                            f"These players have met only {h2h_context['meetings']} time"
+                            f"{'s' if h2h_context['meetings'] != 1 else ''}, so Macabets places very little weight "
                             "on the head-to-head record. Current form and underlying performance remain "
                             "the primary drivers of the prediction."
                         )
