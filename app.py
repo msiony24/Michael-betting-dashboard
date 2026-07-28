@@ -53,7 +53,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.52 — Reopen Analysis From Log"
+APP_VERSION = "Macabets v0.53 — Reopen Analysis From Log"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -2026,15 +2026,23 @@ with tabs[1]:
                                 "environment": environment,
                                 "match_format": match_format,
                             }
-                            st.session_state["tennis_analysis_log_pending"] = _analysis_event_token(
-                                "Tennis",
-                                {
-                                    "player_a": player_a, "player_b": player_b,
-                                    "match_date": match_date.isoformat(),
-                                    "market_odds_a": int(market_odds_a),
-                                    "market_odds_b": int(market_odds_b),
-                                },
+                            suppress_log = bool(
+                                st.session_state.pop("suppress_next_tennis_log", False)
                             )
+                            if suppress_log:
+                                # Clear any stale pending token so the reopened analysis is
+                                # displayed but never inserted as a duplicate log entry.
+                                st.session_state.pop("tennis_analysis_log_pending", None)
+                            else:
+                                st.session_state["tennis_analysis_log_pending"] = _analysis_event_token(
+                                    "Tennis",
+                                    {
+                                        "player_a": player_a, "player_b": player_b,
+                                        "match_date": match_date.isoformat(),
+                                        "market_odds_a": int(market_odds_a),
+                                        "market_odds_b": int(market_odds_b),
+                                    },
+                                )
                             if auto_analysis_requested:
                                 st.session_state["daily_slate_analysis_ready"] = (
                                     f"Analysis completed for {player_a} vs {player_b}. "
@@ -4456,6 +4464,9 @@ with tabs[4]:
                                 "auto_market_b": safe_int(odds_b, 155),
                                 "auto_simulations": safe_int(original_inputs.get("simulations", 20000), 20000),
                             }
+                            # Reopening is for review only. Rerun the current model without
+                            # creating a second Analysis Log entry for the same matchup.
+                            st.session_state.suppress_next_tennis_log = True
                             st.session_state.run_analysis_from_daily_slate = True
                             st.session_state.open_analysis_engine_tab = True
                             st.session_state.reopened_analysis_notice = (
