@@ -53,8 +53,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.56 — Betting Intelligence Foundation"
-BUILD_DATE = "July 28, 2026"
+APP_VERSION = "Macabets v0.57 — Match Intelligence"
+BUILD_DATE = "July 30, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -2366,18 +2366,28 @@ with tabs[1]:
                     archetype_b = result.get("player_archetype_b", {})
 
                     if match_intelligence:
-                        st.markdown("#### Player Archetypes")
+                        st.markdown("#### Player Identities")
                         arch1, arch2 = st.columns(2)
                         with arch1:
-                            st.markdown(f"**{analyzed_a}: {archetype_a.get('label', 'Unavailable')}**")
-                            for trait in archetype_a.get("traits", []):
+                            st.markdown(f"**{analyzed_a}: {archetype_a.get('identity', 'Unavailable')}**")
+                            st.markdown("**Strengths**")
+                            for trait in archetype_a.get("strengths", []):
                                 st.markdown(f"- {trait}")
-                            st.caption(f"Archetype reliability: {archetype_a.get('reliability', '—')}")
+                            st.markdown("**Watch For**")
+                            for trait in archetype_a.get("watch_for", []):
+                                st.markdown(f"- {trait}")
+                            if archetype_a.get("preferred_pattern"):
+                                st.caption(f"Preferred pattern: {archetype_a['preferred_pattern']}")
                         with arch2:
-                            st.markdown(f"**{analyzed_b}: {archetype_b.get('label', 'Unavailable')}**")
-                            for trait in archetype_b.get("traits", []):
+                            st.markdown(f"**{analyzed_b}: {archetype_b.get('identity', 'Unavailable')}**")
+                            st.markdown("**Strengths**")
+                            for trait in archetype_b.get("strengths", []):
                                 st.markdown(f"- {trait}")
-                            st.caption(f"Archetype reliability: {archetype_b.get('reliability', '—')}")
+                            st.markdown("**Watch For**")
+                            for trait in archetype_b.get("watch_for", []):
+                                st.markdown(f"- {trait}")
+                            if archetype_b.get("preferred_pattern"):
+                                st.caption(f"Preferred pattern: {archetype_b['preferred_pattern']}")
 
                         st.markdown("#### Matchup Stability & Volatility")
                         intel1, intel2, intel3 = st.columns(3)
