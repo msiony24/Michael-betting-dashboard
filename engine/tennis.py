@@ -790,6 +790,218 @@ def motivation_score(
     return score
 
 
+
+def detailed_player_archetype(profile_data: dict, style_data: dict, surface: str) -> dict:
+    """Build a richer, evidence-limited archetype without inventing unavailable traits."""
+    serve = profile_data.get("serve_points_won", np.nan)
+    ret = profile_data.get("return_points_won", np.nan)
+    surface_win = profile_data.get("surface_win", np.nan)
+    base_style = str(style_data.get("label", "Style data unavailable"))
+
+    if pd.isna(serve) or pd.isna(ret):
+        return {
+            "label": base_style,
+            "base_style": base_style,
+            "traits": ["Verified serve/return detail is unavailable"],
+            "reliability": "Low",
+        }
+
+    serve = float(serve)
+    ret = float(ret)
+    traits = []
+    if serve >= 0.665:
+        traits.append("serve-led point construction")
+    elif serve < 0.625:
+        traits.append("limited free-point production")
+    else:
+        traits.append("balanced serving profile")
+
+    if ret >= 0.405:
+        traits.append("strong return pressure")
+    elif ret < 0.380:
+        traits.append("return-dependent vulnerability")
+    else:
+        traits.append("average return pressure")
+
+    if base_style == "Big Server":
+        label = "Serve-First Aggressor"
+    elif base_style == "Elite Returner":
+        label = "Return-Pressure Baseliner"
+    elif base_style == "Aggressive All-Court":
+        label = "Two-Way First-Strike Player"
+    elif base_style == "Counterpuncher":
+        label = "Defensive Counterpuncher"
+    else:
+        label = "Balanced Baseline Player"
+
+    if str(surface).casefold() == "clay" and ret >= 0.400:
+        label = "Clay-Court Return Grinder"
+    elif str(surface).casefold() in {"grass", "carpet"} and serve >= 0.655:
+        label = "Fast-Court Serve Aggressor"
+
+    if pd.notna(surface_win):
+        traits.append(f"{surface} win rate {float(surface_win):.0%}")
+
+    sample = min(
+        int(profile_data.get("serve_sample", 0) or 0),
+        int(profile_data.get("return_sample", 0) or 0),
+    )
+    reliability = "High" if sample >= 15 else "Moderate" if sample >= 6 else "Low"
+    return {
+        "label": label,
+        "base_style": base_style,
+        "traits": traits,
+        "reliability": reliability,
+    }
+
+
+def build_match_intelligence(
+    player_a: str,
+    player_b: str,
+    probability_a: float,
+    profile_a: dict,
+    profile_b: dict,
+    archetype_a: dict,
+    archetype_b: dict,
+    factors: list[tuple[str, float, str]],
+    simulation: dict,
+    fatigue_a: dict,
+    fatigue_b: dict,
+    transition_a: dict,
+    transition_b: dict,
+    injury_status_a: str,
+    injury_status_b: str,
+) -> dict:
+    """Describe stability, volatility and realistic upset paths separately from price."""
+    probability_a = float(np.clip(probability_a, 0.01, 0.99))
+    favorite_is_a = probability_a >= 0.50
+    favorite = player_a if favorite_is_a else player_b
+    underdog = player_b if favorite_is_a else player_a
+    favorite_probability = probability_a if favorite_is_a else 1 - probability_a
+
+    signed_for_favorite = [impact if favorite_is_a else -impact for _, impact, _ in factors]
+    material = [value for value in signed_for_favorite if abs(value) >= 0.004]
+    supporting = sum(value > 0 for value in material)
+    opposing = sum(value < 0 for value in material)
+    consensus = supporting / max(supporting + opposing, 1)
+
+    minimum_sample = min(int(profile_a.get("sample", 0)), int(profile_b.get("sample", 0)))
+    sample_score = min(minimum_sample / 40.0, 1.0)
+    surface_sample = min(int(profile_a.get("surface_sample", 0)), int(profile_b.get("surface_sample", 0)))
+    surface_score = min(surface_sample / 20.0, 1.0)
+
+    deciding = float(simulation.get("deciding_set", 0.0) or 0.0)
+    closeness = 1.0 - min(abs(favorite_probability - 0.50) / 0.42, 1.0)
+
+    serves = [profile_a.get("serve_points_won", np.nan), profile_b.get("serve_points_won", np.nan)]
+    returns = [profile_a.get("return_points_won", np.nan), profile_b.get("return_points_won", np.nan)]
+    if all(pd.notna(value) for value in serves + returns):
+        serve_dominance = float(np.clip((np.mean(serves) - np.mean(returns) - 0.245) / 0.055, 0.0, 1.0))
+    else:
+        serve_dominance = 0.45
+
+    health_uncertainty = min(
+        int(injury_status_a != "Clear") + int(injury_status_b != "Clear"), 2
+    ) / 2.0
+    transition_uncertainty = abs(
+        float(transition_a.get("adaptation_score", 0.5))
+        - float(transition_b.get("adaptation_score", 0.5))
+    )
+    fatigue_gap = min(abs(float(fatigue_a.get("score", 0.0)) - float(fatigue_b.get("score", 0.0))) / 8.0, 1.0)
+
+    volatility = round(100 * np.clip(
+        0.34 * deciding
+        + 0.25 * closeness
+        + 0.18 * serve_dominance
+        + 0.10 * health_uncertainty
+        + 0.07 * transition_uncertainty
+        + 0.06 * fatigue_gap,
+        0.0,
+        1.0,
+    ))
+
+    stability = round(100 * np.clip(
+        0.31 * ((favorite_probability - 0.50) / 0.42)
+        + 0.25 * consensus
+        + 0.18 * sample_score
+        + 0.10 * surface_score
+        + 0.16 * (1.0 - volatility / 100.0),
+        0.0,
+        1.0,
+    ))
+
+    def band(score: int, high_good: bool = True) -> str:
+        if high_good:
+            return "Elite" if score >= 85 else "Strong" if score >= 70 else "Moderate" if score >= 55 else "Fragile"
+        return "Extreme" if score >= 75 else "High" if score >= 60 else "Moderate" if score >= 40 else "Low"
+
+    path_templates = {
+        "Experience Engine": f"{underdog} can shorten the experience gap by starting quickly and preventing the match from becoming a composure test.",
+        "Context-weighted matchup": f"{underdog} can win by attacking the favorite's weaker serve-or-return pattern and controlling first-strike points.",
+        "Context-weighted recent form": f"{underdog} has a path if recent form carries over and {favorite} fails to reach its normal level.",
+        "Opponent strength": f"{underdog}'s recent competition may have prepared them better for the pace and quality of this matchup.",
+        "Surface": f"{underdog} can turn the match into surface-specific patterns where their recent results have been stronger.",
+        "Fatigue 2.0": f"{underdog} can extend rallies and sets, forcing {favorite} to pay for the heavier recent workload.",
+        "Surface transition": f"{underdog} can build an early lead while {favorite} is still adjusting timing and movement to the surface.",
+        "Style matchup": f"{underdog}'s archetype can disrupt {favorite}'s preferred patterns and force an uncomfortable plan B.",
+        "Injury / retirement risk": f"Any physical limitation to {favorite} creates a direct upset path through reduced movement, serve quality or endurance.",
+        "Tournament motivation": f"{underdog} can close the talent gap by bringing greater urgency to the event and key points.",
+        "Draw context": f"Tournament circumstances may give {underdog} the freer competitive position.",
+        "Event pressure": f"{underdog} can win if {favorite} tightens in the important games and pressure execution swings the match.",
+        "Deciding-match history": f"If the match reaches a deciding set, {underdog}'s late-match history becomes a credible upset route.",
+    }
+
+    opposing_factors = []
+    for name, impact, reason in factors:
+        favorite_impact = impact if favorite_is_a else -impact
+        if favorite_impact < -0.002:
+            opposing_factors.append((abs(favorite_impact), name, reason))
+    opposing_factors.sort(reverse=True)
+
+    upset_paths = []
+    for _, name, _ in opposing_factors[:3]:
+        text = path_templates.get(name)
+        if text and text not in upset_paths:
+            upset_paths.append(text)
+
+    if deciding >= 0.38:
+        upset_paths.append(f"A long match or deciding set increases variance and gives {underdog} more chances to flip a small number of key points.")
+    if serve_dominance >= 0.60:
+        upset_paths.append(f"Serve-heavy conditions can compress the match into tiebreaks, where a few points can erase {favorite}'s broader edge.")
+    if not upset_paths:
+        upset_paths.append(f"{underdog}'s clearest route is to neutralize {favorite}'s main advantage early and force a higher-variance match than projected.")
+
+    drivers = []
+    if deciding >= 0.38:
+        drivers.append("high deciding-set probability")
+    if serve_dominance >= 0.60:
+        drivers.append("serve-driven point variance")
+    if closeness >= 0.60:
+        drivers.append("limited separation between the players")
+    if health_uncertainty > 0:
+        drivers.append("health uncertainty")
+    if opposing >= 2:
+        drivers.append("several factors supporting the underdog")
+    if not drivers:
+        drivers.append("few major structural upset signals")
+
+    return {
+        "favorite": favorite,
+        "underdog": underdog,
+        "favorite_probability": favorite_probability,
+        "stability_score": int(stability),
+        "stability_band": band(int(stability), True),
+        "volatility_score": int(volatility),
+        "volatility_band": band(int(volatility), False),
+        "factor_consensus": float(consensus),
+        "supporting_factors": int(supporting),
+        "opposing_factors": int(opposing),
+        "drivers": drivers[:4],
+        "upset_paths": upset_paths[:4],
+        "archetype_a": archetype_a,
+        "archetype_b": archetype_b,
+    }
+
 def analyze(
     matches: pd.DataFrame,
     player_a: str,
@@ -1123,6 +1335,26 @@ def analyze(
     best_of_five = str(match_format).casefold() == "best of 5"
     simulation = simulate_matches(final_model, simulations, best_of_five)
 
+    archetype_a = detailed_player_archetype(pa, playing_style_a, surface)
+    archetype_b = detailed_player_archetype(pb, playing_style_b, surface)
+    match_intelligence = build_match_intelligence(
+        player_a=player_a,
+        player_b=player_b,
+        probability_a=simulation["win_probability"],
+        profile_a=pa,
+        profile_b=pb,
+        archetype_a=archetype_a,
+        archetype_b=archetype_b,
+        factors=factors,
+        simulation=simulation,
+        fatigue_a=fatigue_profile_a,
+        fatigue_b=fatigue_profile_b,
+        transition_a=transition_a,
+        transition_b=transition_b,
+        injury_status_a=injury_status_a,
+        injury_status_b=injury_status_b,
+    )
+
     sample = min(pa["sample"], pb["sample"])
     quality = int(np.clip(round(3 + min(sample, 50) / 8), 3, 10))
     if not serve_return_available:
@@ -1233,5 +1465,8 @@ def analyze(
             {"name": name, "impact": impact, "reason": reason}
             for name, impact, reason in factors
         ],
+        "player_archetype_a": archetype_a,
+        "player_archetype_b": archetype_b,
+        "match_intelligence": match_intelligence,
         "simulation": simulation,
     }
