@@ -9,6 +9,7 @@ import unicodedata
 import numpy as np
 import pandas as pd
 
+from .player_identities import get_player_identity
 from .player_profiles import (
     build_player_profile,
     compare_experience,
@@ -1335,8 +1336,9 @@ def analyze(
     best_of_five = str(match_format).casefold() == "best of 5"
     simulation = simulate_matches(final_model, simulations, best_of_five)
 
-    archetype_a = detailed_player_archetype(pa, playing_style_a, surface)
-    archetype_b = detailed_player_archetype(pb, playing_style_b, surface)
+    # Narrative identities are explanation-only and do not feed the model.
+    archetype_a = get_player_identity(player_a, pa, playing_style_a, surface)
+    archetype_b = get_player_identity(player_b, pb, playing_style_b, surface)
     match_intelligence = build_match_intelligence(
         player_a=player_a,
         player_b=player_b,
