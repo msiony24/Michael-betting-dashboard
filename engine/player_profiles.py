@@ -181,8 +181,17 @@ def build_player_profile(
     *,
     api_client: APITennisClient | None = None,
     include_api: bool = True,
+    use_store: bool = True,
 ) -> PlayerProfile:
-    """Build a stable profile from historical data, then enrich it with API standings."""
+    """Build a stable profile, preferring the daily store when it is safe to use."""
+    if use_store:
+        try:
+            from .player_intelligence_store import get_stored_profile
+            stored = get_stored_profile(player_name, event_date=event_date)
+            if stored is not None:
+                return stored
+        except Exception:
+            pass
     historical_name = _find_historical_name(matches, player_name)
     profile = PlayerProfile(
         requested_name=player_name,
