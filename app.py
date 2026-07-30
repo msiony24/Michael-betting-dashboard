@@ -2361,6 +2361,56 @@ with tabs[1]:
                             "relies primarily on current form, surface performance and overall player strength."
                         )
 
+                    match_intelligence = result.get("match_intelligence", {})
+                    archetype_a = result.get("player_archetype_a", {})
+                    archetype_b = result.get("player_archetype_b", {})
+
+                    if match_intelligence:
+                        st.markdown("#### Player Archetypes")
+                        arch1, arch2 = st.columns(2)
+                        with arch1:
+                            st.markdown(f"**{analyzed_a}: {archetype_a.get('label', 'Unavailable')}**")
+                            for trait in archetype_a.get("traits", []):
+                                st.markdown(f"- {trait}")
+                            st.caption(f"Archetype reliability: {archetype_a.get('reliability', '—')}")
+                        with arch2:
+                            st.markdown(f"**{analyzed_b}: {archetype_b.get('label', 'Unavailable')}**")
+                            for trait in archetype_b.get("traits", []):
+                                st.markdown(f"- {trait}")
+                            st.caption(f"Archetype reliability: {archetype_b.get('reliability', '—')}")
+
+                        st.markdown("#### Matchup Stability & Volatility")
+                        intel1, intel2, intel3 = st.columns(3)
+                        intel1.metric(
+                            "Matchup Stability",
+                            f"{match_intelligence.get('stability_score', 0)}/100",
+                            match_intelligence.get("stability_band", "—"),
+                        )
+                        intel2.metric(
+                            "Volatility",
+                            f"{match_intelligence.get('volatility_score', 0)}/100",
+                            match_intelligence.get("volatility_band", "—"),
+                        )
+                        intel3.metric(
+                            "Factor Consensus",
+                            f"{match_intelligence.get('factor_consensus', 0):.0%}",
+                            f"{match_intelligence.get('supporting_factors', 0)} support / "
+                            f"{match_intelligence.get('opposing_factors', 0)} oppose",
+                        )
+                        st.caption(
+                            "Stability measures how repeatable the projected edge appears. Volatility measures "
+                            "how easily tiebreaks, close-set variance, health, fatigue or conflicting matchup "
+                            "signals could disrupt the prediction. Neither score considers the sportsbook price."
+                        )
+
+                        st.markdown("**Primary volatility drivers**")
+                        for driver in match_intelligence.get("drivers", []):
+                            st.markdown(f"- {driver.capitalize()}")
+
+                        st.markdown(f"#### Upset Paths for {match_intelligence.get('underdog', 'the underdog')}")
+                        for path in match_intelligence.get("upset_paths", []):
+                            st.markdown(f"- {path}")
+
                     st.markdown("#### Objective Match Price")
                     m1, m2, m3, m4 = st.columns(4)
                     m1.metric(
