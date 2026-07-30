@@ -53,7 +53,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.55 — Persistent Player Intelligence"
+APP_VERSION = "Macabets v0.56 — Betting Intelligence Foundation"
 BUILD_DATE = "July 28, 2026"
 
 st.set_page_config(
@@ -1619,7 +1619,7 @@ pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
 tabs = st.tabs([
     "Dashboard", "Analysis Engine", "Bets",
-    "Daily Slate", "Archive", "Settings"
+    "Daily Slate", "Archive", "Settings", "Information"
 ])
 
 # Streamlit does not expose a native API for selecting a top-level tab. When an
@@ -4819,3 +4819,90 @@ with tabs[5]:
 
     st.markdown("#### Current Analysis Data")
     st.dataframe(normalize_analyses(st.session_state.analyses), use_container_width=True, hide_index=True)
+
+
+with tabs[6]:
+    st.subheader("How to Read Macabets Betting Grades")
+    st.caption(
+        "Macabets separates winner prediction accuracy from whether the offered moneyline is worth betting."
+    )
+
+    st.markdown("### The Three-Part Decision")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("#### 1. Winner Prediction")
+        st.write(
+            "Who Macabets believes is most likely to win. Every prediction can be graded for accuracy, "
+            "even when the betting verdict is Pass."
+        )
+    with c2:
+        st.markdown("#### 2. Matchup Quality")
+        st.write(
+            "How stable and repeatable the projected result appears after considering surface, style, "
+            "serve-return interaction, fatigue, form and realistic upset paths."
+        )
+    with c3:
+        st.markdown("#### 3. Price Decision")
+        st.write(
+            "Whether the current moneyline is acceptable after weighing Macabets' fair line, matchup "
+            "quality, confidence and risk. A slightly expensive favorite can still be playable."
+        )
+
+    st.divider()
+    st.markdown("### Betting Grades")
+    grade_rows = [
+        {
+            "Grade": "Strong Bet",
+            "Meaning": "One of the strongest opportunities on the board.",
+            "What Macabets sees": "High conviction, strong matchup structure and an acceptable or favorable price.",
+        },
+        {
+            "Grade": "Worth Betting",
+            "Meaning": "A bet Macabets believes is justified.",
+            "What Macabets sees": "The price and matchup are strong enough together to support a wager, even if the line is not perfect.",
+        },
+        {
+            "Grade": "Lean",
+            "Meaning": "A smaller or more cautious betting case.",
+            "What Macabets sees": "A preferred side exists, but the edge, stability or price is not strong enough for a full recommendation.",
+        },
+        {
+            "Grade": "Pass",
+            "Meaning": "Likely winner, but not a good enough bet at the current number.",
+            "What Macabets sees": "The player may still be favored to win, but price, volatility or matchup risk makes the wager unattractive.",
+        },
+        {
+            "Grade": "Complete Pass",
+            "Meaning": "Stay away from the wager.",
+            "What Macabets sees": "The price is too poor, confidence is too low, uncertainty is too high, or the underdog has too many realistic upset paths.",
+        },
+    ]
+    st.dataframe(pd.DataFrame(grade_rows), use_container_width=True, hide_index=True)
+
+    st.info(
+        "Important: Macabets does not automatically pass a bet just because the market line is worse "
+        "than its fair line. It also evaluates whether this specific matchup is stable enough to justify "
+        "paying a reasonable premium."
+    )
+
+    st.markdown("### Price Assessment Terms")
+    price_rows = [
+        {"Label": label, "Definition": definition}
+        for label, definition in PRICE_ASSESSMENT_DEFINITIONS.items()
+    ]
+    st.dataframe(pd.DataFrame(price_rows), use_container_width=True, hide_index=True)
+
+    st.markdown("### Example: Same Price, Different Decision")
+    left, right = st.columns(2)
+    with left:
+        st.success("Worth Betting at -340")
+        st.write(
+            "The favorite has a highly stable matchup, multiple paths to victory, limited fatigue or injury risk, "
+            "and the underdog has very few realistic upset paths."
+        )
+    with right:
+        st.warning("Pass at -340")
+        st.write(
+            "The favorite is still likely to win, but the matchup is volatile, the underdog has a dangerous weapon, "
+            "or the price does not compensate for the added risk."
+        )
