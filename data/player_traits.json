@@ -1,0 +1,582 @@
+{
+  "_metadata": {
+    "version": "1.0",
+    "tour": "ATP",
+    "profile_type": "static_curated",
+    "rating_scale": {
+      "1": "Below Average",
+      "2": "Average",
+      "3": "Good",
+      "4": "Very Good",
+      "5": "Elite"
+    },
+    "valid_playing_styles": [
+      "First Strike Baseliner",
+      "Aggressive Baseliner",
+      "Counterpuncher",
+      "All-Court Attacker",
+      "Serve-Dominant Attacker",
+      "Heavy Topspin Baseliner",
+      "Defensive Baseliner"
+    ],
+    "valid_court_positions": [
+      "Baseline",
+      "Aggressive Baseline",
+      "All Court"
+    ],
+    "valid_rally_preferences": [
+      "Short",
+      "Short-Medium",
+      "Medium",
+      "Medium-Long",
+      "Long"
+    ],
+    "valid_signature_traits": [
+      "Aggressive Return",
+      "Baseline Pressure",
+      "Big Forehand",
+      "Big Server",
+      "Clean Ball Contact",
+      "Counterpunching",
+      "Defensive Retrieval",
+      "Drop Shot Threat",
+      "Early Ball Striker",
+      "Elite Backhand",
+      "Elite Returner",
+      "Excellent Depth",
+      "Excellent Passing Shots",
+      "First Strike Tennis",
+      "Flat Ball Striking",
+      "Heavy Kick Serve",
+      "Heavy Topspin",
+      "Net Rushing",
+      "Offensive Returner",
+      "Point Construction",
+      "Relentless Defender",
+      "Return Positioning Variety",
+      "Serve Plus One",
+      "Slice Variety",
+      "Transition Game",
+      "Two-Handed Backhand Stability",
+      "Varied Serving Patterns"
+    ],
+    "required_skills": [
+      "serve",
+      "return",
+      "forehand",
+      "backhand",
+      "movement",
+      "variety",
+      "net_play"
+    ]
+  },
+  "players": {
+    "Jannik Sinner": {
+      "aliases": [
+        "Sinner",
+        "J. Sinner"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 5,
+        "return": 5,
+        "forehand": 5,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Early Ball Striker",
+        "Aggressive Return",
+        "Elite Backhand",
+        "Baseline Pressure",
+        "Clean Ball Contact",
+        "Excellent Depth"
+      ]
+    },
+    "Carlos Alcaraz": {
+      "aliases": [
+        "Alcaraz",
+        "C. Alcaraz"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 4,
+        "return": 5,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 5,
+        "net_play": 5
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Heavy Topspin",
+        "Drop Shot Threat",
+        "Transition Game",
+        "Excellent Passing Shots",
+        "Point Construction"
+      ]
+    },
+    "Novak Djokovic": {
+      "aliases": [
+        "Djokovic",
+        "N. Djokovic"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 4,
+        "return": 5,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Elite Returner",
+        "Elite Backhand",
+        "Counterpunching",
+        "Excellent Depth",
+        "Excellent Passing Shots",
+        "Return Positioning Variety"
+      ]
+    },
+    "Alexander Zverev": {
+      "aliases": [
+        "Zverev",
+        "A. Zverev"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 5,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Elite Backhand",
+        "Excellent Depth",
+        "Serve Plus One",
+        "Two-Handed Backhand Stability"
+      ]
+    },
+    "Taylor Fritz": {
+      "aliases": [
+        "Fritz",
+        "T. Fritz"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 5,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Big Forehand",
+        "First Strike Tennis",
+        "Flat Ball Striking",
+        "Serve Plus One"
+      ]
+    },
+    "Daniil Medvedev": {
+      "aliases": [
+        "Medvedev",
+        "D. Medvedev"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 4,
+        "return": 5,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Elite Returner",
+        "Defensive Retrieval",
+        "Relentless Defender",
+        "Flat Ball Striking",
+        "Counterpunching",
+        "Return Positioning Variety"
+      ]
+    },
+    "Jack Draper": {
+      "aliases": [
+        "Draper",
+        "J. Draper"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Aggressive Return",
+        "Baseline Pressure",
+        "First Strike Tennis",
+        "Serve Plus One"
+      ]
+    },
+    "Lorenzo Musetti": {
+      "aliases": [
+        "Musetti",
+        "L. Musetti"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 5,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Slice Variety",
+        "Drop Shot Threat",
+        "Point Construction",
+        "Transition Game",
+        "Heavy Topspin",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Holger Rune": {
+      "aliases": [
+        "Rune",
+        "H. Rune"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Elite Backhand",
+        "Baseline Pressure",
+        "Transition Game",
+        "Point Construction"
+      ]
+    },
+    "Tommy Paul": {
+      "aliases": [
+        "Paul",
+        "T. Paul"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Transition Game",
+        "Excellent Passing Shots",
+        "Point Construction",
+        "Aggressive Return",
+        "Defensive Retrieval"
+      ]
+    },
+    "Alex de Minaur": {
+      "aliases": [
+        "De Minaur",
+        "A. de Minaur"
+      ],
+      "playing_style": "Defensive Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 5,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Elite Returner",
+        "Relentless Defender",
+        "Defensive Retrieval",
+        "Counterpunching",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Ben Shelton": {
+      "aliases": [
+        "Shelton",
+        "B. Shelton"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Big Forehand",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Heavy Kick Serve",
+        "Net Rushing"
+      ]
+    },
+    "Casper Ruud": {
+      "aliases": [
+        "Ruud",
+        "C. Ruud"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Big Forehand",
+        "Serve Plus One",
+        "Point Construction",
+        "Excellent Depth"
+      ]
+    },
+    "Stefanos Tsitsipas": {
+      "aliases": [
+        "Tsitsipas",
+        "S. Tsitsipas"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 5
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Serve Plus One",
+        "Transition Game",
+        "Net Rushing",
+        "Slice Variety",
+        "Point Construction"
+      ]
+    },
+    "Andrey Rublev": {
+      "aliases": [
+        "Rublev",
+        "A. Rublev"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Baseline Pressure",
+        "First Strike Tennis",
+        "Flat Ball Striking",
+        "Aggressive Return"
+      ]
+    },
+    "Hubert Hurkacz": {
+      "aliases": [
+        "Hurkacz",
+        "H. Hurkacz"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 5
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Net Rushing",
+        "Transition Game",
+        "Varied Serving Patterns"
+      ]
+    },
+    "Frances Tiafoe": {
+      "aliases": [
+        "Tiafoe",
+        "F. Tiafoe"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Transition Game",
+        "Drop Shot Threat",
+        "First Strike Tennis",
+        "Net Rushing"
+      ]
+    },
+    "Arthur Fils": {
+      "aliases": [
+        "Fils",
+        "A. Fils"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Baseline Pressure",
+        "Aggressive Return",
+        "First Strike Tennis",
+        "Serve Plus One"
+      ]
+    },
+    "Karen Khachanov": {
+      "aliases": [
+        "Khachanov",
+        "K. Khachanov"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Flat Ball Striking",
+        "Serve Plus One",
+        "Baseline Pressure",
+        "First Strike Tennis"
+      ]
+    },
+    "Sebastian Korda": {
+      "aliases": [
+        "Korda",
+        "S. Korda"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Early Ball Striker",
+        "Elite Backhand",
+        "Clean Ball Contact",
+        "Baseline Pressure",
+        "Transition Game"
+      ]
+    }
+  }
+}
