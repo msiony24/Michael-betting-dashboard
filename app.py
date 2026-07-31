@@ -53,7 +53,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.58 — Focused Analysis"
+APP_VERSION = "Macabets v0.59 — NFL Report v2"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -3162,18 +3162,17 @@ with tabs[1]:
                     price_report,
                 )
 
-                st.markdown("## Final Verdict")
-                fv1, fv2, fv3, fv4 = st.columns(4)
-                fv1.metric("Projected Winner", projected_nfl_winner)
-                fv2.metric("Win Probability", f"{projected_nfl_probability:.1%}")
-                fv3.metric("Fair Moneyline", format_american(winner_fair_ml))
-                fv4.metric("Market Moneyline", format_american(winner_market_ml))
-                fv5, fv6, fv7 = st.columns(3)
+                st.markdown("## Game Prediction")
+                gp1, gp2, gp3, gp4 = st.columns(4)
+                gp1.metric("Projected Winner", projected_nfl_winner)
+                gp2.metric("Win Probability", f"{projected_nfl_probability:.1%}")
+                gp3.metric("Prediction Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
 
                 away = nfl_result["away_team"]
                 home = nfl_result["home_team"]
                 away_score = round(nfl_result["projected_away_score"])
                 home_score = round(nfl_result["projected_home_score"])
+                gp4.metric("Projected Score", f"{away_score}-{home_score}", f"{away} at {home}")
 
                 if away_score >= home_score:
                     winner, winner_score = away, away_score
@@ -3184,77 +3183,81 @@ with tabs[1]:
 
                 margin = winner_score - loser_score
                 if margin >= 7:
-                    outlook = "Comfortable Win"
+                    outlook = "Comfortable win"
                 elif margin >= 3:
-                    outlook = "Competitive Win"
+                    outlook = "Competitive win"
                 else:
-                    outlook = "Toss-Up"
-
-                with fv5:
-                    st.markdown("**Projected Score**")
-                    st.markdown(
-                        f"""
-                        <div style="padding:0.35rem 0;">
-                            <div style="font-size:1.05rem;font-weight:600;">{winner}</div>
-                            <div style="font-size:2rem;font-weight:700;line-height:1.15;">{winner_score}</div>
-                            <hr style="margin:0.55rem 0;">
-                            <div style="font-size:1.05rem;font-weight:600;">{loser}</div>
-                            <div style="font-size:2rem;font-weight:700;line-height:1.15;">{loser_score}</div>
-                            <div style="margin-top:0.65rem;font-size:0.9rem;"><strong>Projected Margin:</strong> {winner} +{margin}</div>
-                            <div style="font-size:0.9rem;"><strong>Game Outlook:</strong> {outlook}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                fv6.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
-                fv7.metric("Price Assessment", price_report["quality"], price_report["verdict"])
+                    outlook = "Toss-up"
+                st.caption(f"Projected margin: {winner} by {margin} · Game outlook: {outlook}")
 
                 st.markdown("### Macabets Take")
                 st.info(explanation_report["take"])
 
-                st.markdown("#### Key Advantages")
-                for item in explanation_report["key_advantages"]:
+                st.markdown("#### Decisive Factors")
+                for item in explanation_report["key_advantages"][:4]:
                     st.markdown(f"- {item}")
 
-                risk_col, paths_col = st.columns(2)
-                with risk_col:
-                    st.markdown("#### Biggest Risks")
-                    for item in explanation_report["risks"]:
-                        st.markdown(f"- {item}")
-
-                with paths_col:
-                    st.markdown("#### Why Each Team Can Win")
-                    st.markdown(f"**Why {nfl_result['away_team']} can win**")
-                    for reason in explanation_report["why_away"]:
-                        st.markdown(f"- {reason}")
-                    st.markdown(f"**Why {nfl_result['home_team']} can win**")
-                    for reason in explanation_report["why_home"]:
-                        st.markdown(f"- {reason}")
+                st.markdown("#### What Could Go Wrong")
+                for item in explanation_report["risks"][:4]:
+                    st.markdown(f"- {item}")
 
                 st.markdown("#### Expected Game Script")
                 st.write(explanation_report["game_script"])
 
-                st.markdown("#### Macabets vs. Market")
-                st.write(f"Macabets' fair moneyline on {projected_nfl_winner} is {format_american(winner_fair_ml)}, compared with the current market price of {format_american(winner_market_ml)}. That produces an estimated return at the offered price of {price_report['expected_roi']:+.1%}. Price assessment: **{price_report['quality']}**.")
-                st.markdown("#### Bottom Line")
-                st.info(nfl_bottom_line(projected_nfl_winner, projected_nfl_probability, price_report["quality"], price_report["recommendation"], nfl_result["confidence_band"]))
+                st.markdown("## Betting Recommendation")
+                spread_value_points = abs(spread_difference)
+                if spread_value_points >= 5.0:
+                    spread_value_label = "Strong spread value"
+                elif spread_value_points >= 2.0:
+                    spread_value_label = "Playable spread value"
+                elif spread_value_points > 0.5:
+                    spread_value_label = "Slight spread value"
+                else:
+                    spread_value_label = "No meaningful spread value"
 
-                st.markdown("#### Supporting Model Summary")
-                nv1, nv2, nv3 = st.columns(3)
-                nv1.metric("Projected Winner", projected_nfl_winner)
-                nv2.metric("Win Probability", f"{projected_nfl_probability:.1%}", projected_nfl_score_side)
-                nv3.metric("Best Spread Side", nfl_best_bet)
+                bet1, bet2, bet3, bet4 = st.columns(4)
+                bet1.metric("Winner Prediction", projected_nfl_winner)
+                bet2.metric("Moneyline Verdict", price_report["verdict"], f"Market {format_american(winner_market_ml)}")
+                bet3.metric("Best Spread Position", spread_value_text if value_team else "PASS")
+                bet4.metric("Spread Value", f"{spread_value_points:.1f} points", spread_value_label)
+
+                st.caption(
+                    f"Macabets fair line: {fair_line_text}. Market line: {vegas_line_text}. "
+                    "Spread value is the gap between those two lines; it does not mean the listed team is projected to win by that amount."
+                )
+
                 if value_team and value_team != projected_nfl_winner:
                     st.info(
-                        f"Macabets projects {projected_nfl_winner} to win, but sees the better "
-                        f"spread position on {value_team}. Winner and best bet are separate questions."
+                        f"Macabets projects {projected_nfl_winner} to win, while {spread_value_text} is the better spread position. "
+                        "The predicted winner and the best point-spread value can be different."
                     )
-                elif nfl_best_bet == "NO CLEAR BET":
+                elif value_team:
+                    st.success(
+                        f"The winner prediction and spread value both favor {value_team}."
+                    )
+                else:
                     st.info(
-                        f"Macabets projects {projected_nfl_winner} to win, but does not see a "
-                        "meaningful spread advantage at the entered line."
+                        f"Macabets projects {projected_nfl_winner} to win but does not identify a meaningful spread edge at the entered line."
                     )
+
+                st.markdown("#### Bottom Line")
+                if value_team and value_team != projected_nfl_winner:
+                    bottom_line = (
+                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
+                        f"but the market spread is wider than the model's fair line. That makes {spread_value_text} "
+                        f"the better spread position, with {spread_value_points:.1f} points of line value."
+                    )
+                elif value_team:
+                    bottom_line = (
+                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
+                        f"and the spread also offers {spread_value_points:.1f} points of value on {spread_value_text}."
+                    )
+                else:
+                    bottom_line = (
+                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
+                        "but the current spread is close enough to the fair line that there is no clear spread bet."
+                    )
+                st.info(bottom_line)
 
                 st.markdown("#### Line Comparison")
                 line1, line2, line3, line4 = st.columns(4)
