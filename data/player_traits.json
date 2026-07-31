@@ -1,6 +1,6 @@
 {
   "_metadata": {
-    "version": "1.1-top50",
+    "version": "1.2-top75",
     "tour": "ATP",
     "profile_type": "static_curated",
     "rating_scale": {
@@ -70,7 +70,7 @@
       "net_play"
     ],
     "ranking_snapshot": "2026-07-27",
-    "coverage": "Complete ATP Top 50 snapshot plus previously curated players"
+    "coverage": "Complete ATP Top 75 snapshot plus previously curated players"
   },
   "players": {
     "Jannik Sinner": {
@@ -1460,6 +1460,556 @@
         "Defensive Retrieval",
         "Point Construction",
         "Slice Variety"
+      ]
+    },
+    "Yannick Hanfmann": {
+      "aliases": [
+        "Hanfmann",
+        "Y. Hanfmann"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Big Forehand",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Heavy Topspin"
+      ]
+    },
+    "Tomas Machac": {
+      "aliases": [
+        "Machac",
+        "T. Machac"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Early Ball Striker",
+        "Elite Backhand",
+        "Aggressive Return",
+        "Transition Game",
+        "Clean Ball Contact"
+      ]
+    },
+    "Fabian Marozsan": {
+      "aliases": [
+        "Marozsan",
+        "F. Marozsan"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 4,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Early Ball Striker",
+        "Drop Shot Threat",
+        "First Strike Tennis",
+        "Clean Ball Contact"
+      ]
+    },
+    "Botic van de Zandschulp": {
+      "aliases": [
+        "Van de Zandschulp",
+        "B. van de Zandschulp"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Flat Ball Striking",
+        "Transition Game",
+        "Baseline Pressure"
+      ]
+    },
+    "Sebastian Baez": {
+      "aliases": [
+        "Baez",
+        "S. Baez"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Relentless Defender",
+        "Point Construction",
+        "Defensive Retrieval",
+        "Excellent Depth"
+      ]
+    },
+    "Thiago Agustin Tirante": {
+      "aliases": [
+        "Tirante",
+        "T. Tirante"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Baseline Pressure",
+        "Serve Plus One",
+        "Flat Ball Striking",
+        "Excellent Depth"
+      ]
+    },
+    "Miomir Kecmanovic": {
+      "aliases": [
+        "Kecmanovic",
+        "M. Kecmanovic"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Point Construction",
+        "Two-Handed Backhand Stability"
+      ]
+    },
+    "Daniel Merida": {
+      "aliases": [
+        "Merida",
+        "D. Merida"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Baseline Pressure",
+        "Clean Ball Contact",
+        "Point Construction",
+        "Excellent Depth"
+      ]
+    },
+    "Roman Andres Burruchaga": {
+      "aliases": [
+        "Burruchaga",
+        "R. Burruchaga"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Defensive Retrieval",
+        "Excellent Depth",
+        "Counterpunching"
+      ]
+    },
+    "Daniel Altmaier": {
+      "aliases": [
+        "Altmaier",
+        "D. Altmaier"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Slice Variety",
+        "Point Construction",
+        "Transition Game",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Martin Landaluce": {
+      "aliases": [
+        "Landaluce",
+        "M. Landaluce"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "First Strike Tennis",
+        "Baseline Pressure",
+        "Aggressive Return",
+        "Serve Plus One"
+      ]
+    },
+    "Adolfo Daniel Vallejo": {
+      "aliases": [
+        "Vallejo",
+        "A. Vallejo"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Defensive Retrieval",
+        "Counterpunching",
+        "Excellent Depth",
+        "Point Construction",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Pablo Carreno Busta": {
+      "aliases": [
+        "Carreno Busta",
+        "P. Carreno Busta"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Excellent Depth",
+        "Two-Handed Backhand Stability",
+        "Point Construction",
+        "Defensive Retrieval"
+      ]
+    },
+    "Tallon Griekspoor": {
+      "aliases": [
+        "Griekspoor",
+        "T. Griekspoor"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Big Forehand",
+        "First Strike Tennis",
+        "Varied Serving Patterns"
+      ]
+    },
+    "Denis Shapovalov": {
+      "aliases": [
+        "Shapovalov",
+        "D. Shapovalov"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 5,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "First Strike Tennis",
+        "Net Rushing",
+        "Transition Game",
+        "Slice Variety"
+      ]
+    },
+    "Vit Kopriva": {
+      "aliases": [
+        "Kopriva",
+        "V. Kopriva"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Defensive Retrieval",
+        "Point Construction",
+        "Relentless Defender",
+        "Excellent Depth"
+      ]
+    },
+    "Camilo Ugo Carabelli": {
+      "aliases": [
+        "Ugo Carabelli",
+        "C. Ugo Carabelli"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Defensive Retrieval",
+        "Point Construction",
+        "Relentless Defender",
+        "Excellent Depth"
+      ]
+    },
+    "Kamil Majchrzak": {
+      "aliases": [
+        "Majchrzak",
+        "K. Majchrzak"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Two-Handed Backhand Stability",
+        "Point Construction"
+      ]
+    },
+    "Hamad Medjedovic": {
+      "aliases": [
+        "Medjedovic",
+        "H. Medjedovic"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Big Forehand",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Baseline Pressure"
+      ]
+    },
+    "Zachary Svajda": {
+      "aliases": [
+        "Svajda",
+        "Z. Svajda"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 2,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Defensive Retrieval",
+        "Excellent Depth",
+        "Point Construction",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Jenson Brooksby": {
+      "aliases": [
+        "Brooksby",
+        "J. Brooksby"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 5,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Elite Returner",
+        "Counterpunching",
+        "Point Construction",
+        "Return Positioning Variety",
+        "Defensive Retrieval"
+      ]
+    },
+    "Valentin Royer": {
+      "aliases": [
+        "Royer",
+        "V. Royer"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Baseline Pressure",
+        "First Strike Tennis",
+        "Clean Ball Contact",
+        "Serve Plus One",
+        "Aggressive Return"
       ]
     }
   }
