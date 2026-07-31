@@ -1,6 +1,10 @@
-"""NFL reference data with nflverse-backed ratings and safe starter-prior fallback."""
+"""Unified NFL ratings exposed to the Macabets app and prediction engine."""
+
+from __future__ import annotations
 
 from pathlib import Path
+
+from engine.nfl_team_state import TEAM_STATE_WEIGHTS, build_all_team_states
 
 NFL_TEAMS = [
     "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
@@ -16,81 +20,34 @@ NFL_TEAMS = [
 VENUE_TYPES = ["Outdoor", "Dome", "Retractable roof"]
 WEATHER_OPTIONS = ["Normal", "Rain", "Snow", "High wind", "Extreme heat", "Extreme cold"]
 
-# Component weights sum to 1.00. Ratings use a 0-100 scale.
-TEAM_RATING_WEIGHTS = {
-    "offense": 0.25,
-    "defense": 0.25,
-    "quarterback": 0.20,
-    "coaching": 0.12,
-    "strength_of_schedule": 0.10,
-    "special_teams": 0.08,
-}
+# Retain the public name already consumed by app.py.
+TEAM_RATING_WEIGHTS = dict(TEAM_STATE_WEIGHTS)
 
-# Conservative starter priors. These are deliberately compressed and editable.
-# They are not presented as current factual rankings.
-_TEAM_TIERS = {
-    "Kansas City Chiefs": (90, 85, 96, 94, 84, 82),
-    "Buffalo Bills": (89, 84, 94, 88, 83, 80),
-    "Baltimore Ravens": (88, 89, 92, 90, 84, 82),
-    "Philadelphia Eagles": (90, 88, 89, 88, 84, 81),
-    "Detroit Lions": (91, 82, 88, 87, 82, 79),
-    "Green Bay Packers": (87, 84, 89, 85, 81, 80),
-    "Houston Texans": (86, 84, 90, 84, 82, 79),
-    "San Francisco 49ers": (87, 86, 86, 91, 83, 80),
-    "Cincinnati Bengals": (88, 79, 93, 82, 82, 78),
-    "Los Angeles Rams": (86, 81, 88, 90, 81, 79),
-    "Washington Commanders": (87, 80, 89, 85, 80, 78),
-    "Tampa Bay Buccaneers": (84, 82, 86, 84, 79, 80),
-    "Minnesota Vikings": (84, 85, 84, 88, 81, 79),
-    "Los Angeles Chargers": (84, 84, 87, 91, 80, 78),
-    "Denver Broncos": (81, 86, 82, 89, 80, 82),
-    "Pittsburgh Steelers": (78, 88, 80, 90, 82, 84),
-    "Seattle Seahawks": (82, 82, 82, 83, 79, 80),
-    "Miami Dolphins": (85, 78, 84, 82, 79, 81),
-    "Dallas Cowboys": (83, 81, 84, 80, 80, 82),
-    "Atlanta Falcons": (82, 80, 81, 82, 78, 79),
-    "Arizona Cardinals": (81, 79, 82, 84, 78, 77),
-    "Chicago Bears": (80, 82, 81, 83, 79, 80),
-    "Indianapolis Colts": (81, 79, 81, 81, 78, 79),
-    "Jacksonville Jaguars": (80, 79, 82, 80, 78, 78),
-    "New York Jets": (77, 84, 78, 79, 81, 80),
-    "New England Patriots": (78, 80, 79, 82, 79, 79),
-    "Cleveland Browns": (75, 85, 74, 78, 82, 80),
-    "New Orleans Saints": (77, 80, 77, 79, 78, 79),
-    "Las Vegas Raiders": (76, 78, 75, 79, 79, 81),
-    "New York Giants": (75, 78, 76, 77, 80, 78),
-    "Carolina Panthers": (76, 76, 78, 78, 78, 77),
-    "Tennessee Titans": (75, 77, 76, 78, 79, 78),
-}
+try:
+    _TEAM_STATES = build_all_team_states()
+except Exception as exc:  # safe app fallback
+    _TEAM_STATES = {}
+    _LOAD_ERROR = str(exc)
+else:
+    _LOAD_ERROR = ""
 
-STARTER_PRIOR_RATINGS = {
-    team: {
-        "offense": values[0],
-        "defense": values[1],
-        "quarterback": values[2],
-        "coaching": values[3],
-        "strength_of_schedule": values[4],
-        "special_teams": values[5],
-    }
-    for team, values in _TEAM_TIERS.items()
-}
-
-COACHING_PRIORS = {team: profile["coaching"] for team, profile in STARTER_PRIOR_RATINGS.items()}
-
-def _snapshot_path():
-    return Path(__file__).resolve().parents[1] / "data" / "nfl" / "team_snapshot.csv"
-
-def _load_live_profiles():
-    try:
-        from engine.nfl_ratings import snapshot_profiles
-        return snapshot_profiles(_snapshot_path(), COACHING_PRIORS)
-    except Exception as exc:
-        return {}, {"available": False, "reason": f"Snapshot could not be loaded: {exc}"}
-
-_LIVE_RATINGS, NFL_DATA_STATUS = _load_live_profiles()
+NFL_TEAM_STATES = _TEAM_STATES
 NFL_TEAM_RATINGS = {
-    team: dict(_LIVE_RATINGS.get(team, STARTER_PRIOR_RATINGS[team]))
+    team: dict(_TEAM_STATES[team]["components"])
     for team in NFL_TEAMS
+    if team in _TEAM_STATES
 }
-NFL_DATA_STATUS.setdefault("rating_mode", "nflverse snapshot" if _LIVE_RATINGS else "starter priors")
-NFL_DATA_STATUS.setdefault("teams", len(_LIVE_RATINGS))
+
+_available_states = [state for state in _TEAM_STATES.values() if state.get("season") is not None]
+_latest = max(_available_states, key=lambda state: (state.get("season") or 0, state.get("week") or 0), default=None)
+
+NFL_DATA_STATUS = {
+    "available": bool(_available_states),
+    "teams": len(NFL_TEAM_RATINGS),
+    "data_source": (_latest or {}).get("data_source", "manual priors"),
+    "season": (_latest or {}).get("season"),
+    "through_week": (_latest or {}).get("week"),
+    "updated_at_utc": (_latest or {}).get("updated_at_utc"),
+    "rating_mode": "unified weekly team state" if _available_states else "manual team-state priors",
+    "reason": _LOAD_ERROR or ("Live snapshot not present; manual priors and neutral recent form are active." if not _available_states else ""),
+}
