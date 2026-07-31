@@ -14,8 +14,6 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-from ui.matchup_engine_ui import render_matchup_engine_report
-
 from analysis_store import (
     create_analysis as db_create_analysis,
     delete_analysis as db_delete_analysis,
@@ -55,8 +53,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.57 — Match Intelligence"
-BUILD_DATE = "July 30, 2026"
+APP_VERSION = "Macabets v0.58 — Focused Analysis"
+BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -2363,42 +2361,8 @@ with tabs[1]:
                             "relies primarily on current form, surface performance and overall player strength."
                         )
 
-                    render_matchup_engine_report(
-                        analyzed_a,
-                        analyzed_b,
-                        result.get("tournament", tournament),
-                        result.get("surface", surface),
-                        result.get("environment", environment),
-                    )
-
                     match_intelligence = result.get("match_intelligence", {})
-                    archetype_a = result.get("player_archetype_a", {})
-                    archetype_b = result.get("player_archetype_b", {})
-
                     if match_intelligence:
-                        st.markdown("#### Player Identities")
-                        arch1, arch2 = st.columns(2)
-                        with arch1:
-                            st.markdown(f"**{analyzed_a}: {archetype_a.get('identity', 'Unavailable')}**")
-                            st.markdown("**Strengths**")
-                            for trait in archetype_a.get("strengths", []):
-                                st.markdown(f"- {trait}")
-                            st.markdown("**Watch For**")
-                            for trait in archetype_a.get("watch_for", []):
-                                st.markdown(f"- {trait}")
-                            if archetype_a.get("preferred_pattern"):
-                                st.caption(f"Preferred pattern: {archetype_a['preferred_pattern']}")
-                        with arch2:
-                            st.markdown(f"**{analyzed_b}: {archetype_b.get('identity', 'Unavailable')}**")
-                            st.markdown("**Strengths**")
-                            for trait in archetype_b.get("strengths", []):
-                                st.markdown(f"- {trait}")
-                            st.markdown("**Watch For**")
-                            for trait in archetype_b.get("watch_for", []):
-                                st.markdown(f"- {trait}")
-                            if archetype_b.get("preferred_pattern"):
-                                st.caption(f"Preferred pattern: {archetype_b['preferred_pattern']}")
-
                         st.markdown("#### Matchup Stability & Volatility")
                         intel1, intel2, intel3 = st.columns(3)
                         intel1.metric(
@@ -2543,7 +2507,7 @@ with tabs[1]:
                         if str(factor.get("name", "")).strip() != "Fatigue 2.0"
                     ]
 
-                    st.markdown("#### Key Advantages")
+                    st.markdown("#### Decisive Factors")
                     advantage_rows = []
                     for factor in raw_factors:
                         impact = factor["impact_a"]
