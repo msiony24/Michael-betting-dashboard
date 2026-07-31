@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any, Iterable
+import re
+import unicodedata
 
 from .player_traits import PlayerTraitsDatabase
 from .tournament_profiles import resolve_tournament_profile
@@ -80,6 +82,98 @@ def _confidence(diff: float, profile_confidence: str = "medium") -> float:
     elif profile_confidence in {"fallback", "low"}:
         base -= 0.10
     return round(max(0.35, min(base, 0.98)), 2)
+
+
+def _name_tokens(name: str) -> list[str]:
+    """Return accent-free alphanumeric tokens for reliable player-name matching."""
+    normalized = unicodedata.normalize("NFKD", str(name or ""))
+    normalized = "".join(
+        character for character in normalized
+        if not unicodedata.combining(character)
+    )
+    return re.findall(r"[a-z0-9]+", normalized.casefold())
+
+
+def _abbreviated_name_candidates(
+    player_name: str,
+    canonical_names: Iterable[str],
+) -> list[str]:
+    """Return canonical matches for common ATP dataset abbreviations.
+
+    Supported examples:
+    - ``Sinner J.`` -> ``Jannik Sinner``
+    - ``Zverev A.`` -> ``Alexander Zverev``
+    - ``de Minaur A.`` -> ``Alex de Minaur``
+    - ``J. Sinner`` -> ``Jannik Sinner``
+
+    A result is accepted only when it is unique. This avoids silently assigning
+    the wrong curated profile when two players share a surname and initial.
+    """
+    input_tokens = _name_tokens(player_name)
+    if len(input_tokens) < 2:
+        return []
+
+    matches: list[str] = []
+    for canonical_name in canonical_names:
+        canonical_tokens = _name_tokens(canonical_name)
+        if len(canonical_tokens) < 2:
+            continue
+
+        first_initial = canonical_tokens[0][0]
+        surname_tokens = canonical_tokens[1:]
+
+        surname_first_match = (
+            input_tokens[-1] == first_initial
+            and input_tokens[:-1] == surname_tokens
+        )
+        initial_first_match = (
+            input_tokens[0] == first_initial
+            and input_tokens[1:] == surname_tokens
+        )
+
+        if surname_first_match or initial_first_match:
+            matches.append(canonical_name)
+
+    return matches
+
+
+def resolve_player_profile(
+    database: PlayerTraitsDatabase,
+    player_name: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    """Resolve an app/API player name to a curated database profile.
+
+    Resolution order:
+    1. Existing canonical-name or alias lookup.
+    2. Unique surname-plus-initial abbreviation lookup.
+    3. Safe unresolved result; no profile is invented.
+    """
+    direct_profile = database.get(player_name)
+    if direct_profile is not None:
+        return direct_profile, {
+            "input": player_name,
+            "resolved": direct_profile["name"],
+            "method": "exact_or_alias",
+        }
+
+    candidates = _abbreviated_name_candidates(
+        player_name,
+        database.all_players(),
+    )
+    if len(candidates) == 1:
+        resolved_profile = database.get(candidates[0])
+        return resolved_profile, {
+            "input": player_name,
+            "resolved": candidates[0],
+            "method": "surname_initial",
+        }
+
+    return None, {
+        "input": player_name,
+        "resolved": None,
+        "method": "ambiguous" if len(candidates) > 1 else "unresolved",
+        "candidates": candidates,
+    }
 
 
 def evaluate_serve(
@@ -414,8 +508,8 @@ def analyze_matchup(
     Unknown players are reported explicitly rather than assigned invented traits.
     """
     db = database or PlayerTraitsDatabase()
-    profile_a = db.get(player_a)
-    profile_b = db.get(player_b)
+    profile_a, resolution_a = resolve_player_profile(db, player_a)
+    profile_b, resolution_b = resolve_player_profile(db, player_b)
     missing = [
         name
         for name, profile in ((player_a, profile_a), (player_b, profile_b))
@@ -428,6 +522,10 @@ def analyze_matchup(
             "player_a": player_a,
             "player_b": player_b,
             "tournament": tournament,
+            "name_resolution": {
+                "player_a": resolution_a,
+                "player_b": resolution_b,
+            },
             "explanation_only": True,
         }
 
@@ -480,6 +578,10 @@ def analyze_matchup(
         "explanation_only": True,
         "player_a": name_a,
         "player_b": name_b,
+        "name_resolution": {
+            "player_a": resolution_a,
+            "player_b": resolution_b,
+        },
         "court_profile": court,
         "edges": [edge.to_dict() for edge in edges],
         "paths_to_victory": {
