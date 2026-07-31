@@ -1,6 +1,6 @@
 {
   "_metadata": {
-    "version": "1.2-top75",
+    "version": "1.3-top100",
     "tour": "ATP",
     "profile_type": "static_curated",
     "rating_scale": {
@@ -70,7 +70,7 @@
       "net_play"
     ],
     "ranking_snapshot": "2026-07-27",
-    "coverage": "Complete ATP Top 75 snapshot plus previously curated players"
+    "coverage": "Complete ATP Top 100 snapshot plus previously curated players"
   },
   "players": {
     "Jannik Sinner": {
@@ -2010,6 +2010,606 @@
         "Clean Ball Contact",
         "Serve Plus One",
         "Aggressive Return"
+      ]
+    },
+    "Marton Fucsovics": {
+      "aliases": [
+        "Fucsovics",
+        "M. Fucsovics"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Transition Game",
+        "Point Construction",
+        "Excellent Passing Shots",
+        "Slice Variety",
+        "Defensive Retrieval"
+      ]
+    },
+    "Lorenzo Sonego": {
+      "aliases": [
+        "Sonego",
+        "L. Sonego"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Big Forehand",
+        "Net Rushing",
+        "First Strike Tennis"
+      ]
+    },
+    "Luca Van Assche": {
+      "aliases": [
+        "Van Assche",
+        "L. Van Assche"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Defensive Retrieval",
+        "Excellent Depth",
+        "Point Construction",
+        "Two-Handed Backhand Stability"
+      ]
+    },
+    "Mattia Bellucci": {
+      "aliases": [
+        "Bellucci",
+        "M. Bellucci"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Baseline Pressure",
+        "Early Ball Striker",
+        "Drop Shot Threat",
+        "Clean Ball Contact"
+      ]
+    },
+    "Alex Molcan": {
+      "aliases": [
+        "Molcan",
+        "A. Molcan"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Point Construction",
+        "Heavy Topspin"
+      ]
+    },
+    "James Duckworth": {
+      "aliases": [
+        "Duckworth",
+        "J. Duckworth"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Flat Ball Striking",
+        "Transition Game"
+      ]
+    },
+    "Quentin Halys": {
+      "aliases": [
+        "Halys",
+        "Q. Halys"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Varied Serving Patterns",
+        "Net Rushing"
+      ]
+    },
+    "Aleksandr Shevchenko": {
+      "aliases": [
+        "Shevchenko",
+        "A. Shevchenko"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Baseline Pressure",
+        "First Strike Tennis",
+        "Serve Plus One",
+        "Clean Ball Contact",
+        "Aggressive Return"
+      ]
+    },
+    "Marcos Giron": {
+      "aliases": [
+        "Giron",
+        "M. Giron"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Defensive Retrieval",
+        "Excellent Depth",
+        "Aggressive Return",
+        "Point Construction"
+      ]
+    },
+    "Marin Cilic": {
+      "aliases": [
+        "Cilic",
+        "M. Cilic"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Big Forehand",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Flat Ball Striking"
+      ]
+    },
+    "Damir Dzumhur": {
+      "aliases": [
+        "Dzumhur",
+        "D. Dzumhur"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 4,
+        "forehand": 3,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Defensive Retrieval",
+        "Relentless Defender",
+        "Point Construction",
+        "Slice Variety"
+      ]
+    },
+    "Jaime Faria": {
+      "aliases": [
+        "Faria",
+        "J. Faria"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Serve Plus One",
+        "Baseline Pressure",
+        "Clean Ball Contact",
+        "First Strike Tennis",
+        "Aggressive Return"
+      ]
+    },
+    "Giovanni Mpetshi Perricard": {
+      "aliases": [
+        "Mpetshi Perricard",
+        "G. Mpetshi Perricard"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 2,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Heavy Kick Serve",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Net Rushing"
+      ]
+    },
+    "Jan Choinski": {
+      "aliases": [
+        "Choinski",
+        "J. Choinski"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Big Forehand"
+      ]
+    },
+    "Dino Prizmic": {
+      "aliases": [
+        "Prizmic",
+        "D. Prizmic"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Baseline Pressure",
+        "Excellent Depth",
+        "Point Construction",
+        "Two-Handed Backhand Stability"
+      ]
+    },
+    "Gabriel Diallo": {
+      "aliases": [
+        "Diallo",
+        "G. Diallo"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Big Forehand",
+        "Transition Game"
+      ]
+    },
+    "Aleksandar Kovacevic": {
+      "aliases": [
+        "Kovacevic",
+        "A. Kovacevic"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Clean Ball Contact",
+        "Transition Game",
+        "Flat Ball Striking"
+      ]
+    },
+    "Roman Safiullin": {
+      "aliases": [
+        "Safiullin",
+        "R. Safiullin"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Elite Backhand",
+        "Clean Ball Contact",
+        "Baseline Pressure",
+        "Early Ball Striker",
+        "Serve Plus One"
+      ]
+    },
+    "Marco Trungelliti": {
+      "aliases": [
+        "Trungelliti",
+        "M. Trungelliti"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 5,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Slice Variety",
+        "Drop Shot Threat",
+        "Transition Game",
+        "Point Construction",
+        "Net Rushing"
+      ]
+    },
+    "Rinky Hijikata": {
+      "aliases": [
+        "Hijikata",
+        "R. Hijikata"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Transition Game",
+        "Excellent Passing Shots",
+        "Point Construction",
+        "Defensive Retrieval"
+      ]
+    },
+    "Sho Shimabukuro": {
+      "aliases": [
+        "Shimabukuro",
+        "S. Shimabukuro"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Clean Ball Contact",
+        "Baseline Pressure",
+        "Flat Ball Striking"
+      ]
+    },
+    "Jesper de Jong": {
+      "aliases": [
+        "De Jong",
+        "J. de Jong"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Aggressive Return"
+      ]
+    },
+    "Adam Walton": {
+      "aliases": [
+        "Walton",
+        "A. Walton"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Serve Plus One",
+        "Aggressive Return",
+        "Baseline Pressure",
+        "Clean Ball Contact",
+        "First Strike Tennis"
+      ]
+    },
+    "Emilio Nava": {
+      "aliases": [
+        "Nava",
+        "E. Nava"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Baseline Pressure",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Heavy Topspin"
       ]
     }
   }
