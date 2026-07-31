@@ -14,6 +14,8 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
+from ui.matchup_engine_ui import render_matchup_engine_report
+
 from analysis_store import (
     create_analysis as db_create_analysis,
     delete_analysis as db_delete_analysis,
@@ -2360,6 +2362,14 @@ with tabs[1]:
                             "matchup advantage to materially influence the evaluation. Macabets therefore "
                             "relies primarily on current form, surface performance and overall player strength."
                         )
+
+                    render_matchup_engine_report(
+                        analyzed_a,
+                        analyzed_b,
+                        result.get("tournament", tournament),
+                        result.get("surface", surface),
+                        result.get("environment", environment),
+                    )
 
                     match_intelligence = result.get("match_intelligence", {})
                     archetype_a = result.get("player_archetype_a", {})
