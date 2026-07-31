@@ -1,6 +1,6 @@
 {
   "_metadata": {
-    "version": "1.4-top125",
+    "version": "1.5-top150",
     "tour": "ATP",
     "profile_type": "static_curated",
     "rating_scale": {
@@ -70,7 +70,7 @@
       "net_play"
     ],
     "ranking_snapshot": "2026-07-27",
-    "coverage": "Complete ATP Top 125 snapshot plus previously curated players"
+    "coverage": "Complete ATP Top 150 snapshot plus previously curated players"
   },
   "players": {
     "Jannik Sinner": {
@@ -3162,6 +3162,558 @@
         "First Strike Tennis",
         "Excellent Depth",
         "Transition Game"
+      ]
+    },
+    "Christopher O'Connell": {
+      "aliases": [
+        "O'Connell",
+        "C. O'Connell",
+        "Christopher Oconnell"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Serve Plus One",
+        "Transition Game",
+        "Flat Ball Striking",
+        "Point Construction",
+        "Varied Serving Patterns"
+      ]
+    },
+    "Vilius Gaubas": {
+      "aliases": [
+        "Gaubas",
+        "V. Gaubas"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Counterpunching"
+      ]
+    },
+    "Arthur Gea": {
+      "aliases": [
+        "Gea",
+        "A. Gea"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Aggressive Return",
+        "Baseline Pressure",
+        "Clean Ball Contact",
+        "Excellent Depth",
+        "Point Construction"
+      ]
+    },
+    "Nikoloz Basilashvili": {
+      "aliases": [
+        "Basilashvili",
+        "N. Basilashvili"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 5,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Elite Backhand",
+        "Flat Ball Striking",
+        "First Strike Tennis",
+        "Baseline Pressure"
+      ]
+    },
+    "Nicolai Budkov Kjaer": {
+      "aliases": [
+        "Budkov Kjaer",
+        "N. Budkov Kjaer"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Baseline Pressure",
+        "Aggressive Return",
+        "Serve Plus One",
+        "First Strike Tennis"
+      ]
+    },
+    "Reilly Opelka": {
+      "aliases": [
+        "Opelka",
+        "R. Opelka"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 2,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 2,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Varied Serving Patterns",
+        "First Strike Tennis",
+        "Net Rushing"
+      ]
+    },
+    "Alexandre Muller": {
+      "aliases": [
+        "Muller",
+        "A. Muller"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Point Construction",
+        "Aggressive Return"
+      ]
+    },
+    "Leandro Riedi": {
+      "aliases": [
+        "Riedi",
+        "L. Riedi"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Elite Backhand",
+        "Early Ball Striker",
+        "Aggressive Return",
+        "Serve Plus One",
+        "Clean Ball Contact"
+      ]
+    },
+    "Nicolas Mejia": {
+      "aliases": [
+        "Mejia",
+        "N. Mejia"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Defensive Retrieval",
+        "Excellent Depth",
+        "Point Construction",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Gustavo Heide": {
+      "aliases": [
+        "Heide",
+        "G. Heide"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Big Forehand",
+        "Point Construction",
+        "Excellent Depth",
+        "Defensive Retrieval"
+      ]
+    },
+    "Andrea Pellegrino": {
+      "aliases": [
+        "Pellegrino",
+        "A. Pellegrino"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Defensive Retrieval",
+        "Relentless Defender",
+        "Excellent Depth"
+      ]
+    },
+    "Tomas Barrios Vera": {
+      "aliases": [
+        "Barrios Vera",
+        "T. Barrios Vera",
+        "Marcelo Tomas Barrios Vera"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Counterpunching",
+        "Point Construction",
+        "Excellent Depth",
+        "Defensive Retrieval",
+        "Aggressive Return"
+      ]
+    },
+    "Mackenzie McDonald": {
+      "aliases": [
+        "McDonald",
+        "M. McDonald"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Early Ball Striker",
+        "Aggressive Return",
+        "Transition Game",
+        "Clean Ball Contact",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Cristian Garin": {
+      "aliases": [
+        "Garin",
+        "C. Garin"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Big Forehand",
+        "Point Construction",
+        "Relentless Defender",
+        "Excellent Depth"
+      ]
+    },
+    "Grigor Dimitrov": {
+      "aliases": [
+        "Dimitrov",
+        "G. Dimitrov"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 5,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 5,
+        "net_play": 5
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "Slice Variety",
+        "Transition Game",
+        "Drop Shot Threat",
+        "Net Rushing"
+      ]
+    },
+    "Stefano Travaglia": {
+      "aliases": [
+        "Travaglia",
+        "S. Travaglia"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Flat Ball Striking",
+        "Baseline Pressure",
+        "First Strike Tennis"
+      ]
+    },
+    "Hugo Dellien": {
+      "aliases": [
+        "Dellien",
+        "H. Dellien"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 4,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Point Construction",
+        "Relentless Defender",
+        "Excellent Depth",
+        "Defensive Retrieval"
+      ]
+    },
+    "Jurij Rodionov": {
+      "aliases": [
+        "Rodionov",
+        "J. Rodionov"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Flat Ball Striking",
+        "First Strike Tennis",
+        "Baseline Pressure"
+      ]
+    },
+    "Nishesh Basavareddy": {
+      "aliases": [
+        "Basavareddy",
+        "N. Basavareddy"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 5,
+        "forehand": 4,
+        "backhand": 5,
+        "movement": 5,
+        "variety": 4,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Elite Returner",
+        "Elite Backhand",
+        "Aggressive Return",
+        "Early Ball Striker",
+        "Point Construction"
+      ]
+    },
+    "Stefanos Sakellaridis": {
+      "aliases": [
+        "Sakellaridis",
+        "S. Sakellaridis"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 2,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Varied Serving Patterns",
+        "Net Rushing"
+      ]
+    },
+    "Francesco Maestrelli": {
+      "aliases": [
+        "Maestrelli",
+        "F. Maestrelli"
+      ],
+      "playing_style": "First Strike Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "Baseline Pressure",
+        "Flat Ball Striking",
+        "First Strike Tennis"
+      ]
+    },
+    "Mark Lajal": {
+      "aliases": [
+        "Lajal",
+        "M. Lajal"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 5,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 4,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Big Server",
+        "Serve Plus One",
+        "First Strike Tennis",
+        "Baseline Pressure",
+        "Net Rushing"
       ]
     }
   }
