@@ -3544,6 +3544,51 @@ with tabs[1]:
                                 f"Home conflict differential: {brain_score:+.1f}"
                             )
 
+                        qb_gates = matchup_brain.get("qb_gates", {})
+                        if qb_gates:
+                            st.markdown("**Quarterback gates**")
+                            gate_cols = st.columns(2)
+                            for idx, (team_name, gate) in enumerate(qb_gates.items()):
+                                with gate_cols[idx % 2]:
+                                    st.markdown(
+                                        f"**{team_name}: {gate.get('verdict', 'Conditional')}**  \n"
+                                        f"{gate.get('explanation', '')}"
+                                    )
+                                    st.caption(f"QB matchup margin: {float(gate.get('margin', 0.0)):+.1f}")
+
+                        exploits = matchup_brain.get("exploits", [])
+                        meaningful_exploits = [item for item in exploits if float(item.get("score", 0.0)) >= 3.0]
+                        if meaningful_exploits:
+                            st.markdown("**Primary exploit opportunities**")
+                            for exploit in meaningful_exploits[:6]:
+                                st.markdown(
+                                    f"- **{exploit.get('team')} — {exploit.get('name')} "
+                                    f"({exploit.get('level')}, {float(exploit.get('score', 0.0)):.1f})**: "
+                                    f"{exploit.get('explanation')}"
+                                )
+
+                        win_conditions = matchup_brain.get("win_conditions", {})
+                        failure_conditions = matchup_brain.get("failure_conditions", {})
+                        if win_conditions:
+                            st.markdown("**How each team wins — and how the bet can fail**")
+                            path_cols = st.columns(2)
+                            for idx, (team_name, condition) in enumerate(win_conditions.items()):
+                                with path_cols[idx % 2]:
+                                    st.markdown(f"**{team_name}: {condition.get('title')}**")
+                                    st.write(condition.get("explanation", ""))
+                                    st.caption(
+                                        f"Current path realism: {float(condition.get('realism_score', 0.0)):.0f}/100"
+                                    )
+                                    chain = condition.get("chain", [])
+                                    if chain:
+                                        st.caption(" → ".join(chain))
+                                    failure = failure_conditions.get(team_name, {})
+                                    if failure:
+                                        st.warning(
+                                            f"Failure path: {failure.get('title')}. "
+                                            f"{failure.get('trigger')}"
+                                        )
+
                         conflicts = matchup_brain.get("conflicts", [])
                         for conflict in conflicts[:6]:
                             edge_team = conflict.get("edge_team") or "Even"
