@@ -44,7 +44,6 @@ try:
         VENUE_TYPES, WEATHER_OPTIONS,
     )
     from engine.nfl_ratings_loader import load_all_team_ratings
-    from engine.nfl_reasoning import challenge_reasoning as challenge_nfl_reasoning
 
     NFL_QUALITY_RATINGS = load_all_team_ratings()
     NFL_ENGINE_AVAILABLE = True
@@ -54,8 +53,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.60 — NFL Reasoning Challenge v1"
-BUILD_DATE = "August 3, 2026"
+APP_VERSION = "Macabets v0.59 — NFL Report v2"
+BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -3194,96 +3193,6 @@ with tabs[1]:
                 st.markdown("### Macabets Take")
                 st.info(explanation_report["take"])
 
-                st.markdown("### Challenge My Reasoning")
-                st.caption(
-                    "Explain why you are considering a side. Macabets will test the football mechanism "
-                    "against its current matchup ratings, push back where the matchup disagrees, and flag "
-                    "claims that need live information. Your thesis does not change the fair line."
-                )
-
-                reasoning_default_team = (
-                    nfl_considered_side
-                    if nfl_considered_side in {nfl_result["away_team"], nfl_result["home_team"]}
-                    else projected_nfl_winner
-                )
-                reasoning_team_options = [nfl_result["away_team"], nfl_result["home_team"]]
-                reasoning_team = st.selectbox(
-                    "Which team does your reasoning support?",
-                    reasoning_team_options,
-                    index=reasoning_team_options.index(reasoning_default_team),
-                    key="nfl_reasoning_team",
-                )
-                personal_reasoning = st.text_area(
-                    "Why do you like this team?",
-                    placeholder=(
-                        "Example: I like Philadelphia because its offensive line should neutralize "
-                        "Dallas' pass rush, giving the offense time to attack downfield."
-                    ),
-                    key="nfl_personal_reasoning",
-                    height=110,
-                )
-
-                if st.button(
-                    "Challenge My Reasoning",
-                    use_container_width=True,
-                    key="challenge_nfl_reasoning_button",
-                ):
-                    reasoning_opponent = (
-                        nfl_result["home_team"]
-                        if reasoning_team == nfl_result["away_team"]
-                        else nfl_result["away_team"]
-                    )
-                    try:
-                        st.session_state["nfl_reasoning_result"] = challenge_nfl_reasoning(
-                            reasoning=personal_reasoning,
-                            selected_team=reasoning_team,
-                            opponent=reasoning_opponent,
-                            selected_profile=NFL_QUALITY_RATINGS[reasoning_team],
-                            opponent_profile=NFL_QUALITY_RATINGS[reasoning_opponent],
-                            projected_winner=projected_nfl_winner,
-                            selected_is_home=reasoning_team == nfl_result["home_team"],
-                            home_field_points=float(nfl_result.get("home_field_points", 0.0)),
-                        )
-                    except Exception as exc:
-                        st.session_state.pop("nfl_reasoning_result", None)
-                        st.warning(str(exc))
-
-                reasoning_result = st.session_state.get("nfl_reasoning_result")
-                if reasoning_result and reasoning_result.get("selected_team") == reasoning_team:
-                    verdict_col, alignment_col, adjustment_col = st.columns(3)
-                    verdict_col.metric("Macabets Response", reasoning_result["verdict"])
-                    alignment_col.metric(
-                        "Model Alignment",
-                        "Aligned" if reasoning_result["model_alignment"] else "Opposes model pick",
-                    )
-                    adjustment_col.metric(
-                        "Thesis Strength",
-                        f"{reasoning_result['confidence_adjustment']:+.1f}",
-                        "Reasoning only",
-                    )
-
-                    if reasoning_result["points"]:
-                        st.markdown("**Where Macabets agrees or pushes back**")
-                        for point in reasoning_result["points"]:
-                            st.markdown(
-                                f"- **{point['status']} — {point['label']}:** {point['evidence']}"
-                            )
-                    else:
-                        st.info(reasoning_result["bottom_line"])
-
-                    if reasoning_result["assumptions"]:
-                        st.markdown("**Claims that still need verification**")
-                        for item in reasoning_result["assumptions"]:
-                            st.markdown(f"- {item}")
-
-                    if reasoning_result["missing_factors"]:
-                        st.markdown("**What your thesis may be missing**")
-                        for item in reasoning_result["missing_factors"]:
-                            st.markdown(f"- {item}")
-
-                    st.info(reasoning_result["bottom_line"])
-                    st.caption(reasoning_result["notice"])
-
                 st.markdown("#### Decisive Factors")
                 for item in explanation_report["key_advantages"][:4]:
                     st.markdown(f"- {item}")
@@ -3620,6 +3529,46 @@ with tabs[1]:
 
                     st.markdown("**Expected game script**")
                     st.write(nfl_result["game_script"])
+
+                matchup_brain = nfl_result.get("matchup_brain", {})
+                if matchup_brain:
+                    with st.expander("NFL Brain — matchup conflicts and chain reactions", expanded=True):
+                        brain_leader = matchup_brain.get("matchup_leader", "Even")
+                        brain_score = float(matchup_brain.get("matchup_score_home", 0.0))
+                        st.markdown(f"**{matchup_brain.get('summary', '')}**")
+                        if brain_leader == "Even":
+                            st.caption("Conflict score: Even")
+                        else:
+                            st.caption(
+                                f"Conflict leader: {brain_leader} | "
+                                f"Home conflict differential: {brain_score:+.1f}"
+                            )
+
+                        conflicts = matchup_brain.get("conflicts", [])
+                        for conflict in conflicts[:6]:
+                            edge_team = conflict.get("edge_team") or "Even"
+                            edge_label = (
+                                "Even"
+                                if edge_team == "Even" or conflict.get("strength") == "Even"
+                                else f"{edge_team} — {conflict.get('strength')} edge"
+                            )
+                            st.markdown(
+                                f"**{conflict.get('name')}**  \n"
+                                f"*Question:* {conflict.get('question')}  \n"
+                                f"*Verdict:* {edge_label}  \n"
+                                f"{conflict.get('explanation')}  \n"
+                                f"*Why it matters:* {conflict.get('consequence')}"
+                            )
+
+                        chains = matchup_brain.get("chain_reactions", [])
+                        if chains:
+                            st.markdown("**Chain reactions**")
+                            for chain in chains:
+                                st.markdown(f"- **{chain.get('team')}:** {chain.get('summary')}")
+                                st.caption(" → ".join(chain.get("steps", [])))
+
+                        for limitation in matchup_brain.get("limitations", []):
+                            st.caption(f"Data boundary: {limitation}")
 
                 with st.expander("Supporting arguments, swing factors and risks", expanded=False):
                     home_path, away_path = st.columns(2)
