@@ -145,12 +145,77 @@ def fetch_all_madden_players(
     return deduplicated, metadata
 
 
+def _normalize_key(value: object) -> str:
+    return "".join(character for character in str(value).casefold() if character.isalnum())
+
+
 def _first_value(record: Dict[str, Any], candidates: Iterable[str]) -> Any:
-    lowered = {str(key).casefold(): value for key, value in record.items()}
-    for candidate in candidates:
-        if candidate.casefold() in lowered:
-            return lowered[candidate.casefold()]
+    """
+    Resolve fields defensively.
+
+    EA sometimes nests fields such as team/position under objects, which become
+    flattened names such as `team_label`, `player_team_shortLabel`, or
+    `position_fullName`. Exact matches are preferred, followed by safe suffix
+    matches against normalized keys.
+    """
+    normalized_record = {
+        _normalize_key(key): value
+        for key, value in record.items()
+        if value not in (None, "")
+    }
+    normalized_candidates = [_normalize_key(candidate) for candidate in candidates]
+
+    for candidate in normalized_candidates:
+        if candidate in normalized_record:
+            return normalized_record[candidate]
+
+    for candidate in normalized_candidates:
+        for key, value in normalized_record.items():
+            if key.endswith(candidate):
+                return value
+
     return None
+
+
+def _entity_label(record: Dict[str, Any], entity: str) -> Any:
+    """Find a human-readable team or position value in EA's nested schema."""
+    entity_key = _normalize_key(entity)
+    preferred_terms = (
+        "shortlabel",
+        "label",
+        "displayname",
+        "fullname",
+        "name",
+        "abbr",
+        "abbreviation",
+        "slug",
+    )
+
+    candidates = []
+    for raw_key, value in record.items():
+        key = _normalize_key(raw_key)
+        if entity_key not in key or value in (None, ""):
+            continue
+        if isinstance(value, (dict, list)):
+            continue
+
+        priority = 99
+        for index, term in enumerate(preferred_terms):
+            if key.endswith(term) or term in key:
+                priority = index
+                break
+
+        # Avoid IDs and image/logo URLs unless no descriptive field exists.
+        if key.endswith("id") or "logo" in key or "image" in key:
+            priority += 50
+
+        candidates.append((priority, len(key), value))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: (item[0], item[1]))
+    return candidates[0][2]
 
 
 def _flatten_record(record: Dict[str, Any]) -> Dict[str, Any]:
@@ -188,13 +253,36 @@ def normalize_players(records: List[Dict[str, Any]]) -> pd.DataFrame:
 
         row = {
             "player_name": player_name,
-            "team": _first_value(
-                record,
-                ("team", "team_name", "teamName", "club", "team_label"),
+            "team": (
+                _first_value(
+                    record,
+                    (
+                        "team",
+                        "team_name",
+                        "teamName",
+                        "club",
+                        "team_label",
+                        "team_shortLabel",
+                        "team_displayName",
+                        "team_abbreviation",
+                    ),
+                )
+                or _entity_label(record, "team")
             ),
-            "position": _first_value(
-                record,
-                ("position", "pos", "position_name", "positionName"),
+            "position": (
+                _first_value(
+                    record,
+                    (
+                        "position",
+                        "pos",
+                        "position_name",
+                        "positionName",
+                        "position_label",
+                        "position_shortLabel",
+                        "position_abbreviation",
+                    ),
+                )
+                or _entity_label(record, "position")
             ),
             "overall": _first_value(
                 record,
@@ -243,9 +331,18 @@ def normalize_players(records: List[Dict[str, Any]]) -> pd.DataFrame:
         if column not in frame.columns or frame[column].isna().all()
     ]
     if missing:
+        sample_keys = sorted(
+            {
+                str(key)
+                for raw_record in records[:3]
+                for key in _flatten_record(raw_record).keys()
+            }
+        )
         raise RuntimeError(
             "The EA response format was recognized incompletely. Missing usable fields: "
             + ", ".join(missing)
+            + ". Sample EA fields: "
+            + ", ".join(sample_keys[:80])
         )
 
     frame["player_name"] = frame["player_name"].astype(str).str.strip()
