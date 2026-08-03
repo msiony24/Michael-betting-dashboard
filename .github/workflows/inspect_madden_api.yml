@@ -1,0 +1,20 @@
+name: Inspect Madden API
+'on':
+  workflow_dispatch: {}
+jobs:
+  inspect-madden-api:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Download raw EA sample
+      run: python inspect_madden_api.py
+    - name: Upload raw sample
+      uses: actions/upload-artifact@v4
+      with:
+        name: madden-api-sample
+        path: madden_api_sample.json
