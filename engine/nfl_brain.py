@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Mapping
 
+from engine.nfl_team_schema import NFLTeamProfile, profile_from_legacy_components
+
 
 @dataclass(frozen=True)
 class MatchupConflict:
@@ -23,6 +25,41 @@ class MatchupConflict:
     question: str
     explanation: str
     consequence: str
+
+
+
+
+@dataclass(frozen=True)
+class ExploitOpportunity:
+    team: str
+    target_team: str
+    name: str
+    score: float
+    level: str
+    weapon: str
+    weakness: str
+    explanation: str
+    consequence: str
+
+
+@dataclass(frozen=True)
+class WinCondition:
+    team: str
+    title: str
+    requirements: list[str]
+    chain: list[str]
+    realism_score: float
+    explanation: str
+
+
+@dataclass(frozen=True)
+class FailureCondition:
+    team: str
+    threat_team: str
+    title: str
+    trigger: str
+    consequence: str
+    threat_score: float
 
 
 @dataclass(frozen=True)
@@ -292,6 +329,227 @@ def _chain_reactions(conflicts: list[MatchupConflict]) -> list[ChainReaction]:
     return chains[:4]
 
 
+def _exploit_level(score: float) -> str:
+    if score >= 9.0:
+        return "Severe"
+    if score >= 6.0:
+        return "High"
+    if score >= 3.0:
+        return "Moderate"
+    return "Limited"
+
+
+def _make_exploit(
+    *,
+    team: str,
+    target_team: str,
+    name: str,
+    weapon_score: float,
+    resistance_score: float,
+    weapon: str,
+    weakness: str,
+    positive_text: str,
+    consequence: str,
+) -> ExploitOpportunity:
+    score = round(max(0.0, weapon_score - resistance_score), 2)
+    level = _exploit_level(score)
+    if score < 3.0:
+        explanation = (
+            f"{team} does not currently own enough separation in {weapon.lower()} "
+            f"to label {target_team}'s {weakness.lower()} a dependable exploit."
+        )
+    else:
+        explanation = positive_text
+    return ExploitOpportunity(
+        team=team,
+        target_team=target_team,
+        name=name,
+        score=score,
+        level=level,
+        weapon=weapon,
+        weakness=weakness,
+        explanation=explanation,
+        consequence=consequence,
+    )
+
+
+def _team_exploits(profile: NFLTeamProfile, opponent: NFLTeamProfile) -> list[ExploitOpportunity]:
+    offense = profile.offense
+    defense = opponent.defense
+
+    passing_weapon = (
+        offense.quarterback * 0.42
+        + offense.pass_protection * 0.25
+        + offense.receiving_weapons * 0.33
+    )
+    passing_resistance = (
+        defense.pass_rush * 0.30
+        + defense.cornerbacks * 0.42
+        + defense.safeties * 0.28
+    )
+
+    pressure_survival = offense.quarterback * 0.48 + offense.pass_protection * 0.52
+    pressure_threat = defense.pass_rush * 0.72 + defense.overall * 0.28
+
+    rushing_weapon = offense.run_blocking * 0.58 + offense.running_backs * 0.42
+    rushing_resistance = defense.run_defense * 0.78 + defense.overall * 0.22
+
+    middle_weapon = offense.quarterback * 0.34 + offense.receiving_weapons * 0.48 + offense.overall * 0.18
+    middle_resistance = defense.linebacker_coverage * 0.56 + defense.safeties * 0.44
+
+    return [
+        _make_exploit(
+            team=profile.team,
+            target_team=opponent.team,
+            name="Passing structure against coverage",
+            weapon_score=passing_weapon,
+            resistance_score=passing_resistance,
+            weapon="Quarterback, protection and receiving structure",
+            weakness="Pass rush and coverage resistance",
+            positive_text=(
+                f"{profile.team}'s quarterback, protection and receiving profile combine to create "
+                f"a direct passing-game problem for {opponent.team}."
+            ),
+            consequence="If this advantage holds, the offense can sustain drives without needing unusual turnover luck.",
+        ),
+        _make_exploit(
+            team=profile.team,
+            target_team=opponent.team,
+            name="Quarterback survival against pressure",
+            weapon_score=pressure_survival,
+            resistance_score=pressure_threat,
+            weapon="Quarterback capability and pass protection",
+            weakness="Defensive pressure profile",
+            positive_text=(
+                f"{profile.team} is positioned to keep its quarterback functional against "
+                f"{opponent.team}'s defensive-front pressure."
+            ),
+            consequence="A viable quarterback under pressure keeps the team's full winning path available.",
+        ),
+        _make_exploit(
+            team=profile.team,
+            target_team=opponent.team,
+            name="Run-game leverage",
+            weapon_score=rushing_weapon,
+            resistance_score=rushing_resistance,
+            weapon="Run blocking and backfield quality",
+            weakness="Run-defense resistance",
+            positive_text=(
+                f"{profile.team}'s run structure can attack {opponent.team}'s front strongly enough "
+                "to create manageable down-and-distance situations."
+            ),
+            consequence="Successful early-down runs protect the quarterback and preserve play-action credibility.",
+        ),
+        _make_exploit(
+            team=profile.team,
+            target_team=opponent.team,
+            name="Middle-field access",
+            weapon_score=middle_weapon,
+            resistance_score=middle_resistance,
+            weapon="Quarterback and receiving weapons",
+            weakness="Linebacker and safety coverage",
+            positive_text=(
+                f"{profile.team}'s passing personnel projects to stress the middle layers of "
+                f"{opponent.team}'s coverage profile."
+            ),
+            consequence="Middle-field access can improve third-down conversion and reduce reliance on low-percentage deep throws.",
+        ),
+    ]
+
+
+def _qb_gate(profile: NFLTeamProfile, opponent: NFLTeamProfile) -> dict:
+    capability = (
+        profile.offense.quarterback * 0.55
+        + profile.offense.pass_protection * 0.20
+        + profile.offense.receiving_weapons * 0.15
+        + profile.offense.overall * 0.10
+    )
+    challenge = (
+        opponent.defense.pass_rush * 0.35
+        + opponent.defense.cornerbacks * 0.30
+        + opponent.defense.safeties * 0.20
+        + opponent.defense.overall * 0.15
+    )
+    margin = round(capability - challenge, 2)
+    if margin >= 4.0:
+        verdict = "Pass"
+        explanation = f"{profile.team}'s quarterback environment is capable of winning this specific matchup."
+    elif margin <= -5.0:
+        verdict = "Fail"
+        explanation = f"{profile.team}'s quarterback path is currently overmatched by {opponent.team}'s pressure-and-coverage profile."
+    else:
+        verdict = "Conditional"
+        explanation = f"{profile.team}'s quarterback can win, but the supporting matchup must hold together."
+    return {
+        "team": profile.team,
+        "opponent": opponent.team,
+        "verdict": verdict,
+        "margin": margin,
+        "explanation": explanation,
+    }
+
+
+def _win_condition(
+    team: NFLTeamProfile,
+    opponent: NFLTeamProfile,
+    exploits: list[ExploitOpportunity],
+    qb_gate: dict,
+) -> WinCondition:
+    ranked = sorted(exploits, key=lambda item: item.score, reverse=True)
+    primary = ranked[0]
+    secondary = ranked[1]
+    realism = max(0.0, min(100.0, 50.0 + primary.score * 2.4 + secondary.score * 1.2 + qb_gate["margin"] * 0.8))
+    requirements = [
+        f"The quarterback gate must remain {qb_gate['verdict'].lower()} rather than collapsing under pressure.",
+        f"Convert the {primary.name.lower()} advantage into sustained offensive efficiency.",
+        f"Prevent {opponent.team}'s strongest counter-exploit from controlling game script.",
+    ]
+    chain = [
+        primary.weapon,
+        f"attacks {primary.weakness.lower()}",
+        primary.consequence,
+        "the offense keeps its preferred game script available",
+    ]
+    return WinCondition(
+        team=team.team,
+        title=f"Win through {primary.name.lower()}",
+        requirements=requirements,
+        chain=chain,
+        realism_score=round(realism, 1),
+        explanation=(
+            f"{team.team}'s cleanest path is to make {primary.name.lower()} the central conflict, "
+            f"with {secondary.name.lower()} as the supporting advantage."
+        ),
+    )
+
+
+def _failure_condition(
+    team: NFLTeamProfile,
+    opponent: NFLTeamProfile,
+    opponent_exploits: list[ExploitOpportunity],
+    qb_gate: dict,
+) -> FailureCondition:
+    threat = max(opponent_exploits, key=lambda item: item.score)
+    if qb_gate["verdict"] == "Fail":
+        title = "Quarterback environment breaks down"
+        trigger = qb_gate["explanation"]
+        consequence = "The rest of the roster would need to overcome an unstable passing environment, which sharply narrows the betting case."
+        score = max(threat.score, abs(float(qb_gate["margin"])))
+    else:
+        title = f"Opponent activates {threat.name.lower()}"
+        trigger = threat.explanation
+        consequence = threat.consequence
+        score = threat.score
+    return FailureCondition(
+        team=team.team,
+        threat_team=opponent.team,
+        title=title,
+        trigger=trigger,
+        consequence=consequence,
+        threat_score=round(score, 2),
+    )
+
+
 def build_matchup_brain(
     *,
     away_team: str,
@@ -299,6 +557,19 @@ def build_matchup_brain(
     away_components: Mapping[str, float],
     home_components: Mapping[str, float],
 ) -> dict:
+    away_profile = profile_from_legacy_components(away_team, away_components)
+    home_profile = profile_from_legacy_components(home_team, home_components)
+
+    away_exploits = _team_exploits(away_profile, home_profile)
+    home_exploits = _team_exploits(home_profile, away_profile)
+    away_qb_gate = _qb_gate(away_profile, home_profile)
+    home_qb_gate = _qb_gate(home_profile, away_profile)
+
+    away_win_condition = _win_condition(away_profile, home_profile, away_exploits, away_qb_gate)
+    home_win_condition = _win_condition(home_profile, away_profile, home_exploits, home_qb_gate)
+    away_failure = _failure_condition(away_profile, home_profile, home_exploits, away_qb_gate)
+    home_failure = _failure_condition(home_profile, away_profile, away_exploits, home_qb_gate)
+
     conflicts = [
         *_team_conflicts(away_team, home_team, away_components, home_components),
         *_team_conflicts(home_team, away_team, home_components, away_components),
@@ -358,15 +629,48 @@ def build_matchup_brain(
     else:
         summary = "The matchup conflicts are balanced enough that no single football interaction clearly controls the game."
 
+    all_exploits = sorted(
+        [*away_exploits, *home_exploits],
+        key=lambda item: item.score,
+        reverse=True,
+    )
+
     return {
-        "version": "NFL Brain v0.1",
+        "version": "NFL Brain v0.2-schema",
         "matchup_score_home": score_gap,
         "matchup_leader": leader or "Even",
         "summary": summary,
+        "team_profiles": {
+            away_team: away_profile.to_dict(),
+            home_team: home_profile.to_dict(),
+        },
+        "qb_gates": {
+            away_team: away_qb_gate,
+            home_team: home_qb_gate,
+        },
+        "exploits": [asdict(item) for item in all_exploits],
+        "win_conditions": {
+            away_team: asdict(away_win_condition),
+            home_team: asdict(home_win_condition),
+        },
+        "failure_conditions": {
+            away_team: asdict(away_failure),
+            home_team: asdict(home_failure),
+        },
         "conflicts": [asdict(item) for item in ranked],
         "chain_reactions": [asdict(item) for item in chains],
+        "data_contract": {
+            "status": "Ready for upgraded ratings",
+            "current_source": "Legacy Macabets ratings translated through a stable schema",
+            "future_sources_can_replace": [
+                "Madden 27 roster ratings",
+                "Advanced team metrics",
+                "Depth charts and injuries",
+                "Player-level and scheme-level data",
+            ],
+        },
         "limitations": [
-            "This layer uses current Macabets team components, not verified play-calling or coverage-frequency data.",
+            "The brain now uses a stable detailed schema, but several detailed fields are provisional estimates derived from broad legacy ratings.",
             "Injuries, confirmed starters and current scheme tendencies must still be checked separately.",
         ],
     }
