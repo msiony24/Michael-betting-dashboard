@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 
 from engine.confidence import confidence_band, recommendation_from_edge
 from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
+from engine.nfl_brain import build_matchup_brain
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -105,6 +106,7 @@ class NFLAnalysis:
     home_power_rating: float
     home_field_points: float
     rating_breakdown: list[dict]
+    matchup_brain: dict
 
 
 def analyze(
@@ -166,7 +168,13 @@ def analyze(
     upset_risk = "High" if max(home_probability, away_probability) < 0.58 else "Medium" if max(home_probability, away_probability) < 0.68 else "Low"
 
     decisive = _decisive_factors(away_team, home_team, away_components, home_components)
-    top_reason = decisive[0]["explanation"] if decisive else "The teams are closely matched across the weighted team-state categories."
+    matchup_brain = build_matchup_brain(
+        away_team=away_team,
+        home_team=home_team,
+        away_components=away_components,
+        home_components=home_components,
+    )
+    top_reason = matchup_brain["summary"]
 
     breakdown = []
     for key, weight in TEAM_RATING_WEIGHTS.items():
@@ -241,5 +249,6 @@ def analyze(
         home_power_rating=home_power,
         home_field_points=applied_hfa,
         rating_breakdown=breakdown,
+        matchup_brain=matchup_brain,
     )
     return asdict(result)
