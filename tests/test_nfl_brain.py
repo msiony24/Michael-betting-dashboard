@@ -63,3 +63,46 @@ def test_brain_does_not_invent_scheme_or_injury_claims():
     assert "blitz rate" not in text
     assert "injury" not in text
     assert result["limitations"]
+
+
+def test_brain_exposes_schema_exploits_and_paths():
+    result = build_matchup_brain(
+        away_team="Away",
+        home_team="Home",
+        away_components=_components(defensive_line=66, secondary=65, defense=67),
+        home_components=_components(
+            quarterback=91,
+            offensive_line=89,
+            offense=88,
+            skill_positions=90,
+        ),
+    )
+
+    assert result["version"] == "NFL Brain v0.2-schema"
+    assert set(result["team_profiles"]) == {"Away", "Home"}
+    assert set(result["qb_gates"]) == {"Away", "Home"}
+    assert result["exploits"]
+    assert result["win_conditions"]["Home"]["realism_score"] >= 50
+    assert result["failure_conditions"]["Away"]["threat_team"] == "Home"
+    assert result["data_contract"]["status"] == "Ready for upgraded ratings"
+
+
+def test_qb_gate_can_fail_when_environment_is_badly_overmatched():
+    result = build_matchup_brain(
+        away_team="Away",
+        home_team="Home",
+        away_components=_components(
+            quarterback=60,
+            offensive_line=61,
+            skill_positions=63,
+            offense=62,
+        ),
+        home_components=_components(
+            defensive_line=92,
+            secondary=91,
+            defense=92,
+        ),
+    )
+
+    assert result["qb_gates"]["Away"]["verdict"] == "Fail"
+    assert "Quarterback environment" in result["failure_conditions"]["Away"]["title"]
