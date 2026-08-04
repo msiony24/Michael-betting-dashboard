@@ -22,10 +22,10 @@ jobs:
     - name: Update Madden ratings
       run: python update_madden_data.py
     - name: Show generated files
-      run: ls -lh data/madden_27_*
+      run: ls -lh data/madden_26_*
     - name: Commit updated Madden data
       run: "git config user.name \"github-actions[bot]\"\ngit config user.email \"\
-        41898282+github-actions[bot]@users.noreply.github.com\"\ngit add data/madden_27_players.csv\
-        \ data/madden_27_raw.json data/madden_27_metadata.json data/madden_27_team_ratings.json\n\
+        41898282+github-actions[bot]@users.noreply.github.com\"\ngit add data/madden_26_players.csv\
+        \ data/madden_26_raw.json data/madden_26_metadata.json data/madden_26_team_ratings.json\n\
         if git diff --cached --quiet; then\n  echo \"No Madden data changes to commit.\"\
-        \nelse\n  git commit -m \"Update Madden 27 ratings data\"\n  git push\nfi"
+        \nelse\n  git commit -m \"Update Madden 26 ratings data\"\n  git push\nfi"
