@@ -3,23 +3,22 @@ from engine.nfl_brain import build_matchup_brain
 
 def _components(**overrides):
     base = {
-        "quarterback": 75,
-        "offensive_line": 75,
-        "defense": 75,
-        "offense": 75,
-        "recent_form": 75,
-        "coaching": 75,
-        "defensive_line": 75,
-        "secondary": 75,
-        "skill_positions": 75,
+        "quarterback": 80,
+        "offense": 78,
+        "defense": 77,
+        "coaching": 79,
+        "offensive_line": 78,
+        "defensive_line": 78,
+        "skill_positions": 78,
+        "secondary": 77,
         "special_teams": 75,
-        "continuity": 75,
+        "continuity": 76,
     }
     base.update(overrides)
     return base
 
 
-def test_brain_builds_direct_conflicts_for_both_offenses():
+def test_legacy_data_is_blocked_instead_of_generating_conflicts():
     result = build_matchup_brain(
         away_team="Away",
         home_team="Home",
@@ -27,13 +26,12 @@ def test_brain_builds_direct_conflicts_for_both_offenses():
         home_components=_components(),
     )
 
-    names = [item["name"] for item in result["conflicts"]]
-    assert names.count("Quarterback vs coverage") == 2
-    assert names.count("Pass protection vs defensive front") == 2
-    assert result["matchup_leader"] == "Even"
+    assert result["status"] == "blocked_by_data_quality"
+    assert result["conflicts"] == []
+    assert result["matchup_leader"] == "Unavailable"
 
 
-def test_protection_and_qb_edges_create_chain_reaction():
+def test_legacy_rating_gaps_do_not_create_chain_reactions():
     result = build_matchup_brain(
         away_team="Away",
         home_team="Home",
@@ -41,68 +39,35 @@ def test_protection_and_qb_edges_create_chain_reaction():
         home_components=_components(quarterback=92, offensive_line=91, offense=90, skill_positions=88),
     )
 
-    assert result["matchup_leader"] == "Home"
-    assert any(
-        chain["team"] == "Home" and "Protection and passing" in chain["trigger"]
-        for chain in result["chain_reactions"]
-    )
+    assert result["matchup_leader"] == "Unavailable"
+    assert result["chain_reactions"] == []
+    assert result["data_contract"]["allowed_to_influence_prediction"] is False
 
 
-def test_brain_does_not_invent_scheme_or_injury_claims():
+def test_brain_exposes_schema_and_strict_decision_framework():
     result = build_matchup_brain(
         away_team="Away",
         home_team="Home",
         away_components=_components(),
-        home_components=_components(quarterback=85),
+        home_components=_components(),
     )
 
-    text = " ".join(
-        conflict["explanation"] + " " + conflict["consequence"]
-        for conflict in result["conflicts"]
-    ).lower()
-    assert "blitz rate" not in text
-    assert "injury" not in text
-    assert result["limitations"]
-
-
-def test_brain_exposes_schema_exploits_and_paths():
-    result = build_matchup_brain(
-        away_team="Away",
-        home_team="Home",
-        away_components=_components(defensive_line=66, secondary=65, defense=67),
-        home_components=_components(
-            quarterback=91,
-            offensive_line=89,
-            offense=88,
-            skill_positions=90,
-        ),
-    )
-
-    assert result["version"] == "NFL Brain v0.2-schema"
+    assert result["version"] == "NFL Brain v0.3-strict-data-gate"
     assert set(result["team_profiles"]) == {"Away", "Home"}
-    assert set(result["qb_gates"]) == {"Away", "Home"}
-    assert result["exploits"]
-    assert result["win_conditions"]["Home"]["realism_score"] >= 50
-    assert result["failure_conditions"]["Away"]["threat_team"] == "Home"
-    assert result["data_contract"]["status"] == "Ready for upgraded ratings"
+    assert result["decision_framework"]["status"] == "blocked_by_data_quality"
+    assert len(result["decision_framework"]["questions"]) == 8
 
 
-def test_qb_gate_can_fail_when_environment_is_badly_overmatched():
+def test_qb_gate_is_not_claimed_from_provisional_data():
     result = build_matchup_brain(
         away_team="Away",
         home_team="Home",
-        away_components=_components(
-            quarterback=60,
-            offensive_line=61,
-            skill_positions=63,
-            offense=62,
-        ),
-        home_components=_components(
-            defensive_line=92,
-            secondary=91,
-            defense=92,
-        ),
+        away_components=_components(quarterback=60, offensive_line=61),
+        home_components=_components(defensive_line=92, secondary=91, defense=92),
     )
 
-    assert result["qb_gates"]["Away"]["verdict"] == "Fail"
-    assert "Quarterback environment" in result["failure_conditions"]["Away"]["title"]
+    assert result["qb_gates"] == {}
+    assert all(
+        question["answer"] == "Insufficient current data"
+        for question in result["decision_framework"]["questions"]
+    )
