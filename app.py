@@ -3166,49 +3166,6 @@ with tabs[1]:
                     price_report,
                 )
 
-                st.markdown("## Game Prediction")
-                gp1, gp2, gp3, gp4 = st.columns(4)
-                gp1.metric("Projected Winner", projected_nfl_winner)
-                gp2.metric("Win Probability", f"{projected_nfl_probability:.1%}")
-                gp3.metric("Prediction Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
-
-                away = nfl_result["away_team"]
-                home = nfl_result["home_team"]
-                away_score = round(nfl_result["projected_away_score"])
-                home_score = round(nfl_result["projected_home_score"])
-                gp4.metric("Projected Score", f"{away_score}-{home_score}", f"{away} at {home}")
-
-                if away_score >= home_score:
-                    winner, winner_score = away, away_score
-                    loser, loser_score = home, home_score
-                else:
-                    winner, winner_score = home, home_score
-                    loser, loser_score = away, away_score
-
-                margin = winner_score - loser_score
-                if margin >= 7:
-                    outlook = "Comfortable win"
-                elif margin >= 3:
-                    outlook = "Competitive win"
-                else:
-                    outlook = "Toss-up"
-                st.caption(f"Projected margin: {winner} by {margin} · Game outlook: {outlook}")
-
-                st.markdown("### Macabets Take")
-                st.info(explanation_report["take"])
-
-                st.markdown("#### Decisive Factors")
-                for item in explanation_report["key_advantages"][:4]:
-                    st.markdown(f"- {item}")
-
-                st.markdown("#### What Could Go Wrong")
-                for item in explanation_report["risks"][:4]:
-                    st.markdown(f"- {item}")
-
-                st.markdown("#### Expected Game Script")
-                st.write(explanation_report["game_script"])
-
-                st.markdown("## Betting Recommendation")
                 spread_value_points = abs(spread_difference)
                 if spread_value_points >= 5.0:
                     spread_value_label = "Strong spread value"
@@ -3219,91 +3176,85 @@ with tabs[1]:
                 else:
                     spread_value_label = "No meaningful spread value"
 
-                bet1, bet2, bet3, bet4 = st.columns(4)
-                bet1.metric("Winner Prediction", projected_nfl_winner)
-                bet2.metric("Moneyline Verdict", price_report["verdict"], f"Market {format_american(winner_market_ml)}")
-                bet3.metric("Best Spread Position", spread_value_text if value_team else "PASS")
-                bet4.metric("Spread Value", f"{spread_value_points:.1f} points", spread_value_label)
-
-                st.caption(
-                    f"Macabets fair line: {fair_line_text}. Market line: {vegas_line_text}. "
-                    "Spread value is the gap between those two lines; it does not mean the listed team is projected to win by that amount."
-                )
-
-                if value_team and value_team != projected_nfl_winner:
-                    st.info(
-                        f"Macabets projects {projected_nfl_winner} to win, while {spread_value_text} is the better spread position. "
-                        "The predicted winner and the best point-spread value can be different."
-                    )
-                elif value_team:
-                    st.success(
-                        f"The winner prediction and spread value both favor {value_team}."
-                    )
+                away = nfl_result["away_team"]
+                home = nfl_result["home_team"]
+                away_score = round(nfl_result["projected_away_score"])
+                home_score = round(nfl_result["projected_home_score"])
+                if away_score >= home_score:
+                    winner, winner_score = away, away_score
+                    loser, loser_score = home, home_score
                 else:
-                    st.info(
-                        f"Macabets projects {projected_nfl_winner} to win but does not identify a meaningful spread edge at the entered line."
-                    )
-
-                st.markdown("#### Bottom Line")
-                if value_team and value_team != projected_nfl_winner:
-                    bottom_line = (
-                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
-                        f"but the market spread is wider than the model's fair line. That makes {spread_value_text} "
-                        f"the better spread position, with {spread_value_points:.1f} points of line value."
-                    )
-                elif value_team:
-                    bottom_line = (
-                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
-                        f"and the spread also offers {spread_value_points:.1f} points of value on {spread_value_text}."
-                    )
+                    winner, winner_score = home, home_score
+                    loser, loser_score = away, away_score
+                margin = winner_score - loser_score
+                if margin >= 7:
+                    outlook = "Comfortable win"
+                elif margin >= 3:
+                    outlook = "Competitive win"
                 else:
-                    bottom_line = (
-                        f"Macabets expects {projected_nfl_winner} to win about {projected_nfl_probability:.0%} of the time, "
-                        "but the current spread is close enough to the fair line that there is no clear spread bet."
-                    )
-                st.info(bottom_line)
+                    outlook = "Toss-up"
 
-                st.markdown("#### Line Comparison")
-                line1, line2, line3, line4 = st.columns(4)
-                line1.metric("Macabets Fair Line", fair_line_text)
-                line2.metric("Vegas Line", vegas_line_text)
-                line3.metric("Edge", edge_text)
-                line4.metric(
-                    "Prediction Confidence",
-                    f"{nfl_result['confidence']:.0f}/100",
-                    nfl_result["confidence_band"],
-                )
+                st.markdown("## Macabets Recommendation")
+                rec1, rec2, rec3, rec4, rec5 = st.columns(5)
+                rec1.metric("Decision", price_report["verdict"])
+                rec2.metric("Projected Winner", projected_nfl_winner)
+                rec3.metric("Win Probability", f"{projected_nfl_probability:.1%}")
+                rec4.metric("Fair Line", fair_line_text)
+                rec5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+
+                decision_sentence = explanation_report["take"]
+                if price_report["verdict"].lower() == "pass":
+                    st.info(decision_sentence)
+                else:
+                    st.success(decision_sentence)
 
                 st.caption(
-                    "Edge measures the difference between the Macabets fair spread and the entered "
-                    "Vegas spread. An edge of 0.5 points or less is treated as no material edge."
+                    f"Projected score: {away} {away_score}, {home} {home_score} · "
+                    f"Projected margin: {winner} by {margin} · {outlook}"
                 )
 
-                summary1, summary2, summary3 = st.columns(3)
-                with summary1:
-                    st.markdown("**Projected Score**")
-                    st.write(
-                        f"{nfl_result['away_team']}: "
-                        f"{nfl_result['projected_away_score']:.1f}"
+                st.markdown("### Why Macabets Sees It This Way")
+                factor_col, risk_col = st.columns(2)
+                with factor_col:
+                    st.markdown("**Decisive factors**")
+                    for item in explanation_report["key_advantages"][:4]:
+                        st.markdown(f"- {item}")
+                with risk_col:
+                    st.markdown("**Risk factors**")
+                    for item in explanation_report["risks"][:4]:
+                        st.markdown(f"- {item}")
+
+                st.markdown("### Expected Game Script")
+                st.write(explanation_report["game_script"])
+
+                with st.expander("Market and line details", expanded=False):
+                    line1, line2, line3, line4 = st.columns(4)
+                    line1.metric("Macabets Fair Line", fair_line_text)
+                    line2.metric("Vegas Line", vegas_line_text)
+                    line3.metric("Spread Edge", edge_text)
+                    line4.metric(
+                        "Best Spread Position",
+                        spread_value_text if value_team else "PASS",
+                        spread_value_label,
                     )
-                    st.write(
-                        f"{nfl_result['home_team']}: "
-                        f"{nfl_result['projected_home_score']:.1f}"
+                    st.caption(
+                        "Spread value is the difference between the Macabets fair spread and the entered market spread. "
+                        "It does not mean the listed team is projected to win by that amount."
                     )
-                summary2.metric(
-                    f"{nfl_result['away_team']} Win Probability",
-                    f"{nfl_result['away_win_probability']:.1%}",
-                    f"Fair ML {fair_away_moneyline:+d}",
-                )
-                summary3.metric(
-                    f"{nfl_result['home_team']} Win Probability",
-                    f"{nfl_result['home_win_probability']:.1%}",
-                    f"Fair ML {nfl_result['fair_moneyline_home']:+d}",
-                )
-                st.caption(
-                    f"Projected total: {nfl_result['fair_total']:.1f} "
-                    "(currently market-anchored)."
-                )
+
+                    prob1, prob2, prob3 = st.columns(3)
+                    prob1.metric("Projected Score", f"{away_score}-{home_score}")
+                    prob2.metric(
+                        f"{away} Win Probability",
+                        f"{nfl_result['away_win_probability']:.1%}",
+                        f"Fair ML {fair_away_moneyline:+d}",
+                    )
+                    prob3.metric(
+                        f"{home} Win Probability",
+                        f"{nfl_result['home_win_probability']:.1%}",
+                        f"Fair ML {nfl_result['fair_moneyline_home']:+d}",
+                    )
+                    st.caption(f"Projected total: {nfl_result['fair_total']:.1f} (currently market-anchored).")
 
                 if nfl_considered_side != "Just analyze":
                     if nfl_considered_side == nfl_result["away_team"]:
@@ -3419,7 +3370,7 @@ with tabs[1]:
                         "a direct BET or PASS decision."
                     )
 
-                st.markdown("#### Category Advantages")
+                st.markdown("### Matchup Advantages")
                 category_verdicts, category_wins, strongest_edge, category_leader = (
                     build_nfl_category_verdicts(
                         nfl_result["away_team"],
@@ -3428,56 +3379,33 @@ with tabs[1]:
                     )
                 )
 
-                category1, category2, category3, category4 = st.columns(4)
-                category1.metric(
-                    nfl_result["away_team"],
-                    f"{category_wins[nfl_result['away_team']]} advantages",
-                )
-                category2.metric(
-                    nfl_result["home_team"],
-                    f"{category_wins[nfl_result['home_team']]} advantages",
-                )
-                category3.metric("Even", f"{category_wins['Even']} categories")
-                category4.metric("Category Leader", category_leader)
+                away_wins = category_wins[nfl_result["away_team"]]
+                home_wins = category_wins[nfl_result["home_team"]]
+                cat1, cat2, cat3 = st.columns(3)
+                cat1.metric("Category Leader", category_leader)
+                cat2.metric("Category Score", f"{away_wins}-{home_wins}")
+                cat3.metric("Even Categories", category_wins["Even"])
 
-                visible_verdicts = category_verdicts[
-                    ["Category", "Advantage", "Strength"]
-                ].copy()
-                st.dataframe(
-                    visible_verdicts,
-                    use_container_width=True,
-                    hide_index=True,
-                )
+                advantage_cols = st.columns(2)
+                visible_rows = category_verdicts[["Category", "Advantage", "Strength"]].to_dict("records")
+                for idx, row in enumerate(visible_rows):
+                    with advantage_cols[idx % 2]:
+                        leader = row["Advantage"]
+                        strength = row["Strength"]
+                        symbol = "⚪" if leader == "Even" else "🟢"
+                        st.markdown(
+                            f"{symbol} **{row['Category']}** — {leader}<br>"
+                            f"<span style='color:#6b7280;font-size:0.9rem'>{strength} edge</span>",
+                            unsafe_allow_html=True,
+                        )
 
                 if strongest_edge:
                     st.success(
-                        f"Strongest category edge: {strongest_edge['Advantage']} has a "
-                        f"{strongest_edge['Strength'].lower()} advantage in "
-                        f"{strongest_edge['Category']}."
+                        f"Strongest matchup edge: {strongest_edge['Advantage']} in "
+                        f"{strongest_edge['Category']} ({strongest_edge['Strength'].lower()})."
                     )
 
-                away_wins = category_wins[nfl_result["away_team"]]
-                home_wins = category_wins[nfl_result["home_team"]]
-                if category_leader == "Even":
-                    category_summary = (
-                        f"The category comparison is balanced at {away_wins}-{home_wins}, "
-                        f"with {category_wins['Even']} even categor"
-                        f"{'y' if category_wins['Even'] == 1 else 'ies'}."
-                    )
-                else:
-                    trailing_team = (
-                        nfl_result["home_team"]
-                        if category_leader == nfl_result["away_team"]
-                        else nfl_result["away_team"]
-                    )
-                    category_summary = (
-                        f"{category_leader} wins the category comparison "
-                        f"{category_wins[category_leader]}-{category_wins[trailing_team]}. "
-                        "This is a matchup verdict, not a standalone betting recommendation."
-                    )
-                st.info(category_summary)
-
-                with st.expander("Show the ratings behind each verdict", expanded=False):
+                with st.expander("Detailed category ratings", expanded=False):
                     st.dataframe(
                         category_verdicts,
                         use_container_width=True,
@@ -3487,10 +3415,7 @@ with tabs[1]:
                         },
                     )
                     st.caption(
-                        "Running Game combines overall offense, offensive line and skill-position "
-                        "ratings. Receiving Weapons combines skill-position and overall offense "
-                        "ratings. Madden 27 data will eventually replace these provisional composites "
-                        "with position-specific player grades."
+                        "These are provisional composite ratings. Position-specific player data will replace them when verified live inputs are connected."
                     )
 
                 with st.expander("Technical fair-line model audit", expanded=False):
@@ -3536,168 +3461,57 @@ with tabs[1]:
 
                 matchup_brain = nfl_result.get("matchup_brain", {})
                 if matchup_brain:
-                    with st.expander("NFL Brain — matchup conflicts and chain reactions", expanded=True):
-                        brain_status = matchup_brain.get("status", "unknown")
-                        brain_leader = matchup_brain.get("matchup_leader", "Unavailable")
-                        brain_score = float(matchup_brain.get("matchup_score_home", 0.0))
-                        st.markdown(f"**{matchup_brain.get('summary', '')}**")
-                        if brain_status == "blocked_by_data_quality":
-                            st.caption("Waiting for verified current NFL data.")
-                        elif brain_leader in {"Even", "Unavailable", "Unscored"}:
-                            st.caption(f"Conflict score: {brain_leader}")
-                        else:
-                            st.caption(
-                                f"Conflict leader: {brain_leader} | "
-                                f"Home conflict differential: {brain_score:+.1f}"
-                            )
-
-                        decision_framework = matchup_brain.get("decision_framework", {})
-                        if decision_framework:
-                            st.markdown("### NFL Brain")
-                            questions = decision_framework.get("questions", [])
-
-                            for item in questions:
-                                status = item.get("status", "insufficient_current_data")
-                                if status == "ready_for_scoring":
-                                    answer = item.get("answer", "Ready for analysis")
-                                    reasoning = item.get(
-                                        "reason",
-                                        "Macabets has enough verified information to evaluate this question.",
-                                    )
-                                    confidence = item.get("readiness_label", "Available")
-                                else:
-                                    answer = "Waiting for verified data"
-                                    reasoning = (
-                                        "Macabets does not yet have enough verified current NFL information "
-                                        "to answer this question responsibly. It will not guess or rely on "
-                                        "outdated information."
-                                    )
-                                    confidence = "Not available"
-
-                                st.markdown(f"**{item.get('number')}. {item.get('question')}**")
-                                st.markdown(f"**Answer:** {answer}")
-                                st.write(reasoning)
-                                st.caption(f"Confidence: {confidence}")
-                                st.divider()
-
-                            ready_questions = int(decision_framework.get("ready_questions", 0))
-                            if ready_questions == 8:
-                                football_summary = (
-                                    "Macabets has verified evidence for all eight football questions. "
-                                    "The framework is ready for validated scoring and matchup reasoning."
-                                )
-                            elif ready_questions > 0:
-                                football_summary = (
-                                    f"Macabets can responsibly evaluate {ready_questions} of the eight football "
-                                    "questions. It is waiting for verified information before answering the rest."
+                    st.markdown("### NFL Brain")
+                    decision_framework = matchup_brain.get("decision_framework", {})
+                    questions = decision_framework.get("questions", []) if decision_framework else []
+                    if questions:
+                        for item in questions:
+                            answer = item.get("answer", "Waiting for verified data")
+                            if answer in {"Insufficient current data", "Unable to determine"}:
+                                answer = "Waiting for verified data"
+                                confidence = "Not available"
+                                reasoning = (
+                                    "Macabets does not yet have enough verified current NFL information to answer this responsibly. "
+                                    "It will not guess or rely on outdated inputs."
                                 )
                             else:
-                                football_summary = (
-                                    "The NFL Brain is ready, but Macabets is waiting for verified current NFL "
-                                    "data before producing matchup conclusions. It will not manufacture an answer."
-                                )
+                                confidence = item.get("readiness_label", "Medium")
+                                reasoning = item.get("reason", "")
+                            st.markdown(f"**{item.get('number')}. {item.get('question')}**")
+                            st.markdown(f"**Answer:** {answer}")
+                            st.write(reasoning)
+                            st.caption(f"Confidence: {confidence}")
 
-                            st.markdown("### Football Summary")
-                            st.write(football_summary)
-
-                            with st.expander("Technical Details", expanded=False):
-                                st.caption(decision_framework.get("message", ""))
-                                st.caption(
-                                    f"Questions ready: {ready_questions}/8 | "
-                                    "Prediction influence: disabled"
-                                )
-                                for item in questions:
-                                    st.markdown(
-                                        f"**Question {item.get('number')}: {item.get('question')}**"
-                                    )
-                                    st.write(
-                                        f"Readiness: {item.get('readiness_label', 'Unknown')} "
-                                        f"({int(item.get('readiness_score', 0))}/100)"
-                                    )
-                                    missing_required = item.get("missing_required", [])
-                                    if missing_required:
-                                        st.write("Missing required evidence:")
-                                        for label in missing_required:
-                                            st.write(f"- {label}")
-                                    missing_optional = item.get("missing_optional", [])
-                                    if missing_optional:
-                                        st.write("Helpful evidence not yet available:")
-                                        for label in missing_optional:
-                                            st.write(f"- {label}")
-                                    st.caption(item.get("week_one_policy", ""))
-                                    st.caption(
-                                        f"Refusal rule: {item.get('refusal_rule', '')}"
-                                    )
-                                    st.divider()
-
-                        qb_gates = matchup_brain.get("qb_gates", {})
-                        if qb_gates:
-                            st.markdown("**Quarterback gates**")
-                            gate_cols = st.columns(2)
-                            for idx, (team_name, gate) in enumerate(qb_gates.items()):
-                                with gate_cols[idx % 2]:
-                                    st.markdown(
-                                        f"**{team_name}: {gate.get('verdict', 'Conditional')}**  \n"
-                                        f"{gate.get('explanation', '')}"
-                                    )
-                                    st.caption(f"QB matchup margin: {float(gate.get('margin', 0.0)):+.1f}")
-
-                        exploits = matchup_brain.get("exploits", [])
-                        meaningful_exploits = [item for item in exploits if float(item.get("score", 0.0)) >= 3.0]
-                        if meaningful_exploits:
-                            st.markdown("**Primary exploit opportunities**")
-                            for exploit in meaningful_exploits[:6]:
-                                st.markdown(
-                                    f"- **{exploit.get('team')} — {exploit.get('name')} "
-                                    f"({exploit.get('level')}, {float(exploit.get('score', 0.0)):.1f})**: "
-                                    f"{exploit.get('explanation')}"
-                                )
-
-                        win_conditions = matchup_brain.get("win_conditions", {})
-                        failure_conditions = matchup_brain.get("failure_conditions", {})
-                        if win_conditions:
-                            st.markdown("**How each team wins — and how the bet can fail**")
-                            path_cols = st.columns(2)
-                            for idx, (team_name, condition) in enumerate(win_conditions.items()):
-                                with path_cols[idx % 2]:
-                                    st.markdown(f"**{team_name}: {condition.get('title')}**")
-                                    st.write(condition.get("explanation", ""))
-                                    st.caption(
-                                        f"Current path realism: {float(condition.get('realism_score', 0.0)):.0f}/100"
-                                    )
-                                    chain = condition.get("chain", [])
-                                    if chain:
-                                        st.caption(" → ".join(chain))
-                                    failure = failure_conditions.get(team_name, {})
-                                    if failure:
-                                        st.warning(
-                                            f"Failure path: {failure.get('title')}. "
-                                            f"{failure.get('trigger')}"
-                                        )
-
-                        conflicts = matchup_brain.get("conflicts", [])
-                        for conflict in conflicts[:6]:
-                            edge_team = conflict.get("edge_team") or "Even"
-                            edge_label = (
-                                "Even"
-                                if edge_team == "Even" or conflict.get("strength") == "Even"
-                                else f"{edge_team} — {conflict.get('strength')} edge"
+                        if all(
+                            item.get("answer") in {"Insufficient current data", "Unable to determine"}
+                            for item in questions
+                        ):
+                            football_summary = (
+                                "The NFL Brain is ready, but verified current roster, player, injury and performance data is not yet connected. "
+                                "Macabets is intentionally withholding matchup conclusions until those inputs are available."
                             )
-                            st.markdown(
-                                f"**{conflict.get('name')}**  \n"
-                                f"*Question:* {conflict.get('question')}  \n"
-                                f"*Verdict:* {edge_label}  \n"
-                                f"{conflict.get('explanation')}  \n"
-                                f"*Why it matters:* {conflict.get('consequence')}"
+                        else:
+                            football_summary = matchup_brain.get("summary", "")
+                        st.markdown("**Football Summary**")
+                        st.info(football_summary)
+
+                    with st.expander("Technical Details", expanded=False):
+                        st.write(matchup_brain.get("summary", ""))
+                        st.write(f"Status: {matchup_brain.get('status', 'unknown')}")
+                        if decision_framework:
+                            st.write(
+                                f"Questions ready: {int(decision_framework.get('ready_questions', 0))}/8"
                             )
-
-                        chains = matchup_brain.get("chain_reactions", [])
-                        if chains:
-                            st.markdown("**Chain reactions**")
-                            for chain in chains:
-                                st.markdown(f"- **{chain.get('team')}:** {chain.get('summary')}")
-                                st.caption(" → ".join(chain.get("steps", [])))
-
+                            for item in questions:
+                                st.markdown(f"**Question {item.get('number')}**")
+                                st.write(f"Readiness: {item.get('readiness_label', 'Unknown')} ({int(item.get('readiness_score', 0))}/100)")
+                                missing_required = item.get("missing_required", [])
+                                missing_optional = item.get("missing_optional", [])
+                                if missing_required:
+                                    st.write("Missing required: " + "; ".join(missing_required))
+                                if missing_optional:
+                                    st.write("Missing helpful: " + "; ".join(missing_optional))
+                                st.write(item.get("refusal_rule", ""))
                         for limitation in matchup_brain.get("limitations", []):
                             st.caption(f"Data boundary: {limitation}")
 
@@ -3724,23 +3538,20 @@ with tabs[1]:
                         for condition in nfl_result["invalidation_conditions"]:
                             st.markdown(f"- {condition}")
 
-                st.markdown("#### Supporting Spread Comparison")
-                if value_team:
-                    st.write(
-                        f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}. "
-                        f"Macabets makes the fair home line {fair_home_spread:+.1f}, a "
-                        f"{abs(spread_difference):.1f}-point difference toward {market_direction}. "
-                        f"At the entered market line, the potential spread-value side is "
-                        f"{spread_value_text}. This is a line comparison, not a final bet call, "
-                        "because the sportsbook juice was not entered."
-                    )
-                else:
-                    st.write(
-                        f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}, "
-                        f"while Macabets makes the fair home line {fair_home_spread:+.1f}. "
-                        f"The {abs(spread_difference):.1f}-point difference is not large enough "
-                        "to create a material spread edge."
-                    )
+                with st.expander("Supporting spread comparison", expanded=False):
+                    if value_team:
+                        st.write(
+                            f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}. "
+                            f"Macabets makes the fair home line {fair_home_spread:+.1f}, a "
+                            f"{abs(spread_difference):.1f}-point difference toward {market_direction}. "
+                            f"At the entered market line, the potential spread-value side is {spread_value_text}."
+                        )
+                    else:
+                        st.write(
+                            f"Vegas lists {nfl_result['home_team']} at {entered_market_home_spread:+.1f}, "
+                            f"while Macabets makes the fair home line {fair_home_spread:+.1f}. "
+                            f"The {abs(spread_difference):.1f}-point difference is not large enough to create a material spread edge."
+                        )
 
     with analysis_tabs[2]:
         st.subheader("Outcome Simulator")
