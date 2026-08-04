@@ -21,11 +21,13 @@ jobs:
         pip install -r requirements.txt'
     - name: Update Madden ratings
       run: python update_madden_data.py
+    - name: Build automated NFL ratings
+      run: python update_nfl_ratings.py
     - name: Show generated files
-      run: ls -lh data/madden_26_*
+      run: ls -lh data/madden_26_* data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json
     - name: Commit updated Madden data
       run: "git config user.name \"github-actions[bot]\"\ngit config user.email \"\
         41898282+github-actions[bot]@users.noreply.github.com\"\ngit add data/madden_26_players.csv\
-        \ data/madden_26_raw.json data/madden_26_metadata.json data/madden_26_team_ratings.json\n\
+        \ data/madden_26_raw.json data/madden_26_metadata.json data/madden_26_team_ratings.json data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json data/nfl/rating_history.jsonl\n\
         if git diff --cached --quiet; then\n  echo \"No Madden data changes to commit.\"\
         \nelse\n  git commit -m \"Update Madden 26 ratings data\"\n  git push\nfi"
