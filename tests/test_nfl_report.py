@@ -1,17 +1,20 @@
 from pathlib import Path
 
 
-def test_nfl_report_v2_sections():
+def test_nfl_report_v3_sections():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert '## Game Prediction' in source
-    assert '## Betting Recommendation' in source
-    assert '#### What Could Go Wrong' in source
-    assert '#### Decisive Factors' in source
-    assert 'Spread value is the gap between those two lines' in source
+    assert '## Macabets Recommendation' in source
+    assert '### Why Macabets Sees It This Way' in source
+    assert '**Decisive factors**' in source
+    assert '**Risk factors**' in source
+    assert '### Matchup Advantages' in source
+    assert '### NFL Brain' in source
+    assert 'with st.expander("Market and line details"' in source
 
 
 def test_removed_repetitive_nfl_sections():
     source = Path("app.py").read_text(encoding="utf-8")
-    assert '#### Why Each Team Can Win' not in source
-    assert '#### Supporting Model Summary' not in source
-    assert 'Edge: Arizona Cardinals by' not in source
+    assert '#### Bottom Line' not in source
+    assert '## Betting Recommendation' not in source
+    assert '#### What Could Go Wrong' not in source
+    assert '#### Category Advantages' not in source
