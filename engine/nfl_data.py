@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from engine.nfl_team_state import TEAM_STATE_WEIGHTS, build_all_team_states
+from engine.nfl_foundation import load_foundation_status
 
 NFL_TEAMS = [
     "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
@@ -38,6 +39,7 @@ NFL_TEAM_RATINGS = {
     if team in _TEAM_STATES
 }
 
+_FOUNDATION_STATUS = load_foundation_status()
 _available_states = [state for state in _TEAM_STATES.values() if state.get("season") is not None]
 _latest = max(_available_states, key=lambda state: (state.get("season") or 0, state.get("week") or 0), default=None)
 
@@ -50,4 +52,9 @@ NFL_DATA_STATUS = {
     "updated_at_utc": (_latest or {}).get("updated_at_utc"),
     "rating_mode": "unified weekly team state" if _available_states else "manual team-state priors",
     "reason": _LOAD_ERROR or ("Live snapshot not present; manual priors and neutral recent form are active." if not _available_states else ""),
+    "foundation_updated_at_utc": _FOUNDATION_STATUS.get("updated_at_utc"),
+    "foundation_available_datasets": _FOUNDATION_STATUS.get("available_datasets", 0),
+    "foundation_total_datasets": _FOUNDATION_STATUS.get("total_datasets", 0),
+    "foundation_requested_season": _FOUNDATION_STATUS.get("requested_season"),
+    "foundation_performance_season": _FOUNDATION_STATUS.get("performance_season"),
 }
