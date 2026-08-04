@@ -3537,16 +3537,39 @@ with tabs[1]:
                 matchup_brain = nfl_result.get("matchup_brain", {})
                 if matchup_brain:
                     with st.expander("NFL Brain — matchup conflicts and chain reactions", expanded=True):
-                        brain_leader = matchup_brain.get("matchup_leader", "Even")
+                        brain_status = matchup_brain.get("status", "unknown")
+                        brain_leader = matchup_brain.get("matchup_leader", "Unavailable")
                         brain_score = float(matchup_brain.get("matchup_score_home", 0.0))
                         st.markdown(f"**{matchup_brain.get('summary', '')}**")
-                        if brain_leader == "Even":
-                            st.caption("Conflict score: Even")
+                        if brain_status == "blocked_by_data_quality":
+                            st.error(
+                                "NFL Brain scoring is disabled. Current verified roster, player, "
+                                "injury and performance data is not connected, so Macabets will not "
+                                "manufacture matchup conclusions."
+                            )
+                        elif brain_leader in {"Even", "Unavailable", "Unscored"}:
+                            st.caption(f"Conflict score: {brain_leader}")
                         else:
                             st.caption(
                                 f"Conflict leader: {brain_leader} | "
                                 f"Home conflict differential: {brain_score:+.1f}"
                             )
+
+                        decision_framework = matchup_brain.get("decision_framework", {})
+                        if decision_framework:
+                            st.markdown("**Macabets Decision Framework — Eight Questions**")
+                            st.caption(decision_framework.get("message", ""))
+                            for item in decision_framework.get("questions", []):
+                                st.markdown(
+                                    f"**{item.get('number')}. {item.get('question')}**  \n"
+                                    f"Answer: **{item.get('answer')}**  \n"
+                                    f"{item.get('reason')}"
+                                )
+                                st.caption(
+                                    "Required inputs: "
+                                    + ", ".join(item.get("required_inputs", []))
+                                    + f" | Prediction influence: {item.get('can_influence_prediction')}"
+                                )
 
                         qb_gates = matchup_brain.get("qb_gates", {})
                         if qb_gates:
