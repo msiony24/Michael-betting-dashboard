@@ -8,14 +8,19 @@ on:
         required: false
         type: string
   schedule:
-    - cron: "20 10 * * 2"
+    - cron: "20 10 * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: update-macabets-nfl-data
+  cancel-in-progress: false
+
 jobs:
   update-nfl-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +28,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Refresh NFL data
+      - name: Refresh NFL foundation
         run: |
           if [ -n "${{ github.event.inputs.season }}" ]; then
             python update_nfl_data.py --season "${{ github.event.inputs.season }}"
@@ -35,10 +41,17 @@ jobs:
             python update_nfl_data.py
           fi
 
-      - name: Commit refreshed snapshot
+      - name: Run NFL data tests
+        run: python -m pytest tests/test_nfl_foundation.py tests/test_nfl_fetch_upgrade.py tests/test_nfl_team_state.py -q
+
+      - name: Commit refreshed NFL data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/nfl/team_snapshot.csv
-          git diff --cached --quiet || git commit -m "Update NFL team snapshot"
-          git push
+          git add data/nfl/
+          if git diff --cached --quiet; then
+            echo "NFL data is already current."
+          else
+            git commit -m "Update automated NFL data foundation"
+            git push
+          fi
