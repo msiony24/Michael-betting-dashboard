@@ -1,5 +1,6 @@
 
 import io
+import html
 import math
 import json
 import urllib.error
@@ -57,8 +58,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.59 — NFL Report v2"
-BUILD_DATE = "July 31, 2026"
+APP_VERSION = "Macabets v0.60 — NFL Edge Card"
+BUILD_DATE = "August 4, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -1546,6 +1547,93 @@ st.markdown("""
 .block-container {padding-top: 1.2rem; padding-bottom: 3rem;}
 [data-testid="stMetricValue"] {font-size: 1.65rem;}
 .small-note {color: #777; font-size: .88rem;}
+.macabets-edge-card {
+    border: 1px solid #dfe5ec;
+    border-radius: 16px;
+    padding: 1.25rem 1.35rem 1.15rem;
+    margin: 0.4rem 0 1rem;
+    background: #ffffff;
+    box-shadow: 0 4px 18px rgba(16, 24, 40, 0.06);
+}
+.macabets-edge-top {
+    display: grid;
+    grid-template-columns: minmax(210px, 0.85fr) minmax(240px, 1.15fr) minmax(240px, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+}
+.macabets-score-panel {
+    border-radius: 13px;
+    padding: 1rem 1.1rem;
+    background: #f7f9fc;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.macabets-kicker {
+    color: #667085;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.macabets-score-row {display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.1rem;}
+.macabets-score {font-size: 4.35rem; line-height: 0.95; font-weight: 800; color: #101828;}
+.macabets-score-denom {font-size: 1.1rem; color: #98a2b3; font-weight: 600;}
+.macabets-score-band {font-size: 1.05rem; font-weight: 700; margin-top: 0.45rem;}
+.macabets-score-band.elite, .macabets-score-band.strong {color: #067647;}
+.macabets-score-band.playable {color: #175cd3;}
+.macabets-score-band.lean {color: #b54708;}
+.macabets-score-band.pass, .macabets-score-band.avoid {color: #667085;}
+.macabets-decision-panel, .macabets-projection-panel {
+    border-left: 1px solid #eaecf0;
+    padding: 0.35rem 0 0.35rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.macabets-decision {font-size: 2rem; line-height: 1.1; font-weight: 800; margin-top: 0.2rem;}
+.macabets-decision.bet {color: #067647;}
+.macabets-decision.pass {color: #475467;}
+.macabets-projected-winner {font-size: 1.55rem; font-weight: 750; color: #101828; margin-top: 0.2rem;}
+.macabets-subline {font-size: 0.92rem; color: #667085; margin-top: 0.35rem;}
+.macabets-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(145px, 1fr));
+    gap: 0.8rem;
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eaecf0;
+}
+.macabets-stat {background: #f8fafc; border-radius: 10px; padding: 0.75rem 0.85rem;}
+.macabets-stat-label {font-size: 0.76rem; color: #667085; font-weight: 650; margin-bottom: 0.22rem;}
+.macabets-stat-value {font-size: 1.12rem; line-height: 1.25; color: #101828; font-weight: 750;}
+.macabets-score-box {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-radius: 11px;
+    background: #101828;
+    color: white;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.9rem;
+}
+.macabets-team-score:last-child {text-align: right;}
+.macabets-score-team {font-size: 0.8rem; color: #d0d5dd; font-weight: 650;}
+.macabets-score-number {font-size: 2rem; font-weight: 800; line-height: 1.05;}
+.macabets-score-dash {font-size: 1.4rem; color: #98a2b3;}
+.macabets-card-note {margin-top: 0.75rem; font-size: 0.78rem; color: #667085;}
+@media (max-width: 1050px) {
+    .macabets-edge-top {grid-template-columns: 1fr 1fr;}
+    .macabets-projection-panel {grid-column: 1 / -1; border-left: 0; border-top: 1px solid #eaecf0; padding: 1rem 0 0;}
+    .macabets-grid {grid-template-columns: repeat(2, minmax(145px, 1fr));}
+}
+@media (max-width: 680px) {
+    .macabets-edge-top {grid-template-columns: 1fr;}
+    .macabets-decision-panel, .macabets-projection-panel {border-left: 0; border-top: 1px solid #eaecf0; padding: 1rem 0 0;}
+    .macabets-grid {grid-template-columns: 1fr;}
+    .macabets-score {font-size: 3.6rem;}
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -3194,24 +3282,98 @@ with tabs[1]:
                 else:
                     outlook = "Toss-up"
 
-                st.markdown("## Macabets Recommendation")
-                rec1, rec2, rec3, rec4, rec5 = st.columns(5)
-                rec1.metric("Decision", price_report["verdict"])
-                rec2.metric("Projected Winner", projected_nfl_winner)
-                rec3.metric("Win Probability", f"{projected_nfl_probability:.1%}")
-                rec4.metric("Fair Line", fair_line_text)
-                rec5.metric("Confidence", f"{nfl_result['confidence']:.0f}/100", nfl_result["confidence_band"])
+                score_value = int(round(float(nfl_result["confidence"])))
+                if score_value >= 90:
+                    score_band, score_class = "Elite Bet", "elite"
+                elif score_value >= 80:
+                    score_band, score_class = "Strong Bet", "strong"
+                elif score_value >= 70:
+                    score_band, score_class = "Playable", "playable"
+                elif score_value >= 60:
+                    score_band, score_class = "Lean", "lean"
+                elif score_value >= 50:
+                    score_band, score_class = "Pass", "pass"
+                else:
+                    score_band, score_class = "Avoid", "avoid"
+
+                verdict = str(price_report["verdict"])
+                verdict_class = "pass" if verdict.lower() == "pass" else "bet"
+                best_position = spread_value_text if value_team else "PASS"
+                projected_probability_text = f"{projected_nfl_probability:.1%}"
+                away_probability_text = f"{nfl_result['away_win_probability']:.1%}"
+                home_probability_text = f"{nfl_result['home_win_probability']:.1%}"
+
+                st.markdown("## Macabets Edge Card")
+                st.markdown(
+                    f"""
+                    <div class="macabets-edge-card">
+                        <div class="macabets-edge-top">
+                            <div class="macabets-score-panel">
+                                <div class="macabets-kicker">Macabets Score</div>
+                                <div class="macabets-score-row">
+                                    <div class="macabets-score">{score_value}</div>
+                                    <div class="macabets-score-denom">/100</div>
+                                </div>
+                                <div class="macabets-score-band {score_class}">{html.escape(score_band)}</div>
+                            </div>
+                            <div class="macabets-decision-panel">
+                                <div class="macabets-kicker">Recommendation</div>
+                                <div class="macabets-decision {verdict_class}">{html.escape(verdict.upper())}</div>
+                                <div class="macabets-subline">Best spread position: <strong>{html.escape(best_position)}</strong></div>
+                            </div>
+                            <div class="macabets-projection-panel">
+                                <div class="macabets-kicker">Projected Winner</div>
+                                <div class="macabets-projected-winner">{html.escape(projected_nfl_winner)}</div>
+                                <div class="macabets-subline">{projected_probability_text} win probability · {html.escape(outlook)}</div>
+                            </div>
+                        </div>
+                        <div class="macabets-grid">
+                            <div class="macabets-stat">
+                                <div class="macabets-stat-label">Market Line</div>
+                                <div class="macabets-stat-value">{html.escape(vegas_line_text)}</div>
+                            </div>
+                            <div class="macabets-stat">
+                                <div class="macabets-stat-label">Macabets Fair Line</div>
+                                <div class="macabets-stat-value">{html.escape(fair_line_text)}</div>
+                            </div>
+                            <div class="macabets-stat">
+                                <div class="macabets-stat-label">Spread Edge</div>
+                                <div class="macabets-stat-value">{html.escape(edge_text)}</div>
+                            </div>
+                            <div class="macabets-stat">
+                                <div class="macabets-stat-label">{html.escape(away)} Win Probability</div>
+                                <div class="macabets-stat-value">{away_probability_text}</div>
+                            </div>
+                            <div class="macabets-stat">
+                                <div class="macabets-stat-label">{html.escape(home)} Win Probability</div>
+                                <div class="macabets-stat-value">{home_probability_text}</div>
+                            </div>
+                        </div>
+                        <div class="macabets-score-box">
+                            <div class="macabets-team-score">
+                                <div class="macabets-score-team">{html.escape(away)}</div>
+                                <div class="macabets-score-number">{away_score}</div>
+                            </div>
+                            <div class="macabets-score-dash">—</div>
+                            <div class="macabets-team-score">
+                                <div class="macabets-score-team">{html.escape(home)}</div>
+                                <div class="macabets-score-number">{home_score}</div>
+                            </div>
+                        </div>
+                        <div class="macabets-card-note">
+                            Spread edge is the difference between the Macabets fair spread and the entered market spread;
+                            it does not mean the listed team is projected to win by that amount. Projected total: {nfl_result['fair_total']:.1f}.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
                 decision_sentence = explanation_report["take"]
                 if price_report["verdict"].lower() == "pass":
                     st.info(decision_sentence)
                 else:
                     st.success(decision_sentence)
-
-                st.caption(
-                    f"Projected score: {away} {away_score}, {home} {home_score} · "
-                    f"Projected margin: {winner} by {margin} · {outlook}"
-                )
 
                 st.markdown("### Why Macabets Sees It This Way")
                 factor_col, risk_col = st.columns(2)
@@ -3227,34 +3389,6 @@ with tabs[1]:
                 st.markdown("### Expected Game Script")
                 st.write(explanation_report["game_script"])
 
-                with st.expander("Market and line details", expanded=False):
-                    line1, line2, line3, line4 = st.columns(4)
-                    line1.metric("Macabets Fair Line", fair_line_text)
-                    line2.metric("Vegas Line", vegas_line_text)
-                    line3.metric("Spread Edge", edge_text)
-                    line4.metric(
-                        "Best Spread Position",
-                        spread_value_text if value_team else "PASS",
-                        spread_value_label,
-                    )
-                    st.caption(
-                        "Spread value is the difference between the Macabets fair spread and the entered market spread. "
-                        "It does not mean the listed team is projected to win by that amount."
-                    )
-
-                    prob1, prob2, prob3 = st.columns(3)
-                    prob1.metric("Projected Score", f"{away_score}-{home_score}")
-                    prob2.metric(
-                        f"{away} Win Probability",
-                        f"{nfl_result['away_win_probability']:.1%}",
-                        f"Fair ML {fair_away_moneyline:+d}",
-                    )
-                    prob3.metric(
-                        f"{home} Win Probability",
-                        f"{nfl_result['home_win_probability']:.1%}",
-                        f"Fair ML {nfl_result['fair_moneyline_home']:+d}",
-                    )
-                    st.caption(f"Projected total: {nfl_result['fair_total']:.1f} (currently market-anchored).")
 
                 if nfl_considered_side != "Just analyze":
                     if nfl_considered_side == nfl_result["away_team"]:
