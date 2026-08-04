@@ -3542,11 +3542,7 @@ with tabs[1]:
                         brain_score = float(matchup_brain.get("matchup_score_home", 0.0))
                         st.markdown(f"**{matchup_brain.get('summary', '')}**")
                         if brain_status == "blocked_by_data_quality":
-                            st.error(
-                                "NFL Brain scoring is disabled. Current verified roster, player, "
-                                "injury and performance data is not connected, so Macabets will not "
-                                "manufacture matchup conclusions."
-                            )
+                            st.caption("Waiting for verified current NFL data.")
                         elif brain_leader in {"Even", "Unavailable", "Unscored"}:
                             st.caption(f"Conflict score: {brain_leader}")
                         else:
@@ -3557,48 +3553,82 @@ with tabs[1]:
 
                         decision_framework = matchup_brain.get("decision_framework", {})
                         if decision_framework:
-                            st.markdown("**Macabets Decision Framework — Eight Questions**")
-                            st.caption(decision_framework.get("message", ""))
+                            st.markdown("### NFL Brain")
+                            questions = decision_framework.get("questions", [])
+
+                            for item in questions:
+                                status = item.get("status", "insufficient_current_data")
+                                if status == "ready_for_scoring":
+                                    answer = item.get("answer", "Ready for analysis")
+                                    reasoning = item.get(
+                                        "reason",
+                                        "Macabets has enough verified information to evaluate this question.",
+                                    )
+                                    confidence = item.get("readiness_label", "Available")
+                                else:
+                                    answer = "Waiting for verified data"
+                                    reasoning = (
+                                        "Macabets does not yet have enough verified current NFL information "
+                                        "to answer this question responsibly. It will not guess or rely on "
+                                        "outdated information."
+                                    )
+                                    confidence = "Not available"
+
+                                st.markdown(f"**{item.get('number')}. {item.get('question')}**")
+                                st.markdown(f"**Answer:** {answer}")
+                                st.write(reasoning)
+                                st.caption(f"Confidence: {confidence}")
+                                st.divider()
+
                             ready_questions = int(decision_framework.get("ready_questions", 0))
-                            st.caption(
-                                f"Evidence readiness: {ready_questions}/8 questions ready | "
-                                "Prediction influence remains disabled"
-                            )
-                            for item in decision_framework.get("questions", []):
-                                st.markdown(
-                                    f"**{item.get('number')}. {item.get('question')}**  \n"
-                                    f"Answer: **{item.get('answer')}**  \n"
-                                    f"Readiness: **{item.get('readiness_label', 'Unknown')} "
-                                    f"({int(item.get('readiness_score', 0))}/100)**  \n"
-                                    f"{item.get('reason')}"
+                            if ready_questions == 8:
+                                football_summary = (
+                                    "Macabets has verified evidence for all eight football questions. "
+                                    "The framework is ready for validated scoring and matchup reasoning."
                                 )
-                                st.caption(item.get("confidence_reason", ""))
-                                with st.expander(
-                                    f"Evidence requirements for Question {item.get('number')}",
-                                    expanded=False,
-                                ):
-                                    st.markdown("**Required — missing any one blocks the answer**")
-                                    for label in item.get("required_inputs", []):
-                                        st.write(f"- {label}")
-                                    st.markdown("**Helpful — missing data lowers readiness only**")
-                                    for label in item.get("optional_inputs", []):
-                                        st.write(f"- {label}")
+                            elif ready_questions > 0:
+                                football_summary = (
+                                    f"Macabets can responsibly evaluate {ready_questions} of the eight football "
+                                    "questions. It is waiting for verified information before answering the rest."
+                                )
+                            else:
+                                football_summary = (
+                                    "The NFL Brain is ready, but Macabets is waiting for verified current NFL "
+                                    "data before producing matchup conclusions. It will not manufacture an answer."
+                                )
+
+                            st.markdown("### Football Summary")
+                            st.write(football_summary)
+
+                            with st.expander("Technical Details", expanded=False):
+                                st.caption(decision_framework.get("message", ""))
+                                st.caption(
+                                    f"Questions ready: {ready_questions}/8 | "
+                                    "Prediction influence: disabled"
+                                )
+                                for item in questions:
+                                    st.markdown(
+                                        f"**Question {item.get('number')}: {item.get('question')}**"
+                                    )
+                                    st.write(
+                                        f"Readiness: {item.get('readiness_label', 'Unknown')} "
+                                        f"({int(item.get('readiness_score', 0))}/100)"
+                                    )
                                     missing_required = item.get("missing_required", [])
                                     if missing_required:
-                                        st.warning(
-                                            "Missing required evidence: "
-                                            + "; ".join(missing_required)
-                                        )
+                                        st.write("Missing required evidence:")
+                                        for label in missing_required:
+                                            st.write(f"- {label}")
                                     missing_optional = item.get("missing_optional", [])
                                     if missing_optional:
-                                        st.info(
-                                            "Helpful evidence not yet available: "
-                                            + "; ".join(missing_optional)
-                                        )
+                                        st.write("Helpful evidence not yet available:")
+                                        for label in missing_optional:
+                                            st.write(f"- {label}")
                                     st.caption(item.get("week_one_policy", ""))
                                     st.caption(
                                         f"Refusal rule: {item.get('refusal_rule', '')}"
                                     )
+                                    st.divider()
 
                         qb_gates = matchup_brain.get("qb_gates", {})
                         if qb_gates:
