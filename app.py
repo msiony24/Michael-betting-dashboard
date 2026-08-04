@@ -3559,17 +3559,46 @@ with tabs[1]:
                         if decision_framework:
                             st.markdown("**Macabets Decision Framework — Eight Questions**")
                             st.caption(decision_framework.get("message", ""))
+                            ready_questions = int(decision_framework.get("ready_questions", 0))
+                            st.caption(
+                                f"Evidence readiness: {ready_questions}/8 questions ready | "
+                                "Prediction influence remains disabled"
+                            )
                             for item in decision_framework.get("questions", []):
                                 st.markdown(
                                     f"**{item.get('number')}. {item.get('question')}**  \n"
                                     f"Answer: **{item.get('answer')}**  \n"
+                                    f"Readiness: **{item.get('readiness_label', 'Unknown')} "
+                                    f"({int(item.get('readiness_score', 0))}/100)**  \n"
                                     f"{item.get('reason')}"
                                 )
-                                st.caption(
-                                    "Required inputs: "
-                                    + ", ".join(item.get("required_inputs", []))
-                                    + f" | Prediction influence: {item.get('can_influence_prediction')}"
-                                )
+                                st.caption(item.get("confidence_reason", ""))
+                                with st.expander(
+                                    f"Evidence requirements for Question {item.get('number')}",
+                                    expanded=False,
+                                ):
+                                    st.markdown("**Required — missing any one blocks the answer**")
+                                    for label in item.get("required_inputs", []):
+                                        st.write(f"- {label}")
+                                    st.markdown("**Helpful — missing data lowers readiness only**")
+                                    for label in item.get("optional_inputs", []):
+                                        st.write(f"- {label}")
+                                    missing_required = item.get("missing_required", [])
+                                    if missing_required:
+                                        st.warning(
+                                            "Missing required evidence: "
+                                            + "; ".join(missing_required)
+                                        )
+                                    missing_optional = item.get("missing_optional", [])
+                                    if missing_optional:
+                                        st.info(
+                                            "Helpful evidence not yet available: "
+                                            + "; ".join(missing_optional)
+                                        )
+                                    st.caption(item.get("week_one_policy", ""))
+                                    st.caption(
+                                        f"Refusal rule: {item.get('refusal_rule', '')}"
+                                    )
 
                         qb_gates = matchup_brain.get("qb_gates", {})
                         if qb_gates:
