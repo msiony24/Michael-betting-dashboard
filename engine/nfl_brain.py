@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 from typing import Mapping
 
 from engine.nfl_team_schema import NFLTeamProfile, profile_from_legacy_components
+from engine.nfl_decision_framework import build_decision_framework
 
 
 @dataclass(frozen=True)
@@ -559,118 +560,71 @@ def build_matchup_brain(
 ) -> dict:
     away_profile = profile_from_legacy_components(away_team, away_components)
     home_profile = profile_from_legacy_components(home_team, home_components)
+    decision_framework = build_decision_framework(away_profile, home_profile)
 
-    away_exploits = _team_exploits(away_profile, home_profile)
-    home_exploits = _team_exploits(home_profile, away_profile)
-    away_qb_gate = _qb_gate(away_profile, home_profile)
-    home_qb_gate = _qb_gate(home_profile, away_profile)
-
-    away_win_condition = _win_condition(away_profile, home_profile, away_exploits, away_qb_gate)
-    home_win_condition = _win_condition(home_profile, away_profile, home_exploits, home_qb_gate)
-    away_failure = _failure_condition(away_profile, home_profile, home_exploits, away_qb_gate)
-    home_failure = _failure_condition(home_profile, away_profile, away_exploits, home_qb_gate)
-
-    conflicts = [
-        *_team_conflicts(away_team, home_team, away_components, home_components),
-        *_team_conflicts(home_team, away_team, home_components, away_components),
-    ]
-
-    coaching_gap = round(_score(home_components, "coaching") - _score(away_components, "coaching"), 2)
-    coaching_leader = _winner(home_team, away_team, coaching_gap)
-    if coaching_leader:
-        conflicts.append(
-            MatchupConflict(
-                name="Coaching and adjustment leverage",
-                offense_team=home_team,
-                defense_team=away_team,
-                edge_team=coaching_leader,
-                edge=abs(coaching_gap),
-                strength=_strength(coaching_gap),
-                question="Which staff is better positioned to adjust when the first plan stops working?",
-                explanation=(
-                    f"{coaching_leader} owns the clearer coaching and adjustment profile in the current ratings."
-                ),
-                consequence=(
-                    "This matters most in close games where early matchup advantages are countered and recreated."
-                ),
-            )
-        )
-
-    chains = _chain_reactions(conflicts)
-
-    team_scores = {away_team: 0.0, home_team: 0.0}
-    for conflict in conflicts:
-        if conflict.edge_team in team_scores:
-            multiplier = {"Lean": 1.0, "Clear": 1.35, "Major": 1.65}.get(conflict.strength, 0.0)
-            team_scores[conflict.edge_team] += conflict.edge * multiplier
-
-    score_gap = round(team_scores[home_team] - team_scores[away_team], 2)
-    leader = home_team if score_gap > 0 else away_team if score_gap < 0 else None
-
-    ranked = sorted(
-        conflicts,
-        key=lambda item: (
-            {"Major": 3, "Clear": 2, "Lean": 1, "Even": 0}[item.strength],
-            item.edge,
-        ),
-        reverse=True,
-    )
-
-    if leader:
-        top = [item for item in ranked if item.edge_team == leader][:2]
-        if top:
-            summary = (
-                f"{leader} owns the stronger opponent-specific conflict profile, led by "
-                + " and ".join(item.name.lower() for item in top)
-                + "."
-            )
-        else:
-            summary = f"{leader} holds a narrow matchup-conflict edge."
-    else:
-        summary = "The matchup conflicts are balanced enough that no single football interaction clearly controls the game."
-
-    all_exploits = sorted(
-        [*away_exploits, *home_exploits],
-        key=lambda item: item.score,
-        reverse=True,
-    )
-
-    return {
-        "version": "NFL Brain v0.2-schema",
-        "matchup_score_home": score_gap,
-        "matchup_leader": leader or "Even",
-        "summary": summary,
-        "team_profiles": {
-            away_team: away_profile.to_dict(),
-            home_team: home_profile.to_dict(),
-        },
-        "qb_gates": {
-            away_team: away_qb_gate,
-            home_team: home_qb_gate,
-        },
-        "exploits": [asdict(item) for item in all_exploits],
-        "win_conditions": {
-            away_team: asdict(away_win_condition),
-            home_team: asdict(home_win_condition),
-        },
-        "failure_conditions": {
-            away_team: asdict(away_failure),
-            home_team: asdict(home_failure),
-        },
-        "conflicts": [asdict(item) for item in ranked],
-        "chain_reactions": [asdict(item) for item in chains],
-        "data_contract": {
-            "status": "Ready for upgraded ratings",
-            "current_source": "Legacy Macabets ratings translated through a stable schema",
-            "future_sources_can_replace": [
-                "Madden 27 roster ratings",
-                "Advanced team metrics",
-                "Depth charts and injuries",
-                "Player-level and scheme-level data",
+    # Strict no-fake-certainty gate. The current adapter produces useful schema
+    # placeholders, but they are not current verified roster/performance data.
+    # Therefore the brain must not manufacture matchup edges from them.
+    if decision_framework["status"] != "data_ready":
+        return {
+            "version": "NFL Brain v0.3-strict-data-gate",
+            "status": "blocked_by_data_quality",
+            "matchup_score_home": 0.0,
+            "matchup_leader": "Unavailable",
+            "summary": (
+                "Macabets is not producing an NFL Brain conclusion because current "
+                "verified team and player inputs are not connected."
+            ),
+            "team_profiles": {
+                away_team: away_profile.to_dict(),
+                home_team: home_profile.to_dict(),
+            },
+            "decision_framework": decision_framework,
+            "qb_gates": {},
+            "exploits": [],
+            "win_conditions": {},
+            "failure_conditions": {},
+            "conflicts": [],
+            "chain_reactions": [],
+            "data_contract": {
+                "status": "Blocked until verified current inputs are connected",
+                "current_source": "Legacy Macabets ratings adapter",
+                "allowed_to_influence_prediction": False,
+                "required_future_sources": [
+                    "Current rosters and confirmed starters",
+                    "Current player and unit ratings",
+                    "Current injuries and availability",
+                    "Current season and recent-form metrics",
+                ],
+            },
+            "limitations": [
+                "Legacy ratings are retained only to preserve compatibility with the existing app.",
+                "No QB gate, exploit, win condition, failure path, conflict edge, or chain reaction is generated from provisional data.",
+                "The existing legacy prediction model remains separate from this strict reasoning framework.",
             ],
+        }
+
+    # Future path: when verified current profiles are connected, the validated
+    # matchup scoring layer can run here. Until then, returning an unscored
+    # framework is safer than a fabricated conclusion.
+    return {
+        "version": "NFL Brain v0.3-strict-data-gate",
+        "status": "data_ready_unscored",
+        "matchup_score_home": 0.0,
+        "matchup_leader": "Unscored",
+        "summary": "Current data is available, but validated matchup scoring is not yet active.",
+        "team_profiles": {away_team: away_profile.to_dict(), home_team: home_profile.to_dict()},
+        "decision_framework": decision_framework,
+        "qb_gates": {},
+        "exploits": [],
+        "win_conditions": {},
+        "failure_conditions": {},
+        "conflicts": [],
+        "chain_reactions": [],
+        "data_contract": {
+            "status": "Ready for validated scoring rules",
+            "allowed_to_influence_prediction": False,
         },
-        "limitations": [
-            "The brain now uses a stable detailed schema, but several detailed fields are provisional estimates derived from broad legacy ratings.",
-            "Injuries, confirmed starters and current scheme tendencies must still be checked separately.",
-        ],
+        "limitations": ["Decision scoring remains disabled until it is validated against historical outcomes."],
     }
+
