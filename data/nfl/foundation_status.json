@@ -1,0 +1,73 @@
+{
+  "available_datasets": 4,
+  "datasets": [
+    {
+      "available": true,
+      "error": "",
+      "file": "data/nfl/team_snapshot.csv",
+      "name": "team_performance",
+      "rows": 32
+    },
+    {
+      "available": true,
+      "error": "",
+      "file": "data/nfl/schedules.csv",
+      "name": "schedules",
+      "rows": 272
+    },
+    {
+      "available": true,
+      "error": "",
+      "file": "data/nfl/rosters.csv",
+      "name": "rosters",
+      "rows": 2930
+    },
+    {
+      "available": false,
+      "error": "Season must be between 2002 and 2025",
+      "file": "data/nfl/weekly_rosters.csv",
+      "name": "weekly_rosters",
+      "rows": 0
+    },
+    {
+      "available": false,
+      "error": "Failed to download https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.parquet: 404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_2026.parquet",
+      "file": "data/nfl/player_weekly_stats.csv",
+      "name": "player_weekly_stats",
+      "rows": 0
+    },
+    {
+      "available": false,
+      "error": "Failed to download https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2026.parquet: 404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_week_2026.parquet",
+      "file": "data/nfl/team_weekly_stats.csv",
+      "name": "team_weekly_stats",
+      "rows": 0
+    },
+    {
+      "available": false,
+      "error": "Season must be between 2012 and 2025",
+      "file": "data/nfl/snap_counts.csv",
+      "name": "snap_counts",
+      "rows": 0
+    },
+    {
+      "available": false,
+      "error": "Season must be between 2009 and 2025",
+      "file": "data/nfl/injuries.csv",
+      "name": "injuries",
+      "rows": 0
+    },
+    {
+      "available": true,
+      "error": "",
+      "file": "data/nfl/depth_charts.csv",
+      "name": "depth_charts",
+      "rows": 400785
+    }
+  ],
+  "performance_season": 2025,
+  "requested_season": 2026,
+  "schema_version": "1.0",
+  "total_datasets": 9,
+  "updated_at_utc": "2026-08-04T19:37:38+00:00"
+}
