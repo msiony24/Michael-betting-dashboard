@@ -35,3 +35,20 @@ The app continues to run safely with starter priors if the network refresh fails
 ## Data attribution
 
 NFL statistical data is obtained from nflverse through the `nflreadpy` package. Most nflverse data is provided under CC-BY 4.0; retain attribution when distributing derived outputs.
+
+## Automated NFL foundation
+
+`python update_nfl_data.py` now refreshes a complete hidden NFL data foundation:
+
+- team performance ratings from play-by-play
+- schedules and results
+- season and weekly rosters
+- weekly player and team statistics
+- snap counts
+- injuries
+- depth charts
+- `data/nfl/foundation_status.json`, which records freshness and any unavailable source
+
+The GitHub workflow runs daily. Each source refreshes independently, so a temporarily
+missing injury or depth-chart feed does not erase the last working Macabets app.
+The main NFL screen remains simple and only shows a compact data-freshness status.
