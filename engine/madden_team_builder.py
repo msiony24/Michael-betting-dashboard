@@ -91,6 +91,7 @@ TEAM_ALIASES = {
     "LVR": "Las Vegas Raiders",
     "LAC": "Los Angeles Chargers",
     "LAR": "Los Angeles Rams",
+    "LA": "Los Angeles Rams",
     "MIA": "Miami Dolphins",
     "MIN": "Minnesota Vikings",
     "NE": "New England Patriots",
@@ -143,7 +144,7 @@ def _standardize_columns(frame: pd.DataFrame) -> pd.DataFrame:
 
 def _normalize_team(value: object) -> str:
     team = str(value or "").strip()
-    if not team:
+    if not team or team.casefold() in {"nan", "none", "null"}:
         return ""
     return TEAM_ALIASES.get(team.upper(), team)
 
