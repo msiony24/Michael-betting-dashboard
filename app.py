@@ -21,6 +21,10 @@ from analysis_store import (
     list_analyses as db_list_analyses,
     update_analysis as db_update_analysis,
 )
+from engine.analysis_log_metrics import (
+    group_rows_by_day,
+    summarize_rows,
+)
 
 try:
     from engine.data import load_matches
@@ -4387,7 +4391,7 @@ with tabs[4]:
         else:
             # Load the complete archive first so the report card is not affected by display filters.
             try:
-                all_universal_rows = db_list_analyses(500)
+                all_universal_rows = db_list_analyses(5000)
             except Exception as exc:
                 all_universal_rows = []
                 st.error(f"Could not load the permanent Analysis Log: {exc}")
@@ -4413,6 +4417,33 @@ with tabs[4]:
             report3.metric("Correct", len(correct_rows))
             report4.metric("Incorrect", len(incorrect_rows))
             report5.metric("Pending", len(pending_rows))
+
+            overall_summary = summarize_rows(
+                all_universal_rows,
+                verdict_getter=_analysis_verdict,
+            )
+            overall_record = f"{overall_summary['correct']}-{overall_summary['incorrect']}"
+            bet_summary = overall_summary["bet"]
+            pass_summary = overall_summary["pass"]
+            split1, split2, split3 = st.columns(3)
+            split1.metric(
+                "Overall Prediction Record",
+                overall_record,
+                f"{overall_summary['accuracy']:.1%}" if overall_summary["accuracy"] is not None else "No graded predictions",
+            )
+            split2.metric(
+                "BET Predictions",
+                f"{bet_summary['correct']}-{bet_summary['incorrect']}",
+                f"{bet_summary['pending']} pending · {bet_summary['total']} total",
+            )
+            split3.metric(
+                "PASS Predictions",
+                f"{pass_summary['correct']}-{pass_summary['incorrect']}",
+                f"{pass_summary['pending']} pending · {pass_summary['total']} total",
+            )
+            st.caption(
+                "Every analysis counts toward prediction accuracy. BET and PASS are tracked separately because a pass still contains a predicted winner."
+            )
 
             sport_cards = []
             for report_sport in ("Tennis", "NFL"):
@@ -4463,6 +4494,42 @@ with tabs[4]:
                 st.caption("Pending, Push and Void entries are excluded. Confidence is tested against actual prediction accuracy.")
 
             st.divider()
+            st.markdown("### Browse by Day")
+            rows_by_day = group_rows_by_day(all_universal_rows)
+            available_days = list(rows_by_day.keys())
+            if available_days:
+                selected_day = st.selectbox(
+                    "Choose analysis date",
+                    available_days,
+                    format_func=lambda value: pd.to_datetime(value).strftime("%A, %B %-d, %Y")
+                    if value else "Unknown date",
+                    key="analysis_log_selected_day",
+                    help="Only analyses from this date will appear below.",
+                )
+                selected_day_rows = rows_by_day.get(selected_day, [])
+                day_summary = summarize_rows(
+                    selected_day_rows,
+                    verdict_getter=_analysis_verdict,
+                )
+                day_bet = day_summary["bet"]
+                day_pass = day_summary["pass"]
+                day1, day2, day3, day4, day5 = st.columns(5)
+                day1.metric("Day Record", f"{day_summary['correct']}-{day_summary['incorrect']}")
+                day2.metric(
+                    "Day Accuracy",
+                    f"{day_summary['accuracy']:.1%}" if day_summary["accuracy"] is not None else "—",
+                )
+                day3.metric("BET Record", f"{day_bet['correct']}-{day_bet['incorrect']}")
+                day4.metric("PASS Record", f"{day_pass['correct']}-{day_pass['incorrect']}")
+                day5.metric("Pending", day_summary["pending"])
+                st.caption(
+                    f"Showing {day_summary['total']} analyses saved for the selected date. Open any one below to mark it Correct, Incorrect or Pending."
+                )
+            else:
+                selected_day = None
+                selected_day_rows = []
+
+            st.divider()
             filter1, filter2, filter3 = st.columns([1, 1, 2])
             sport_filter = filter1.selectbox("Sport", ["All", "Tennis", "NFL"], key="analysis_log_sport_filter")
             result_filter = filter2.selectbox(
@@ -4471,7 +4538,7 @@ with tabs[4]:
             )
             search_filter = filter3.text_input("Search", placeholder="Player, team, event, price assessment or verdict", key="analysis_log_search")
 
-            universal_rows = list(all_universal_rows)
+            universal_rows = list(selected_day_rows if selected_day is not None else all_universal_rows)
             if sport_filter != "All":
                 universal_rows = [row for row in universal_rows if str(row.get("sport", "")) == sport_filter]
             if result_filter != "All":
