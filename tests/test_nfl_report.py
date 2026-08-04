@@ -9,7 +9,13 @@ def test_nfl_report_v3_sections():
     assert '**Risk factors**' in source
     assert '### Matchup Advantages' in source
     assert '### NFL Brain' in source
-    assert 'with st.expander("Market and line details"' in source
+    assert 'macabets-edge-card' in source
+    assert 'Market Line' in source
+    assert 'Macabets Fair Line' in source
+    assert 'Market Edge' in source
+    assert 'Projected Score' in source
+    assert 'Win Probability' in source
+    assert 'with st.expander("Market and line details"' not in source
 
 
 def test_removed_repetitive_nfl_sections():
