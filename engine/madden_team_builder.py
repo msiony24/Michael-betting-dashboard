@@ -8,8 +8,8 @@ import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_PLAYERS_PATH = PROJECT_ROOT / "data" / "madden_27_players.csv"
-DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "madden_27_team_ratings.json"
+DEFAULT_PLAYERS_PATH = PROJECT_ROOT / "data" / "madden_26_players.csv"
+DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "data" / "madden_26_team_ratings.json"
 
 
 POSITION_GROUPS = {
@@ -286,7 +286,7 @@ def build_team_ratings(players: pd.DataFrame) -> Dict[str, dict]:
         )
 
         team_ratings[str(team_name)] = {
-            "source": "Madden NFL 27",
+            "source": "Madden NFL 26",
             "prediction_influence_enabled": False,
             "player_count": int(len(team_players)),
             "roster_grade": round(roster_grade, 2),

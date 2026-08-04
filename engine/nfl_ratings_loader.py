@@ -14,7 +14,7 @@ from engine.nfl_team_quality import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_RATINGS_PATH = PROJECT_ROOT / "data" / "nfl_team_ratings.json"
-DEFAULT_MADDEN_RATINGS_PATH = PROJECT_ROOT / "data" / "madden_27_team_ratings.json"
+DEFAULT_MADDEN_RATINGS_PATH = PROJECT_ROOT / "data" / "madden_26_team_ratings.json"
 
 DEFAULT_MADDEN_BLEND_WEIGHT = 0.40
 

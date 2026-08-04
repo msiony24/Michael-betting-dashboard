@@ -17,9 +17,9 @@ DATA_DIR = PROJECT_ROOT / "data"
 EA_API_BASE = "https://drop-api.ea.com/rating/madden-nfl"
 PAGE_SIZE = 100
 
-DEFAULT_CSV_PATH = DATA_DIR / "madden_27_players.csv"
-DEFAULT_RAW_PATH = DATA_DIR / "madden_27_raw.json"
-DEFAULT_METADATA_PATH = DATA_DIR / "madden_27_metadata.json"
+DEFAULT_CSV_PATH = DATA_DIR / "madden_26_players.csv"
+DEFAULT_RAW_PATH = DATA_DIR / "madden_26_raw.json"
+DEFAULT_METADATA_PATH = DATA_DIR / "madden_26_metadata.json"
 
 
 def _request_json(url: str, timeout: int = 30) -> Any:
