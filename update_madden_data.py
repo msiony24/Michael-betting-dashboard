@@ -1,5 +1,5 @@
 """
-Update the local Madden NFL 27 database.
+Update the local Madden NFL 26 database.
 
 Usage:
     python update_madden_data.py
@@ -19,10 +19,10 @@ def main():
     print(f"Built ratings for {len(team_ratings)} NFL teams.")
 
     print("\nFiles created:")
-    print("  data/madden_27_players.csv")
-    print("  data/madden_27_raw.json")
-    print("  data/madden_27_metadata.json")
-    print("  data/madden_27_team_ratings.json")
+    print("  data/madden_26_players.csv")
+    print("  data/madden_26_raw.json")
+    print("  data/madden_26_metadata.json")
+    print("  data/madden_26_team_ratings.json")
     print("\nUpdate complete.")
 
 
