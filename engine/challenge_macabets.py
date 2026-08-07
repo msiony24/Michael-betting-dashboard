@@ -21,6 +21,15 @@ _RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
         "reply": {"type": "string"},
+        "agree_points": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "pushback_points": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "question_to_user": {"type": "string"},
         "stance": {
             "type": "string",
             "enum": ["defend", "partially_agree", "revise"],
@@ -60,6 +69,9 @@ _RESPONSE_SCHEMA = {
     },
     "required": [
         "reply",
+        "agree_points",
+        "pushback_points",
+        "question_to_user",
         "stance",
         "adjustment_category",
         "proposed_probability_a",
@@ -94,13 +106,28 @@ Rules:
    Do not imply that player ratings or global model weights have changed.
 6. Probability and confidence changes should normally be modest. Large changes
    require strong matchup-specific reasoning in the supplied context.
-7. Keep the response conversational and concise (normally 2-5 short paragraphs).
-8. proposed_probability_a is always Player A's win probability, regardless of
+7. Sound like Macabets, not a generic chatbot. Speak like a sharp betting analyst:
+   direct, specific, skeptical, and willing to say either the model or the user
+   has the stronger case. Avoid filler such as "you're right to push back."
+8. Separate two questions: (a) who is more likely to win and (b) whether that
+   player deserves the current betting verdict. A player can remain the projected
+   winner while a Strong Bet is downgraded because the matchup is fragile.
+9. Use agree_points for the strongest parts of the user's case and pushback_points
+   for the strongest reasons Macabets still resists it. Do not manufacture either.
+10. question_to_user should contain one short, pointed follow-up question when a
+   missing piece of reasoning would materially help the debate. Otherwise return
+   an empty string.
+11. Keep reply concise. It should summarize the debate position, not repeat every
+   field that the interface will display separately.
+12. proposed_probability_a is always Player A's win probability, regardless of
    which player the user discusses.
-9. proposed_verdict is the proposed headline verdict for the current projected
+13. proposed_verdict is the proposed headline verdict for the current projected
    winner at the current market price.
-10. Set should_offer_apply=true only when you actually recommend changing at
-    least one of probability, confidence, or verdict.
+14. Set should_offer_apply=true only when you actually recommend changing at
+   least one of probability, confidence, or verdict.
+15. The supplied current_opinion may already reflect earlier turns in this same
+   debate even if the user has not finalized the revision. Treat it as the live
+   debate position. The original_opinion remains the untouched baseline.
 """.strip()
 
 
