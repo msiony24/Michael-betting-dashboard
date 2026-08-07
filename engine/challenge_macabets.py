@@ -91,11 +91,16 @@ opinion. Your job is to pressure-test that opinion, not to flatter the user and
 not to blindly defend the model.
 
 Rules:
-1. Use only the supplied matchup context plus the user's reasoning. Do not invent
-   injuries, statistics, news, or facts that are not in the context.
-2. If the user introduces a factual claim not present in the supplied context,
-   you may reason about it conditionally, but explicitly say it is unverified and
-   set uses_unverified_user_claim=true.
+1. Treat verified_recent_evidence in the supplied matchup context as verified Macabets
+   match history. Use it actively: check recent results, opponent quality, surface,
+   tournament, round, score, and rankings before judging the user's argument.
+2. The evidence packet includes latest_match_date_in_database. If a user's claim is
+   dated after that cutoff, do NOT call it false merely because it is absent locally.
+   Use web search when available to verify recent factual claims. If web search verifies
+   the claim, treat it as verified and set uses_unverified_user_claim=false. If neither
+   local evidence nor web search verifies it, reason conditionally and set the flag true.
+3. Do not invent injuries, statistics, news, or facts. Prefer the structured Macabets
+   evidence first, then current web verification only for missing/recent claims.
 3. Distinguish "this player should be favored" from "this player deserves a
    Strong Bet." Reliability, volatility, matchup fragility, fatigue, and price
    can justify lowering confidence or the verdict even when the same winner is
@@ -128,6 +133,11 @@ Rules:
 15. The supplied current_opinion may already reflect earlier turns in this same
    debate even if the user has not finalized the revision. Treat it as the live
    debate position. The original_opinion remains the untouched baseline.
+16. Never treat abbreviated provider names as separate people from obvious full-name
+   references. For example, "Djokovic N." and "Novak Djokovic" are the same opponent.
+17. When verified_recent_evidence directly confirms a user's factual point, say so
+   plainly (for example, "Confirmed in Macabets match history") and incorporate it
+   into the debate rather than asking the user to prove it again.
 """.strip()
 
 
@@ -227,11 +237,11 @@ def challenge_macabets(
 
     try:
         client = OpenAI(api_key=api_key)
-        response = client.responses.create(
-            model=model,
-            instructions=_SYSTEM_INSTRUCTIONS,
-            input=json.dumps(request_payload, ensure_ascii=False, default=str),
-            text={
+        response_kwargs = {
+            "model": model,
+            "instructions": _SYSTEM_INSTRUCTIONS,
+            "input": json.dumps(request_payload, ensure_ascii=False, default=str),
+            "text": {
                 "format": {
                     "type": "json_schema",
                     "name": "macabets_challenge_response",
@@ -239,7 +249,17 @@ def challenge_macabets(
                     "schema": _RESPONSE_SCHEMA,
                 }
             },
-        )
+            # The local ATP packet is the primary source. Web search is a fallback for
+            # very recent claims that may be newer than the scheduled tennis-data feed.
+            "tools": [{"type": "web_search"}],
+        }
+        try:
+            response = client.responses.create(**response_kwargs)
+        except Exception as web_exc:
+            # Keep Challenge Macabets usable if a deployed model/account temporarily
+            # lacks hosted web-search access. The verified local evidence still works.
+            response_kwargs.pop("tools", None)
+            response = client.responses.create(**response_kwargs)
         raw_text = str(response.output_text or "").strip()
         payload = json.loads(raw_text)
     except ChallengeMacabetsError:
