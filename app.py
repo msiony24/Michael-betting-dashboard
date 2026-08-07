@@ -67,7 +67,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.61 — Challenge Macabets"
+APP_VERSION = "Macabets v0.62 — Live Debate"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -155,17 +155,24 @@ def _challenge_state(match_key):
     states = st.session_state.setdefault("macabets_challenge_states", {})
     return states.setdefault(
         match_key,
-        {"messages": [], "pending_revision": None, "applied_revision": None},
+        {
+            "messages": [],
+            "pending_revision": None,
+            "applied_revision": None,
+            "debate_revision": None,
+            "turns": [],
+        },
     )
 
 
 def _render_challenge_macabets(match_key, context):
-    """Render a matchup-only live debate with Macabets and optional temporary revision."""
+    """Render a matchup-only live debate with Macabets and optional final revision."""
     state = _challenge_state(match_key)
     with st.expander("Challenge Macabets", expanded=False):
         st.caption(
-            "Disagree with the analysis? Tell Macabets why. It can defend the model, "
-            "partially agree, or propose a revision for this matchup only."
+            "Disagree with the analysis? Debate Macabets in real time. It can defend the model, "
+            "partially agree, or change its matchup-only opinion. Nothing becomes official until "
+            "you finalize the revision."
         )
 
         if not CHALLENGE_MACABETS_AVAILABLE:
@@ -184,69 +191,123 @@ def _render_challenge_macabets(match_key, context):
             with st.chat_message("user" if role == "user" else "assistant"):
                 st.markdown(message.get("content", ""))
 
-        pending = state.get("pending_revision")
-        if pending:
-            st.markdown("**Current proposed revision**")
-            r1, r2, r3 = st.columns(3)
+        debate = state.get("debate_revision") or state.get("pending_revision")
+        original = context.get("original_opinion", {})
+        if debate:
+            st.markdown("**Live debate position**")
+            d1, d2, d3 = st.columns(3)
             player_a = context.get("player_a", "Player A")
-            r1.metric(
+            debate_prob = float(debate.get("proposed_probability_a", context.get("current_opinion", {}).get("probability_a", 0.5)))
+            debate_conf = int(debate.get("proposed_confidence", context.get("current_opinion", {}).get("confidence", 50)))
+            debate_verdict = str(debate.get("proposed_verdict", context.get("current_opinion", {}).get("verdict", "Pass")))
+            d1.metric(
                 f"{player_a} win probability",
-                f"{float(pending.get('proposed_probability_a', 0.5)):.1%}",
+                f"{debate_prob:.1%}",
+                f"{(debate_prob - float(original.get('probability_a', debate_prob))) * 100:+.1f} pts vs original",
             )
-            r2.metric("Confidence", f"{int(pending.get('proposed_confidence', 0))}/100")
-            r3.metric("Verdict", pending.get("proposed_verdict", "Pass"))
-            if pending.get("revision_summary"):
-                st.caption(str(pending.get("revision_summary")))
-            if pending.get("uses_unverified_user_claim"):
+            d2.metric(
+                "Confidence",
+                f"{debate_conf}/100",
+                f"{debate_conf - int(original.get('confidence', debate_conf)):+d} vs original",
+            )
+            d3.metric("Verdict", debate_verdict)
+
+            agree_points = debate.get("agree_points") or []
+            pushback_points = debate.get("pushback_points") or []
+            if agree_points or pushback_points:
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("**What changed my view**")
+                    if agree_points:
+                        for point in agree_points:
+                            st.markdown(f"- {point}")
+                    else:
+                        st.caption("No part of the challenge has materially changed the model's view yet.")
+                with c2:
+                    st.markdown("**What I still push back on**")
+                    if pushback_points:
+                        for point in pushback_points:
+                            st.markdown(f"- {point}")
+                    else:
+                        st.caption("No major pushback remains on the current argument.")
+
+            if debate.get("question_to_user"):
+                st.info(f"**Macabets asks:** {debate.get('question_to_user')}")
+            if debate.get("revision_summary"):
+                st.caption(str(debate.get("revision_summary")))
+            if debate.get("uses_unverified_user_claim"):
                 st.warning(
-                    "This proposed revision relies partly on information you supplied that Macabets "
-                    "could not verify from the current matchup data."
+                    "Part of the current debate position relies on information you supplied that "
+                    "Macabets could not verify from its matchup data."
                 )
 
-            apply_col, discard_col = st.columns(2)
-            if apply_col.button(
-                "Apply Revised Analysis",
+            finalize_col, original_col = st.columns(2)
+            if finalize_col.button(
+                "Finalize Revised Analysis",
                 key=f"apply_challenge_{match_key}",
                 type="primary",
                 use_container_width=True,
             ):
-                state["applied_revision"] = dict(pending)
+                state["applied_revision"] = dict(debate)
                 state["pending_revision"] = None
+                state["debate_revision"] = None
                 st.rerun()
-            if discard_col.button(
+            if original_col.button(
                 "Keep Original Analysis",
                 key=f"discard_challenge_{match_key}",
                 use_container_width=True,
             ):
                 state["pending_revision"] = None
+                state["debate_revision"] = None
                 st.rerun()
 
         with st.form(key=f"challenge_form_{match_key}", clear_on_submit=True):
             user_message = st.text_area(
                 "Your challenge",
                 placeholder=(
-                    "Example: I still favor him to win, but I don't trust his consistency enough "
-                    "for a Strong Bet. The volatility should cap the recommendation."
+                    "Tell Macabets exactly what it is missing. Example: I still favor him to win, "
+                    "but his reliability is too poor for a Strong Bet in this matchup."
                 ),
                 height=100,
             )
             submitted = st.form_submit_button(
-                "Send to Macabets", type="primary", use_container_width=True
+                "Continue Debate", type="primary", use_container_width=True
             )
 
         if submitted and user_message.strip():
             with st.spinner("Macabets is reconsidering the matchup..."):
                 try:
+                    debate_context = dict(context)
+                    current = dict(context.get("current_opinion", {}))
+                    prior_debate = state.get("debate_revision")
+                    if prior_debate:
+                        current["probability_a"] = float(prior_debate.get("proposed_probability_a", current.get("probability_a", 0.5)))
+                        current["confidence"] = int(prior_debate.get("proposed_confidence", current.get("confidence", 50)))
+                        current["verdict"] = str(prior_debate.get("proposed_verdict", current.get("verdict", "Pass")))
+                    debate_context["current_opinion"] = current
+
                     response = challenge_macabets(
                         api_key=_openai_api_key(),
                         model=_openai_challenge_model(),
-                        matchup_context=context,
+                        matchup_context=debate_context,
                         conversation=messages,
                         user_message=user_message,
                     )
                     messages.append({"role": "user", "content": user_message.strip()})
                     messages.append({"role": "assistant", "content": response["reply"]})
-                    state["messages"] = messages[-20:]
+                    state["messages"] = messages[-24:]
+                    state.setdefault("turns", []).append(
+                        {
+                            "user": user_message.strip(),
+                            "stance": response.get("stance"),
+                            "category": response.get("adjustment_category"),
+                            "probability_a": response.get("proposed_probability_a"),
+                            "confidence": response.get("proposed_confidence"),
+                            "verdict": response.get("proposed_verdict"),
+                        }
+                    )
+                    state["turns"] = state["turns"][-12:]
+                    state["debate_revision"] = response
                     state["pending_revision"] = response if response.get("should_offer_apply") else None
                     st.rerun()
                 except ChallengeMacabetsError as exc:
@@ -256,18 +317,22 @@ def _render_challenge_macabets(match_key, context):
 
         reset_col, status_col = st.columns([1, 2])
         if reset_col.button(
-            "Reset Challenge",
+            "Reset Debate",
             key=f"reset_challenge_{match_key}",
             use_container_width=True,
         ):
             state["messages"] = []
             state["pending_revision"] = None
+            state["debate_revision"] = None
             state["applied_revision"] = None
+            state["turns"] = []
             st.rerun()
         if state.get("applied_revision"):
-            status_col.success("A matchup-only challenged revision is currently applied.")
+            status_col.success("A matchup-only challenged revision is currently official for this analysis.")
+        elif state.get("debate_revision"):
+            status_col.caption("The debate position is temporary. The original analysis remains official until you finalize it.")
         else:
-            status_col.caption("The original Macabets analysis remains official until you apply a revision.")
+            status_col.caption("The original Macabets analysis remains official.")
 
 
 def _api_get_json(path, params):
