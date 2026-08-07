@@ -37,6 +37,7 @@ except Exception as exc:
 
 try:
     from engine.data import load_matches
+    from engine.tennis_evidence import build_tennis_evidence_packet
     from engine.tennis import (
         analyze as analyze_tennis_match,
         player_names as tennis_player_names,
@@ -2891,6 +2892,15 @@ with tabs[1]:
                         "match_intelligence": result.get("match_intelligence", {}),
                         "player_intelligence_a": intelligence_a,
                         "player_intelligence_b": intelligence_b,
+                        "verified_recent_evidence": build_tennis_evidence_packet(
+                            matches,
+                            analyzed_a,
+                            analyzed_b,
+                            market_snapshot.get("match_date", match_date.isoformat()),
+                            result.get("surface", surface),
+                            tournament=result.get("tournament", tournament),
+                            lookback=20,
+                        ),
                         "factors": [
                             {
                                 "name": str(factor.get("name", "")),
