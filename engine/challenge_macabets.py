@@ -21,6 +21,12 @@ _RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
         "reply": {"type": "string"},
+        "message_intent": {
+            "type": "string",
+            "enum": ["research_question", "evidence_claim", "challenge", "command"],
+        },
+        "adjustment_reason": {"type": "string"},
+        "verified_new_evidence_used": {"type": "boolean"},
         "agree_points": {
             "type": "array",
             "items": {"type": "string"},
@@ -69,6 +75,9 @@ _RESPONSE_SCHEMA = {
     },
     "required": [
         "reply",
+        "message_intent",
+        "adjustment_reason",
+        "verified_new_evidence_used",
         "agree_points",
         "pushback_points",
         "question_to_user",
@@ -91,6 +100,12 @@ opinion. Your job is to pressure-test that opinion, not to flatter the user and
 not to blindly defend the model.
 
 Rules:
+0. FIRST classify the user's new message into exactly one message_intent:
+   - research_question: the user is asking for facts, history, stats, explanation, or clarification.
+   - evidence_claim: the user is supplying a factual claim or new evidence for Macabets to verify.
+   - challenge: the user is arguing that the prediction, probability, confidence, price assessment, or verdict is wrong or should change.
+   - command: the user is asking to show/reset/finalize/format something, rather than debating the matchup.
+   Answer the user's actual request first. Do not reinterpret a factual question as a betting challenge.
 1. Treat verified_recent_evidence in the supplied matchup context as verified Macabets
    match history. Use it actively: check recent results, opponent quality, surface,
    tournament, round, score, and rankings before judging the user's argument.
@@ -138,6 +153,12 @@ Rules:
 17. When verified_recent_evidence directly confirms a user's factual point, say so
    plainly (for example, "Confirmed in Macabets match history") and incorporate it
    into the debate rather than asking the user to prove it again.
+
+18. CRITICAL STATE RULE: research_question and command messages are informational only. They MUST NOT change probability, confidence, or verdict. For those intents, return the current values exactly, set should_offer_apply=false, adjustment_category="none", adjustment_reason="", and verified_new_evidence_used=false.
+19. For evidence_claim messages, verify the claim using the supplied evidence first and web search only when needed. A numerical/model change is allowed only if the claim is verified, materially relevant to this matchup, and adjustment_reason names the exact verified evidence and why it changes the model. If the claim is unverified or immaterial, keep all model values unchanged.
+20. For challenge messages, a model change is allowed only when adjustment_reason gives a concrete matchup-specific reason. Never move numbers merely because the user asked a question, expressed uncertainty, or continued the conversation.
+21. Every numerical change must be traceable. If proposed_probability_a, proposed_confidence, or proposed_verdict differs from current_opinion, adjustment_reason must be non-empty and specific. Never make unexplained "small nudges" or confidence reductions.
+22. When the user asks about recent matches, answer with the actual recent-match list from verified_recent_evidence, newest first, for both players when requested. Do not substitute a general betting interpretation for the requested facts.
 """.strip()
 
 
@@ -182,6 +203,48 @@ def _normalize_response(
     )
     if normalized.get("proposed_verdict") not in VERDICTS:
         normalized["proposed_verdict"] = current_verdict
+
+    intent_contract_present = "message_intent" in payload
+    intent = str(normalized.get("message_intent") or "challenge")
+    if intent not in {"research_question", "evidence_claim", "challenge", "command"}:
+        intent = "challenge"
+    normalized["message_intent"] = intent
+    normalized["adjustment_reason"] = str(normalized.get("adjustment_reason") or "").strip()
+    normalized["verified_new_evidence_used"] = bool(normalized.get("verified_new_evidence_used"))
+
+    # Research/questions and UI-style commands are read-only. Asking Macabets for
+    # information must never silently move the betting model.
+    if intent in {"research_question", "command"}:
+        normalized["proposed_probability_a"] = round(float(current_probability_a), 4)
+        normalized["proposed_confidence"] = int(current_confidence)
+        normalized["proposed_verdict"] = current_verdict
+        normalized["should_offer_apply"] = False
+        normalized["adjustment_category"] = "none"
+        normalized["adjustment_reason"] = ""
+        normalized["verified_new_evidence_used"] = False
+        normalized["agree_points"] = []
+        normalized["pushback_points"] = []
+        normalized["revision_summary"] = ""
+
+    # Evidence claims may move the model only when the model says it actually
+    # verified and used new relevant evidence. Challenges need an explicit reason.
+    wants_change = (
+        abs(float(normalized["proposed_probability_a"]) - current_probability_a) >= 0.002
+        or int(normalized["proposed_confidence"]) != current_confidence
+        or str(normalized["proposed_verdict"]) != current_verdict
+    )
+    if intent_contract_present and wants_change and intent == "evidence_claim" and (
+        not normalized["verified_new_evidence_used"] or not normalized["adjustment_reason"]
+    ):
+        normalized["proposed_probability_a"] = round(float(current_probability_a), 4)
+        normalized["proposed_confidence"] = int(current_confidence)
+        normalized["proposed_verdict"] = current_verdict
+        normalized["should_offer_apply"] = False
+    elif intent_contract_present and wants_change and intent == "challenge" and not normalized["adjustment_reason"]:
+        normalized["proposed_probability_a"] = round(float(current_probability_a), 4)
+        normalized["proposed_confidence"] = int(current_confidence)
+        normalized["proposed_verdict"] = current_verdict
+        normalized["should_offer_apply"] = False
 
     changed = (
         abs(normalized["proposed_probability_a"] - current_probability_a) >= 0.002
