@@ -37,7 +37,6 @@ except Exception as exc:
 
 try:
     from engine.data import load_matches
-    from engine.tennis_evidence import build_tennis_evidence_packet
     from engine.tennis import (
         analyze as analyze_tennis_match,
         player_names as tennis_player_names,
@@ -171,9 +170,9 @@ def _render_challenge_macabets(match_key, context):
     state = _challenge_state(match_key)
     with st.expander("Challenge Macabets", expanded=False):
         st.caption(
-            "Disagree with the analysis? Debate Macabets in real time. It can defend the model, "
-            "partially agree, or change its matchup-only opinion. Nothing becomes official until "
-            "you finalize the revision."
+            "Ask Macabets about the matchup or challenge its analysis. Research questions are read-only; "
+            "only verified evidence or a substantive betting challenge can move the live debate position. "
+            "Nothing becomes official until you finalize a revision."
         )
 
         if not CHALLENGE_MACABETS_AVAILABLE:
@@ -308,15 +307,15 @@ def _render_challenge_macabets(match_key, context):
 
         with st.form(key=f"challenge_form_{match_key}", clear_on_submit=True):
             user_message = st.text_area(
-                "Your challenge",
+                "Ask or challenge Macabets",
                 placeholder=(
-                    "Tell Macabets exactly what it is missing. Example: I still favor him to win, "
-                    "but his reliability is too poor for a Strong Bet in this matchup."
+                    "Ask a factual question or challenge the analysis. Example: Who have they played recently? "
+                    "Or: I still favor him to win, but his reliability is too poor for a Strong Bet."
                 ),
                 height=100,
             )
             submitted = st.form_submit_button(
-                "Continue Debate", type="primary", use_container_width=True
+                "Send to Macabets", type="primary", use_container_width=True
             )
 
         if submitted and user_message.strip():
@@ -345,15 +344,21 @@ def _render_challenge_macabets(match_key, context):
                         {
                             "user": user_message.strip(),
                             "stance": response.get("stance"),
+                            "intent": response.get("message_intent"),
                             "category": response.get("adjustment_category"),
+                            "adjustment_reason": response.get("adjustment_reason"),
                             "probability_a": response.get("proposed_probability_a"),
                             "confidence": response.get("proposed_confidence"),
                             "verdict": response.get("proposed_verdict"),
                         }
                     )
                     state["turns"] = state["turns"][-12:]
-                    state["debate_revision"] = response
-                    state["pending_revision"] = response if response.get("should_offer_apply") else None
+                    # Informational/research turns are read-only and must not replace
+                    # an existing live debate position. Only a response that actually
+                    # proposes an allowed model change becomes the new debate state.
+                    if response.get("should_offer_apply"):
+                        state["debate_revision"] = response
+                        state["pending_revision"] = response
                     st.rerun()
                 except ChallengeMacabetsError as exc:
                     st.error(str(exc))
@@ -2892,15 +2897,6 @@ with tabs[1]:
                         "match_intelligence": result.get("match_intelligence", {}),
                         "player_intelligence_a": intelligence_a,
                         "player_intelligence_b": intelligence_b,
-                        "verified_recent_evidence": build_tennis_evidence_packet(
-                            matches,
-                            analyzed_a,
-                            analyzed_b,
-                            market_snapshot.get("match_date", match_date.isoformat()),
-                            result.get("surface", surface),
-                            tournament=result.get("tournament", tournament),
-                            lookback=20,
-                        ),
                         "factors": [
                             {
                                 "name": str(factor.get("name", "")),
