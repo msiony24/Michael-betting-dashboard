@@ -248,7 +248,15 @@ def _render_challenge_macabets(match_key, context):
                 type="primary",
                 use_container_width=True,
             ):
-                state["applied_revision"] = dict(debate)
+                applied = dict(debate)
+                state["applied_revision"] = applied
+                # Keep a second, stable pointer to the finalized matchup revision.
+                # This prevents a Streamlit rerun/widget-state refresh from making the
+                # report fall back to the original model opinion.
+                st.session_state["macabets_active_tennis_challenge"] = {
+                    "match_key": match_key,
+                    "revision": applied,
+                }
                 state["pending_revision"] = None
                 state["debate_revision"] = None
                 st.rerun()
@@ -325,6 +333,9 @@ def _render_challenge_macabets(match_key, context):
             state["pending_revision"] = None
             state["debate_revision"] = None
             state["applied_revision"] = None
+            active_pointer = st.session_state.get("macabets_active_tennis_challenge")
+            if isinstance(active_pointer, dict) and active_pointer.get("match_key") == match_key:
+                st.session_state.pop("macabets_active_tennis_challenge", None)
             state["turns"] = []
             st.rerun()
         if state.get("applied_revision"):
@@ -2252,6 +2263,8 @@ with tabs[1]:
                     st.session_state.setdefault("macabets_challenge_states", {}).pop(
                         new_challenge_key, None
                     )
+                    # A fresh analysis always starts from the untouched model output.
+                    st.session_state.pop("macabets_active_tennis_challenge", None)
                     with st.spinner("Macabets is analyzing the matchup..."):
                         try:
                             st.session_state.automatic_match_result = analyze_tennis_match(
@@ -2404,7 +2417,17 @@ with tabs[1]:
                         market_snapshot.get("match_date", match_date.isoformat()),
                         result.get("tournament", tournament),
                     )
-                    active_challenge = _challenge_state(challenge_match_key).get("applied_revision")
+                    challenge_state = _challenge_state(challenge_match_key)
+                    active_challenge = challenge_state.get("applied_revision")
+                    active_pointer = st.session_state.get("macabets_active_tennis_challenge")
+                    if (
+                        isinstance(active_pointer, dict)
+                        and active_pointer.get("match_key") == challenge_match_key
+                        and isinstance(active_pointer.get("revision"), dict)
+                    ):
+                        active_challenge = active_pointer["revision"]
+                        # Heal the per-match state as well so both stores agree.
+                        challenge_state["applied_revision"] = dict(active_challenge)
                     if active_challenge:
                         model_probability = min(
                             max(float(active_challenge.get("proposed_probability_a", model_probability)), 0.05),
