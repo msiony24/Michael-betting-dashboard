@@ -1,0 +1,16 @@
+{
+  "current_year": 2026,
+  "current_year_match_count": 1877,
+  "failures": [],
+  "latest_match_date": "2026-08-07",
+  "live_refresh": {
+    "all_fixtures_received": 1982,
+    "completed_atp_singles_imported": 98,
+    "fixtures_fetched_at": "2026-08-07T21:22:15.713675+00:00",
+    "fixtures_source": "live",
+    "window_start": "2026-07-31",
+    "window_stop": "2026-08-07"
+  },
+  "ok": true,
+  "updated_at_utc": "2026-08-07T21:22:18.030980+00:00"
+}
