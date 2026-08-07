@@ -257,6 +257,24 @@ def _render_challenge_macabets(match_key, context):
                     "match_key": match_key,
                     "revision": applied,
                 }
+                analysis_meta = st.session_state.get("macabets_tennis_analysis_records", {}).get(match_key, {})
+                analysis_id = analysis_meta.get("analysis_id")
+                if analysis_id:
+                    try:
+                        _apply_revision_to_analysis(
+                            analysis_id,
+                            context,
+                            applied,
+                            base_snapshot=analysis_meta.get("analysis_snapshot"),
+                        )
+                    except Exception as exc:
+                        st.session_state["analysis_log_warning"] = (
+                            f"Challenge finalized in the report, but the Analysis Log could not be updated: {exc}"
+                        )
+                else:
+                    st.session_state["analysis_log_warning"] = (
+                        "Challenge finalized in the report, but Macabets could not locate the saved Analysis Log record."
+                    )
                 state["pending_revision"] = None
                 state["debate_revision"] = None
                 st.rerun()
@@ -1448,6 +1466,15 @@ def _analysis_pricing_report(row):
             explicit_assessment = explicit_assessment or saved_report.get("price_assessment") or saved_report.get("quality")
             explicit_verdict = explicit_verdict or saved_report.get("verdict") or saved_report.get("recommendation")
 
+    # A finalized Challenge Macabets revision is the official analysis.
+    # Do not recalculate its user-approved verdict back to the pre-challenge label.
+    if isinstance(snapshot, dict) and snapshot.get("challenge_revision_applied") and explicit_verdict:
+        return {
+            "price_assessment": normalize_price_assessment(explicit_assessment) if explicit_assessment else "—",
+            "verdict": str(explicit_verdict),
+            "expected_roi": saved_report.get("expected_roi") if isinstance(saved_report, dict) else None,
+        }
+
     # Always rebuild the assessment from the stored probability/fair line and
     # market line so threshold changes also update existing Analysis Log rows.
     # Saved labels are used only when the underlying pricing inputs are missing.
@@ -1616,6 +1643,89 @@ def _save_universal_analysis(record):
     except Exception as exc:
         st.session_state["analysis_log_warning"] = f"Analysis completed, but could not be saved: {exc}"
         return None
+
+
+def _apply_revision_to_analysis(analysis_id, context, revision, base_snapshot=None):
+    """Make a finalized Challenge Macabets revision the one official saved analysis."""
+    if not analysis_id or not analysis_db_configured():
+        return None
+
+    player_a = str(context.get("player_a") or "Player A")
+    player_b = str(context.get("player_b") or "Player B")
+    market = context.get("market") or {}
+
+    try:
+        probability_a = min(max(float(revision.get("proposed_probability_a")), 0.01), 0.99)
+    except (TypeError, ValueError):
+        probability_a = float((context.get("current_opinion") or {}).get("probability_a", 0.5))
+    probability_b = 1.0 - probability_a
+
+    try:
+        confidence = int(round(float(revision.get("proposed_confidence"))))
+    except (TypeError, ValueError):
+        confidence = int((context.get("current_opinion") or {}).get("confidence", 50))
+    confidence = min(max(confidence, 0), 100)
+
+    verdict = str(
+        revision.get("proposed_verdict")
+        or (context.get("current_opinion") or {}).get("verdict")
+        or "Pass"
+    )
+
+    if probability_a >= probability_b:
+        prediction = player_a
+        predicted_probability = probability_a
+        market_odds = market.get("odds_a")
+    else:
+        prediction = player_b
+        predicted_probability = probability_b
+        market_odds = market.get("odds_b")
+
+    fair_odds_a = probability_to_american(probability_a)
+    fair_odds_b = probability_to_american(probability_b)
+    fair_line = format_american(fair_odds_a if prediction == player_a else fair_odds_b)
+
+    try:
+        pricing = moneyline_price_quality(predicted_probability, int(market_odds), confidence)
+        price_assessment = pricing.get("price_assessment", "—")
+    except (TypeError, ValueError):
+        pricing = {}
+        price_assessment = (context.get("current_opinion") or {}).get("price_assessment", "—")
+
+    snapshot = dict(base_snapshot or {})
+    snapshot.update({
+        "probability_a": probability_a,
+        "probability_b": probability_b,
+        "fair_odds_a": fair_odds_a,
+        "fair_odds_b": fair_odds_b,
+        "price_assessment": price_assessment,
+        "verdict": verdict,
+        "challenge_revision_applied": True,
+        "revision_source": "User-approved challenge",
+        "challenge_revision": dict(revision),
+    })
+    prior_confidence = snapshot.get("analysis_confidence")
+    if isinstance(prior_confidence, dict):
+        updated_confidence = dict(prior_confidence)
+        updated_confidence["overall"] = confidence
+        snapshot["analysis_confidence"] = updated_confidence
+    else:
+        snapshot["analysis_confidence"] = {"overall": confidence}
+    if pricing:
+        snapshot["price_report"] = {**pricing, "verdict": verdict, "recommendation": verdict}
+
+    changes = {
+        "prediction": prediction,
+        "predicted_probability": predicted_probability,
+        "fair_line": fair_line,
+        "confidence": confidence,
+        "recommendation": verdict,
+        "analysis_snapshot": snapshot,
+    }
+    updated = db_update_analysis(str(analysis_id), changes)
+    if updated:
+        st.session_state["analysis_log_last_saved"] = context.get("event_name") or f"{player_a} vs {player_b}"
+    return updated
 
 
 def empty_bets():
@@ -2599,7 +2709,7 @@ with tabs[1]:
                             "price_assessment": projected_price_report_for_log["price_assessment"],
                             "verdict": projected_price_report_for_log["verdict"],
                         }
-                        _save_universal_analysis({
+                        saved_tennis_analysis = _save_universal_analysis({
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
@@ -2619,6 +2729,12 @@ with tabs[1]:
                             "input_snapshot": tennis_inputs,
                             "analysis_snapshot": tennis_snapshot,
                         })
+                        if saved_tennis_analysis and saved_tennis_analysis.get("id"):
+                            st.session_state.setdefault("macabets_tennis_analysis_records", {})[challenge_match_key] = {
+                                "analysis_id": saved_tennis_analysis.get("id"),
+                                "analysis_snapshot": tennis_snapshot,
+                                "client_event_id": tennis_log_token,
+                            }
 
                     st.divider()
                     st.markdown(f"### {analyzed_a} vs {analyzed_b}")
