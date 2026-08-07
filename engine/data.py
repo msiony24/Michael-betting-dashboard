@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -10,8 +9,31 @@ import streamlit as st
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
+def _match_file_signature() -> tuple[tuple[str, int, int], ...]:
+    """Return a cheap fingerprint that changes whenever an ATP CSV is replaced."""
+    signature: list[tuple[str, int, int]] = []
+    for path in sorted(DATA_DIR.glob("atp_matches_*.csv")):
+        try:
+            stat = path.stat()
+            signature.append((path.name, int(stat.st_mtime_ns), int(stat.st_size)))
+        except OSError:
+            # If a file disappears during a deploy/update, the next rerun will rebuild
+            # a different signature. Do not keep a stale cached dataset because of it.
+            continue
+    return tuple(signature)
+
+
 @st.cache_data(show_spinner=False)
-def load_matches() -> tuple[pd.DataFrame, list[str]]:
+def _load_matches_cached(
+    file_signature: tuple[tuple[str, int, int], ...],
+) -> tuple[pd.DataFrame, list[str]]:
+    """Load ATP history for one exact on-disk file version.
+
+    ``file_signature`` is intentionally unused inside the loader. It is part of the
+    cache key so a GitHub data refresh invalidates Streamlit's cached dataframe as
+    soon as the deployed CSV files change.
+    """
+    del file_signature
     files = sorted(DATA_DIR.glob("atp_matches_*.csv"))
 
     if not files:
@@ -60,3 +82,15 @@ def load_matches() -> tuple[pd.DataFrame, list[str]]:
             matches[column] = pd.to_numeric(matches[column], errors="coerce")
 
     return matches, errors
+
+
+def load_matches() -> tuple[pd.DataFrame, list[str]]:
+    """Load the newest local ATP database without requiring a manual cache clear."""
+    signature = _match_file_signature()
+    if not signature:
+        raise RuntimeError(
+            "The local tennis database has not been created yet. "
+            "Run the GitHub Action named 'Update Macabets Tennis Data', "
+            "then reboot the Streamlit app."
+        )
+    return _load_matches_cached(signature)
