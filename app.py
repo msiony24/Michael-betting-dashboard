@@ -49,6 +49,7 @@ try:
         VENUE_TYPES, WEATHER_OPTIONS,
     )
     from engine.nfl_ratings_loader import load_all_team_ratings
+    from engine.nfl_weather import find_scheduled_game, get_nfl_weather
 
     NFL_QUALITY_RATINGS = load_all_team_ratings()
     NFL_ENGINE_AVAILABLE = True
@@ -2964,11 +2965,38 @@ with tabs[1]:
             market_total = market4.number_input("Game total", min_value=1.0, value=45.5, step=0.5, format="%.1f", key="nfl_total")
             
             st.markdown("#### Game context")
+            scheduled_game = find_scheduled_game(away_team, home_team, nfl_date)
+            scheduled_roof = str(scheduled_game.get("roof") or "").lower()
+            if scheduled_roof in {"dome", "closed"}:
+                auto_venue_type = "Dome"
+            elif "retract" in scheduled_roof:
+                auto_venue_type = "Retractable roof"
+            else:
+                auto_venue_type = "Outdoor"
+
             context1, context2, context3, context4 = st.columns(4)
-            venue_type = context1.selectbox("Venue type", VENUE_TYPES, key="nfl_venue_type")
-            weather = context2.selectbox("Weather", WEATHER_OPTIONS, key="nfl_weather")
+            context1.metric("Venue", auto_venue_type)
+            context2.metric("Weather", "Automatic")
             neutral_site = context3.checkbox("Neutral site", value=False, key="nfl_neutral_site")
             home_field_points = context4.number_input("Home-field points", min_value=0.0, max_value=4.0, value=1.7, step=0.1, key="nfl_hfa")
+
+            with st.expander("Weather / venue override", expanded=False):
+                st.caption(
+                    "Macabets automatically uses the scheduled stadium and kickoff forecast. "
+                    "Only use this override if a roof decision or unusual condition is not reflected correctly."
+                )
+                manual_weather_override = st.checkbox(
+                    "Use manual weather override", value=False, key="nfl_manual_weather_override"
+                )
+                override1, override2 = st.columns(2)
+                manual_venue_type = override1.selectbox(
+                    "Venue type", VENUE_TYPES,
+                    index=VENUE_TYPES.index(auto_venue_type) if auto_venue_type in VENUE_TYPES else 0,
+                    disabled=not manual_weather_override, key="nfl_venue_type_override"
+                )
+                manual_weather = override2.selectbox(
+                    "Weather", WEATHER_OPTIONS, disabled=not manual_weather_override, key="nfl_weather_override"
+                )
 
             st.markdown("#### Bet consideration")
             nfl_considered_side = st.radio(
@@ -3041,6 +3069,34 @@ with tabs[1]:
             run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
             if run_nfl:
                 try:
+                    if manual_weather_override:
+                        venue_type = manual_venue_type
+                        weather = manual_weather
+                        weather_context = {
+                            "available": True,
+                            "source": "Manual override",
+                            "stadium": str(scheduled_game.get("stadium") or home_team),
+                            "venue_type": venue_type.lower(),
+                            "label": weather,
+                            "impact": "Manual",
+                            "summary": f"Manual override: {weather} at a {venue_type.lower()} venue.",
+                            "home_margin_adjustment": 0.0,
+                            "total_adjustment": 0.0,
+                            "confidence_penalty": 0.0,
+                            "climate_mismatch": "Manual override does not add an automatic side adjustment.",
+                        }
+                    else:
+                        weather_context = get_nfl_weather(
+                            away_team=away_team, home_team=home_team, game_date=nfl_date
+                        )
+                        venue_lookup = str(weather_context.get("venue_type") or "outdoor").lower()
+                        venue_type = (
+                            "Dome" if venue_lookup == "dome"
+                            else "Retractable roof" if "retract" in venue_lookup
+                            else "Outdoor"
+                        )
+                        weather = str(weather_context.get("label") or "Normal")
+
                     nfl_result = analyze_nfl_match(
                         away_team=away_team,
                         home_team=home_team,
@@ -3054,7 +3110,9 @@ with tabs[1]:
                         away_rating_overrides=away_overrides,
                         home_rating_overrides=home_overrides,
                         home_field_points=home_field_points,
+                        weather_context=weather_context,
                     )
+                    st.session_state["nfl_weather_context"] = weather_context
                     st.session_state.nfl_result = nfl_result
                     st.session_state["nfl_analysis_log_pending"] = _analysis_event_token(
                         "NFL",
@@ -3442,6 +3500,19 @@ with tabs[1]:
                         "a direct BET or PASS decision."
                     )
 
+                active_weather = nfl_result.get("weather_context") or st.session_state.get("nfl_weather_context", {})
+                if active_weather:
+                    st.markdown("### Weather")
+                    weather1, weather2, weather3 = st.columns([3, 1, 1])
+                    weather1.write(str(active_weather.get("summary") or "No weather adjustment."))
+                    weather2.metric("Impact", str(active_weather.get("impact") or "None"))
+                    total_weather_move = float(active_weather.get("total_adjustment", 0.0) or 0.0)
+                    weather3.metric("Total Adj.", f"{total_weather_move:+.1f}")
+                    if not active_weather.get("available", False):
+                        st.caption("Weather data was unavailable, so Macabets applied no weather adjustment.")
+                    elif float(active_weather.get("home_margin_adjustment", 0.0) or 0.0):
+                        st.caption(str(active_weather.get("climate_mismatch") or ""))
+
                 st.markdown("### Matchup Advantages")
                 category_verdicts, category_wins, strongest_edge, category_leader = (
                     build_nfl_category_verdicts(
@@ -3517,6 +3588,8 @@ with tabs[1]:
                         st.write(f"Week: {int(nfl_week)}")
                         st.write(f"Venue: {venue_type}")
                         st.write(f"Weather: {weather}")
+                        if active_weather.get("source"):
+                            st.write(f"Weather source: {active_weather.get('source')}")
                         st.write(f"Neutral site: {'Yes' if neutral_site else 'No'}")
                     with context2:
                         st.markdown("**Model interpretation**")
@@ -3526,7 +3599,13 @@ with tabs[1]:
                             f"Home-field adjustment: "
                             f"{nfl_result['home_field_points']:+.1f} points"
                         )
-                        st.write("Projected total: market-anchored")
+                        if abs(float(active_weather.get("total_adjustment", 0.0) or 0.0)) >= 0.05:
+                            st.write(
+                                f"Projected total: market anchor {float(market_total):.1f}, "
+                                f"weather adjustment {float(active_weather.get('total_adjustment', 0.0)):+.1f}"
+                            )
+                        else:
+                            st.write("Projected total: market-anchored")
 
                     st.markdown("**Expected game script**")
                     st.write(nfl_result["game_script"])
