@@ -62,3 +62,82 @@ def test_structured_debate_fields_survive_normalization():
     assert result["pushback_points"][0].startswith("The baseline")
     assert result["question_to_user"].startswith("Are you")
     assert result["proposed_verdict"] == "Lean"
+
+
+def test_research_question_cannot_move_model_state():
+    payload = {
+        "reply": "Here are their recent matches.",
+        "message_intent": "research_question",
+        "adjustment_reason": "Recent match volume may matter.",
+        "verified_new_evidence_used": True,
+        "agree_points": ["Atmane played twice this week."],
+        "pushback_points": ["Mensik has the better record."],
+        "question_to_user": "",
+        "stance": "partially_agree",
+        "adjustment_category": "recent_form",
+        "proposed_probability_a": 0.69,
+        "proposed_confidence": 70,
+        "proposed_verdict": "Lean",
+        "revision_summary": "Trimmed because of same-week play.",
+        "should_offer_apply": True,
+        "uses_unverified_user_claim": False,
+    }
+    result = _normalize_response(payload, 0.7265, 79, "Worth Betting")
+    assert result["message_intent"] == "research_question"
+    assert result["proposed_probability_a"] == 0.7265
+    assert result["proposed_confidence"] == 79
+    assert result["proposed_verdict"] == "Worth Betting"
+    assert result["should_offer_apply"] is False
+    assert result["adjustment_reason"] == ""
+    assert result["agree_points"] == []
+    assert result["pushback_points"] == []
+
+
+def test_unverified_evidence_claim_cannot_move_model_state():
+    payload = {
+        "reply": "I cannot verify that claim yet.",
+        "message_intent": "evidence_claim",
+        "adjustment_reason": "Would matter if verified.",
+        "verified_new_evidence_used": False,
+        "agree_points": [],
+        "pushback_points": [],
+        "question_to_user": "",
+        "stance": "partially_agree",
+        "adjustment_category": "recent_form",
+        "proposed_probability_a": 0.60,
+        "proposed_confidence": 70,
+        "proposed_verdict": "Lean",
+        "revision_summary": "Conditional only.",
+        "should_offer_apply": True,
+        "uses_unverified_user_claim": True,
+    }
+    result = _normalize_response(payload, 0.65, 78, "Worth Betting")
+    assert result["proposed_probability_a"] == 0.65
+    assert result["proposed_confidence"] == 78
+    assert result["proposed_verdict"] == "Worth Betting"
+    assert result["should_offer_apply"] is False
+
+
+def test_verified_evidence_claim_can_move_model_with_specific_reason():
+    payload = {
+        "reply": "Confirmed; that result materially changes recent-form evidence.",
+        "message_intent": "evidence_claim",
+        "adjustment_reason": "Verified win over a top opponent this week improves Player B's recent-form case.",
+        "verified_new_evidence_used": True,
+        "agree_points": ["The win is confirmed."],
+        "pushback_points": ["Player A retains the larger baseline sample."],
+        "question_to_user": "",
+        "stance": "revise",
+        "adjustment_category": "recent_form",
+        "proposed_probability_a": 0.62,
+        "proposed_confidence": 73,
+        "proposed_verdict": "Lean",
+        "revision_summary": "Verified recent form narrows the gap.",
+        "should_offer_apply": True,
+        "uses_unverified_user_claim": False,
+    }
+    result = _normalize_response(payload, 0.65, 78, "Worth Betting")
+    assert result["proposed_probability_a"] == 0.62
+    assert result["proposed_confidence"] == 73
+    assert result["proposed_verdict"] == "Lean"
+    assert result["should_offer_apply"] is True
