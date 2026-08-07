@@ -259,14 +259,32 @@ def _render_challenge_macabets(match_key, context):
                 }
                 analysis_meta = st.session_state.get("macabets_tennis_analysis_records", {}).get(match_key, {})
                 analysis_id = analysis_meta.get("analysis_id")
+                if not analysis_id:
+                    analysis_id, recovered_snapshot = _find_analysis_record_for_challenge(context)
+                    if analysis_id:
+                        analysis_meta = {
+                            "analysis_id": analysis_id,
+                            "analysis_snapshot": recovered_snapshot or {},
+                        }
+                        st.session_state.setdefault("macabets_tennis_analysis_records", {})[match_key] = analysis_meta
                 if analysis_id:
                     try:
-                        _apply_revision_to_analysis(
+                        updated_row = _apply_revision_to_analysis(
                             analysis_id,
                             context,
                             applied,
                             base_snapshot=analysis_meta.get("analysis_snapshot"),
                         )
+                        if updated_row:
+                            analysis_meta["analysis_snapshot"] = updated_row.get("analysis_snapshot") or analysis_meta.get("analysis_snapshot")
+                            st.session_state.setdefault("macabets_tennis_analysis_records", {})[match_key] = analysis_meta
+                            st.session_state["analysis_log_last_saved"] = (
+                                f"Revised analysis saved: {context.get('event_name') or context.get('player_a', '') + ' vs ' + context.get('player_b', '')}"
+                            )
+                        else:
+                            st.session_state["analysis_log_warning"] = (
+                                "Challenge was finalized, but the Analysis Log update returned no saved row."
+                            )
                     except Exception as exc:
                         st.session_state["analysis_log_warning"] = (
                             f"Challenge finalized in the report, but the Analysis Log could not be updated: {exc}"
@@ -1645,6 +1663,31 @@ def _save_universal_analysis(record):
         return None
 
 
+def _find_analysis_record_for_challenge(context):
+    """Recover the most recent saved tennis analysis when Streamlit session metadata is missing."""
+    if not analysis_db_configured():
+        return None, None
+    player_a = str(context.get("player_a") or "").strip()
+    player_b = str(context.get("player_b") or "").strip()
+    event_name = str(context.get("event_name") or f"{player_a} vs {player_b}").strip()
+    event_date = str(context.get("event_date") or "").strip()
+    try:
+        rows = db_list_analyses(250, sport="Tennis")
+    except Exception:
+        return None, None
+    for row in rows:
+        row_event = str(row.get("event_name") or "").strip()
+        row_a = str(row.get("participant_a") or "").strip()
+        row_b = str(row.get("participant_b") or "").strip()
+        same_match = (row_event == event_name) or ({row_a, row_b} == {player_a, player_b} and player_a and player_b)
+        if not same_match:
+            continue
+        if event_date and str(row.get("event_date") or "").strip() not in {"", event_date}:
+            continue
+        return row.get("id"), row.get("analysis_snapshot") or {}
+    return None, None
+
+
 def _apply_revision_to_analysis(analysis_id, context, revision, base_snapshot=None):
     """Make a finalized Challenge Macabets revision the one official saved analysis."""
     if not analysis_id or not analysis_db_configured():
@@ -2811,6 +2854,8 @@ with tabs[1]:
 
                     challenge_context = {
                         "sport": "Tennis",
+                        "event_name": f"{analyzed_a} vs {analyzed_b}",
+                        "event_date": market_snapshot.get("match_date"),
                         "player_a": analyzed_a,
                         "player_b": analyzed_b,
                         "tournament": result.get("tournament", tournament),
