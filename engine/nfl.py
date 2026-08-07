@@ -107,6 +107,7 @@ class NFLAnalysis:
     home_field_points: float
     rating_breakdown: list[dict]
     matchup_brain: dict
+    weather_context: dict
 
 
 def analyze(
@@ -123,6 +124,7 @@ def analyze(
     away_rating_overrides: dict | None = None,
     home_rating_overrides: dict | None = None,
     home_field_points: float = 1.7,
+    weather_context: dict | None = None,
 ) -> dict:
     if away_team == home_team:
         raise ValueError("Home and away teams must be different.")
@@ -132,8 +134,12 @@ def analyze(
     away_power, away_components = team_power_score(away_team, away_rating_overrides)
     home_power, home_components = team_power_score(home_team, home_rating_overrides)
     applied_hfa = 0.0 if neutral_site else float(home_field_points)
+    weather_context = dict(weather_context or {})
+    weather_side_adjustment = float(weather_context.get("home_margin_adjustment", 0.0) or 0.0)
+    weather_total_adjustment = float(weather_context.get("total_adjustment", 0.0) or 0.0)
+    weather_confidence_penalty = float(weather_context.get("confidence_penalty", 0.0) or 0.0)
 
-    projected_home_margin = home_power - away_power + applied_hfa
+    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment
     fair_spread_home = round((-projected_home_margin) * 2.0) / 2.0
     spread_edge = round(float(market_spread_home) - fair_spread_home, 2)
 
@@ -144,7 +150,7 @@ def analyze(
     market_home_probability = _market_no_vig_home_probability(market_moneyline_away, market_moneyline_home)
     moneyline_edge_home = home_probability - market_home_probability
 
-    fair_total = float(market_total)
+    fair_total = max(1.0, float(market_total) + weather_total_adjustment)
     projected_home = round(((fair_total + projected_home_margin) / 2.0) * 2.0) / 2.0
     projected_away = round((fair_total - projected_home) * 2.0) / 2.0
 
@@ -159,6 +165,7 @@ def analyze(
     # Confidence reflects model separation and data quality, not market disagreement.
     rating_gap = abs(projected_home_margin)
     confidence = 50.0 + min(rating_gap, 12.0) * 2.2
+    confidence -= weather_confidence_penalty
     if not NFL_DATA_STATUS.get("available"):
         confidence -= 7.0
     confidence = round(min(78.0, max(50.0, confidence)), 1)
@@ -250,5 +257,6 @@ def analyze(
         home_field_points=applied_hfa,
         rating_breakdown=breakdown,
         matchup_brain=matchup_brain,
+        weather_context=weather_context,
     )
     return asdict(result)
