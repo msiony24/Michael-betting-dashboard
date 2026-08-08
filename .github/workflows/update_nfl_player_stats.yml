@@ -1,0 +1,67 @@
+name: Update NFL Player Stats
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "NFL season (leave blank for current year)"
+        required: false
+        type: string
+  schedule:
+    - cron: "35 10 * * 2"
+
+permissions:
+  contents: write
+
+jobs:
+  update-player-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh NFL weekly player stats
+        env:
+          REQUESTED_SEASON: ${{ inputs.season }}
+        run: |
+          if [ -n "$REQUESTED_SEASON" ]; then
+            python update_nfl_player_stats.py "$REQUESTED_SEASON"
+          else
+            python update_nfl_player_stats.py
+          fi
+
+      - name: Rebuild automated NFL player and team ratings
+        run: python update_nfl_ratings.py
+
+      - name: Validate Madden 27 roster integration
+        run: python validate_madden_rosters.py
+
+      - name: Show player performance status
+        run: |
+          ls -lh data/nfl/player_weekly_stats.csv data/nfl/player_weekly_stats_metadata.json
+          cat data/nfl/player_weekly_stats_metadata.json
+          cat data/nfl/rating_status.json
+
+      - name: Commit refreshed NFL player data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/nfl/player_weekly_stats.csv data/nfl/player_weekly_stats_metadata.json
+          git add data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json data/nfl/rating_history.jsonl
+          git add data/nfl/madden_27_validation.json data/nfl/madden_27_validation.csv
+          if git diff --cached --quiet; then
+            echo "No NFL player-stat changes to commit."
+          else
+            git commit -m "Update NFL weekly player performance"
+            git push
+          fi
