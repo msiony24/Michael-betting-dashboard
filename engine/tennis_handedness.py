@@ -1,19 +1,26 @@
 """Handedness splits for the Macabets tennis model and evidence layer.
 
-The local alias map intentionally contains only L/R facts for players seen in the
-historical Macabets match files. Unknown players remain unknown; the model never
-imputes a hand from nationality, style, or name.
+The handedness resolver is deliberately identity-safe. Historical tennis feeds often
+store players as ``Surname F.`` while other sources use full names. A generic
+canonicalizer that removes one-letter initials can collapse different players with
+the same surname (for example ``Zverev A.`` and ``Zverev M.``). This module keeps
+surname + first-initial information intact and refuses ambiguous lookups.
+
+Unknown players remain unknown; the model never imputes a hand from nationality,
+style, or name.
 """
 from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+import re
+import unicodedata
 
 import numpy as np
 import pandas as pd
 
-from .tennis import canonical_player_key, resolve_player_name
+from .tennis import norm, player_name_signature, resolve_player_name
 
 
 DEFAULT_HANDEDNESS_FILE = Path(__file__).resolve().parent.parent / "data" / "atp_player_handedness.csv"
@@ -28,60 +35,114 @@ def normalize_hand(value: Any) -> str | None:
     return None
 
 
+def _exact_name_key(value: Any) -> str:
+    """Normalize a name without discarding initials.
+
+    ``Zverev A.`` -> ``zverev a`` and ``Zverev M.`` -> ``zverev m``.
+    This is intentionally different from the broader tennis canonicalizer.
+    """
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
+    tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
+    return " ".join(tokens)
+
+
+def _identity_signature(value: Any) -> tuple[str, str]:
+    surname, initial = player_name_signature(str(value or ""))
+    return str(surname or ""), str(initial or "")
+
+
+def _add_consistent(mapping: dict[Any, str | None], key: Any, hand: str) -> None:
+    """Add a lookup only when every occurrence of the key agrees on hand."""
+    if not key or key == ("", ""):
+        return
+    if key not in mapping:
+        mapping[key] = hand
+    elif mapping[key] != hand:
+        # Ambiguous identity: fail closed rather than assigning the wrong hand.
+        mapping[key] = None
+
+
 @lru_cache(maxsize=4)
-def _load_alias_map(path_text: str = str(DEFAULT_HANDEDNESS_FILE)) -> dict[str, str]:
+def _load_alias_registry(path_text: str = str(DEFAULT_HANDEDNESS_FILE)) -> dict[str, dict[Any, str | None]]:
     path = Path(path_text)
     if not path.exists():
-        return {}
+        return {"exact": {}, "signature": {}}
     try:
         frame = pd.read_csv(path)
     except Exception:
-        return {}
-    result: dict[str, str] = {}
+        return {"exact": {}, "signature": {}}
+
+    exact: dict[str, str | None] = {}
+    signature: dict[tuple[str, str], str | None] = {}
     for _, row in frame.iterrows():
         hand = normalize_hand(row.get("hand"))
-        alias = str(row.get("alias") or "").strip()
-        resolved = str(row.get("resolved_player") or "").strip()
         if not hand:
             continue
-        if alias:
-            result[canonical_player_key(alias)] = hand
-        if resolved:
-            result.setdefault(canonical_player_key(resolved), hand)
-    return result
+        for raw_name in (row.get("alias"), row.get("resolved_player")):
+            name = str(raw_name or "").strip()
+            if not name:
+                continue
+            _add_consistent(exact, _exact_name_key(name), hand)
+            _add_consistent(signature, _identity_signature(name), hand)
+
+    return {"exact": exact, "signature": signature}
 
 
 def player_hand(player: str, *, manual_hand: Any = None, path: str | Path = DEFAULT_HANDEDNESS_FILE) -> str | None:
-    """Return verified Left/Right hand, preferring an explicit current-match value."""
+    """Return verified Left/Right hand, preferring an explicit current-match value.
+
+    Resolution order:
+    1. explicit current-match value;
+    2. exact normalized alias/full name (initials preserved);
+    3. surname + first-initial signature, but only if that signature is unambiguous.
+    """
     manual = normalize_hand(manual_hand)
     if manual:
         return manual
-    lookup = _load_alias_map(str(path))
-    return lookup.get(canonical_player_key(player))
+
+    registry = _load_alias_registry(str(path))
+    exact = registry["exact"].get(_exact_name_key(player))
+    if exact in {"Left", "Right"}:
+        return exact
+
+    by_signature = registry["signature"].get(_identity_signature(player))
+    return by_signature if by_signature in {"Left", "Right"} else None
+
+
+def _row_identity_mask(series: pd.Series, target: str) -> pd.Series:
+    """Match a resolved historical player without collapsing surname initials."""
+    target_norm = norm(target)
+    exact = series.astype(str).map(norm).eq(target_norm)
+    if exact.any():
+        return exact
+
+    target_signature = _identity_signature(target)
+    if target_signature != ("", ""):
+        return series.astype(str).map(_identity_signature).eq(target_signature)
+    return exact
 
 
 def _player_rows(matches: pd.DataFrame, player: str, event_date: Any) -> tuple[pd.DataFrame, str]:
     resolved, _ = resolve_player_name(matches, player)
     target = resolved or player
-    key = canonical_player_key(target)
     event_ts = pd.to_datetime(event_date, errors="coerce")
     if pd.isna(event_ts):
         event_ts = pd.Timestamp.today().normalize()
-    mask = (
-        matches["winner_name"].map(canonical_player_key).eq(key)
-        | matches["loser_name"].map(canonical_player_key).eq(key)
-    ) & (matches["tourney_date"] < pd.Timestamp(event_ts))
-    return matches.loc[mask].sort_values("tourney_date", ascending=False).copy(), key
+
+    player_mask = _row_identity_mask(matches["winner_name"], target) | _row_identity_mask(matches["loser_name"], target)
+    mask = player_mask & (matches["tourney_date"] < pd.Timestamp(event_ts))
+    return matches.loc[mask].sort_values("tourney_date", ascending=False).copy(), target
 
 
-def _decorate_with_opponent_hand(rows: pd.DataFrame, player_key: str) -> pd.DataFrame:
+def _decorate_with_opponent_hand(rows: pd.DataFrame, player_target: str) -> pd.DataFrame:
     if rows.empty:
         return rows.copy()
     out = rows.copy()
-    out["won"] = out["winner_name"].map(canonical_player_key).eq(player_key)
+    out["won"] = _row_identity_mask(out["winner_name"], player_target)
     out["opponent"] = np.where(out["won"], out["loser_name"], out["winner_name"])
-    lookup = _load_alias_map()
-    out["opponent_hand"] = out["opponent"].map(lambda name: lookup.get(canonical_player_key(name)))
+    out["opponent_hand"] = out["opponent"].map(player_hand)
     return out
 
 
@@ -99,8 +160,8 @@ def _record(rows: pd.DataFrame) -> dict[str, Any]:
 
 def handedness_record_splits(matches: pd.DataFrame, player: str, event_date: Any, surface: str = "") -> dict[str, Any]:
     """Build verified historical records vs lefties/righties for model + Challenge."""
-    rows, key = _player_rows(matches, player, event_date)
-    decorated = _decorate_with_opponent_hand(rows, key)
+    rows, target = _player_rows(matches, player, event_date)
+    decorated = _decorate_with_opponent_hand(rows, target)
     event_ts = pd.to_datetime(event_date, errors="coerce")
     if pd.isna(event_ts):
         event_ts = pd.Timestamp.today().normalize()
