@@ -1,0 +1,7737 @@
+{
+  "AZ": {
+    "player_count": 64,
+    "prediction_influence_enabled": false,
+    "roster_grade": 76.11,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 72.53,
+        "player_count": 8,
+        "starter_grade": 73.75,
+        "top_players": [
+          {
+            "name": "Walter Nolen",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Andrew Billings",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jonah Williams",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Roy Lopez",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Darius Robinson",
+            "overall": 71.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 78.74,
+        "player_count": 10,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Josh Sweat",
+            "overall": 84.0,
+            "position": "LB"
+          },
+          {
+            "name": "Mack Wilson Sr",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Zaven Collins",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Baron Browning",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jordan Burch",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 75.42,
+        "player_count": 12,
+        "starter_grade": 77.2,
+        "top_players": [
+          {
+            "name": "Paris Johnson Jr",
+            "overall": 85.0,
+            "position": "OL"
+          },
+          {
+            "name": "Hjalte Froholdt",
+            "overall": 83.0,
+            "position": "OL"
+          },
+          {
+            "name": "Isaac Seumalo",
+            "overall": 80.0,
+            "position": "OL"
+          },
+          {
+            "name": "Matt Pryor",
+            "overall": 70.0,
+            "position": "OL"
+          },
+          {
+            "name": "Elijah Wilkinson",
+            "overall": 68.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 70.9,
+        "player_count": 3,
+        "starter_grade": 71.0,
+        "top_players": [
+          {
+            "name": "Jacoby Brissett",
+            "overall": 71.0,
+            "position": "QB"
+          },
+          {
+            "name": "Gardner Minshew",
+            "overall": 70.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.67,
+        "grade": 79.98,
+        "player_count": 10,
+        "starter_grade": 82.25,
+        "top_players": [
+          {
+            "name": "Trey McBride",
+            "overall": 94.0,
+            "position": "TE"
+          },
+          {
+            "name": "Marvin Harrison Jr",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Kendrick Bourne",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Michael Wilson",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Devin Duvernay",
+            "overall": 75.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 80.88,
+        "player_count": 4,
+        "starter_grade": 82.5,
+        "top_players": [
+          {
+            "name": "James Conner",
+            "overall": 84.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tyler Allgeier",
+            "overall": 81.0,
+            "position": "RB"
+          },
+          {
+            "name": "Trey Benson",
+            "overall": 77.0,
+            "position": "RB"
+          },
+          {
+            "name": "Bam Knight",
+            "overall": 70.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 74.0,
+        "grade": 80.15,
+        "player_count": 14,
+        "starter_grade": 81.5,
+        "top_players": [
+          {
+            "name": "Budda Baker",
+            "overall": 90.0,
+            "position": "DB"
+          },
+          {
+            "name": "Garrett Williams",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Sean Murphy-Bunting",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Will Johnson",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Andrew Wingard",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 74.5,
+        "grade": 74.5,
+        "player_count": 2,
+        "starter_grade": 74.5,
+        "top_players": [
+          {
+            "name": "Blake Gillikin",
+            "overall": 75.0,
+            "position": "P"
+          },
+          {
+            "name": "Chad Ryland",
+            "overall": 74.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Atlanta Falcons": {
+    "player_count": 56,
+    "prediction_influence_enabled": false,
+    "roster_grade": 77.44,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 66.75,
+        "grade": 72.08,
+        "player_count": 8,
+        "starter_grade": 73.25,
+        "top_players": [
+          {
+            "name": "Samson Ebukam",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Da'Shawn Hand",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Zach Harrison",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Brandon Dorlus",
+            "overall": 71.0,
+            "position": "DL"
+          },
+          {
+            "name": "Cameron Thomas",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 71.67,
+        "grade": 76.86,
+        "player_count": 9,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Divine Deablo",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jalon Walker",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "James Pearce Jr",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "Azeez Ojulari",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Bralen Trice",
+            "overall": 71.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 66.67,
+        "grade": 79.4,
+        "player_count": 11,
+        "starter_grade": 82.2,
+        "top_players": [
+          {
+            "name": "Chris Lindstrom",
+            "overall": 93.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jake Matthews",
+            "overall": 88.0,
+            "position": "OL"
+          },
+          {
+            "name": "Kaleb McGary",
+            "overall": 80.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jawaan Taylor",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Matthew Bergeron",
+            "overall": 75.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 75.0,
+        "grade": 75.0,
+        "player_count": 2,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Michael Penix Jr",
+            "overall": 75.0,
+            "position": "QB"
+          },
+          {
+            "name": "Tua Tagovailoa",
+            "overall": 75.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 77.02,
+        "player_count": 7,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Drake London",
+            "overall": 91.0,
+            "position": "WR"
+          },
+          {
+            "name": "Kyle Pitts Sr",
+            "overall": 78.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jahan Dotson",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Austin Hooper",
+            "overall": 73.0,
+            "position": "TE"
+          },
+          {
+            "name": "Olamide Zaccheaus",
+            "overall": 73.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 67.5,
+        "grade": 83.08,
+        "player_count": 4,
+        "starter_grade": 86.5,
+        "top_players": [
+          {
+            "name": "Bijan Robinson",
+            "overall": 94.0,
+            "position": "RB"
+          },
+          {
+            "name": "Brian Robinson Jr",
+            "overall": 79.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tyler Goodson",
+            "overall": 68.0,
+            "position": "RB"
+          },
+          {
+            "name": "Nate Carter",
+            "overall": 67.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 81.2,
+        "player_count": 12,
+        "starter_grade": 83.0,
+        "top_players": [
+          {
+            "name": "Jessie Bates III",
+            "overall": 94.0,
+            "position": "DB"
+          },
+          {
+            "name": "A.J. Terrell Jr",
+            "overall": 88.0,
+            "position": "DB"
+          },
+          {
+            "name": "Clark Phillips III",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Mike Hughes",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Xavier Watts",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 79.5,
+        "grade": 79.5,
+        "player_count": 2,
+        "starter_grade": 79.5,
+        "top_players": [
+          {
+            "name": "Nick Folk",
+            "overall": 82.0,
+            "position": "K"
+          },
+          {
+            "name": "Jake Bailey",
+            "overall": 77.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Baltimore Ravens": {
+    "player_count": 48,
+    "prediction_influence_enabled": false,
+    "roster_grade": 83.2,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 83.16,
+        "player_count": 7,
+        "starter_grade": 85.75,
+        "top_players": [
+          {
+            "name": "Nnamdi Madubuike",
+            "overall": 92.0,
+            "position": "DL"
+          },
+          {
+            "name": "Trey Hendrickson",
+            "overall": 92.0,
+            "position": "DL"
+          },
+          {
+            "name": "Calais Campbell",
+            "overall": 82.0,
+            "position": "DL"
+          },
+          {
+            "name": "Travis Jones",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "John Jenkins",
+            "overall": 75.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 72.67,
+        "grade": 80.59,
+        "player_count": 8,
+        "starter_grade": 82.33,
+        "top_players": [
+          {
+            "name": "Roquan Smith",
+            "overall": 93.0,
+            "position": "LB"
+          },
+          {
+            "name": "Trenton Simpson",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Mike Green",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tavius Robinson",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Teddye Buchanan",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 64.67,
+        "grade": 74.45,
+        "player_count": 9,
+        "starter_grade": 76.6,
+        "top_players": [
+          {
+            "name": "Ronnie Stanley",
+            "overall": 87.0,
+            "position": "OL"
+          },
+          {
+            "name": "John Simpson",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Roger Rosengarten",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Andrew Vorhees",
+            "overall": 70.0,
+            "position": "OL"
+          },
+          {
+            "name": "Emery Jones Jr",
+            "overall": 70.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 95.0,
+        "player_count": 3,
+        "starter_grade": 98.0,
+        "top_players": [
+          {
+            "name": "Lamar Jackson",
+            "overall": 98.0,
+            "position": "QB"
+          },
+          {
+            "name": "Tyler Huntley",
+            "overall": 68.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.5,
+        "grade": 80.13,
+        "player_count": 6,
+        "starter_grade": 82.25,
+        "top_players": [
+          {
+            "name": "Mark Andrews",
+            "overall": 90.0,
+            "position": "TE"
+          },
+          {
+            "name": "Zay Flowers",
+            "overall": 87.0,
+            "position": "WR"
+          },
+          {
+            "name": "Rashod Bateman",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Devontez Walker",
+            "overall": 71.0,
+            "position": "WR"
+          },
+          {
+            "name": "Durham Smythe",
+            "overall": 71.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 83.17,
+        "player_count": 3,
+        "starter_grade": 86.5,
+        "top_players": [
+          {
+            "name": "Derrick Henry",
+            "overall": 96.0,
+            "position": "RB"
+          },
+          {
+            "name": "Justice Hill",
+            "overall": 77.0,
+            "position": "RB"
+          },
+          {
+            "name": "Rasheen Ali",
+            "overall": 68.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 71.75,
+        "grade": 83.84,
+        "player_count": 10,
+        "starter_grade": 86.5,
+        "top_players": [
+          {
+            "name": "Kyle Hamilton",
+            "overall": 91.0,
+            "position": "DB"
+          },
+          {
+            "name": "Marlon Humphrey",
+            "overall": 90.0,
+            "position": "DB"
+          },
+          {
+            "name": "Chidobe Awuzie",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Nate Wiggins",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Malaki Starks",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 77.0,
+        "grade": 77.0,
+        "player_count": 1,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Tyler Loop",
+            "overall": 77.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Buffalo Bills": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 81.49,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 69.67,
+        "grade": 77.12,
+        "player_count": 7,
+        "starter_grade": 78.75,
+        "top_players": [
+          {
+            "name": "Greg Rousseau",
+            "overall": 87.0,
+            "position": "DL"
+          },
+          {
+            "name": "Ed Oliver",
+            "overall": 82.0,
+            "position": "DL"
+          },
+          {
+            "name": "Landon Jackson",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "T.J. Sanders",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Deone Walker",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 68.33,
+        "grade": 77.08,
+        "player_count": 6,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Terrel Bernard",
+            "overall": 83.0,
+            "position": "LB"
+          },
+          {
+            "name": "Bradley Chubb",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Michael Hoecht",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "Dorian Williams",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Joe Andreessen",
+            "overall": 69.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.33,
+        "grade": 78.06,
+        "player_count": 10,
+        "starter_grade": 80.2,
+        "top_players": [
+          {
+            "name": "Dion Dawkins",
+            "overall": 89.0,
+            "position": "OL"
+          },
+          {
+            "name": "Spencer Brown",
+            "overall": 85.0,
+            "position": "OL"
+          },
+          {
+            "name": "Connor McGovern",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Austin Corbett",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Lloyd Cushenberry III",
+            "overall": 75.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 60.0,
+        "grade": 95.1,
+        "player_count": 2,
+        "starter_grade": 99.0,
+        "top_players": [
+          {
+            "name": "Josh Allen",
+            "overall": 99.0,
+            "position": "QB"
+          },
+          {
+            "name": "Kyle Allen",
+            "overall": 60.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 79.41,
+        "player_count": 9,
+        "starter_grade": 81.25,
+        "top_players": [
+          {
+            "name": "DJ Moore",
+            "overall": 85.0,
+            "position": "WR"
+          },
+          {
+            "name": "Khalil Shakir",
+            "overall": 82.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dalton Kincaid",
+            "overall": 81.0,
+            "position": "TE"
+          },
+          {
+            "name": "Keon Coleman",
+            "overall": 77.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dawson Knox",
+            "overall": 74.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 68.5,
+        "grade": 80.39,
+        "player_count": 4,
+        "starter_grade": 83.0,
+        "top_players": [
+          {
+            "name": "James Cook III",
+            "overall": 92.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ray Davis",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ty Johnson",
+            "overall": 73.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ben VanSumeren",
+            "overall": 64.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 77.72,
+        "player_count": 10,
+        "starter_grade": 78.75,
+        "top_players": [
+          {
+            "name": "Christian Benford",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Geno Stone",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Maxwell Hairston",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "C.J. Gardner-Johnson",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Cole Bishop",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.5,
+        "grade": 75.5,
+        "player_count": 2,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Mitch Wishnowsky",
+            "overall": 77.0,
+            "position": "P"
+          },
+          {
+            "name": "Tyler Bass",
+            "overall": 74.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Carolina Panthers": {
+    "player_count": 56,
+    "prediction_influence_enabled": false,
+    "roster_grade": 76.54,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.5,
+        "grade": 77.11,
+        "player_count": 6,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Derrick Brown",
+            "overall": 96.0,
+            "position": "DL"
+          },
+          {
+            "name": "Bobby Brown III",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Tershawn Wharton",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Trevis Gipson",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Cam Jackson",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 72.33,
+        "grade": 79.44,
+        "player_count": 11,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Devin Lloyd",
+            "overall": 87.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jaelan Phillips",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nic Scourton",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Trevin Wallace",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Patrick Jones II",
+            "overall": 72.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 79.1,
+        "player_count": 9,
+        "starter_grade": 82.2,
+        "top_players": [
+          {
+            "name": "Taylor Moton",
+            "overall": 86.0,
+            "position": "OL"
+          },
+          {
+            "name": "Damien Lewis",
+            "overall": 83.0,
+            "position": "OL"
+          },
+          {
+            "name": "Robert Hunt",
+            "overall": 82.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ikem Ekwonu",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Rasheed Walker",
+            "overall": 79.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 73.3,
+        "player_count": 2,
+        "starter_grade": 74.0,
+        "top_players": [
+          {
+            "name": "Bryce Young",
+            "overall": 74.0,
+            "position": "QB"
+          },
+          {
+            "name": "Kenny Pickett",
+            "overall": 67.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 74.28,
+        "player_count": 12,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Tetairoa McMillan",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Xavier Legette",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jalen Coker",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "John Metchie III",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tommy Tremble",
+            "overall": 72.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 78.83,
+        "player_count": 4,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Chuba Hubbard",
+            "overall": 84.0,
+            "position": "RB"
+          },
+          {
+            "name": "A.J. Dillon",
+            "overall": 76.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jonathon Brooks",
+            "overall": 76.0,
+            "position": "RB"
+          },
+          {
+            "name": "Trevor Etienne",
+            "overall": 71.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 77.2,
+        "player_count": 9,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Jaycee Horn",
+            "overall": 87.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tre'von Moehrig",
+            "overall": 81.0,
+            "position": "DB"
+          },
+          {
+            "name": "Mike Jackson",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Nick Scott",
+            "overall": 73.0,
+            "position": "DB"
+          },
+          {
+            "name": "Akayleb Evans",
+            "overall": 71.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.0,
+        "grade": 75.0,
+        "player_count": 2,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Ryan Fitzgerald",
+            "overall": 76.0,
+            "position": "K"
+          },
+          {
+            "name": "Sam Martin",
+            "overall": 74.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Chicago Bears": {
+    "player_count": 50,
+    "prediction_influence_enabled": false,
+    "roster_grade": 76.71,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 70.25,
+        "grade": 77.22,
+        "player_count": 9,
+        "starter_grade": 78.75,
+        "top_players": [
+          {
+            "name": "Montez Sweat",
+            "overall": 82.0,
+            "position": "DL"
+          },
+          {
+            "name": "Grady Jarrett",
+            "overall": 81.0,
+            "position": "DL"
+          },
+          {
+            "name": "Gervon Dexter Sr",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "Dayo Odeyingbo",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Neville Gallimore",
+            "overall": 72.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 66.67,
+        "grade": 75.69,
+        "player_count": 7,
+        "starter_grade": 77.67,
+        "top_players": [
+          {
+            "name": "T.J. Edwards",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Devin Bush",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jack Sanborn",
+            "overall": 71.0,
+            "position": "LB"
+          },
+          {
+            "name": "Noah Sewell",
+            "overall": 68.0,
+            "position": "LB"
+          },
+          {
+            "name": "Ruben Hyppolite II",
+            "overall": 67.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.67,
+        "grade": 77.8,
+        "player_count": 9,
+        "starter_grade": 79.8,
+        "top_players": [
+          {
+            "name": "Joe Thuney",
+            "overall": 92.0,
+            "position": "OL"
+          },
+          {
+            "name": "Darnell Wright",
+            "overall": 82.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jonah Jackson",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Garrett Bradbury",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Braxton Jones",
+            "overall": 74.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 74.7,
+        "player_count": 3,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Caleb Williams",
+            "overall": 76.0,
+            "position": "QB"
+          },
+          {
+            "name": "Case Keenum",
+            "overall": 63.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.33,
+        "grade": 77.23,
+        "player_count": 7,
+        "starter_grade": 78.75,
+        "top_players": [
+          {
+            "name": "Rome Odunze",
+            "overall": 83.0,
+            "position": "WR"
+          },
+          {
+            "name": "Cole Kmet",
+            "overall": 79.0,
+            "position": "TE"
+          },
+          {
+            "name": "Luther Burden III",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Kalif Raymond",
+            "overall": 75.0,
+            "position": "WR"
+          },
+          {
+            "name": "Colston Loveland",
+            "overall": 72.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 75.74,
+        "player_count": 4,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "D'Andre Swift",
+            "overall": 82.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kyle Monangai",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Roschon Johnson",
+            "overall": 71.0,
+            "position": "RB"
+          },
+          {
+            "name": "Salvon Ahmed",
+            "overall": 69.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 78.58,
+        "player_count": 9,
+        "starter_grade": 80.25,
+        "top_players": [
+          {
+            "name": "Jaylon Johnson",
+            "overall": 89.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kyler Gordon",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Coby Bryant",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jaylon Jones",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tyrique Stevenson",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.5,
+        "grade": 76.5,
+        "player_count": 2,
+        "starter_grade": 76.5,
+        "top_players": [
+          {
+            "name": "Cairo Santos",
+            "overall": 78.0,
+            "position": "K"
+          },
+          {
+            "name": "Tory Taylor",
+            "overall": 75.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Cincinnati Bengals": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 80.44,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 70.5,
+        "grade": 81.98,
+        "player_count": 9,
+        "starter_grade": 84.5,
+        "top_players": [
+          {
+            "name": "Dexter Lawrence II",
+            "overall": 97.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jonathan Allen",
+            "overall": 88.0,
+            "position": "DL"
+          },
+          {
+            "name": "Shemar Stewart",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "B.J. Hill",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Kris Jenkins Jr",
+            "overall": 74.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 72.11,
+        "player_count": 6,
+        "starter_grade": 73.67,
+        "top_players": [
+          {
+            "name": "Boye Mafe",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Demetrius Knight Jr",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Oren Burks",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Barrett Carter",
+            "overall": 69.0,
+            "position": "LB"
+          },
+          {
+            "name": "Joe Giles-Harris",
+            "overall": 64.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 72.76,
+        "player_count": 7,
+        "starter_grade": 73.8,
+        "top_players": [
+          {
+            "name": "Orlando Brown Jr",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ted Karras",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Amarius Mims",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Dalton Risner",
+            "overall": 72.0,
+            "position": "OL"
+          },
+          {
+            "name": "Dylan Fairchild",
+            "overall": 70.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 93.6,
+        "player_count": 3,
+        "starter_grade": 96.0,
+        "top_players": [
+          {
+            "name": "Joe Burrow",
+            "overall": 96.0,
+            "position": "QB"
+          },
+          {
+            "name": "Joe Flacco",
+            "overall": 72.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.33,
+        "grade": 81.33,
+        "player_count": 11,
+        "starter_grade": 83.75,
+        "top_players": [
+          {
+            "name": "Ja'Marr Chase",
+            "overall": 99.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tee Higgins",
+            "overall": 87.0,
+            "position": "WR"
+          },
+          {
+            "name": "Mike Gesicki",
+            "overall": 78.0,
+            "position": "TE"
+          },
+          {
+            "name": "Andrei Iosivas",
+            "overall": 71.0,
+            "position": "WR"
+          },
+          {
+            "name": "Mitchell Tinsley",
+            "overall": 71.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 77.15,
+        "player_count": 3,
+        "starter_grade": 78.5,
+        "top_players": [
+          {
+            "name": "Chase Brown",
+            "overall": 80.0,
+            "position": "RB"
+          },
+          {
+            "name": "Samaje Perine",
+            "overall": 77.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tahj Brooks",
+            "overall": 71.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 68.5,
+        "grade": 76.7,
+        "player_count": 9,
+        "starter_grade": 78.5,
+        "top_players": [
+          {
+            "name": "DJ Turner II",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Bryan Cook",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kyle Dugger",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jordan Battle",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Ja'Sir Taylor",
+            "overall": 71.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.0,
+        "grade": 76.0,
+        "player_count": 2,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Evan McPherson",
+            "overall": 78.0,
+            "position": "K"
+          },
+          {
+            "name": "Ryan Rehkow",
+            "overall": 74.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Cleveland Browns": {
+    "player_count": 53,
+    "prediction_influence_enabled": false,
+    "roster_grade": 74.91,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 66.67,
+        "grade": 73.7,
+        "player_count": 7,
+        "starter_grade": 75.25,
+        "top_players": [
+          {
+            "name": "Mason Graham",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Maliek Collins",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Isaiah McGuire",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Mike Hall Jr",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Alex Wright",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 81.72,
+        "player_count": 8,
+        "starter_grade": 84.0,
+        "top_players": [
+          {
+            "name": "Jared Verse",
+            "overall": 88.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jeremiah Owusu-Koramoah",
+            "overall": 83.0,
+            "position": "LB"
+          },
+          {
+            "name": "Quincy Williams",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Carson Schwesinger",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nathaniel Watson",
+            "overall": 68.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 76.41,
+        "player_count": 8,
+        "starter_grade": 78.4,
+        "top_players": [
+          {
+            "name": "Elgton Jenkins",
+            "overall": 86.0,
+            "position": "OL"
+          },
+          {
+            "name": "Teven Jenkins",
+            "overall": 80.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tytus Howard",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Zion Johnson",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Zak Zinter",
+            "overall": 70.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 68.9,
+        "player_count": 3,
+        "starter_grade": 69.0,
+        "top_players": [
+          {
+            "name": "Deshaun Watson",
+            "overall": 69.0,
+            "position": "QB"
+          },
+          {
+            "name": "Dillon Gabriel",
+            "overall": 68.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 74.33,
+        "player_count": 11,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Jerry Jeudy",
+            "overall": 83.0,
+            "position": "WR"
+          },
+          {
+            "name": "Cedric Tillman",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Harold Fannin Jr",
+            "overall": 74.0,
+            "position": "TE"
+          },
+          {
+            "name": "Tylan Wallace",
+            "overall": 71.0,
+            "position": "WR"
+          },
+          {
+            "name": "Isaiah Bond",
+            "overall": 69.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 68.5,
+        "grade": 75.47,
+        "player_count": 4,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Quinshon Judkins",
+            "overall": 80.0,
+            "position": "RB"
+          },
+          {
+            "name": "Dylan Sampson",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "Raheim Sanders",
+            "overall": 69.0,
+            "position": "RB"
+          },
+          {
+            "name": "Michael Burton",
+            "overall": 68.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 64.75,
+        "grade": 78.89,
+        "player_count": 9,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Denzel Ward",
+            "overall": 92.0,
+            "position": "DB"
+          },
+          {
+            "name": "Grant Delpit",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tyson Campbell",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Ronnie Hickman",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Myles Harden",
+            "overall": 68.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.5,
+        "grade": 75.5,
+        "player_count": 2,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Corey Bojorquez",
+            "overall": 80.0,
+            "position": "P"
+          },
+          {
+            "name": "Andre Szmyt",
+            "overall": 71.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Dallas Cowboys": {
+    "player_count": 57,
+    "prediction_influence_enabled": false,
+    "roster_grade": 80.55,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 71.25,
+        "grade": 79.66,
+        "player_count": 10,
+        "starter_grade": 81.5,
+        "top_players": [
+          {
+            "name": "Quinnen Williams",
+            "overall": 89.0,
+            "position": "DL"
+          },
+          {
+            "name": "Rashan Gary",
+            "overall": 84.0,
+            "position": "DL"
+          },
+          {
+            "name": "Kenny Clark",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "Donovan Ezeiruaku",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jonathan Bullard",
+            "overall": 73.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 64.5,
+        "grade": 72.84,
+        "player_count": 5,
+        "starter_grade": 74.67,
+        "top_players": [
+          {
+            "name": "Dee Winters",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "DeMarvion Overshown",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Marist Liufau",
+            "overall": 72.0,
+            "position": "LB"
+          },
+          {
+            "name": "Shemar James",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Curtis Robinson",
+            "overall": 59.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 75.26,
+        "player_count": 10,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Tyler Smith",
+            "overall": 88.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tyler Booker",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cooper Beebe",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Terence Steele",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tyler Guyton",
+            "overall": 72.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 88.7,
+        "player_count": 3,
+        "starter_grade": 91.0,
+        "top_players": [
+          {
+            "name": "Dak Prescott",
+            "overall": 91.0,
+            "position": "QB"
+          },
+          {
+            "name": "Joe Milton III",
+            "overall": 68.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 82.75,
+        "player_count": 9,
+        "starter_grade": 85.25,
+        "top_players": [
+          {
+            "name": "CeeDee Lamb",
+            "overall": 95.0,
+            "position": "WR"
+          },
+          {
+            "name": "George Pickens",
+            "overall": 86.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jake Ferguson",
+            "overall": 84.0,
+            "position": "TE"
+          },
+          {
+            "name": "KaVontae Turpin",
+            "overall": 76.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jonathan Mingo",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 76.56,
+        "player_count": 4,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Javonte Williams",
+            "overall": 84.0,
+            "position": "RB"
+          },
+          {
+            "name": "Hunter Luepke",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jaydon Blue",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Phil Mafah",
+            "overall": 68.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.75,
+        "grade": 79.9,
+        "player_count": 13,
+        "starter_grade": 81.25,
+        "top_players": [
+          {
+            "name": "DaRon Bland",
+            "overall": 87.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jalen Thompson",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Cobie Durant",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Malik Hooker",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Derion Kendrick",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 84.5,
+        "grade": 84.5,
+        "player_count": 2,
+        "starter_grade": 84.5,
+        "top_players": [
+          {
+            "name": "Brandon Aubrey",
+            "overall": 88.0,
+            "position": "K"
+          },
+          {
+            "name": "Bryan Anger",
+            "overall": 81.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Denver Broncos": {
+    "player_count": 56,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.65,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 64.67,
+        "grade": 74.37,
+        "player_count": 7,
+        "starter_grade": 76.5,
+        "top_players": [
+          {
+            "name": "Zach Allen",
+            "overall": 85.0,
+            "position": "DL"
+          },
+          {
+            "name": "D.J. Jones",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "Malcolm Roach",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Sai'vion Jones",
+            "overall": 70.0,
+            "position": "DL"
+          },
+          {
+            "name": "Eyioma Uwazurike",
+            "overall": 69.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 72.67,
+        "grade": 80.59,
+        "player_count": 9,
+        "starter_grade": 82.33,
+        "top_players": [
+          {
+            "name": "Nik Bonitto",
+            "overall": 88.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jonathon Cooper",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Alex Singleton",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Justin Strnad",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jonah Elliss",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.67,
+        "grade": 81.06,
+        "player_count": 11,
+        "starter_grade": 84.0,
+        "top_players": [
+          {
+            "name": "Quinn Meinerz",
+            "overall": 96.0,
+            "position": "OL"
+          },
+          {
+            "name": "Garett Bolles",
+            "overall": 92.0,
+            "position": "OL"
+          },
+          {
+            "name": "Mike McGlinchey",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Luke Wattenberg",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ben Powers",
+            "overall": 75.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 62.0,
+        "grade": 78.2,
+        "player_count": 2,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Bo Nix",
+            "overall": 80.0,
+            "position": "QB"
+          },
+          {
+            "name": "Jarrett Stidham",
+            "overall": 62.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 72.33,
+        "grade": 80.26,
+        "player_count": 9,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Courtland Sutton",
+            "overall": 86.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jaylen Waddle",
+            "overall": 85.0,
+            "position": "WR"
+          },
+          {
+            "name": "Evan Engram",
+            "overall": 80.0,
+            "position": "TE"
+          },
+          {
+            "name": "Marvin Mims Jr",
+            "overall": 77.0,
+            "position": "WR"
+          },
+          {
+            "name": "Troy Franklin",
+            "overall": 76.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 70.5,
+        "grade": 78.29,
+        "player_count": 6,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "J.K. Dobbins",
+            "overall": 83.0,
+            "position": "RB"
+          },
+          {
+            "name": "RJ Harvey",
+            "overall": 77.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jaleel McLaughlin",
+            "overall": 71.0,
+            "position": "RB"
+          },
+          {
+            "name": "Adam Prentice",
+            "overall": 70.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.75,
+        "grade": 78.77,
+        "player_count": 9,
+        "starter_grade": 80.75,
+        "top_players": [
+          {
+            "name": "Talanoa Hufanga",
+            "overall": 85.0,
+            "position": "DB"
+          },
+          {
+            "name": "Brandon Jones",
+            "overall": 84.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jahdae Barron",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Riley Moss",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Ja'Quan McMillian",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.5,
+        "grade": 75.5,
+        "player_count": 2,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Wil Lutz",
+            "overall": 78.0,
+            "position": "K"
+          },
+          {
+            "name": "Jeremy Crawshaw",
+            "overall": 73.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Detroit Lions": {
+    "player_count": 56,
+    "prediction_influence_enabled": false,
+    "roster_grade": 81.65,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 69.75,
+        "grade": 79.59,
+        "player_count": 8,
+        "starter_grade": 81.75,
+        "top_players": [
+          {
+            "name": "Aidan Hutchinson",
+            "overall": 93.0,
+            "position": "DL"
+          },
+          {
+            "name": "Alim McNeill",
+            "overall": 83.0,
+            "position": "DL"
+          },
+          {
+            "name": "Tyleik Williams",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Levi Onwuzurike",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Payton Turner",
+            "overall": 73.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 78.11,
+        "player_count": 7,
+        "starter_grade": 79.67,
+        "top_players": [
+          {
+            "name": "Jack Campbell",
+            "overall": 86.0,
+            "position": "LB"
+          },
+          {
+            "name": "Malcolm Rodriguez",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "D.J. Wonnum",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Derrick Barnes",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Damone Clark",
+            "overall": 72.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.67,
+        "grade": 75.99,
+        "player_count": 10,
+        "starter_grade": 77.6,
+        "top_players": [
+          {
+            "name": "Penei Sewell",
+            "overall": 97.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cade Mays",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tate Ratledge",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ben Bartch",
+            "overall": 72.0,
+            "position": "OL"
+          },
+          {
+            "name": "Juice Scruggs",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 86.8,
+        "player_count": 2,
+        "starter_grade": 89.0,
+        "top_players": [
+          {
+            "name": "Jared Goff",
+            "overall": 89.0,
+            "position": "QB"
+          },
+          {
+            "name": "Teddy Bridgewater",
+            "overall": 67.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 72.67,
+        "grade": 82.57,
+        "player_count": 9,
+        "starter_grade": 84.75,
+        "top_players": [
+          {
+            "name": "Amon-Ra St. Brown",
+            "overall": 96.0,
+            "position": "WR"
+          },
+          {
+            "name": "Sam LaPorta",
+            "overall": 87.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jameson Williams",
+            "overall": 82.0,
+            "position": "WR"
+          },
+          {
+            "name": "Greg Dortch",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tyler Conklin",
+            "overall": 74.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 85.04,
+        "player_count": 4,
+        "starter_grade": 89.0,
+        "top_players": [
+          {
+            "name": "Jahmyr Gibbs",
+            "overall": 97.0,
+            "position": "RB"
+          },
+          {
+            "name": "Isiah Pacheco",
+            "overall": 81.0,
+            "position": "RB"
+          },
+          {
+            "name": "Sione Vaki",
+            "overall": 68.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jacob Saylors",
+            "overall": 66.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 75.5,
+        "grade": 84.11,
+        "player_count": 13,
+        "starter_grade": 86.0,
+        "top_players": [
+          {
+            "name": "Kerby Joseph",
+            "overall": 91.0,
+            "position": "DB"
+          },
+          {
+            "name": "Brian Branch",
+            "overall": 90.0,
+            "position": "DB"
+          },
+          {
+            "name": "D.J. Reed Jr",
+            "overall": 85.0,
+            "position": "DB"
+          },
+          {
+            "name": "Chuck Clark",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Roger McCreary",
+            "overall": 78.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 77.0,
+        "grade": 77.0,
+        "player_count": 2,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Jack Fox",
+            "overall": 78.0,
+            "position": "P"
+          },
+          {
+            "name": "Jake Bates",
+            "overall": 76.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Green Bay Packers": {
+    "player_count": 49,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.23,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 73.97,
+        "player_count": 9,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Javon Hargrave",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Devonte Wyatt",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "Lukas Van Ness",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Barryn Sorrell",
+            "overall": 70.0,
+            "position": "DL"
+          },
+          {
+            "name": "Karl Brooks",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 82.85,
+        "player_count": 7,
+        "starter_grade": 85.67,
+        "top_players": [
+          {
+            "name": "Micah Parsons",
+            "overall": 98.0,
+            "position": "LB"
+          },
+          {
+            "name": "Zaire Franklin",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Edgerrin Cooper",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Isaiah McDuffie",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Collin Oliver",
+            "overall": 70.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 65.67,
+        "grade": 73.48,
+        "player_count": 10,
+        "starter_grade": 75.2,
+        "top_players": [
+          {
+            "name": "Zach Tom",
+            "overall": 87.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jordan Morgan",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Aaron Banks",
+            "overall": 73.0,
+            "position": "OL"
+          },
+          {
+            "name": "Anthony Belton",
+            "overall": 71.0,
+            "position": "OL"
+          },
+          {
+            "name": "Sean Rhyan",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 84.3,
+        "player_count": 2,
+        "starter_grade": 86.0,
+        "top_players": [
+          {
+            "name": "Jordan Love",
+            "overall": 86.0,
+            "position": "QB"
+          },
+          {
+            "name": "Tyrod Taylor",
+            "overall": 69.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 78.32,
+        "player_count": 7,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Tucker Kraft",
+            "overall": 83.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jayden Reed",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Matthew Golden",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Christian Watson",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Skyy Moore",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 66.0,
+        "grade": 77.89,
+        "player_count": 3,
+        "starter_grade": 80.5,
+        "top_players": [
+          {
+            "name": "Josh Jacobs",
+            "overall": 89.0,
+            "position": "RB"
+          },
+          {
+            "name": "MarShawn Lloyd",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Chris Brooks",
+            "overall": 66.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 78.79,
+        "player_count": 9,
+        "starter_grade": 80.5,
+        "top_players": [
+          {
+            "name": "Xavier McKinney",
+            "overall": 93.0,
+            "position": "DB"
+          },
+          {
+            "name": "Benjamin St-Juste",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Keisean Nixon",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Carrington Valentine",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Javon Bullard",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 71.0,
+        "player_count": 2,
+        "starter_grade": 71.0,
+        "top_players": [
+          {
+            "name": "Daniel Whelan",
+            "overall": 74.0,
+            "position": "P"
+          },
+          {
+            "name": "Lucas Havrisik",
+            "overall": 68.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Houston Texans": {
+    "player_count": 59,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.22,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 67.25,
+        "grade": 79.55,
+        "player_count": 9,
+        "starter_grade": 82.25,
+        "top_players": [
+          {
+            "name": "Will Anderson Jr",
+            "overall": 91.0,
+            "position": "DL"
+          },
+          {
+            "name": "Danielle Hunter",
+            "overall": 90.0,
+            "position": "DL"
+          },
+          {
+            "name": "Sheldon Rankins",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Logan Hall",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Dominique Robinson",
+            "overall": 69.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 69.33,
+        "grade": 75.07,
+        "player_count": 9,
+        "starter_grade": 76.33,
+        "top_players": [
+          {
+            "name": "Azeez Al-Shaair",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Henry To'oTo'o",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "E.J. Speed",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Marte Mapu",
+            "overall": 71.0,
+            "position": "LB"
+          },
+          {
+            "name": "Xavier Thomas",
+            "overall": 71.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 78.16,
+        "player_count": 10,
+        "starter_grade": 79.8,
+        "top_players": [
+          {
+            "name": "Trent Brown",
+            "overall": 84.0,
+            "position": "OL"
+          },
+          {
+            "name": "Braden Smith",
+            "overall": 83.0,
+            "position": "OL"
+          },
+          {
+            "name": "Wyatt Teller",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ed Ingram",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Evan Brown",
+            "overall": 76.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 76.7,
+        "player_count": 3,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "C.J. Stroud",
+            "overall": 78.0,
+            "position": "QB"
+          },
+          {
+            "name": "Davis Mills",
+            "overall": 65.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 72.67,
+        "grade": 79.29,
+        "player_count": 10,
+        "starter_grade": 80.75,
+        "top_players": [
+          {
+            "name": "Nico Collins",
+            "overall": 88.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tank Dell",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dalton Schultz",
+            "overall": 80.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jayden Higgins",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jaylin Noel",
+            "overall": 73.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 77.43,
+        "player_count": 3,
+        "starter_grade": 79.5,
+        "top_players": [
+          {
+            "name": "David Montgomery",
+            "overall": 85.0,
+            "position": "RB"
+          },
+          {
+            "name": "Woody Marks",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "British Brooks",
+            "overall": 68.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 71.75,
+        "grade": 81.59,
+        "player_count": 12,
+        "starter_grade": 83.75,
+        "top_players": [
+          {
+            "name": "Derek Stingley Jr",
+            "overall": 91.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jalen Pitre",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kamari Lassiter",
+            "overall": 81.0,
+            "position": "DB"
+          },
+          {
+            "name": "Reed Blankenship",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Calen Bullock",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.0,
+        "grade": 75.0,
+        "player_count": 2,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Ka'imi Fairbairn",
+            "overall": 81.0,
+            "position": "K"
+          },
+          {
+            "name": "Kai Kroeger",
+            "overall": 69.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Indianapolis Colts": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.77,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 72.5,
+        "grade": 80.49,
+        "player_count": 10,
+        "starter_grade": 82.25,
+        "top_players": [
+          {
+            "name": "DeForest Buckner",
+            "overall": 91.0,
+            "position": "DL"
+          },
+          {
+            "name": "Grover Stewart",
+            "overall": 86.0,
+            "position": "DL"
+          },
+          {
+            "name": "Laiatu Latu",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Arden Key",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "JT Tuimoloau",
+            "overall": 74.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 69.0,
+        "player_count": 3,
+        "starter_grade": 69.0,
+        "top_players": [
+          {
+            "name": "Akeem Davis-Gaither",
+            "overall": 71.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jaylon Carlies",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Austin Ajiake",
+            "overall": 66.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 63.67,
+        "grade": 76.73,
+        "player_count": 8,
+        "starter_grade": 79.6,
+        "top_players": [
+          {
+            "name": "Quenton Nelson",
+            "overall": 94.0,
+            "position": "OL"
+          },
+          {
+            "name": "Bernhard Raimann",
+            "overall": 86.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tanor Bortolini",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Matt Goncalves",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jalen Travis",
+            "overall": 68.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 79.8,
+        "player_count": 3,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Daniel Jones",
+            "overall": 81.0,
+            "position": "QB"
+          },
+          {
+            "name": "Anthony Richardson Sr",
+            "overall": 69.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 77.97,
+        "player_count": 8,
+        "starter_grade": 79.5,
+        "top_players": [
+          {
+            "name": "Tyler Warren",
+            "overall": 83.0,
+            "position": "TE"
+          },
+          {
+            "name": "Alec Pierce",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Josh Downs",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Nick Westbrook-Ikhine",
+            "overall": 75.0,
+            "position": "WR"
+          },
+          {
+            "name": "Ashton Dulin",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 83.0,
+        "grade": 83.0,
+        "player_count": 2,
+        "starter_grade": 83.0,
+        "top_players": [
+          {
+            "name": "Jonathan Taylor",
+            "overall": 95.0,
+            "position": "RB"
+          },
+          {
+            "name": "DJ Giddens",
+            "overall": 71.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 72.25,
+        "grade": 83.93,
+        "player_count": 13,
+        "starter_grade": 86.5,
+        "top_players": [
+          {
+            "name": "Sauce Gardner",
+            "overall": 93.0,
+            "position": "DB"
+          },
+          {
+            "name": "Charvarius Ward",
+            "overall": 89.0,
+            "position": "DB"
+          },
+          {
+            "name": "Cam Taylor-Britt",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Camryn Bynum",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jonathan Owens",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.0,
+        "grade": 76.0,
+        "player_count": 3,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Rigoberto Sanchez",
+            "overall": 77.0,
+            "position": "P"
+          },
+          {
+            "name": "Spencer Shrader",
+            "overall": 75.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Jacksonville Jaguars": {
+    "player_count": 47,
+    "prediction_influence_enabled": false,
+    "roster_grade": 75.1,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 66.33,
+        "grade": 77.74,
+        "player_count": 7,
+        "starter_grade": 80.25,
+        "top_players": [
+          {
+            "name": "Josh Hines-Allen",
+            "overall": 89.0,
+            "position": "DL"
+          },
+          {
+            "name": "Travon Walker",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Arik Armstead",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "DaVon Hamilton",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Ruke Orhorhoro",
+            "overall": 73.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 64.0,
+        "grade": 68.92,
+        "player_count": 5,
+        "starter_grade": 70.0,
+        "top_players": [
+          {
+            "name": "Dennis Gardeck",
+            "overall": 72.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jack Kiser",
+            "overall": 69.0,
+            "position": "LB"
+          },
+          {
+            "name": "Ventrell Miller",
+            "overall": 69.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jalen McLeod",
+            "overall": 64.0,
+            "position": "LB"
+          },
+          {
+            "name": "Yasir Abdullah",
+            "overall": 64.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 73.92,
+        "player_count": 10,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Ezra Cleveland",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Walker Little",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Anton Harrison",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Patrick Mekari",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Robert Hainsey",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 61.0,
+        "grade": 75.4,
+        "player_count": 2,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Trevor Lawrence",
+            "overall": 77.0,
+            "position": "QB"
+          },
+          {
+            "name": "Nick Mullens",
+            "overall": 61.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 67.67,
+        "grade": 78.19,
+        "player_count": 7,
+        "starter_grade": 80.5,
+        "top_players": [
+          {
+            "name": "Jakobi Meyers",
+            "overall": 82.0,
+            "position": "WR"
+          },
+          {
+            "name": "Travis Hunter",
+            "overall": 82.0,
+            "position": "WR"
+          },
+          {
+            "name": "Brian Thomas Jr",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Brenton Strange",
+            "overall": 77.0,
+            "position": "TE"
+          },
+          {
+            "name": "Parker Washington",
+            "overall": 75.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 72.87,
+        "player_count": 5,
+        "starter_grade": 73.5,
+        "top_players": [
+          {
+            "name": "Bhayshul Tuten",
+            "overall": 75.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ameer Abdullah",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "LeQuint Allen",
+            "overall": 71.0,
+            "position": "RB"
+          },
+          {
+            "name": "Chris Rodriguez Jr",
+            "overall": 69.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 67.75,
+        "grade": 73.9,
+        "player_count": 8,
+        "starter_grade": 75.25,
+        "top_players": [
+          {
+            "name": "Jourdan Lewis",
+            "overall": 81.0,
+            "position": "DB"
+          },
+          {
+            "name": "Eric Murray",
+            "overall": 74.0,
+            "position": "DB"
+          },
+          {
+            "name": "Caleb Ransaw",
+            "overall": 73.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jarrian Jones",
+            "overall": 73.0,
+            "position": "DB"
+          },
+          {
+            "name": "Antonio Johnson",
+            "overall": 71.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 80.0,
+        "grade": 80.0,
+        "player_count": 2,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Logan Cooke",
+            "overall": 83.0,
+            "position": "P"
+          },
+          {
+            "name": "Cam Little",
+            "overall": 77.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Kansas City Chiefs": {
+    "player_count": 47,
+    "prediction_influence_enabled": false,
+    "roster_grade": 81.76,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 70.33,
+        "grade": 79.28,
+        "player_count": 7,
+        "starter_grade": 81.25,
+        "top_players": [
+          {
+            "name": "Chris Jones",
+            "overall": 96.0,
+            "position": "DL"
+          },
+          {
+            "name": "George Karlaftis",
+            "overall": 84.0,
+            "position": "DL"
+          },
+          {
+            "name": "Ashton Gillotte",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Felix Anudike-Uzomah",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Khyiris Tonga",
+            "overall": 71.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 76.39,
+        "player_count": 5,
+        "starter_grade": 79.33,
+        "top_players": [
+          {
+            "name": "Drue Tranquill",
+            "overall": 87.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nick Bolton",
+            "overall": 83.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jeffrey Bassa",
+            "overall": 68.0,
+            "position": "LB"
+          },
+          {
+            "name": "Cooper McDonald",
+            "overall": 64.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jack Cochrane",
+            "overall": 62.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 78.97,
+        "player_count": 9,
+        "starter_grade": 81.6,
+        "top_players": [
+          {
+            "name": "Creed Humphrey",
+            "overall": 95.0,
+            "position": "OL"
+          },
+          {
+            "name": "Trey Smith",
+            "overall": 91.0,
+            "position": "OL"
+          },
+          {
+            "name": "Josh Simmons",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "Kingsley Suamataia",
+            "overall": 72.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jaylon Moore",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 74.0,
+        "grade": 94.7,
+        "player_count": 2,
+        "starter_grade": 97.0,
+        "top_players": [
+          {
+            "name": "Patrick Mahomes",
+            "overall": 97.0,
+            "position": "QB"
+          },
+          {
+            "name": "Justin Fields",
+            "overall": 74.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.67,
+        "grade": 80.75,
+        "player_count": 9,
+        "starter_grade": 82.75,
+        "top_players": [
+          {
+            "name": "Travis Kelce",
+            "overall": 92.0,
+            "position": "TE"
+          },
+          {
+            "name": "Rashee Rice",
+            "overall": 84.0,
+            "position": "WR"
+          },
+          {
+            "name": "Xavier Worthy",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tyquan Thornton",
+            "overall": 76.0,
+            "position": "WR"
+          },
+          {
+            "name": "Noah Gray",
+            "overall": 74.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 77.38,
+        "player_count": 3,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Kenneth Walker III",
+            "overall": 88.0,
+            "position": "RB"
+          },
+          {
+            "name": "Brashard Smith",
+            "overall": 70.0,
+            "position": "RB"
+          },
+          {
+            "name": "Emari Demercado",
+            "overall": 70.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 74.0,
+        "grade": 76.87,
+        "player_count": 9,
+        "starter_grade": 77.5,
+        "top_players": [
+          {
+            "name": "L'Jarius Sneed",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Alohi Gilman",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kristian Fulton",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Chamarri Conner",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kader Kohou",
+            "overall": 76.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 78.0,
+        "grade": 78.0,
+        "player_count": 2,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Harrison Butker",
+            "overall": 81.0,
+            "position": "K"
+          },
+          {
+            "name": "Matt Araiza",
+            "overall": 75.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Las Vegas Raiders": {
+    "player_count": 48,
+    "prediction_influence_enabled": false,
+    "roster_grade": 75.86,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 77.84,
+        "player_count": 9,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Maxx Crosby",
+            "overall": 97.0,
+            "position": "DL"
+          },
+          {
+            "name": "Kwity Paye",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Adam Butler",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Malcolm Koonce",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jonah Laulu",
+            "overall": 69.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 65.67,
+        "grade": 73.59,
+        "player_count": 6,
+        "starter_grade": 75.33,
+        "top_players": [
+          {
+            "name": "Quay Walker",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nakobe Dean",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "Brennan Jackson",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tommy Eichenberg",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Segun Olubi",
+            "overall": 65.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 78.68,
+        "player_count": 9,
+        "starter_grade": 80.8,
+        "top_players": [
+          {
+            "name": "Kolton Miller",
+            "overall": 92.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tyler Linderbaum",
+            "overall": 87.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jackson Powers-Johnson",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "DJ Glaze",
+            "overall": 73.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jordan Meredith",
+            "overall": 73.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 70.6,
+        "player_count": 2,
+        "starter_grade": 71.0,
+        "top_players": [
+          {
+            "name": "Kirk Cousins",
+            "overall": 71.0,
+            "position": "QB"
+          },
+          {
+            "name": "Aidan O'Connell",
+            "overall": 67.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 77.58,
+        "player_count": 10,
+        "starter_grade": 79.25,
+        "top_players": [
+          {
+            "name": "Brock Bowers",
+            "overall": 91.0,
+            "position": "TE"
+          },
+          {
+            "name": "Tre Tucker",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jalen Nailor",
+            "overall": 75.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jack Bech",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "Michael Mayer",
+            "overall": 73.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 75.5,
+        "grade": 75.5,
+        "player_count": 2,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Ashton Jeanty",
+            "overall": 83.0,
+            "position": "RB"
+          },
+          {
+            "name": "Dylan Laube",
+            "overall": 68.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 66.67,
+        "grade": 76.98,
+        "player_count": 7,
+        "starter_grade": 79.25,
+        "top_players": [
+          {
+            "name": "Taron Johnson",
+            "overall": 84.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jeremy Chinn",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Eric Stokes",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Darien Porter",
+            "overall": 74.0,
+            "position": "DB"
+          },
+          {
+            "name": "Decamerion Richardson",
+            "overall": 69.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 79.0,
+        "grade": 79.0,
+        "player_count": 2,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "A.J. Cole",
+            "overall": 84.0,
+            "position": "P"
+          },
+          {
+            "name": "Matt Gay",
+            "overall": 74.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Los Angeles Chargers": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 80.09,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 73.5,
+        "player_count": 4,
+        "starter_grade": 73.5,
+        "top_players": [
+          {
+            "name": "Dalvin Tomlinson",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Teair Tart",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Justin Eboigbe",
+            "overall": 71.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jamaree Caldwell",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 80.11,
+        "player_count": 10,
+        "starter_grade": 81.67,
+        "top_players": [
+          {
+            "name": "Khalil Mack",
+            "overall": 86.0,
+            "position": "LB"
+          },
+          {
+            "name": "Daiyan Henley",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tuli Tuipulotu",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "Denzel Perryman",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Bud Dupree",
+            "overall": 72.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 66.67,
+        "grade": 78.09,
+        "player_count": 8,
+        "starter_grade": 80.6,
+        "top_players": [
+          {
+            "name": "Rashawn Slater",
+            "overall": 93.0,
+            "position": "OL"
+          },
+          {
+            "name": "Joe Alt",
+            "overall": 85.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tyler Biadasz",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cole Strange",
+            "overall": 72.0,
+            "position": "OL"
+          },
+          {
+            "name": "Trevor Penning",
+            "overall": 72.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 87.3,
+        "player_count": 2,
+        "starter_grade": 90.0,
+        "top_players": [
+          {
+            "name": "Justin Herbert",
+            "overall": 90.0,
+            "position": "QB"
+          },
+          {
+            "name": "Trey Lance",
+            "overall": 63.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 79.34,
+        "player_count": 8,
+        "starter_grade": 81.25,
+        "top_players": [
+          {
+            "name": "David Njoku",
+            "overall": 87.0,
+            "position": "TE"
+          },
+          {
+            "name": "Ladd McConkey",
+            "overall": 84.0,
+            "position": "WR"
+          },
+          {
+            "name": "Quentin Johnston",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Oronde Gadsden",
+            "overall": 74.0,
+            "position": "TE"
+          },
+          {
+            "name": "Tre' Harris",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 76.28,
+        "player_count": 5,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "Omarion Hampton",
+            "overall": 80.0,
+            "position": "RB"
+          },
+          {
+            "name": "Alec Ingold",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "Keaton Mitchell",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kimani Vidal",
+            "overall": 72.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 81.63,
+        "player_count": 11,
+        "starter_grade": 83.75,
+        "top_players": [
+          {
+            "name": "Derwin James Jr",
+            "overall": 93.0,
+            "position": "DB"
+          },
+          {
+            "name": "Donte Jackson",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tarheeb Still",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Elijah Molden",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tony Jefferson",
+            "overall": 79.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 81.0,
+        "grade": 81.0,
+        "player_count": 2,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Cameron Dicker",
+            "overall": 82.0,
+            "position": "K"
+          },
+          {
+            "name": "JK Scott",
+            "overall": 80.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Los Angeles Rams": {
+    "player_count": 45,
+    "prediction_influence_enabled": false,
+    "roster_grade": 80.82,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.25,
+        "grade": 83.42,
+        "player_count": 8,
+        "starter_grade": 86.75,
+        "top_players": [
+          {
+            "name": "Myles Garrett",
+            "overall": 99.0,
+            "position": "DL"
+          },
+          {
+            "name": "Kobie Turner",
+            "overall": 85.0,
+            "position": "DL"
+          },
+          {
+            "name": "Braden Fiske",
+            "overall": 82.0,
+            "position": "DL"
+          },
+          {
+            "name": "Poona Ford",
+            "overall": 81.0,
+            "position": "DL"
+          },
+          {
+            "name": "Tyler Davis",
+            "overall": 72.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 74.02,
+        "player_count": 6,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Nate Landman",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Omar Speights",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "Josaiah Stewart",
+            "overall": 72.0,
+            "position": "LB"
+          },
+          {
+            "name": "Shaun Dolac",
+            "overall": 69.0,
+            "position": "LB"
+          },
+          {
+            "name": "Grant Stuard",
+            "overall": 64.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 74.93,
+        "player_count": 8,
+        "starter_grade": 76.6,
+        "top_players": [
+          {
+            "name": "Kevin Dotson",
+            "overall": 85.0,
+            "position": "OL"
+          },
+          {
+            "name": "Alaric Jackson",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "Steve Avila",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Coleman Shelton",
+            "overall": 73.0,
+            "position": "OL"
+          },
+          {
+            "name": "Beaux Limmer",
+            "overall": 70.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 89.1,
+        "player_count": 2,
+        "starter_grade": 92.0,
+        "top_players": [
+          {
+            "name": "Matthew Stafford",
+            "overall": 92.0,
+            "position": "QB"
+          },
+          {
+            "name": "Stetson Bennett IV",
+            "overall": 63.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.67,
+        "grade": 80.39,
+        "player_count": 9,
+        "starter_grade": 82.75,
+        "top_players": [
+          {
+            "name": "Puka Nacua",
+            "overall": 94.0,
+            "position": "WR"
+          },
+          {
+            "name": "Davante Adams",
+            "overall": 90.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tyler Higbee",
+            "overall": 75.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jordan Whittington",
+            "overall": 72.0,
+            "position": "WR"
+          },
+          {
+            "name": "Colby Parkinson",
+            "overall": 71.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 79.38,
+        "player_count": 3,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Kyren Williams",
+            "overall": 87.0,
+            "position": "RB"
+          },
+          {
+            "name": "Blake Corum",
+            "overall": 75.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jarquez Hunter",
+            "overall": 72.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 68.33,
+        "grade": 80.56,
+        "player_count": 7,
+        "starter_grade": 83.25,
+        "top_players": [
+          {
+            "name": "Trent McDuffie",
+            "overall": 95.0,
+            "position": "DB"
+          },
+          {
+            "name": "Quentin Lake",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jaylen Watson",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kamren Kinchens",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Emmanuel Forbes Jr",
+            "overall": 72.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.0,
+        "grade": 76.0,
+        "player_count": 1,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Ethan Evans",
+            "overall": 76.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Miami Dolphins": {
+    "player_count": 44,
+    "prediction_influence_enabled": false,
+    "roster_grade": 71.15,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 64.0,
+        "grade": 72.41,
+        "player_count": 6,
+        "starter_grade": 74.25,
+        "top_players": [
+          {
+            "name": "Zach Sieler",
+            "overall": 83.0,
+            "position": "DL"
+          },
+          {
+            "name": "Kenneth Grant",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jordan Phillips",
+            "overall": 71.0,
+            "position": "DL"
+          },
+          {
+            "name": "Matthew Butler",
+            "overall": 67.0,
+            "position": "DL"
+          },
+          {
+            "name": "Zeek Biggers",
+            "overall": 65.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 73.33,
+        "grade": 75.79,
+        "player_count": 8,
+        "starter_grade": 76.33,
+        "top_players": [
+          {
+            "name": "Jordyn Brooks",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Chop Robinson",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "Joshua Uche",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tyrel Dodson",
+            "overall": 75.0,
+            "position": "LB"
+          },
+          {
+            "name": "Willie Gay Jr",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 61.67,
+        "grade": 70.96,
+        "player_count": 8,
+        "starter_grade": 73.0,
+        "top_players": [
+          {
+            "name": "Aaron Brewer",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Patrick Paul",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Austin Jackson",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jamaree Salyer",
+            "overall": 69.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jonah Savaiinaea",
+            "overall": 69.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 64.8,
+        "player_count": 2,
+        "starter_grade": 65.0,
+        "top_players": [
+          {
+            "name": "Malik Willis",
+            "overall": 65.0,
+            "position": "QB"
+          },
+          {
+            "name": "Quinn Ewers",
+            "overall": 63.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 64.5,
+        "grade": 71.26,
+        "player_count": 6,
+        "starter_grade": 72.75,
+        "top_players": [
+          {
+            "name": "Jalen Tolbert",
+            "overall": 76.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tutu Atwell",
+            "overall": 75.0,
+            "position": "WR"
+          },
+          {
+            "name": "Malik Washington",
+            "overall": 72.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tahj Washington",
+            "overall": 68.0,
+            "position": "WR"
+          },
+          {
+            "name": "Greg Dulcich",
+            "overall": 67.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 77.74,
+        "player_count": 3,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "De'Von Achane",
+            "overall": 86.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jaylen Wright",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ollie Gordon II",
+            "overall": 72.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 67.25,
+        "grade": 70.94,
+        "player_count": 9,
+        "starter_grade": 71.75,
+        "top_players": [
+          {
+            "name": "Darrell Baker",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Lonnie Johnson Jr",
+            "overall": 73.0,
+            "position": "DB"
+          },
+          {
+            "name": "Alex Austin",
+            "overall": 70.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jason Marshall Jr",
+            "overall": 69.0,
+            "position": "DB"
+          },
+          {
+            "name": "Marco Wilson",
+            "overall": 69.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.0,
+        "grade": 76.0,
+        "player_count": 2,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Bradley Pinion",
+            "overall": 80.0,
+            "position": "P"
+          },
+          {
+            "name": "Riley Patterson",
+            "overall": 72.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Minnesota Vikings": {
+    "player_count": 53,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.05,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 63.5,
+        "grade": 67.6,
+        "player_count": 6,
+        "starter_grade": 68.5,
+        "top_players": [
+          {
+            "name": "Jalen Redmond",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Levi Drake Rodriguez",
+            "overall": 68.0,
+            "position": "DL"
+          },
+          {
+            "name": "Tyrion Ingram-Dawkins",
+            "overall": 66.0,
+            "position": "DL"
+          },
+          {
+            "name": "Eric Johnson II",
+            "overall": 65.0,
+            "position": "DL"
+          },
+          {
+            "name": "Isaiahh Loudermilk",
+            "overall": 65.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 78.83,
+        "player_count": 8,
+        "starter_grade": 80.33,
+        "top_players": [
+          {
+            "name": "Andrew Van Ginkel",
+            "overall": 83.0,
+            "position": "LB"
+          },
+          {
+            "name": "Blake Cashman",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Ivan Pace Jr",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "Eric Wilson",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Dallas Turner",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 63.0,
+        "grade": 77.43,
+        "player_count": 9,
+        "starter_grade": 80.6,
+        "top_players": [
+          {
+            "name": "Christian Darrisaw",
+            "overall": 90.0,
+            "position": "OL"
+          },
+          {
+            "name": "Brian O'Neill",
+            "overall": 87.0,
+            "position": "OL"
+          },
+          {
+            "name": "Will Fries",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "Donovan Jackson",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Blake Brandel",
+            "overall": 72.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 78.4,
+        "player_count": 4,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Kyler Murray",
+            "overall": 79.0,
+            "position": "QB"
+          },
+          {
+            "name": "J.J. McCarthy",
+            "overall": 73.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 73.67,
+        "grade": 85.01,
+        "player_count": 9,
+        "starter_grade": 87.5,
+        "top_players": [
+          {
+            "name": "Justin Jefferson",
+            "overall": 99.0,
+            "position": "WR"
+          },
+          {
+            "name": "T.J. Hockenson",
+            "overall": 86.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jordan Addison",
+            "overall": 84.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jauan Jennings",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Adam Thielen",
+            "overall": 77.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 72.5,
+        "grade": 80.29,
+        "player_count": 4,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Aaron Jones Sr",
+            "overall": 82.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jordan Mason",
+            "overall": 82.0,
+            "position": "RB"
+          },
+          {
+            "name": "C.J. Ham",
+            "overall": 75.0,
+            "position": "RB"
+          },
+          {
+            "name": "Zavier Scott",
+            "overall": 70.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 70.75,
+        "grade": 79.77,
+        "player_count": 10,
+        "starter_grade": 81.75,
+        "top_players": [
+          {
+            "name": "Byron Murphy Jr",
+            "overall": 85.0,
+            "position": "DB"
+          },
+          {
+            "name": "Josh Metellus",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "Isaiah Rodgers Sr",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Byron Murphy II",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "James Pierre",
+            "overall": 73.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 77.5,
+        "grade": 77.5,
+        "player_count": 2,
+        "starter_grade": 77.5,
+        "top_players": [
+          {
+            "name": "Will Reichard",
+            "overall": 79.0,
+            "position": "K"
+          },
+          {
+            "name": "Johnny Hekker",
+            "overall": 76.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "New England Patriots": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 79.06,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 57.0,
+        "grade": 71.97,
+        "player_count": 5,
+        "starter_grade": 75.25,
+        "top_players": [
+          {
+            "name": "Milton Williams",
+            "overall": 86.0,
+            "position": "DL"
+          },
+          {
+            "name": "Christian Barmore",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Joshua Farmer",
+            "overall": 71.0,
+            "position": "DL"
+          },
+          {
+            "name": "Eric Gregory",
+            "overall": 64.0,
+            "position": "DL"
+          },
+          {
+            "name": "Cory Durden",
+            "overall": 57.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 78.32,
+        "player_count": 7,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Harold Landry III",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Robert Spillane",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Dre'Mont Jones",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Christian Elliss",
+            "overall": 71.0,
+            "position": "LB"
+          },
+          {
+            "name": "K.J. Britt",
+            "overall": 71.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 65.33,
+        "grade": 77.36,
+        "player_count": 9,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Alijah Vera-Tucker",
+            "overall": 84.0,
+            "position": "OL"
+          },
+          {
+            "name": "Mike Onwenu",
+            "overall": 83.0,
+            "position": "OL"
+          },
+          {
+            "name": "Morgan Moses",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Will Campbell",
+            "overall": 81.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jared Wilson",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 61.0,
+        "grade": 82.6,
+        "player_count": 2,
+        "starter_grade": 85.0,
+        "top_players": [
+          {
+            "name": "Drake Maye",
+            "overall": 85.0,
+            "position": "QB"
+          },
+          {
+            "name": "Tommy DeVito",
+            "overall": 61.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 74.67,
+        "grade": 81.5,
+        "player_count": 9,
+        "starter_grade": 83.0,
+        "top_players": [
+          {
+            "name": "A.J. Brown",
+            "overall": 89.0,
+            "position": "WR"
+          },
+          {
+            "name": "Hunter Henry",
+            "overall": 85.0,
+            "position": "TE"
+          },
+          {
+            "name": "Kayshon Boutte",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Romeo Doubs",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "DeMario Douglas",
+            "overall": 77.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 77.6,
+        "player_count": 5,
+        "starter_grade": 78.5,
+        "top_players": [
+          {
+            "name": "Reggie Gilliam",
+            "overall": 79.0,
+            "position": "RB"
+          },
+          {
+            "name": "Rhamondre Stevenson",
+            "overall": 78.0,
+            "position": "RB"
+          },
+          {
+            "name": "TreVeyon Henderson",
+            "overall": 76.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jack Westover",
+            "overall": 71.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.5,
+        "grade": 82.42,
+        "player_count": 12,
+        "starter_grade": 85.25,
+        "top_players": [
+          {
+            "name": "Christian Gonzalez",
+            "overall": 96.0,
+            "position": "DB"
+          },
+          {
+            "name": "Carlton Davis III",
+            "overall": 84.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kevin Byard III",
+            "overall": 81.0,
+            "position": "DB"
+          },
+          {
+            "name": "Marcus Jones",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Craig Woodson",
+            "overall": 72.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 78.0,
+        "grade": 78.0,
+        "player_count": 1,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Bryce Baringer",
+            "overall": 78.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "New Orleans Saints": {
+    "player_count": 55,
+    "prediction_influence_enabled": false,
+    "roster_grade": 75.67,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.33,
+        "grade": 73.8,
+        "player_count": 7,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Davon Godchaux",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "Bryan Bresee",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Nathan Shepherd",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Tyree Wilson",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Khristian Boyd",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 74.33,
+        "grade": 79.25,
+        "player_count": 9,
+        "starter_grade": 80.33,
+        "top_players": [
+          {
+            "name": "Kaden Elliss",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Chase Young",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Carl Granderson",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Anfernee Jennings",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Pete Werner",
+            "overall": 75.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 66.33,
+        "grade": 77.05,
+        "player_count": 10,
+        "starter_grade": 79.4,
+        "top_players": [
+          {
+            "name": "Erik McCoy",
+            "overall": 90.0,
+            "position": "OL"
+          },
+          {
+            "name": "Taliese Fuaga",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "David Edwards",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cesar Ruiz",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Kelvin Banks Jr",
+            "overall": 76.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 70.7,
+        "player_count": 3,
+        "starter_grade": 71.0,
+        "top_players": [
+          {
+            "name": "Spencer Rattler",
+            "overall": 71.0,
+            "position": "QB"
+          },
+          {
+            "name": "Tyler Shough",
+            "overall": 68.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 75.57,
+        "player_count": 9,
+        "starter_grade": 76.5,
+        "top_players": [
+          {
+            "name": "Chris Olave",
+            "overall": 85.0,
+            "position": "WR"
+          },
+          {
+            "name": "Juwan Johnson",
+            "overall": 75.0,
+            "position": "TE"
+          },
+          {
+            "name": "Ja'Lynn Polk",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "Noah Fant",
+            "overall": 73.0,
+            "position": "TE"
+          },
+          {
+            "name": "Devaughn Vele",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 74.5,
+        "grade": 81.88,
+        "player_count": 5,
+        "starter_grade": 83.5,
+        "top_players": [
+          {
+            "name": "Travis Etienne Jr",
+            "overall": 85.0,
+            "position": "RB"
+          },
+          {
+            "name": "Alvin Kamara",
+            "overall": 82.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kendre Miller",
+            "overall": 76.0,
+            "position": "RB"
+          },
+          {
+            "name": "Ty Chandler",
+            "overall": 73.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 77.51,
+        "player_count": 10,
+        "starter_grade": 78.5,
+        "top_players": [
+          {
+            "name": "Justin Reid",
+            "overall": 85.0,
+            "position": "DB"
+          },
+          {
+            "name": "Julian Blackmon",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kool-Aid McKinstry",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Martin Emerson Jr",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jonas Sanker",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.0,
+        "grade": 75.0,
+        "player_count": 1,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Ryan Wright",
+            "overall": 75.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "New York Giants": {
+    "player_count": 64,
+    "prediction_influence_enabled": false,
+    "roster_grade": 77.22,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 69.33,
+        "grade": 75.62,
+        "player_count": 7,
+        "starter_grade": 77.0,
+        "top_players": [
+          {
+            "name": "D.J. Reader",
+            "overall": 84.0,
+            "position": "DL"
+          },
+          {
+            "name": "Shelby Harris",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Chauncey Golston",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Roy Robertson-Harris",
+            "overall": 73.0,
+            "position": "DL"
+          },
+          {
+            "name": "Darius Alexander",
+            "overall": 72.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 74.67,
+        "grade": 82.32,
+        "player_count": 8,
+        "starter_grade": 84.0,
+        "top_players": [
+          {
+            "name": "Brian Burns",
+            "overall": 89.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tremaine Edmunds",
+            "overall": 82.0,
+            "position": "LB"
+          },
+          {
+            "name": "Abdul Carter",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Kayvon Thibodeaux",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Micah McFadden",
+            "overall": 76.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 71.0,
+        "grade": 76.58,
+        "player_count": 10,
+        "starter_grade": 77.8,
+        "top_players": [
+          {
+            "name": "Andrew Thomas",
+            "overall": 91.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jermaine Eluemunor",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Daniel Faalele",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Lucas Patrick",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Evan Neal",
+            "overall": 73.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 72.7,
+        "player_count": 3,
+        "starter_grade": 73.0,
+        "top_players": [
+          {
+            "name": "Jaxson Dart",
+            "overall": 73.0,
+            "position": "QB"
+          },
+          {
+            "name": "Jameis Winston",
+            "overall": 70.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 76.33,
+        "grade": 79.34,
+        "player_count": 16,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Malik Nabers",
+            "overall": 88.0,
+            "position": "WR"
+          },
+          {
+            "name": "Darnell Mooney",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Darius Slayton",
+            "overall": 77.0,
+            "position": "WR"
+          },
+          {
+            "name": "Isaiah Likely",
+            "overall": 77.0,
+            "position": "TE"
+          },
+          {
+            "name": "JuJu Smith-Schuster",
+            "overall": 77.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 77.0,
+        "grade": 81.1,
+        "player_count": 5,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Patrick Ricard",
+            "overall": 83.0,
+            "position": "RB"
+          },
+          {
+            "name": "Cam Skattebo",
+            "overall": 81.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tyrone Tracy Jr",
+            "overall": 79.0,
+            "position": "RB"
+          },
+          {
+            "name": "Devin Singletary",
+            "overall": 75.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 72.5,
+        "grade": 79.06,
+        "player_count": 14,
+        "starter_grade": 80.5,
+        "top_players": [
+          {
+            "name": "Jevon Holland",
+            "overall": 84.0,
+            "position": "DB"
+          },
+          {
+            "name": "Ar'Darius Washington",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Greg Newsome II",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Paulson Adebo",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Deonte Banks",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 75.0,
+        "grade": 75.0,
+        "player_count": 1,
+        "starter_grade": 75.0,
+        "top_players": [
+          {
+            "name": "Jordan Stout",
+            "overall": 75.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "New York Jets": {
+    "player_count": 50,
+    "prediction_influence_enabled": false,
+    "roster_grade": 75.12,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 71.25,
+        "grade": 76.99,
+        "player_count": 10,
+        "starter_grade": 78.25,
+        "top_players": [
+          {
+            "name": "David Onyemata",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "T'Vondre Sweat",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "Harrison Phillips",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "Will McDonald IV",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Joseph Ossai",
+            "overall": 72.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 65.67,
+        "grade": 76.33,
+        "player_count": 6,
+        "starter_grade": 78.67,
+        "top_players": [
+          {
+            "name": "Demario Davis",
+            "overall": 90.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jamien Sherwood",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Mykal Walker",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Francisco Mauigoa",
+            "overall": 67.0,
+            "position": "LB"
+          },
+          {
+            "name": "Kobe King",
+            "overall": 66.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 64.0,
+        "grade": 72.53,
+        "player_count": 7,
+        "starter_grade": 74.4,
+        "top_players": [
+          {
+            "name": "Armand Membou",
+            "overall": 80.0,
+            "position": "OL"
+          },
+          {
+            "name": "Joe Tippmann",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Dylan Parham",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Josh Myers",
+            "overall": 70.0,
+            "position": "OL"
+          },
+          {
+            "name": "Chukwuma Okorafor",
+            "overall": 67.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 72.0,
+        "player_count": 1,
+        "starter_grade": 72.0,
+        "top_players": [
+          {
+            "name": "Geno Smith",
+            "overall": 72.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 67.67,
+        "grade": 75.94,
+        "player_count": 8,
+        "starter_grade": 77.75,
+        "top_players": [
+          {
+            "name": "Garrett Wilson",
+            "overall": 87.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tim Patrick",
+            "overall": 76.0,
+            "position": "WR"
+          },
+          {
+            "name": "Mason Taylor",
+            "overall": 75.0,
+            "position": "TE"
+          },
+          {
+            "name": "Adonai Mitchell",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "Arian Smith",
+            "overall": 68.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 77.2,
+        "player_count": 5,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Breece Hall",
+            "overall": 86.0,
+            "position": "RB"
+          },
+          {
+            "name": "Braelon Allen",
+            "overall": 72.0,
+            "position": "RB"
+          },
+          {
+            "name": "Andrew Beck",
+            "overall": 69.0,
+            "position": "RB"
+          },
+          {
+            "name": "Isaiah Davis",
+            "overall": 69.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 72.25,
+        "grade": 78.6,
+        "player_count": 10,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Minkah Fitzpatrick",
+            "overall": 92.0,
+            "position": "DB"
+          },
+          {
+            "name": "Andre Cisco",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jarvis Brownlee Jr",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Dane Belton",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Azareye'h Thomas",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 74.0,
+        "grade": 74.0,
+        "player_count": 2,
+        "starter_grade": 74.0,
+        "top_players": [
+          {
+            "name": "Jason Sanders",
+            "overall": 77.0,
+            "position": "K"
+          },
+          {
+            "name": "Austin McNamara",
+            "overall": 71.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Philadelphia Eagles": {
+    "player_count": 56,
+    "prediction_influence_enabled": false,
+    "roster_grade": 82.34,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 79.67,
+        "player_count": 7,
+        "starter_grade": 81.5,
+        "top_players": [
+          {
+            "name": "Jalen Carter",
+            "overall": 90.0,
+            "position": "DL"
+          },
+          {
+            "name": "Byron Young",
+            "overall": 82.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jordan Davis",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Joe Tryon-Shoyinka",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Moro Ojomo",
+            "overall": 74.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 76.33,
+        "grade": 84.26,
+        "player_count": 8,
+        "starter_grade": 86.0,
+        "top_players": [
+          {
+            "name": "Zack Baun",
+            "overall": 90.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jonathan Greenard",
+            "overall": 85.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nolan Smith Jr",
+            "overall": 83.0,
+            "position": "LB"
+          },
+          {
+            "name": "Jihaad Campbell",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Arnold Ebiketie",
+            "overall": 77.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 65.33,
+        "grade": 82.28,
+        "player_count": 10,
+        "starter_grade": 86.0,
+        "top_players": [
+          {
+            "name": "Lane Johnson",
+            "overall": 99.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jordan Mailata",
+            "overall": 94.0,
+            "position": "OL"
+          },
+          {
+            "name": "Landon Dickerson",
+            "overall": 86.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cam Jurgens",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Tyler Steen",
+            "overall": 73.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 85.3,
+        "player_count": 3,
+        "starter_grade": 87.0,
+        "top_players": [
+          {
+            "name": "Jalen Hurts",
+            "overall": 87.0,
+            "position": "QB"
+          },
+          {
+            "name": "Andy Dalton",
+            "overall": 70.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 80.98,
+        "player_count": 11,
+        "starter_grade": 83.25,
+        "top_players": [
+          {
+            "name": "DeVonta Smith",
+            "overall": 90.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dallas Goedert",
+            "overall": 88.0,
+            "position": "TE"
+          },
+          {
+            "name": "Marquise Brown",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Elijah Moore",
+            "overall": 76.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dontayvion Wicks",
+            "overall": 75.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 74.5,
+        "grade": 85.98,
+        "player_count": 5,
+        "starter_grade": 88.5,
+        "top_players": [
+          {
+            "name": "Saquon Barkley",
+            "overall": 99.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tank Bigsby",
+            "overall": 78.0,
+            "position": "RB"
+          },
+          {
+            "name": "Dameon Pierce",
+            "overall": 75.0,
+            "position": "RB"
+          },
+          {
+            "name": "Elijah Mitchell",
+            "overall": 74.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 79.65,
+        "player_count": 10,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Quinyon Mitchell",
+            "overall": 87.0,
+            "position": "DB"
+          },
+          {
+            "name": "Cooper DeJean",
+            "overall": 84.0,
+            "position": "DB"
+          },
+          {
+            "name": "Marcus Epps",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Michael Carter II",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Andrew Mukuba",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 79.5,
+        "grade": 79.5,
+        "player_count": 2,
+        "starter_grade": 79.5,
+        "top_players": [
+          {
+            "name": "Jake Elliott",
+            "overall": 81.0,
+            "position": "K"
+          },
+          {
+            "name": "Braden Mann",
+            "overall": 78.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Pittsburgh Steelers": {
+    "player_count": 51,
+    "prediction_influence_enabled": false,
+    "roster_grade": 79.03,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.75,
+        "grade": 79.0,
+        "player_count": 8,
+        "starter_grade": 81.25,
+        "top_players": [
+          {
+            "name": "Cameron Heyward",
+            "overall": 95.0,
+            "position": "DL"
+          },
+          {
+            "name": "Sebastian Joseph-Day",
+            "overall": 78.0,
+            "position": "DL"
+          },
+          {
+            "name": "Derrick Harmon",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Keeanu Benton",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Dean Lowry",
+            "overall": 71.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 76.67,
+        "grade": 85.96,
+        "player_count": 9,
+        "starter_grade": 88.0,
+        "top_players": [
+          {
+            "name": "T.J. Watt",
+            "overall": 96.0,
+            "position": "LB"
+          },
+          {
+            "name": "Alex Highsmith",
+            "overall": 87.0,
+            "position": "LB"
+          },
+          {
+            "name": "Patrick Queen",
+            "overall": 81.0,
+            "position": "LB"
+          },
+          {
+            "name": "Cole Holcomb",
+            "overall": 78.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nick Herbig",
+            "overall": 77.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 59.5,
+        "grade": 72.05,
+        "player_count": 7,
+        "starter_grade": 74.8,
+        "top_players": [
+          {
+            "name": "Zach Frazier",
+            "overall": 84.0,
+            "position": "OL"
+          },
+          {
+            "name": "Troy Fautanu",
+            "overall": 77.0,
+            "position": "OL"
+          },
+          {
+            "name": "Mason McCormick",
+            "overall": 75.0,
+            "position": "OL"
+          },
+          {
+            "name": "Broderick Jones",
+            "overall": 71.0,
+            "position": "OL"
+          },
+          {
+            "name": "Brock Hoffman",
+            "overall": 67.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 66.0,
+        "grade": 77.7,
+        "player_count": 3,
+        "starter_grade": 79.0,
+        "top_players": [
+          {
+            "name": "Aaron Rodgers",
+            "overall": 79.0,
+            "position": "QB"
+          },
+          {
+            "name": "Mason Rudolph",
+            "overall": 66.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.67,
+        "grade": 79.58,
+        "player_count": 7,
+        "starter_grade": 81.75,
+        "top_players": [
+          {
+            "name": "D.K. Metcalf",
+            "overall": 86.0,
+            "position": "WR"
+          },
+          {
+            "name": "Michael Pittman Jr",
+            "overall": 83.0,
+            "position": "WR"
+          },
+          {
+            "name": "Pat Freiermuth",
+            "overall": 82.0,
+            "position": "TE"
+          },
+          {
+            "name": "Darnell Washington",
+            "overall": 76.0,
+            "position": "TE"
+          },
+          {
+            "name": "Roman Wilson",
+            "overall": 71.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 71.5,
+        "grade": 80.11,
+        "player_count": 4,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Rico Dowdle",
+            "overall": 83.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jaylen Warren",
+            "overall": 81.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kaleb Johnson",
+            "overall": 74.0,
+            "position": "RB"
+          },
+          {
+            "name": "Travis Homer",
+            "overall": 69.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 83.86,
+        "player_count": 9,
+        "starter_grade": 86.25,
+        "top_players": [
+          {
+            "name": "Jalen Ramsey",
+            "overall": 94.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jamel Dean",
+            "overall": 86.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jaquan Brisker",
+            "overall": 83.0,
+            "position": "DB"
+          },
+          {
+            "name": "DeShon Elliott",
+            "overall": 82.0,
+            "position": "DB"
+          },
+          {
+            "name": "Joey Porter",
+            "overall": 79.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 80.0,
+        "grade": 80.0,
+        "player_count": 2,
+        "starter_grade": 80.0,
+        "top_players": [
+          {
+            "name": "Chris Boswell",
+            "overall": 86.0,
+            "position": "K"
+          },
+          {
+            "name": "Cameron Johnston",
+            "overall": 74.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "San Francisco 49ers": {
+    "player_count": 54,
+    "prediction_influence_enabled": false,
+    "roster_grade": 80.42,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 70.0,
+        "grade": 78.81,
+        "player_count": 7,
+        "starter_grade": 80.75,
+        "top_players": [
+          {
+            "name": "Nick Bosa",
+            "overall": 95.0,
+            "position": "DL"
+          },
+          {
+            "name": "Mykel Williams",
+            "overall": 77.0,
+            "position": "DL"
+          },
+          {
+            "name": "Osa Odighizuwa",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Keion White",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Alfred Collins",
+            "overall": 74.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 65.33,
+        "grade": 81.19,
+        "player_count": 6,
+        "starter_grade": 84.67,
+        "top_players": [
+          {
+            "name": "Fred Warner",
+            "overall": 97.0,
+            "position": "LB"
+          },
+          {
+            "name": "Dre Greenlaw",
+            "overall": 86.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nick Martin",
+            "overall": 71.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tatum Bethune",
+            "overall": 70.0,
+            "position": "LB"
+          },
+          {
+            "name": "Luke Gifford",
+            "overall": 64.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 77.46,
+        "player_count": 9,
+        "starter_grade": 80.2,
+        "top_players": [
+          {
+            "name": "Trent Williams",
+            "overall": 97.0,
+            "position": "OL"
+          },
+          {
+            "name": "Dominick Puni",
+            "overall": 82.0,
+            "position": "OL"
+          },
+          {
+            "name": "Colton McKivitz",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jake Brendel",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Robert Jones",
+            "overall": 70.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 81.1,
+        "player_count": 4,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Brock Purdy",
+            "overall": 82.0,
+            "position": "QB"
+          },
+          {
+            "name": "Mac Jones",
+            "overall": 73.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 84.5,
+        "player_count": 9,
+        "starter_grade": 87.25,
+        "top_players": [
+          {
+            "name": "George Kittle",
+            "overall": 98.0,
+            "position": "TE"
+          },
+          {
+            "name": "Mike Evans",
+            "overall": 92.0,
+            "position": "WR"
+          },
+          {
+            "name": "Ricky Pearsall",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Christian Kirk",
+            "overall": 78.0,
+            "position": "WR"
+          },
+          {
+            "name": "Demarcus Robinson",
+            "overall": 75.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 86.53,
+        "player_count": 5,
+        "starter_grade": 89.5,
+        "top_players": [
+          {
+            "name": "Christian McCaffrey",
+            "overall": 91.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kyle Juszczyk",
+            "overall": 88.0,
+            "position": "RB"
+          },
+          {
+            "name": "Isaac Guerendo",
+            "overall": 73.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jordan James",
+            "overall": 73.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 73.25,
+        "grade": 77.35,
+        "player_count": 11,
+        "starter_grade": 78.25,
+        "top_players": [
+          {
+            "name": "Deommodore Lenoir",
+            "overall": 81.0,
+            "position": "DB"
+          },
+          {
+            "name": "Nate Hobbs",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jack Jones",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Renardo Green",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Malik Mustapha",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 76.0,
+        "grade": 76.0,
+        "player_count": 2,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Eddy Pineiro",
+            "overall": 77.0,
+            "position": "K"
+          },
+          {
+            "name": "Corliss Waitman",
+            "overall": 75.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Seattle Seahawks": {
+    "player_count": 59,
+    "prediction_influence_enabled": false,
+    "roster_grade": 77.89,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 65.0,
+        "grade": 75.25,
+        "player_count": 6,
+        "starter_grade": 77.5,
+        "top_players": [
+          {
+            "name": "Leonard Williams",
+            "overall": 87.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jarran Reed",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "Dante Fowler Jr",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Mike Morris",
+            "overall": 68.0,
+            "position": "DL"
+          },
+          {
+            "name": "Rylie Mills",
+            "overall": 68.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 78.83,
+        "player_count": 10,
+        "starter_grade": 80.33,
+        "top_players": [
+          {
+            "name": "DeMarcus Lawrence",
+            "overall": 85.0,
+            "position": "LB"
+          },
+          {
+            "name": "Ernest Jones IV",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Derick Hall",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Uchenna Nwosu",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Tyrice Knight",
+            "overall": 73.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 74.56,
+        "player_count": 10,
+        "starter_grade": 76.0,
+        "top_players": [
+          {
+            "name": "Charles Cross",
+            "overall": 83.0,
+            "position": "OL"
+          },
+          {
+            "name": "Abraham Lucas",
+            "overall": 78.0,
+            "position": "OL"
+          },
+          {
+            "name": "Grey Zabel",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Christian Haynes",
+            "overall": 72.0,
+            "position": "OL"
+          },
+          {
+            "name": "Anthony Bradford",
+            "overall": 71.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 66.0,
+        "grade": 80.4,
+        "player_count": 3,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Sam Darnold",
+            "overall": 82.0,
+            "position": "QB"
+          },
+          {
+            "name": "Drew Lock",
+            "overall": 66.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 70.67,
+        "grade": 80.37,
+        "player_count": 11,
+        "starter_grade": 82.5,
+        "top_players": [
+          {
+            "name": "Jaxon Smith-Njigba",
+            "overall": 91.0,
+            "position": "WR"
+          },
+          {
+            "name": "Cooper Kupp",
+            "overall": 85.0,
+            "position": "WR"
+          },
+          {
+            "name": "Rashid Shaheed",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tory Horton",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "A.J. Barner",
+            "overall": 72.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 73.97,
+        "player_count": 6,
+        "starter_grade": 75.5,
+        "top_players": [
+          {
+            "name": "Zach Charbonnet",
+            "overall": 78.0,
+            "position": "RB"
+          },
+          {
+            "name": "Robbie Ouzts",
+            "overall": 73.0,
+            "position": "RB"
+          },
+          {
+            "name": "Emanuel Wilson",
+            "overall": 69.0,
+            "position": "RB"
+          },
+          {
+            "name": "George Holani",
+            "overall": 65.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.25,
+        "grade": 78.89,
+        "player_count": 10,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Devon Witherspoon",
+            "overall": 88.0,
+            "position": "DB"
+          },
+          {
+            "name": "Julian Love",
+            "overall": 86.0,
+            "position": "DB"
+          },
+          {
+            "name": "Nick Emmanwori",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Josh Jobe",
+            "overall": 74.0,
+            "position": "DB"
+          },
+          {
+            "name": "Noah Igbinoghene",
+            "overall": 71.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 82.0,
+        "grade": 82.0,
+        "player_count": 2,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Michael Dickson",
+            "overall": 85.0,
+            "position": "P"
+          },
+          {
+            "name": "Jason Myers",
+            "overall": 79.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Tampa Bay Buccaneers": {
+    "player_count": 55,
+    "prediction_influence_enabled": false,
+    "roster_grade": 79.58,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 68.67,
+        "grade": 77.55,
+        "player_count": 7,
+        "starter_grade": 79.5,
+        "top_players": [
+          {
+            "name": "Vita Vea",
+            "overall": 93.0,
+            "position": "DL"
+          },
+          {
+            "name": "Calijah Kancey",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "A'Shawn Robinson",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Al-Quadin Muhammad",
+            "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Rakeem Nunez-Roches Sr",
+            "overall": 70.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 71.33,
+        "grade": 76.53,
+        "player_count": 8,
+        "starter_grade": 77.67,
+        "top_players": [
+          {
+            "name": "Yaya Diaby",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Alex Anzalone",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Anthony Nelson",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Chris Braswell",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Christian Rozeboom",
+            "overall": 71.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 68.33,
+        "grade": 78.39,
+        "player_count": 10,
+        "starter_grade": 80.6,
+        "top_players": [
+          {
+            "name": "Tristan Wirfs",
+            "overall": 96.0,
+            "position": "OL"
+          },
+          {
+            "name": "Luke Goedeke",
+            "overall": 82.0,
+            "position": "OL"
+          },
+          {
+            "name": "Cody Mauch",
+            "overall": 79.0,
+            "position": "OL"
+          },
+          {
+            "name": "Graham Barton",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Ben Bredeson",
+            "overall": 72.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 68.0,
+        "grade": 86.0,
+        "player_count": 2,
+        "starter_grade": 88.0,
+        "top_players": [
+          {
+            "name": "Baker Mayfield",
+            "overall": 88.0,
+            "position": "QB"
+          },
+          {
+            "name": "Jake Browning",
+            "overall": 68.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 76.49,
+        "player_count": 10,
+        "starter_grade": 78.5,
+        "top_players": [
+          {
+            "name": "Chris Godwin Jr",
+            "overall": 83.0,
+            "position": "WR"
+          },
+          {
+            "name": "Emeka Egbuka",
+            "overall": 80.0,
+            "position": "WR"
+          },
+          {
+            "name": "Cade Otton",
+            "overall": 77.0,
+            "position": "TE"
+          },
+          {
+            "name": "Jalen McMillan",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Tez Johnson",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 67.0,
+        "grade": 79.3,
+        "player_count": 4,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Bucky Irving",
+            "overall": 87.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kenneth Gainwell",
+            "overall": 77.0,
+            "position": "RB"
+          },
+          {
+            "name": "Josh Williams",
+            "overall": 68.0,
+            "position": "RB"
+          },
+          {
+            "name": "Sean Tucker",
+            "overall": 66.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.5,
+        "grade": 79.75,
+        "player_count": 10,
+        "starter_grade": 82.0,
+        "top_players": [
+          {
+            "name": "Antoine Winfield Jr",
+            "overall": 92.0,
+            "position": "DB"
+          },
+          {
+            "name": "Zyon McCollum",
+            "overall": 80.0,
+            "position": "DB"
+          },
+          {
+            "name": "Jacob Parrish",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tykee Smith",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Benjamin Morrison",
+            "overall": 75.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 78.0,
+        "grade": 78.0,
+        "player_count": 2,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Chase McLaughlin",
+            "overall": 80.0,
+            "position": "K"
+          },
+          {
+            "name": "Riley Dixon",
+            "overall": 76.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  },
+  "Tennessee Titans": {
+    "player_count": 53,
+    "prediction_influence_enabled": false,
+    "roster_grade": 74.61,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 65.5,
+        "grade": 77.8,
+        "player_count": 6,
+        "starter_grade": 80.5,
+        "top_players": [
+          {
+            "name": "Jeffery Simmons",
+            "overall": 94.0,
+            "position": "DL"
+          },
+          {
+            "name": "John Franklin-Myers",
+            "overall": 80.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jacob Martin",
+            "overall": 76.0,
+            "position": "DL"
+          },
+          {
+            "name": "Solomon Thomas",
+            "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jordan Elliott",
+            "overall": 69.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 69.67,
+        "grade": 75.95,
+        "player_count": 9,
+        "starter_grade": 77.33,
+        "top_players": [
+          {
+            "name": "Jermaine Johnson II",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "Cody Barton",
+            "overall": 77.0,
+            "position": "LB"
+          },
+          {
+            "name": "Cedric Gray",
+            "overall": 76.0,
+            "position": "LB"
+          },
+          {
+            "name": "Oluwafemi Oladejo",
+            "overall": 74.0,
+            "position": "LB"
+          },
+          {
+            "name": "Mohamoud Diabate",
+            "overall": 68.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 62.33,
+        "grade": 70.92,
+        "player_count": 8,
+        "starter_grade": 72.8,
+        "top_players": [
+          {
+            "name": "Peter Skoronski",
+            "overall": 80.0,
+            "position": "OL"
+          },
+          {
+            "name": "JC Latham",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Dan Moore",
+            "overall": 73.0,
+            "position": "OL"
+          },
+          {
+            "name": "Jackson Slater",
+            "overall": 68.0,
+            "position": "OL"
+          },
+          {
+            "name": "Austin Schlottmann",
+            "overall": 67.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 71.7,
+        "player_count": 3,
+        "starter_grade": 72.0,
+        "top_players": [
+          {
+            "name": "Cam Ward",
+            "overall": 72.0,
+            "position": "QB"
+          },
+          {
+            "name": "Will Levis",
+            "overall": 69.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.33,
+        "grade": 75.21,
+        "player_count": 10,
+        "starter_grade": 76.5,
+        "top_players": [
+          {
+            "name": "Wan'Dale Robinson",
+            "overall": 81.0,
+            "position": "WR"
+          },
+          {
+            "name": "Calvin Ridley",
+            "overall": 79.0,
+            "position": "WR"
+          },
+          {
+            "name": "Elic Ayomanor",
+            "overall": 74.0,
+            "position": "WR"
+          },
+          {
+            "name": "Chimere Dike",
+            "overall": 72.0,
+            "position": "WR"
+          },
+          {
+            "name": "Daniel Bellinger",
+            "overall": 71.0,
+            "position": "TE"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 68.5,
+        "grade": 78.75,
+        "player_count": 4,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Tony Pollard",
+            "overall": 83.0,
+            "position": "RB"
+          },
+          {
+            "name": "Tyjae Spears",
+            "overall": 79.0,
+            "position": "RB"
+          },
+          {
+            "name": "Kalel Mullings",
+            "overall": 70.0,
+            "position": "RB"
+          },
+          {
+            "name": "Julius Chestnut",
+            "overall": 67.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 69.5,
+        "grade": 75.44,
+        "player_count": 10,
+        "starter_grade": 76.75,
+        "top_players": [
+          {
+            "name": "Amani Hooker",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Cor'Dale Flott",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Tony Adams",
+            "overall": 76.0,
+            "position": "DB"
+          },
+          {
+            "name": "Alontae Taylor",
+            "overall": 75.0,
+            "position": "DB"
+          },
+          {
+            "name": "Joshua Williams",
+            "overall": 74.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 77.5,
+        "grade": 77.5,
+        "player_count": 2,
+        "starter_grade": 77.5,
+        "top_players": [
+          {
+            "name": "Tommy Townsend",
+            "overall": 79.0,
+            "position": "P"
+          },
+          {
+            "name": "Joey Slye",
+            "overall": 76.0,
+            "position": "K"
+          }
+        ]
+      }
+    }
+  },
+  "Washington Commanders": {
+    "player_count": 55,
+    "prediction_influence_enabled": false,
+    "roster_grade": 78.28,
+    "source": "Madden NFL 27",
+    "units": {
+      "defensive_front": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 77.39,
+        "player_count": 10,
+        "starter_grade": 78.25,
+        "top_players": [
+          {
+            "name": "Da'Ron Payne",
+            "overall": 84.0,
+            "position": "DL"
+          },
+          {
+            "name": "Dorance Armstrong",
+            "overall": 79.0,
+            "position": "DL"
+          },
+          {
+            "name": "Charles Omenihu",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Deatrich Wise Jr",
+            "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Jer'Zhan Newton",
+            "overall": 75.0,
+            "position": "DL"
+          }
+        ]
+      },
+      "linebackers": {
+        "data_status": "complete",
+        "depth_grade": 69.33,
+        "grade": 78.9,
+        "player_count": 9,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Leo Chenal",
+            "overall": 84.0,
+            "position": "LB"
+          },
+          {
+            "name": "Frankie Luvu",
+            "overall": 80.0,
+            "position": "LB"
+          },
+          {
+            "name": "Odafe Oweh",
+            "overall": 79.0,
+            "position": "LB"
+          },
+          {
+            "name": "K'Lavon Chaisson",
+            "overall": 73.0,
+            "position": "LB"
+          },
+          {
+            "name": "Nick Bellore",
+            "overall": 69.0,
+            "position": "LB"
+          }
+        ]
+      },
+      "offensive_line": {
+        "data_status": "complete",
+        "depth_grade": 67.33,
+        "grade": 78.54,
+        "player_count": 9,
+        "starter_grade": 81.0,
+        "top_players": [
+          {
+            "name": "Laremy Tunsil",
+            "overall": 95.0,
+            "position": "OL"
+          },
+          {
+            "name": "Sam Cosmi",
+            "overall": 87.0,
+            "position": "OL"
+          },
+          {
+            "name": "Andrew Wylie",
+            "overall": 76.0,
+            "position": "OL"
+          },
+          {
+            "name": "Chris Paul",
+            "overall": 74.0,
+            "position": "OL"
+          },
+          {
+            "name": "Nick Allegretti",
+            "overall": 73.0,
+            "position": "OL"
+          }
+        ]
+      },
+      "quarterback": {
+        "data_status": "complete",
+        "depth_grade": 72.0,
+        "grade": 81.9,
+        "player_count": 2,
+        "starter_grade": 83.0,
+        "top_players": [
+          {
+            "name": "Jayden Daniels",
+            "overall": 83.0,
+            "position": "QB"
+          },
+          {
+            "name": "Marcus Mariota",
+            "overall": 72.0,
+            "position": "QB"
+          }
+        ]
+      },
+      "receiving_weapons": {
+        "data_status": "complete",
+        "depth_grade": 69.0,
+        "grade": 76.38,
+        "player_count": 8,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Terry McLaurin",
+            "overall": 92.0,
+            "position": "WR"
+          },
+          {
+            "name": "Dyami Brown",
+            "overall": 75.0,
+            "position": "WR"
+          },
+          {
+            "name": "Jaylin Lane",
+            "overall": 73.0,
+            "position": "WR"
+          },
+          {
+            "name": "Luke McCaffrey",
+            "overall": 72.0,
+            "position": "WR"
+          },
+          {
+            "name": "Van Jefferson",
+            "overall": 72.0,
+            "position": "WR"
+          }
+        ]
+      },
+      "running_backs": {
+        "data_status": "complete",
+        "depth_grade": 73.5,
+        "grade": 77.19,
+        "player_count": 4,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Rachaad White",
+            "overall": 80.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jerome Ford",
+            "overall": 76.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jacory Croskey-Merritt",
+            "overall": 75.0,
+            "position": "RB"
+          },
+          {
+            "name": "Jeremy McNichols",
+            "overall": 72.0,
+            "position": "RB"
+          }
+        ]
+      },
+      "secondary": {
+        "data_status": "complete",
+        "depth_grade": 74.75,
+        "grade": 77.41,
+        "player_count": 11,
+        "starter_grade": 78.0,
+        "top_players": [
+          {
+            "name": "Nick Cross",
+            "overall": 79.0,
+            "position": "DB"
+          },
+          {
+            "name": "Ahkello Witherspoon",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Mike Sainristil",
+            "overall": 78.0,
+            "position": "DB"
+          },
+          {
+            "name": "Amik Robertson",
+            "overall": 77.0,
+            "position": "DB"
+          },
+          {
+            "name": "Quan Martin",
+            "overall": 77.0,
+            "position": "DB"
+          }
+        ]
+      },
+      "special_teams": {
+        "data_status": "complete",
+        "depth_grade": 73.0,
+        "grade": 73.0,
+        "player_count": 1,
+        "starter_grade": 73.0,
+        "top_players": [
+          {
+            "name": "Tress Way",
+            "overall": 73.0,
+            "position": "P"
+          }
+        ]
+      }
+    }
+  }
+}
