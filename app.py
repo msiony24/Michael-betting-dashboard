@@ -3709,6 +3709,9 @@ with tabs[1]:
                         home_rating_overrides=home_overrides,
                         home_field_points=home_field_points,
                         weather_context=weather_context,
+                        game_date=nfl_date,
+                        week=int(nfl_week),
+                        season=int(nfl_date.year),
                     )
                     st.session_state["nfl_weather_context"] = weather_context
                     st.session_state.nfl_result = nfl_result
