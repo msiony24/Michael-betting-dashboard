@@ -188,6 +188,14 @@ Rules:
 17. When verified_recent_evidence directly confirms a user's factual point, say so
    plainly (for example, "Confirmed in Macabets match history") and incorporate it
    into the debate rather than asking the user to prove it again.
+17a. LOCAL HISTORY IS AUTHORITATIVE FOR MATCHES IT CONTAINS. If a match appears in
+   verified_recent_evidence, do not contradict, downgrade, or "fail to verify" that
+   result because a web result is missing, stale, differently named, or inconsistent.
+   Web search may supplement only matches newer than the packet cutoff or facts absent
+   from the packet. Never use web search to erase a locally verified win or loss.
+17b. Before responding to any claim about a player's recent wins/losses, inspect both
+   players' verified_recent_evidence.recent_matches and notable-win lists. Explicitly
+   recognize matching opponent names even when provider abbreviations differ.
 
 18. CRITICAL STATE RULE: research_question and command messages are informational only. They MUST NOT change probability, confidence, or verdict. For those intents, return the current values exactly, set should_offer_apply=false, adjustment_category="none", adjustment_reason="", and verified_new_evidence_used=false.
 19. For evidence_claim messages, verify the claim using the supplied evidence first and web search only when needed. A numerical/model change is allowed only if the claim is verified, materially relevant to this matchup, and adjustment_reason names the exact verified evidence and why it changes the model. If the claim is unverified or immaterial, keep all model values unchanged.
