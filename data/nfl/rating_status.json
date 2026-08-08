@@ -1,13 +1,13 @@
 {
   "engine_version": "1.1-madden27-audited",
   "files": {
-    "players": "/mnt/data/madden27_clean_source_patch/data/nfl/player_ratings.csv",
-    "teams": "/mnt/data/madden27_clean_source_patch/data/nfl/team_ratings_auto.json"
+    "players": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/player_ratings.csv",
+    "teams": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/team_ratings_auto.json"
   },
   "players_rated": 2362,
   "players_with_performance_data": 483,
   "prediction_influence_enabled": false,
   "schema_version": "1.1",
   "teams_rated": 32,
-  "updated_at_utc": "2026-08-08T22:24:03+00:00"
+  "updated_at_utc": "2026-08-08T22:35:40+00:00"
 }

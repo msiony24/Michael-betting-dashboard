@@ -1,6 +1,6 @@
 {
   "source": "Madden NFL 27 Launch Ratings workbook",
-  "source_file": "/mnt/data/madden27_clean_source_patch/data/madden_27_launch_ratings.xlsx",
+  "source_file": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/madden_27_launch_ratings.xlsx",
   "sheet": "Launch Ratings",
   "players": 2362,
   "teams": 32,
