@@ -14,6 +14,7 @@ from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGH
 from engine.nfl_brain import build_matchup_brain
 from engine.nfl_schedule_intelligence import build_schedule_context
 from engine.nfl_game_quality import build_game_quality_context
+from engine.nfl_personnel_matchup import build_personnel_matchup_context
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -112,6 +113,7 @@ class NFLAnalysis:
     weather_context: dict
     schedule_context: dict
     game_quality_context: dict
+    personnel_context: dict
 
 
 def analyze(
@@ -170,7 +172,17 @@ def analyze(
     weather_total_adjustment = float(weather_context.get("total_adjustment", 0.0) or 0.0)
     weather_confidence_penalty = float(weather_context.get("confidence_penalty", 0.0) or 0.0)
 
-    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment + schedule_side_adjustment + game_quality_side_adjustment
+    personnel_context = build_personnel_matchup_context(
+        away_team=away_team,
+        home_team=home_team,
+        week=week,
+    )
+    personnel_side_adjustment = float(personnel_context.get("home_margin_adjustment", 0.0) or 0.0)
+
+    projected_home_margin = (
+        home_power - away_power + applied_hfa + weather_side_adjustment
+        + schedule_side_adjustment + game_quality_side_adjustment + personnel_side_adjustment
+    )
     fair_spread_home = round((-projected_home_margin) * 2.0) / 2.0
     spread_edge = round(float(market_spread_home) - fair_spread_home, 2)
 
@@ -247,7 +259,12 @@ def analyze(
         moneyline_edge_home=moneyline_edge_home,
         game_script=(
             f"Macabets projects {projected_winner} to win. {top_reason} "
-            f"The model's fair home line is {home_team} {fair_spread_home:+.1f}."
+            + (
+                f"Personnel matchups add {personnel_side_adjustment:+.1f} points to the home-side margin. "
+                if abs(personnel_side_adjustment) >= 0.25 else
+                "Personnel matchups are close enough that they make only a minor line adjustment. "
+            )
+            + f"The model's fair home line is {home_team} {fair_spread_home:+.1f}."
         ),
         decisive_factors=decisive,
         why_home_can_win=[
@@ -294,5 +311,6 @@ def analyze(
         weather_context=weather_context,
         schedule_context=schedule_context,
         game_quality_context=game_quality_context,
+        personnel_context=personnel_context,
     )
     return asdict(result)
