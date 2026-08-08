@@ -13,6 +13,7 @@ from engine.confidence import confidence_band, recommendation_from_edge
 from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
 from engine.nfl_brain import build_matchup_brain
 from engine.nfl_schedule_intelligence import build_schedule_context
+from engine.nfl_game_quality import build_game_quality_context
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -110,6 +111,7 @@ class NFLAnalysis:
     matchup_brain: dict
     weather_context: dict
     schedule_context: dict
+    game_quality_context: dict
 
 
 def analyze(
@@ -158,12 +160,17 @@ def analyze(
     applied_hfa = 0.0 if (neutral_site or scheduled_neutral) else float(home_field_points)
     schedule_side_adjustment = float(schedule_context.get("home_margin_adjustment", 0.0) or 0.0)
     schedule_confidence_penalty = float(schedule_context.get("confidence_penalty", 0.0) or 0.0)
+    game_quality_context = build_game_quality_context(
+        away_team=away_team, home_team=home_team, season=resolved_season, game_date=game_date,
+    )
+    game_quality_side_adjustment = float(game_quality_context.get("home_margin_adjustment", 0.0) or 0.0)
+    game_quality_confidence_penalty = float(game_quality_context.get("confidence_penalty", 0.0) or 0.0)
     weather_context = dict(weather_context or {})
     weather_side_adjustment = float(weather_context.get("home_margin_adjustment", 0.0) or 0.0)
     weather_total_adjustment = float(weather_context.get("total_adjustment", 0.0) or 0.0)
     weather_confidence_penalty = float(weather_context.get("confidence_penalty", 0.0) or 0.0)
 
-    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment + schedule_side_adjustment
+    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment + schedule_side_adjustment + game_quality_side_adjustment
     fair_spread_home = round((-projected_home_margin) * 2.0) / 2.0
     spread_edge = round(float(market_spread_home) - fair_spread_home, 2)
 
@@ -191,6 +198,7 @@ def analyze(
     confidence = 50.0 + min(rating_gap, 12.0) * 2.2
     confidence -= weather_confidence_penalty
     confidence -= schedule_confidence_penalty
+    confidence -= game_quality_confidence_penalty
     if not NFL_DATA_STATUS.get("available"):
         confidence -= 7.0
     confidence = round(min(78.0, max(50.0, confidence)), 1)
@@ -257,6 +265,7 @@ def analyze(
             "Offensive-line injuries versus the opposing defensive front",
             "Late injury news, rest and weather",
             "Turnover and red-zone variance",
+            "Whether recent final scores match the teams' underlying play quality",
         ],
         biggest_risk=(
             "The weekly snapshot still rates team passing rather than a confirmed starting quarterback, and injury adjustments remain manual."
@@ -284,5 +293,6 @@ def analyze(
         matchup_brain=matchup_brain,
         weather_context=weather_context,
         schedule_context=schedule_context,
+        game_quality_context=game_quality_context,
     )
     return asdict(result)

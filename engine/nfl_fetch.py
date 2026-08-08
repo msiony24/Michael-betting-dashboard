@@ -338,6 +338,131 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     return stats.sort_values("team").reset_index(drop=True)
 
 
+
+def build_game_quality_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
+    """Build one underlying-performance row per team/game from nflverse PBP.
+
+    The score is intentionally based on repeatable play quality more than final
+    margin. Turnover margin is stored as context, not rewarded as sustainable
+    quality.
+    """
+    required = {"game_id", "posteam", "defteam", "epa"}
+    missing = required.difference(pbp.columns)
+    if missing:
+        raise ValueError(f"nflverse play-by-play data is missing game-quality columns: {sorted(missing)}")
+
+    original = pbp.copy()
+    plays = pbp.copy()
+    if "season" in plays.columns:
+        plays = plays[pd.to_numeric(plays["season"], errors="coerce").eq(int(season))]
+    if "season_type" in plays.columns:
+        plays = plays[plays["season_type"].astype(str).eq("REG")]
+    original = original.loc[plays.index.intersection(original.index)].copy()
+    if "play_type" in plays.columns:
+        plays = plays[plays["play_type"].isin(["pass", "run"])]
+    plays = plays[plays["posteam"].notna() & plays["defteam"].notna()].copy()
+    plays["epa"] = pd.to_numeric(plays["epa"], errors="coerce")
+    plays = plays[plays["epa"].notna()]
+    if plays.empty:
+        return pd.DataFrame()
+
+    yards = _numeric(plays, "yards_gained", 0.0)
+    success = _numeric(plays, "success", 0.0)
+    if "success" not in plays.columns:
+        success = plays["epa"].gt(0).astype(float)
+    pass_flag = _numeric(plays, "pass_attempt", 0.0).astype(bool)
+    rush_flag = _numeric(plays, "rush_attempt", 0.0).astype(bool)
+    if "pass_attempt" not in plays.columns and "play_type" in plays.columns:
+        pass_flag = plays["play_type"].eq("pass")
+    if "rush_attempt" not in plays.columns and "play_type" in plays.columns:
+        rush_flag = plays["play_type"].eq("run")
+    plays["_success"] = success
+    plays["_explosive"] = ((pass_flag & (yards >= 20)) | (rush_flag & (yards >= 10))).astype(float)
+    interception = _numeric(plays, "interception", 0.0)
+    fumble_lost = _numeric(plays, "fumble_lost", 0.0)
+    plays["_turnover"] = ((interception > 0) | (fumble_lost > 0)).astype(float)
+    plays["_yards"] = yards
+
+    offense = plays.groupby(["game_id", "posteam"], as_index=False).agg(
+        offensive_plays=("epa", "size"),
+        offense_epa=("epa", "mean"),
+        offense_success=("_success", "mean"),
+        offense_ypp=("_yards", "mean"),
+        offense_explosive=("_explosive", "mean"),
+        turnovers=("_turnover", "sum"),
+    ).rename(columns={"posteam": "team_abbr"})
+    defense = plays.groupby(["game_id", "defteam"], as_index=False).agg(
+        defense_epa_allowed=("epa", "mean"),
+        defense_success_allowed=("_success", "mean"),
+        defense_ypp_allowed=("_yards", "mean"),
+        defense_explosive_allowed=("_explosive", "mean"),
+        takeaways=("_turnover", "sum"),
+    ).rename(columns={"defteam": "team_abbr"})
+    quality = offense.merge(defense, on=["game_id", "team_abbr"], how="inner")
+    quality["net_epa"] = quality["offense_epa"] - quality["defense_epa_allowed"]
+    quality["success_margin"] = quality["offense_success"] - quality["defense_success_allowed"]
+    quality["yards_per_play_margin"] = quality["offense_ypp"] - quality["defense_ypp_allowed"]
+    quality["explosive_margin"] = quality["offense_explosive"] - quality["defense_explosive_allowed"]
+    quality["turnover_margin"] = quality["takeaways"] - quality["turnovers"]
+
+    # A compact underlying edge. Final score and turnovers are deliberately not
+    # part of this performance score; they are stored for variance diagnostics.
+    quality["underlying_edge"] = (
+        quality["net_epa"] * 0.58
+        + quality["success_margin"] * 0.22
+        + quality["yards_per_play_margin"] * 0.035
+        + quality["explosive_margin"] * 0.20
+    )
+    quality["quality_score"] = _percentile_score(quality["underlying_edge"])
+
+    finals = _final_game_rows(original)
+    if not finals.empty:
+        score_rows = []
+        for _, game in finals.iterrows():
+            for team, opponent, margin in (
+                (str(game["home_team"]), str(game["away_team"]), float(game["home_score"] - game["away_score"])),
+                (str(game["away_team"]), str(game["home_team"]), float(game["away_score"] - game["home_score"])),
+            ):
+                score_rows.append({
+                    "game_id": str(game["game_id"]), "team_abbr": team, "opponent_abbr": opponent,
+                    "score_margin": margin, "week": game.get("week"),
+                })
+        quality = quality.merge(pd.DataFrame(score_rows), on=["game_id", "team_abbr"], how="left")
+    else:
+        quality["opponent_abbr"] = None
+        quality["score_margin"] = 0.0
+        quality["week"] = None
+
+    # Score-over-performance plus turnover margin is descriptive variance, not a
+    # talent bonus. Positive values mean the scoreboard has been friendlier than
+    # the underlying play profile.
+    score_scaled = pd.to_numeric(quality["score_margin"], errors="coerce").fillna(0).clip(-28, 28) / 14.0
+    perf_scaled = (pd.to_numeric(quality["quality_score"], errors="coerce").fillna(67.5) - 67.5) / 15.0
+    turnover_scaled = pd.to_numeric(quality["turnover_margin"], errors="coerce").fillna(0) / 2.0
+    quality["turnover_luck_index"] = (score_scaled - perf_scaled) * 0.55 + turnover_scaled * 0.45
+
+    meta_cols = [c for c in ("game_id", "gameday", "week") if c in original.columns]
+    if "gameday" in meta_cols:
+        meta = original[meta_cols].drop_duplicates("game_id", keep="last")
+        if "week" in quality.columns and "week" in meta.columns:
+            meta = meta.drop(columns=["week"])
+        quality = quality.merge(meta, on="game_id", how="left")
+    else:
+        quality["gameday"] = None
+    quality["season"] = int(season)
+    quality["team"] = quality["team_abbr"].map(TEAM_ABBR_TO_NAME)
+    quality["opponent"] = quality["opponent_abbr"].map(TEAM_ABBR_TO_NAME) if "opponent_abbr" in quality.columns else None
+    quality["data_source"] = "nflverse play-by-play"
+    quality["updated_at_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    columns = [
+        "season", "week", "gameday", "game_id", "team_abbr", "team",
+        "opponent_abbr", "opponent", "score_margin", "quality_score",
+        "underlying_edge", "net_epa", "success_margin", "yards_per_play_margin",
+        "explosive_margin", "turnover_margin", "turnover_luck_index",
+        "offensive_plays", "data_source", "updated_at_utc",
+    ]
+    return quality[[c for c in columns if c in quality.columns]].sort_values(["week", "game_id", "team_abbr"]).reset_index(drop=True)
+
 def fetch_and_build(season: int, output_path: str | Path) -> FetchResult:
     try:
         import nflreadpy as nfl
@@ -346,9 +471,11 @@ def fetch_and_build(season: int, output_path: str | Path) -> FetchResult:
 
     pbp = _to_pandas(nfl.load_pbp([int(season)]))
     snapshot = build_team_snapshot(pbp, int(season))
+    game_quality = build_game_quality_snapshot(pbp, int(season))
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     snapshot.to_csv(output, index=False)
+    game_quality.to_csv(output.parent / "game_quality.csv", index=False)
     return FetchResult(
         season=int(season), rows=len(snapshot), output_path=str(output),
         fetched_at_utc=snapshot["updated_at_utc"].iloc[0],
