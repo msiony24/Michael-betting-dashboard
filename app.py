@@ -3987,6 +3987,48 @@ with tabs[1]:
                 st.markdown("### Expected Game Script")
                 st.write(explanation_report["game_script"])
 
+                personnel_context = nfl_result.get("personnel_context") or {}
+                if personnel_context.get("available"):
+                    st.markdown("### Personnel Matchups")
+                    st.caption(personnel_context.get("summary", ""))
+
+                    personnel1, personnel2, personnel3 = st.columns(3)
+                    personnel1.metric("Personnel Edge", str(personnel_context.get("leader", "Even")))
+                    personnel_adjustment = float(personnel_context.get("home_margin_adjustment", 0.0) or 0.0)
+                    personnel2.metric("Model Adjustment", f"{personnel_adjustment:+.2f} pts")
+                    personnel3.metric("Data Mode", str(personnel_context.get("data_mode", "Madden 27 baseline")))
+
+                    personnel_rows = pd.DataFrame(personnel_context.get("matchups", []))
+                    if not personnel_rows.empty:
+                        visible_personnel = personnel_rows[["Matchup", "Advantage", "Strength"]].copy()
+                        st.dataframe(
+                            visible_personnel,
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                        strongest_personnel = personnel_context.get("strongest_edge") or {}
+                        if strongest_personnel:
+                            st.info(
+                                f"Biggest personnel edge: {strongest_personnel.get('Advantage', 'Even')} — "
+                                f"{strongest_personnel.get('Matchup', 'matchup')} "
+                                f"({str(strongest_personnel.get('Strength', 'even')).lower()})."
+                            )
+                        with st.expander("Show personnel grades and data sources", expanded=False):
+                            detail_columns = [
+                                "Matchup", "Advantage", "Strength", "Edge",
+                                "Attack Grade", "Defense Grade", "Source",
+                            ]
+                            st.dataframe(
+                                personnel_rows[[c for c in detail_columns if c in personnel_rows.columns]],
+                                use_container_width=True,
+                                hide_index=True,
+                            )
+                            st.caption(
+                                "Madden 27 supplies the roster/talent prior. Current NFL player and unit "
+                                "performance receives progressively more weight as the season sample grows. "
+                                "The personnel line adjustment is capped at 1.5 points to limit double counting."
+                            )
+
                 if nfl_considered_side != "Just analyze":
                     if nfl_considered_side == nfl_result["away_team"]:
                         considered_probability = float(nfl_result["away_win_probability"])
