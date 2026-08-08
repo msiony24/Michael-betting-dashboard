@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import time
 import unicodedata
 
 import pandas as pd
@@ -18,6 +19,8 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 START_YEAR = 2021
 SOURCE_TEMPLATE = "http://www.tennis-data.co.uk/{year}/{year}.xlsx"
 LIVE_LOOKBACK_DAYS = 60
+FIXTURE_CHUNK_DAYS = 6
+FIXTURE_CHUNK_PAUSE_SECONDS = 0.35
 REFRESH_STATUS_PATH = DATA_DIR / "tennis_refresh_status.json"
 MATCH_COLUMNS = [
     "tourney_date", "tourney_name", "surface", "tourney_level", "round",
@@ -503,19 +506,72 @@ def fetch_live_atp_matches(
             "API_TENNIS_KEY is required for the daily ATP refresh."
         )
 
-    fixtures_response = active_client.get_fixtures(
-        start_date,
-        active_today,
-        timezone_name="America/New_York",
-        force_refresh=True,
-    )
-    standings_response = active_client.get_standings("ATP", force_refresh=True)
+    # API-Tennis is more reliable with short date windows than one large request.
+    # Pull the rolling backfill in chunks and tolerate isolated failed windows.
+    fixture_rows: list[dict] = []
+    successful_windows: list[dict] = []
+    failed_windows: list[dict] = []
+    cursor = start_date
+
+    while cursor <= active_today:
+        chunk_stop = min(cursor + timedelta(days=FIXTURE_CHUNK_DAYS - 1), active_today)
+        try:
+            response = active_client.get_fixtures(
+                cursor,
+                chunk_stop,
+                timezone_name="America/New_York",
+                force_refresh=True,
+            )
+            fixture_rows.extend(response.result)
+            successful_windows.append({
+                "start": cursor.isoformat(),
+                "stop": chunk_stop.isoformat(),
+                "received": len(response.result),
+                "source": response.source,
+                "fetched_at": response.fetched_at,
+            })
+            print(
+                f"API-Tennis fixtures {cursor.isoformat()}..{chunk_stop.isoformat()}: "
+                f"{len(response.result):,} rows"
+            )
+        except Exception as exc:
+            failed_windows.append({
+                "start": cursor.isoformat(),
+                "stop": chunk_stop.isoformat(),
+                "error": str(exc),
+            })
+            print(
+                f"WARNING: API-Tennis fixtures {cursor.isoformat()}..{chunk_stop.isoformat()} "
+                f"failed: {exc}"
+            )
+
+        cursor = chunk_stop + timedelta(days=1)
+        if cursor <= active_today and FIXTURE_CHUNK_PAUSE_SECONDS > 0:
+            time.sleep(FIXTURE_CHUNK_PAUSE_SECONDS)
+
+    if not successful_windows:
+        details = failed_windows[0]["error"] if failed_windows else "no fixture windows completed"
+        raise APITennisError(f"All API-Tennis fixture windows failed: {details}")
+
+    # Standings improve rank context but are not required for serve/return ingestion.
+    standings_rows: list[dict] = []
+    standings_source = "unavailable"
+    standings_fetched_at = None
+    standings_error = ""
+    try:
+        standings_response = active_client.get_standings("ATP", force_refresh=True)
+        standings_rows = standings_response.result
+        standings_source = standings_response.source
+        standings_fetched_at = standings_response.fetched_at
+    except Exception as exc:
+        standings_error = str(exc)
+        print(f"WARNING: API-Tennis standings refresh failed; continuing without live ranks: {exc}")
 
     names = _existing_name_map(current_year_frames)
     surfaces = _surface_lookup(current_year_frames)
-    ranks = _rank_map(standings_response.result)
+    ranks = _rank_map(standings_rows)
     live = convert_api_fixtures(
-        fixtures_response.result,
+        fixture_rows,
         existing_names=names,
         historical_surfaces=surfaces,
         ranks_by_key=ranks,
@@ -523,14 +579,22 @@ def fetch_live_atp_matches(
     metadata = {
         "window_start": start_date.isoformat(),
         "window_stop": active_today.isoformat(),
-        "fixtures_source": fixtures_response.source,
-        "fixtures_fetched_at": fixtures_response.fetched_at,
-        "all_fixtures_received": len(fixtures_response.result),
+        "chunk_days": FIXTURE_CHUNK_DAYS,
+        "fixture_windows_attempted": len(successful_windows) + len(failed_windows),
+        "fixture_windows_succeeded": len(successful_windows),
+        "fixture_windows_failed": len(failed_windows),
+        "failed_fixture_windows": failed_windows,
+        "fixtures_source": "chunked",
+        "fixtures_fetched_at": successful_windows[-1]["fetched_at"],
+        "all_fixtures_received": len(fixture_rows),
         "completed_atp_singles_imported": len(live),
         "matches_with_serve_return_stats": int(
             live[["w_svpt", "l_svpt", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon"]]
             .notna().all(axis=1).sum()
         ) if not live.empty else 0,
+        "standings_source": standings_source,
+        "standings_fetched_at": standings_fetched_at,
+        "standings_error": standings_error,
     }
     return live, metadata
 
