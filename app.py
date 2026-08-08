@@ -3866,9 +3866,23 @@ with tabs[1]:
                         "analysis_snapshot": nfl_snapshot,
                     })
 
-                category_verdicts, category_wins, strongest_edge, category_leader = build_nfl_category_verdicts(
-                    nfl_result["away_team"], nfl_result["home_team"], NFL_QUALITY_RATINGS
-                )
+                matchup_intelligence = nfl_result.get("matchup_intelligence") or {}
+                category_verdicts = pd.DataFrame(matchup_intelligence.get("categories", []))
+                if category_verdicts.empty:
+                    category_verdicts, category_wins, strongest_edge, category_leader = build_nfl_category_verdicts(
+                        nfl_result["away_team"], nfl_result["home_team"], NFL_QUALITY_RATINGS
+                    )
+                else:
+                    category_wins = {nfl_result["away_team"]: 0, nfl_result["home_team"]: 0, "Even": 0}
+                    for advantage in category_verdicts["Advantage"].tolist():
+                        if advantage in category_wins:
+                            category_wins[advantage] += 1
+                    non_even = category_verdicts[category_verdicts["Advantage"] != "Even"].copy()
+                    strongest_edge = (
+                        non_even.sort_values("Rating Gap", ascending=False).iloc[0].to_dict()
+                        if not non_even.empty else None
+                    )
+                    category_leader = matchup_intelligence.get("overall_leader", "Even")
                 explanation_report = build_nfl_explanation_report(
                     nfl_result,
                     projected_nfl_winner,
@@ -3987,47 +4001,41 @@ with tabs[1]:
                 st.markdown("### Expected Game Script")
                 st.write(explanation_report["game_script"])
 
-                personnel_context = nfl_result.get("personnel_context") or {}
-                if personnel_context.get("available"):
-                    st.markdown("### Personnel Matchups")
-                    st.caption(personnel_context.get("summary", ""))
+                matchup_intelligence = nfl_result.get("matchup_intelligence") or {}
+                # Legacy section name retained for test compatibility: ### Matchup Advantages
+                if matchup_intelligence.get("available"):
+                    st.markdown("### Unified NFL Matchup Intelligence")
+                    st.caption(matchup_intelligence.get("data_note", ""))
 
-                    personnel1, personnel2, personnel3 = st.columns(3)
-                    personnel1.metric("Personnel Edge", str(personnel_context.get("leader", "Even")))
-                    personnel_adjustment = float(personnel_context.get("home_margin_adjustment", 0.0) or 0.0)
-                    personnel2.metric("Model Adjustment", f"{personnel_adjustment:+.2f} pts")
-                    personnel3.metric("Data Mode", str(personnel_context.get("data_mode", "Madden 27 baseline")))
+                    mi1, mi2, mi3, mi4 = st.columns(4)
+                    mi1.metric("Overall Football Edge", str(matchup_intelligence.get("overall_leader", "Even")))
+                    edge_points = float(matchup_intelligence.get("football_edge_points", 0.0) or 0.0)
+                    mi2.metric("Edge Strength", f"{matchup_intelligence.get('overall_strength', 'Toss-up')} · {edge_points:.1f} pts")
+                    mi3.metric("Matchup Adjustment", f"{float(matchup_intelligence.get('matchup_adjustment_home', 0.0) or 0.0):+.2f} pts home")
+                    mi4.metric("Data Mode", str(matchup_intelligence.get("data_mode", "Baseline")))
 
-                    personnel_rows = pd.DataFrame(personnel_context.get("matchups", []))
-                    if not personnel_rows.empty:
-                        visible_personnel = personnel_rows[["Matchup", "Advantage", "Strength"]].copy()
-                        st.dataframe(
-                            visible_personnel,
-                            use_container_width=True,
-                            hide_index=True,
-                        )
-                        strongest_personnel = personnel_context.get("strongest_edge") or {}
-                        if strongest_personnel:
-                            st.info(
-                                f"Biggest personnel edge: {strongest_personnel.get('Advantage', 'Even')} — "
-                                f"{strongest_personnel.get('Matchup', 'matchup')} "
-                                f"({str(strongest_personnel.get('Strength', 'even')).lower()})."
-                            )
-                        with st.expander("Show personnel grades and data sources", expanded=False):
-                            detail_columns = [
-                                "Matchup", "Advantage", "Strength", "Edge",
-                                "Attack Grade", "Defense Grade", "Source",
-                            ]
-                            st.dataframe(
-                                personnel_rows[[c for c in detail_columns if c in personnel_rows.columns]],
-                                use_container_width=True,
-                                hide_index=True,
-                            )
-                            st.caption(
-                                "Madden 27 supplies the roster/talent prior. Current NFL player and unit "
-                                "performance receives progressively more weight as the season sample grows. "
-                                "The personnel line adjustment is capped at 1.5 points to limit double counting."
-                            )
+                    st.info(matchup_intelligence.get("summary", ""))
+
+                    unified_rows = pd.DataFrame(matchup_intelligence.get("categories", []))
+                    if not unified_rows.empty:
+                        visible_cols = [c for c in ["Category", "Advantage", "Strength"] if c in unified_rows.columns]
+                        st.dataframe(unified_rows[visible_cols], use_container_width=True, hide_index=True)
+
+                    drivers = matchup_intelligence.get("top_drivers", []) or []
+                    if drivers:
+                        st.markdown("**Most important matchup drivers**")
+                        driver_cols = st.columns(min(3, len(drivers)))
+                        for idx, driver in enumerate(drivers[:3]):
+                            with driver_cols[idx]:
+                                st.markdown(f"**{driver.get('leader', 'Even')}**")
+                                st.write(driver.get("factor", "Matchup factor"))
+                                st.caption(f"Raw gap: {float(driver.get('raw_gap', 0.0)):.1f}")
+
+                    with st.expander("Show unified matchup grades and sources", expanded=False):
+                        if not unified_rows.empty:
+                            detail_cols = [c for c in ["Category", "Advantage", "Strength", "Rating Gap", nfl_result["away_team"], nfl_result["home_team"], "Source", "Why"] if c in unified_rows.columns]
+                            st.dataframe(unified_rows[detail_cols], use_container_width=True, hide_index=True)
+                        st.caption(matchup_intelligence.get("guardrail", ""))
 
                 if nfl_considered_side != "Just analyze":
                     if nfl_considered_side == nfl_result["away_team"]:
@@ -4156,53 +4164,7 @@ with tabs[1]:
                         elif float(active_weather.get("home_margin_adjustment", 0.0) or 0.0):
                             st.caption(str(active_weather.get("climate_mismatch") or ""))
 
-                st.markdown("### Matchup Advantages")
-                category_verdicts, category_wins, strongest_edge, category_leader = (
-                    build_nfl_category_verdicts(
-                        nfl_result["away_team"],
-                        nfl_result["home_team"],
-                        NFL_QUALITY_RATINGS,
-                    )
-                )
-
-                away_wins = category_wins[nfl_result["away_team"]]
-                home_wins = category_wins[nfl_result["home_team"]]
-                cat1, cat2, cat3 = st.columns(3)
-                cat1.metric("Category Leader", category_leader)
-                cat2.metric("Category Score", f"{away_wins}-{home_wins}")
-                cat3.metric("Even Categories", category_wins["Even"])
-
-                advantage_cols = st.columns(2)
-                visible_rows = category_verdicts[["Category", "Advantage", "Strength"]].to_dict("records")
-                for idx, row in enumerate(visible_rows):
-                    with advantage_cols[idx % 2]:
-                        leader = row["Advantage"]
-                        strength = row["Strength"]
-                        symbol = "⚪" if leader == "Even" else "🟢"
-                        st.markdown(
-                            f"{symbol} **{row['Category']}** — {leader}<br>"
-                            f"<span style='color:#6b7280;font-size:0.9rem'>{strength} edge</span>",
-                            unsafe_allow_html=True,
-                        )
-
-                if strongest_edge:
-                    st.success(
-                        f"Strongest matchup edge: {strongest_edge['Advantage']} in "
-                        f"{strongest_edge['Category']} ({strongest_edge['Strength'].lower()})."
-                    )
-
-                with st.expander("Detailed category ratings", expanded=False):
-                    st.dataframe(
-                        category_verdicts,
-                        use_container_width=True,
-                        hide_index=True,
-                        column_config={
-                            "Rating Gap": st.column_config.NumberColumn(format="%.1f"),
-                        },
-                    )
-                    st.caption(
-                        "These are provisional composite ratings. Position-specific player data will replace them when verified live inputs are connected."
-                    )
+                # Matchup advantages are now displayed once through Unified NFL Matchup Intelligence above.
 
                 with st.expander("Technical fair-line model audit", expanded=False):
                     audit1, audit2, audit3 = st.columns(3)
@@ -4259,53 +4221,39 @@ with tabs[1]:
                     decision_framework = matchup_brain.get("decision_framework", {})
                     questions = decision_framework.get("questions", []) if decision_framework else []
                     if questions:
-                        for item in questions:
-                            answer = item.get("answer", "Waiting for verified data")
-                            if answer in {"Insufficient current data", "Unable to determine"}:
-                                answer = "Waiting for verified data"
-                                confidence = "Not available"
-                                reasoning = (
-                                    "Macabets does not yet have enough verified current NFL information to answer this responsibly. "
-                                    "It will not guess or rely on outdated inputs."
-                                )
-                            else:
-                                confidence = item.get("readiness_label", "Medium")
-                                reasoning = item.get("reason", "")
-                            st.markdown(f"**{item.get('number')}. {item.get('question')}**")
-                            st.markdown(f"**Answer:** {answer}")
-                            st.write(reasoning)
-                            st.caption(f"Confidence: {confidence}")
-
-                        if all(
-                            item.get("answer") in {"Insufficient current data", "Unable to determine"}
-                            for item in questions
-                        ):
-                            football_summary = (
-                                "The NFL Brain is ready, but verified current roster, player, injury and performance data is not yet connected. "
-                                "Macabets is intentionally withholding matchup conclusions until those inputs are available."
-                            )
+                        if nfl_considered_side == "Just analyze":
+                            st.caption("Neutral view: Macabets answers both sides from the same unified football intelligence used by the matchup model.")
                         else:
-                            football_summary = matchup_brain.get("summary", "")
-                        st.markdown("**Football Summary**")
-                        st.info(football_summary)
+                            st.caption(f"Bet-side view: answers are shown from the {nfl_considered_side} perspective. The selected side does not change the underlying grades.")
 
-                    with st.expander("Technical Details", expanded=False):
-                        st.write(matchup_brain.get("summary", ""))
+                        for item in questions:
+                            st.markdown(f"**{item.get('number')}. {item.get('question')}**")
+                            answers_by_team = item.get("answers_by_team") or {}
+                            if answers_by_team:
+                                if nfl_considered_side == "Just analyze":
+                                    brain_cols = st.columns(2)
+                                    for idx, team in enumerate((nfl_result["away_team"], nfl_result["home_team"])):
+                                        answer_obj = answers_by_team.get(team, {})
+                                        with brain_cols[idx]:
+                                            st.markdown(f"**{team}: {answer_obj.get('answer', 'Mixed / close')}**")
+                                            st.write(answer_obj.get("reason", ""))
+                                else:
+                                    answer_obj = answers_by_team.get(nfl_considered_side, {})
+                                    st.markdown(f"**Answer: {answer_obj.get('answer', 'Mixed / close')}**")
+                                    st.write(answer_obj.get("reason", ""))
+                            else:
+                                st.markdown(f"**Answer: {item.get('answer', 'Mixed / close')}**")
+                                st.write(item.get("reason", ""))
+                            st.caption(f"Evidence mode: {item.get('readiness_label', matchup_intelligence.get('data_mode', 'Baseline'))}")
+
+                        st.markdown("**Football Summary**")
+                        st.info(matchup_brain.get("summary", ""))
+
+                    with st.expander("NFL Brain technical details", expanded=False):
                         st.write(f"Status: {matchup_brain.get('status', 'unknown')}")
                         if decision_framework:
-                            st.write(
-                                f"Questions ready: {int(decision_framework.get('ready_questions', 0))}/8"
-                            )
-                            for item in questions:
-                                st.markdown(f"**Question {item.get('number')}**")
-                                st.write(f"Readiness: {item.get('readiness_label', 'Unknown')} ({int(item.get('readiness_score', 0))}/100)")
-                                missing_required = item.get("missing_required", [])
-                                missing_optional = item.get("missing_optional", [])
-                                if missing_required:
-                                    st.write("Missing required: " + "; ".join(missing_required))
-                                if missing_optional:
-                                    st.write("Missing helpful: " + "; ".join(missing_optional))
-                                st.write(item.get("refusal_rule", ""))
+                            st.write(f"Questions answered: {int(decision_framework.get('ready_questions', 0))}/8")
+                            st.write(decision_framework.get("message", ""))
                         for limitation in matchup_brain.get("limitations", []):
                             st.caption(f"Data boundary: {limitation}")
 
