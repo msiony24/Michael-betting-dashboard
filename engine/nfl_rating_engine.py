@@ -247,9 +247,45 @@ def build_player_ratings(
         players["sample_size"] = 0.0
 
     roster = _load_roster_status(root / "weekly_rosters.csv")
-    if roster.empty: roster = _load_roster_status(root / "rosters.csv")
-    if not roster.empty: players = players.merge(roster, on="name_key", how="left")
-    else: players["roster_status"], players["gsis_id"] = "", ""
+    if roster.empty:
+        roster = _load_roster_status(root / "rosters.csv")
+
+    # Madden 27's final player file is now pre-enriched from nflverse rosters and may
+    # already contain roster_status / gsis_id. A second roster merge would create
+    # roster_status_x / roster_status_y and gsis_id_x / gsis_id_y, which breaks the
+    # output column selection below. Merge defensively and coalesce the freshest
+    # roster values instead.
+    for column in ("roster_status", "gsis_id"):
+        if column not in players.columns:
+            players[column] = ""
+
+    if not roster.empty:
+        roster_merge = roster.copy()
+        rename_map = {}
+        if "roster_status" in roster_merge.columns:
+            rename_map["roster_status"] = "_fresh_roster_status"
+        if "gsis_id" in roster_merge.columns:
+            rename_map["gsis_id"] = "_fresh_gsis_id"
+        roster_merge = roster_merge.rename(columns=rename_map)
+
+        keep_cols = ["name_key"] + [
+            column for column in ("_fresh_roster_status", "_fresh_gsis_id")
+            if column in roster_merge.columns
+        ]
+        roster_merge = roster_merge[keep_cols].drop_duplicates("name_key", keep="first")
+        players = players.merge(roster_merge, on="name_key", how="left")
+
+        if "_fresh_roster_status" in players.columns:
+            fresh = players["_fresh_roster_status"].fillna("").astype(str).str.strip()
+            current = players["roster_status"].fillna("").astype(str).str.strip()
+            players["roster_status"] = fresh.where(fresh.ne(""), current)
+            players = players.drop(columns=["_fresh_roster_status"])
+
+        if "_fresh_gsis_id" in players.columns:
+            fresh = players["_fresh_gsis_id"].fillna("").astype(str).str.strip()
+            current = players["gsis_id"].fillna("").astype(str).str.strip()
+            players["gsis_id"] = fresh.where(fresh.ne(""), current)
+            players = players.drop(columns=["_fresh_gsis_id"])
 
     injuries = _load_injuries(root / "injuries.csv")
     if not injuries.empty: players = players.merge(injuries, on="name_key", how="left")
