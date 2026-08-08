@@ -23,7 +23,7 @@ from engine.madden_team_builder import TEAM_ALIASES, load_madden_players
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NFL_DIR = PROJECT_ROOT / "data" / "nfl"
-DEFAULT_MADDEN_PATH = PROJECT_ROOT / "data" / "madden_26_players.csv"
+DEFAULT_MADDEN_PATH = PROJECT_ROOT / "data" / "madden_27_players.csv"
 DEFAULT_PLAYER_OUTPUT = DEFAULT_NFL_DIR / "player_ratings.csv"
 DEFAULT_TEAM_OUTPUT = DEFAULT_NFL_DIR / "team_ratings_auto.json"
 DEFAULT_STATUS_OUTPUT = DEFAULT_NFL_DIR / "rating_status.json"

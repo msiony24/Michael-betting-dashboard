@@ -13,6 +13,7 @@ DEFAULT_ROSTER_PATHS = (
     PROJECT_ROOT / "data" / "nfl" / "rosters.csv",
 )
 DEFAULT_PRIOR_MADDEN_PATHS = (
+    PROJECT_ROOT / "data" / "madden_27_players.csv",
     PROJECT_ROOT / "data" / "madden_26_players.csv",
     PROJECT_ROOT / "data" / "madden_25_players.csv",
 )

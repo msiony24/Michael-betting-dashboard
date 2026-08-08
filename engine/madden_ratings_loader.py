@@ -17,16 +17,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 EA_API_BASE = "https://drop-api.ea.com/rating/madden-nfl"
 PAGE_SIZE = 100
-DEFAULT_CSV_PATH = DATA_DIR / "madden_26_players.csv"
-DEFAULT_RAW_PATH = DATA_DIR / "madden_26_raw.json"
-DEFAULT_METADATA_PATH = DATA_DIR / "madden_26_metadata.json"
+DEFAULT_CSV_PATH = DATA_DIR / "madden_27_players.csv"
+DEFAULT_RAW_PATH = DATA_DIR / "madden_27_raw.json"
+DEFAULT_METADATA_PATH = DATA_DIR / "madden_27_metadata.json"
 
 
 def _request_json(url: str, timeout: int = 30) -> Any:
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0 Macabets/0.62",
+            "User-Agent": "Mozilla/5.0 Macabets/0.70",
             "Accept": "application/json, text/plain, */*",
             "Referer": "https://www.ea.com/games/madden-nfl/ratings",
         },
@@ -247,7 +247,7 @@ def download_and_save_madden_ratings(csv_path: Path | str = DEFAULT_CSV_PATH, ra
 
     resolved = players[players["team"].ne("") & players["position"].ne("")]
     metadata.update({
-        "schema_version": "2.0",
+        "schema_version": "3.0",
         "normalized_player_count": int(len(players)),
         "resolved_player_count": int(len(resolved)),
         "unresolved_player_count": int(len(players) - len(resolved)),
