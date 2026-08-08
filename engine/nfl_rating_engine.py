@@ -37,8 +37,8 @@ POSITION_GROUPS = {
     "running_backs": {"RB", "HB", "FB"},
     "receiving_weapons": {"WR", "TE"},
     "offensive_line": {"LT", "LG", "C", "RG", "RT", "OL", "G", "T"},
-    "defensive_front": {"DE", "DT", "DL", "LE", "RE", "EDGE"},
-    "linebackers": {"LB", "MLB", "ILB", "OLB", "LOLB", "ROLB"},
+    "defensive_front": {"DE", "DT", "DL", "LE", "RE", "EDGE", "LEDG", "REDG"},
+    "linebackers": {"LB", "MLB", "ILB", "OLB", "LOLB", "ROLB", "MIKE", "WILL", "SAM"},
     "secondary": {"CB", "DB", "FS", "SS", "S"},
     "special_teams": {"K", "P", "LS"},
 }
@@ -60,37 +60,43 @@ TEAM_WEIGHTS = {
 }
 
 TRAIT_WEIGHTS = {
-    "QB": {"overall": .38, "stats_awareness_value": .10, "stats_throwPower_value": .08,
-           "stats_throwAccuracyShort_value": .10, "stats_throwAccuracyMid_value": .10,
-           "stats_throwAccuracyDeep_value": .08, "stats_throwUnderPressure_value": .10,
-           "stats_playAction_value": .03, "stats_throwOnTheRun_value": .03},
-    "RB": {"overall": .44, "stats_speed_value": .10, "stats_acceleration_value": .08,
-           "stats_agility_value": .06, "stats_bCVision_value": .10,
-           "stats_carrying_value": .08, "stats_breakTackle_value": .08,
-           "stats_changeOfDirection_value": .06},
-    "WR": {"overall": .42, "stats_speed_value": .08, "stats_catching_value": .10,
-           "stats_catchInTraffic_value": .07, "stats_release_value": .08,
-           "stats_shortRouteRunning_value": .08, "stats_mediumRouteRunning_value": .09,
-           "stats_deepRouteRunning_value": .08},
-    "TE": {"overall": .45, "stats_catching_value": .10, "stats_catchInTraffic_value": .08,
-           "stats_shortRouteRunning_value": .07, "stats_mediumRouteRunning_value": .07,
-           "stats_runBlock_value": .08, "stats_impactBlocking_value": .08,
-           "stats_strength_value": .07},
-    "OL": {"overall": .38, "stats_awareness_value": .10, "stats_strength_value": .10,
-           "stats_passBlock_value": .14, "stats_passBlockPower_value": .08,
-           "stats_passBlockFinesse_value": .08, "stats_runBlock_value": .12},
-    "DL": {"overall": .42, "stats_strength_value": .08, "stats_blockShedding_value": .13,
-           "stats_powerMoves_value": .10, "stats_finesseMoves_value": .10,
-           "stats_pursuit_value": .09, "stats_tackle_value": .08},
-    "LB": {"overall": .43, "stats_speed_value": .08, "stats_awareness_value": .08,
-           "stats_playRecognition_value": .11, "stats_pursuit_value": .10,
-           "stats_tackle_value": .12, "stats_blockShedding_value": .08},
-    "DB": {"overall": .42, "stats_speed_value": .08, "stats_agility_value": .05,
-           "stats_awareness_value": .08, "stats_playRecognition_value": .08,
-           "stats_manCoverage_value": .11, "stats_zoneCoverage_value": .11,
-           "stats_press_value": .07},
-    "ST": {"overall": .55, "stats_kickPower_value": .23, "stats_kickAccuracy_value": .22},
+    # Detailed Madden traits refine the official OVR rather than replacing it.
+    # The official OVR remains the preseason talent anchor.
+    "QB": {"awareness": .12, "throw_power": .11, "throw_accuracy_short": .14,
+           "throw_accuracy_mid": .14, "throw_accuracy_deep": .10,
+           "throw_under_pressure": .14, "throw_on_the_run": .10,
+           "play_action": .05, "speed": .05, "acceleration": .05},
+    "RB": {"speed": .13, "acceleration": .10, "agility": .08, "bc_vision": .15,
+           "carrying": .13, "break_tackle": .13, "change_of_direction": .10,
+           "catching": .08, "awareness": .10},
+    "WR": {"speed": .10, "acceleration": .06, "catching": .14,
+           "catch_in_traffic": .10, "spectacular_catch": .08, "release": .10,
+           "short_route_running": .12, "medium_route_running": .15,
+           "deep_route_running": .15},
+    "TE": {"catching": .13, "catch_in_traffic": .11, "short_route_running": .10,
+           "medium_route_running": .10, "release": .08, "run_block": .12,
+           "impact_blocking": .10, "strength": .10, "awareness": .06,
+           "speed": .10},
+    "OL": {"awareness": .14, "strength": .12, "pass_block": .20,
+           "pass_block_power": .11, "pass_block_finesse": .11,
+           "run_block": .16, "run_block_power": .08, "run_block_finesse": .08},
+    "DL": {"strength": .10, "block_shedding": .18, "power_moves": .16,
+           "finesse_moves": .16, "pursuit": .13, "tackle": .12,
+           "play_recognition": .10, "acceleration": .05},
+    "LB": {"speed": .08, "acceleration": .06, "awareness": .10,
+           "play_recognition": .15, "pursuit": .14, "tackle": .15,
+           "block_shedding": .10, "man_coverage": .10, "zone_coverage": .12},
+    "DB": {"speed": .10, "acceleration": .07, "agility": .06,
+           "awareness": .10, "play_recognition": .11, "man_coverage": .17,
+           "zone_coverage": .17, "press": .10, "catching": .06,
+           "change_of_direction": .06},
+    "ST": {"kick_power": .48, "kick_accuracy": .52},
 }
+
+# At preseason, traits may refine OVR but cannot manufacture a giant new talent gap.
+TRAIT_BLEND_WEIGHT = 0.30
+MAX_TRAIT_DEVIATION = 3.0
+
 
 STAT_ALIASES = {
     "player_name": ("player_display_name", "player_name", "full_name", "name"),
@@ -120,8 +126,8 @@ def _position_family(position: Any) -> str:
     if pos == "WR": return "WR"
     if pos == "TE": return "TE"
     if pos in POSITION_GROUPS["offensive_line"]: return "OL"
-    if pos in POSITION_GROUPS["defensive_front"]: return "DL"
-    if pos in POSITION_GROUPS["linebackers"]: return "LB"
+    if pos in POSITION_GROUPS["defensive_front"] or pos in {"LEDG", "REDG"}: return "DL"
+    if pos in POSITION_GROUPS["linebackers"] or pos in {"MIKE", "WILL", "SAM"}: return "LB"
     if pos in POSITION_GROUPS["secondary"]: return "DB"
     if pos in POSITION_GROUPS["special_teams"]: return "ST"
     return "OTHER"
@@ -129,17 +135,29 @@ def _position_family(position: Any) -> str:
 
 def _weighted_trait_grade(row: pd.Series) -> float:
     family = _position_family(row.get("position"))
-    weights = TRAIT_WEIGHTS.get(family, {"overall": 1.0})
-    values, used = 0.0, 0.0
-    baseline = pd.to_numeric(row.get("overall"), errors="coerce")
-    baseline = 60.0 if pd.isna(baseline) else float(baseline)
-    for col, weight in weights.items():
-        value = pd.to_numeric(row.get(col), errors="coerce")
+    weights = TRAIT_WEIGHTS.get(family, {})
+    overall = pd.to_numeric(row.get("overall"), errors="coerce")
+    overall = 60.0 if pd.isna(overall) else float(overall)
+    if not weights:
+        return round(overall, 2)
+
+    weighted_sum = 0.0
+    used_weight = 0.0
+    for column, weight in weights.items():
+        value = pd.to_numeric(row.get(column), errors="coerce")
         if pd.isna(value):
-            value = baseline
-        values += float(value) * weight
-        used += weight
-    return round(max(0.0, min(99.0, values / used if used else baseline)), 2)
+            continue
+        weighted_sum += float(value) * float(weight)
+        used_weight += float(weight)
+
+    # Missing traits are not silently replaced with OVR. We simply use the traits
+    # that really exist and renormalize them.
+    if used_weight <= 0:
+        return round(overall, 2)
+    trait_composite = weighted_sum / used_weight
+    refined = overall * (1.0 - TRAIT_BLEND_WEIGHT) + trait_composite * TRAIT_BLEND_WEIGHT
+    refined = max(overall - MAX_TRAIT_DEVIATION, min(overall + MAX_TRAIT_DEVIATION, refined))
+    return round(max(0.0, min(99.0, refined)), 2)
 
 
 def _find_col(frame: pd.DataFrame, aliases: Iterable[str]) -> str | None:
@@ -153,6 +171,10 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     mapping = {key: _find_col(frame, aliases) for key, aliases in STAT_ALIASES.items()}
     if not mapping["player_name"]: return pd.DataFrame()
     clean = pd.DataFrame({key: frame[col] if col else 0 for key, col in mapping.items()})
+    # Current-season files without an explicit cap may use the normal 80% ceiling.
+    # Preseason fallback files explicitly carry macabets_performance_cap=0.20.
+    if mapping.get("performance_cap") is None:
+        clean["performance_cap"] = 0.80
     clean["name_key"] = clean["player_name"].map(_name_key)
     clean["team"] = clean["team"].astype(str).str.upper()
     clean["position"] = clean["position"].astype(str).str.upper()
@@ -339,7 +361,7 @@ def _unit_grade(team_players: pd.DataFrame, unit: str) -> dict[str, Any]:
     starters, depth = group.head(starter_n), group.iloc[starter_n:]
     starter_grade = float(starters["macabets_rating"].mean())
     depth_grade = float(depth["macabets_rating"].mean()) if not depth.empty else starter_grade
-    grade = starter_grade * (.90 if unit == "quarterback" else .84) + depth_grade * (.10 if unit == "quarterback" else .16)
+    grade = starter_grade if unit == "quarterback" else starter_grade * .88 + depth_grade * .12
     return {
         "grade": round(grade, 2), "starter_grade": round(starter_grade, 2), "depth_grade": round(depth_grade, 2),
         "player_count": int(len(group)), "confidence": "high" if len(group) >= starter_n else "limited",
@@ -367,8 +389,11 @@ def build_team_ratings(player_ratings: pd.DataFrame, snapshot_path: Path | str =
                 perf_weight = 0.20
 
         live_map = {
-            "quarterback": "quarterback", "offensive_line": "offensive_line",
-            "defensive_front": "defensive_line", "secondary": "secondary",
+            # QB/RB/WR/TE already receive player-level weekly performance in build_player_ratings.
+            # Do not blend the same prior-season evidence into those units a second time.
+            "offensive_line": "offensive_line",
+            "defensive_front": "defensive_line",
+            "secondary": "secondary",
             "special_teams": "special_teams",
         }
         for unit, col in live_map.items():
@@ -381,20 +406,15 @@ def build_team_ratings(player_ratings: pd.DataFrame, snapshot_path: Path | str =
                 units[unit]["source"] = f"{(1-perf_weight):.0%} roster + {perf_weight:.0%} NFL performance"
             else:
                 units[unit]["source"] = "Madden 27 roster rating"
-        indirect_weight = min(perf_weight, 0.55)
-        if row is not None and "offense" in row and pd.notna(row["offense"]) and indirect_weight > 0:
-            for unit in ("running_backs", "receiving_weapons"):
-                units[unit]["roster_grade"] = units[unit]["grade"]
-                units[unit]["performance_grade"] = round(float(row["offense"]), 2)
-                units[unit]["grade"] = round(units[unit]["grade"] * (1-indirect_weight) + float(row["offense"]) * indirect_weight, 2)
-                units[unit]["performance_weight"] = round(indirect_weight, 3)
-                units[unit]["source"] = f"{(1-indirect_weight):.0%} roster + {indirect_weight:.0%} NFL team performance"
+        # Linebacker play currently lacks a clean player-level weekly metric in this pipeline.
+        # Use only a modest team-defense proxy; never apply generic offense to RB/WR/TE.
+        indirect_weight = min(perf_weight * 0.50, 0.30)
         if row is not None and "defense" in row and pd.notna(row["defense"]) and indirect_weight > 0:
             units["linebackers"]["roster_grade"] = units["linebackers"]["grade"]
             units["linebackers"]["performance_grade"] = round(float(row["defense"]), 2)
             units["linebackers"]["grade"] = round(units["linebackers"]["grade"] * (1-indirect_weight) + float(row["defense"]) * indirect_weight, 2)
             units["linebackers"]["performance_weight"] = round(indirect_weight, 3)
-            units["linebackers"]["source"] = f"{(1-indirect_weight):.0%} roster + {indirect_weight:.0%} NFL team performance"
+            units["linebackers"]["source"] = f"{(1-indirect_weight):.0%} roster + {indirect_weight:.0%} NFL team-defense proxy"
 
         overall = sum(units[u]["grade"] * w for u, w in TEAM_WEIGHTS.items())
         offense = units["quarterback"]["grade"] * .35 + units["running_backs"]["grade"] * .12 + units["receiving_weapons"]["grade"] * .25 + units["offensive_line"]["grade"] * .28
@@ -403,7 +423,7 @@ def build_team_ratings(player_ratings: pd.DataFrame, snapshot_path: Path | str =
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": "Macabets automated rating engine v1", "prediction_influence_enabled": False,
+            "source": "Macabets automated rating engine v1.1 - audited Madden 27 baseline", "prediction_influence_enabled": False,
             "personnel_matchup_influence_enabled": True,
         }
     return dict(sorted(result.items()))
@@ -423,7 +443,7 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
     temp = player_path.with_suffix(".csv.tmp"); player_ratings.to_csv(temp, index=False); temp.replace(player_path)
     _write_json(team_path, team_ratings)
     status = {
-        "schema_version": "1.0", "engine_version": "1.0", "updated_at_utc": updated,
+        "schema_version": "1.1", "engine_version": "1.1-madden27-audited", "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
         "prediction_influence_enabled": False,

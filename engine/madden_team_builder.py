@@ -17,8 +17,8 @@ POSITION_GROUPS = {
     "running_backs": {"HB", "RB", "FB"},
     "receiving_weapons": {"WR", "TE"},
     "offensive_line": {"LT", "LG", "C", "RG", "RT", "OL"},
-    "defensive_front": {"LE", "RE", "DT", "DE", "DL", "EDGE"},
-    "linebackers": {"LOLB", "MLB", "ROLB", "LB"},
+    "defensive_front": {"LE", "RE", "DT", "DE", "DL", "EDGE", "LEDG", "REDG"},
+    "linebackers": {"LOLB", "MLB", "ROLB", "LB", "MIKE", "WILL", "SAM"},
     "secondary": {"CB", "FS", "SS", "DB"},
     "special_teams": {"K", "P"},
 }
@@ -162,6 +162,11 @@ def _normalize_position(value: object) -> str:
         "LOLB": "LOLB",
         "ROLB": "ROLB",
         "MLB": "MLB",
+        "LEDG": "EDGE",
+        "REDG": "EDGE",
+        "MIKE": "LB",
+        "WILL": "LB",
+        "SAM": "LB",
     }
     return replacements.get(position, position)
 
