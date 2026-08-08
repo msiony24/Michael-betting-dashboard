@@ -12,6 +12,7 @@ from dataclasses import asdict, dataclass
 from engine.confidence import confidence_band, recommendation_from_edge
 from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
 from engine.nfl_brain import build_matchup_brain
+from engine.nfl_schedule_intelligence import build_schedule_context
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -108,6 +109,7 @@ class NFLAnalysis:
     rating_breakdown: list[dict]
     matchup_brain: dict
     weather_context: dict
+    schedule_context: dict
 
 
 def analyze(
@@ -125,6 +127,9 @@ def analyze(
     home_rating_overrides: dict | None = None,
     home_field_points: float = 1.7,
     weather_context: dict | None = None,
+    game_date=None,
+    week: int | None = None,
+    season: int | None = None,
 ) -> dict:
     if away_team == home_team:
         raise ValueError("Home and away teams must be different.")
@@ -133,13 +138,32 @@ def analyze(
 
     away_power, away_components = team_power_score(away_team, away_rating_overrides)
     home_power, home_components = team_power_score(home_team, home_rating_overrides)
-    applied_hfa = 0.0 if neutral_site else float(home_field_points)
+
+    resolved_season = int(season or (getattr(game_date, "year", None) or NFL_DATA_STATUS.get("season") or 2026))
+    power_map = {}
+    for team_name in NFL_TEAM_RATINGS:
+        try:
+            power_map[team_name] = team_power_score(team_name)[0]
+        except Exception:
+            continue
+    # Ensure any manually overridden matchup ratings are represented in the
+    # opponent-quality scale used for this game.
+    power_map[away_team] = away_power
+    power_map[home_team] = home_power
+    schedule_context = build_schedule_context(
+        away_team=away_team, home_team=home_team, season=resolved_season,
+        team_power=power_map, game_date=game_date, week=week,
+    )
+    scheduled_neutral = bool(schedule_context.get("scheduled_neutral", False))
+    applied_hfa = 0.0 if (neutral_site or scheduled_neutral) else float(home_field_points)
+    schedule_side_adjustment = float(schedule_context.get("home_margin_adjustment", 0.0) or 0.0)
+    schedule_confidence_penalty = float(schedule_context.get("confidence_penalty", 0.0) or 0.0)
     weather_context = dict(weather_context or {})
     weather_side_adjustment = float(weather_context.get("home_margin_adjustment", 0.0) or 0.0)
     weather_total_adjustment = float(weather_context.get("total_adjustment", 0.0) or 0.0)
     weather_confidence_penalty = float(weather_context.get("confidence_penalty", 0.0) or 0.0)
 
-    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment
+    projected_home_margin = home_power - away_power + applied_hfa + weather_side_adjustment + schedule_side_adjustment
     fair_spread_home = round((-projected_home_margin) * 2.0) / 2.0
     spread_edge = round(float(market_spread_home) - fair_spread_home, 2)
 
@@ -166,6 +190,7 @@ def analyze(
     rating_gap = abs(projected_home_margin)
     confidence = 50.0 + min(rating_gap, 12.0) * 2.2
     confidence -= weather_confidence_penalty
+    confidence -= schedule_confidence_penalty
     if not NFL_DATA_STATUS.get("available"):
         confidence -= 7.0
     confidence = round(min(78.0, max(50.0, confidence)), 1)
@@ -258,5 +283,6 @@ def analyze(
         rating_breakdown=breakdown,
         matchup_brain=matchup_brain,
         weather_context=weather_context,
+        schedule_context=schedule_context,
     )
     return asdict(result)
