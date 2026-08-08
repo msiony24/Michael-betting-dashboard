@@ -1,16 +1,26 @@
 {
   "current_year": 2026,
-  "current_year_match_count": 1879,
+  "current_year_match_count": 2235,
+  "current_year_matches_with_serve_return_stats": 806,
   "failures": [],
-  "latest_match_date": "2026-08-07",
+  "latest_match_date": "2026-08-08",
   "live_refresh": {
-    "all_fixtures_received": 1880,
-    "completed_atp_singles_imported": 96,
-    "fixtures_fetched_at": "2026-08-08T11:51:03.409980+00:00",
-    "fixtures_source": "live",
-    "window_start": "2026-08-01",
+    "all_fixtures_received": 18722,
+    "chunk_days": 6,
+    "completed_atp_singles_imported": 806,
+    "failed_fixture_windows": [],
+    "fixture_windows_attempted": 11,
+    "fixture_windows_failed": 0,
+    "fixture_windows_succeeded": 11,
+    "fixtures_fetched_at": "2026-08-08T19:39:19.728540+00:00",
+    "fixtures_source": "chunked",
+    "matches_with_serve_return_stats": 806,
+    "standings_error": "",
+    "standings_fetched_at": "2026-08-08T19:39:21.093463+00:00",
+    "standings_source": "live",
+    "window_start": "2026-06-09",
     "window_stop": "2026-08-08"
   },
   "ok": true,
-  "updated_at_utc": "2026-08-08T11:51:05.478544+00:00"
+  "updated_at_utc": "2026-08-08T19:39:23.191633+00:00"
 }
