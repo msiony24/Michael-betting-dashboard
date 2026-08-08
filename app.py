@@ -37,6 +37,7 @@ except Exception as exc:
 
 try:
     from engine.data import load_matches
+    from engine.tennis_evidence import build_tennis_evidence_packet
     from engine.tennis import (
         analyze as analyze_tennis_match,
         player_names as tennis_player_names,
@@ -2862,6 +2863,23 @@ with tabs[1]:
                             f"{original_price_report['verdict']}."
                         )
 
+                    try:
+                        verified_recent_evidence = build_tennis_evidence_packet(
+                            matches,
+                            analyzed_a,
+                            analyzed_b,
+                            market_snapshot.get("match_date", match_date.isoformat()),
+                            result.get("surface", surface),
+                            tournament=result.get("tournament", tournament),
+                            lookback=20,
+                        )
+                    except Exception as evidence_exc:
+                        verified_recent_evidence = {
+                            "source": "Macabets local ATP match database",
+                            "status": "evidence_packet_error",
+                            "error": str(evidence_exc),
+                        }
+
                     challenge_context = {
                         "sport": "Tennis",
                         "event_name": f"{analyzed_a} vs {analyzed_b}",
@@ -2899,6 +2917,7 @@ with tabs[1]:
                         "head_to_head": h2h_context,
                         "matchup_context": matchup_context,
                         "match_intelligence": result.get("match_intelligence", {}),
+                        "verified_recent_evidence": verified_recent_evidence,
                         # Deterministic model evidence: Challenge Macabets should reason from
                         # the same recent-resume and fatigue inputs as the prediction engine
                         # before reaching for web search or constructing a narrative.
