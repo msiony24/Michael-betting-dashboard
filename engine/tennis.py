@@ -506,6 +506,153 @@ def opponent_strength_profile(
     }
 
 
+def breakout_trajectory_profile(
+    matches: pd.DataFrame,
+    player: str,
+    event_date: date,
+) -> dict:
+    """Estimate whether an emerging player's older baseline is becoming stale.
+
+    This is deliberately a persistence detector, not a youth bonus and not a hot-streak
+    bonus.  It rewards a strong current season only when the improvement is spread over
+    time/events, includes credible opposition, and is accompanied by ranking progression.
+    The final probability impact is capped and is intended to make Macabets adapt faster
+    to genuine breakout seasons without chasing one-tournament noise.
+    """
+    key = canonical_player_key(player)
+    event_ts = pd.Timestamp(event_date)
+    history = matches[
+        (
+            matches["winner_name"].map(canonical_player_key).eq(key)
+            | matches["loser_name"].map(canonical_player_key).eq(key)
+        )
+        & (matches["tourney_date"] < event_ts)
+    ].sort_values("tourney_date").copy()
+
+    neutral = {
+        "score": 0.0,
+        "probability_uplift": 0.0,
+        "season_matches": 0,
+        "season_win_rate": 0.5,
+        "recent_90_matches": 0,
+        "recent_90_win_rate": 0.5,
+        "preseason_matches": 0,
+        "start_rank": None,
+        "current_rank": None,
+        "rank_progress": 0.0,
+        "top_50_wins": 0,
+        "top_100_wins": 0,
+        "quality_win_event_weeks": 0,
+        "active_months": 0,
+        "persistence": 0.0,
+        "emerging_context": 0.0,
+    }
+    if history.empty:
+        return neutral
+
+    season_start = pd.Timestamp(year=event_ts.year, month=1, day=1)
+    season = history[history["tourney_date"] >= season_start].copy()
+    preseason = history[history["tourney_date"] < season_start]
+    recent_90 = season[season["tourney_date"] >= event_ts - pd.Timedelta(days=90)].copy()
+
+    if len(season) < 6:
+        return {**neutral, "season_matches": int(len(season)), "preseason_matches": int(len(preseason))}
+
+    def _decorate(frame: pd.DataFrame) -> pd.DataFrame:
+        out = frame.copy()
+        out["won"] = out["winner_name"].map(canonical_player_key).eq(key)
+        out["own_rank"] = np.where(out["won"], out.get("winner_rank", np.nan), out.get("loser_rank", np.nan))
+        out["opp_rank"] = np.where(out["won"], out.get("loser_rank", np.nan), out.get("winner_rank", np.nan))
+        return out
+
+    season = _decorate(season)
+    recent_90 = _decorate(recent_90) if not recent_90.empty else recent_90
+
+    season_win_rate = float(season["won"].mean())
+    recent_90_win_rate = float(recent_90["won"].mean()) if len(recent_90) else 0.5
+
+    ranks = pd.to_numeric(season["own_rank"], errors="coerce").dropna()
+    if len(ranks):
+        start_rank = float(ranks.head(min(5, len(ranks))).median())
+        current_rank = float(ranks.tail(min(5, len(ranks))).median())
+    else:
+        start_rank = current_rank = None
+
+    if start_rank and current_rank and start_rank > 0 and current_rank > 0:
+        # A fourfold ranking improvement is already enough to saturate this signal.
+        rank_progress = float(np.clip(math.log(start_rank / current_rank) / math.log(4.0), 0.0, 1.0))
+    else:
+        rank_progress = 0.0
+
+    wins = season[season["won"]].copy()
+    win_ranks = pd.to_numeric(wins.get("opp_rank", pd.Series(dtype=float)), errors="coerce")
+    top_50_wins = int((win_ranks <= 50).sum())
+    top_100_wins = int((win_ranks <= 100).sum())
+
+    # Count event-weeks rather than raw tournament names because provider feeds can
+    # spell the same event differently. This also prevents one hot tournament from
+    # masquerading as sustained evidence.
+    quality_wins = wins[pd.to_numeric(wins["opp_rank"], errors="coerce") <= 100].copy()
+    if len(quality_wins):
+        quality_event_weeks = int(
+            pd.to_datetime(quality_wins["tourney_date"]).dt.to_period("W").nunique()
+        )
+    else:
+        quality_event_weeks = 0
+    active_months = int(pd.to_datetime(season["tourney_date"]).dt.to_period("M").nunique())
+
+    season_signal = float(np.clip((season_win_rate - 0.56) / 0.22, 0.0, 1.0))
+    recent_signal = float(np.clip((recent_90_win_rate - 0.58) / 0.22, 0.0, 1.0))
+    quality_signal = float(np.clip((top_50_wins + 0.35 * max(0, top_100_wins - top_50_wins)) / 6.0, 0.0, 1.0))
+    breadth_signal = float(np.clip(quality_event_weeks / 4.0, 0.0, 1.0))
+
+    # Persistence is the anti-hot-streak gate: meaningful season sample, multiple
+    # months, and quality results across multiple event weeks all have to be present.
+    sample_gate = float(np.clip(len(season) / 24.0, 0.0, 1.0))
+    month_gate = float(np.clip(active_months / 4.0, 0.0, 1.0))
+    event_gate = float(np.clip(quality_event_weeks / 3.0, 0.0, 1.0))
+    persistence = sample_gate * month_gate * event_gate
+
+    # With no reliable birth-date field in every provider feed, limited pre-season
+    # tour history is used as a conservative proxy for an emerging/young player.
+    # Established players therefore do not receive a generic "good season" bonus.
+    emerging_context = float(np.clip(1.0 - len(preseason) / 120.0, 0.0, 1.0))
+
+    evidence_score = (
+        0.24 * season_signal
+        + 0.18 * recent_signal
+        + 0.24 * rank_progress
+        + 0.20 * quality_signal
+        + 0.14 * breadth_signal
+    )
+    score = float(np.clip(evidence_score * persistence * emerging_context, 0.0, 1.0))
+
+    # No material model movement until the evidence clears a meaningful threshold.
+    # Maximum uplift is 2.8 percentage points for an exceptionally strong, sustained
+    # breakout. This is large enough to correct a stale baseline but too small to
+    # overwhelm Elo, ranking, surface, matchup, and fatigue inputs.
+    probability_uplift = float(np.clip(max(0.0, score - 0.35) / 0.65 * 0.028, 0.0, 0.028))
+
+    return {
+        "score": score,
+        "probability_uplift": probability_uplift,
+        "season_matches": int(len(season)),
+        "season_win_rate": season_win_rate,
+        "recent_90_matches": int(len(recent_90)),
+        "recent_90_win_rate": recent_90_win_rate,
+        "preseason_matches": int(len(preseason)),
+        "start_rank": start_rank,
+        "current_rank": current_rank,
+        "rank_progress": rank_progress,
+        "top_50_wins": top_50_wins,
+        "top_100_wins": top_100_wins,
+        "quality_win_event_weeks": quality_event_weeks,
+        "active_months": active_months,
+        "persistence": persistence,
+        "emerging_context": emerging_context,
+    }
+
+
 def elo_tables(matches: pd.DataFrame, surface: str, event_date: date) -> tuple[dict, dict]:
     history = matches[
         (matches["tourney_date"] < pd.Timestamp(event_date))
@@ -1126,6 +1273,8 @@ def analyze(
     opponent_strength_b = opponent_strength_profile(
         matches, player_b, event_date, overall, lookback_matches=10
     )
+    trajectory_a = breakout_trajectory_profile(matches, resolved_a, event_date)
+    trajectory_b = breakout_trajectory_profile(matches, resolved_b, event_date)
     ka, kb = canonical_player_key(resolved_a), canonical_player_key(resolved_b)
     if ka not in overall or kb not in overall:
         missing = [name for name, key in ((player_a, ka), (player_b, kb)) if key not in overall]
@@ -1165,6 +1314,16 @@ def analyze(
         + weights["surface_elo"] * surface_p
         + weights["ranking"] * rank_p
     )
+
+    # Quietly correct for a stale historical baseline when an emerging player has
+    # demonstrated a sustained breakout across the season. This is intentionally
+    # not exposed as a separate UI factor.
+    trajectory_adjustment = float(np.clip(
+        trajectory_a["probability_uplift"] - trajectory_b["probability_uplift"],
+        -0.028,
+        0.028,
+    ))
+    base = float(np.clip(base + trajectory_adjustment, 0.05, 0.95))
 
     serve_return_available = all(
         pd.notna(value) for value in (
@@ -1300,6 +1459,14 @@ def analyze(
     surface_adj *= correlated_discount
 
     experience_adjustment = float(experience["probability_adjustment_a"])
+    # A sustained breakout makes a generic "lack of career experience" penalty less
+    # trustworthy because the player's historical sample may no longer represent his
+    # current level. Situational experience still matters; only the generic penalty is
+    # attenuated, and never reversed.
+    if experience_adjustment < 0:
+        experience_adjustment *= 1.0 - 0.55 * trajectory_a["score"]
+    elif experience_adjustment > 0:
+        experience_adjustment *= 1.0 - 0.55 * trajectory_b["score"]
     experience_reason = (
         f"Career matches: {player_a} {intelligence_a.career_matches}, "
         f"{player_b} {intelligence_b.career_matches}. {surface} matches: "
@@ -1462,6 +1629,12 @@ def analyze(
             "player_b": opponent_strength_b,
             "quality_adjusted_form_edge_a": float(opponent_strength_a["quality_adjusted_form"] - opponent_strength_b["quality_adjusted_form"]),
             "schedule_strength_edge_a": float(opponent_strength_a["strength_score"] - opponent_strength_b["strength_score"]),
+        },
+        # Internal diagnostics only. The Streamlit UI does not render these fields.
+        "trajectory_engine": {
+            "player_a": trajectory_a,
+            "player_b": trajectory_b,
+            "probability_adjustment_a": trajectory_adjustment,
         },
         "fatigue_resilience_a": fatigue_resilience_a,
         "fatigue_resilience_b": fatigue_resilience_b,
