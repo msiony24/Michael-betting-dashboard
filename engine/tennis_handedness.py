@@ -64,8 +64,14 @@ def _add_consistent(mapping: dict[Any, str | None], key: Any, hand: str) -> None
         mapping[key] = None
 
 
-@lru_cache(maxsize=4)
-def _load_alias_registry(path_text: str = str(DEFAULT_HANDEDNESS_FILE)) -> dict[str, dict[Any, str | None]]:
+@lru_cache(maxsize=8)
+def _load_alias_registry_cached(path_text: str, file_mtime_ns: int, file_size: int) -> dict[str, dict[Any, str | None]]:
+    """Load one exact on-disk handedness-map version.
+
+    The file fingerprint is part of the cache key so replacing the CSV during a
+    running Streamlit process cannot leave an obsolete alias registry in memory.
+    """
+    del file_mtime_ns, file_size
     path = Path(path_text)
     if not path.exists():
         return {"exact": {}, "signature": {}}
@@ -88,6 +94,16 @@ def _load_alias_registry(path_text: str = str(DEFAULT_HANDEDNESS_FILE)) -> dict[
             _add_consistent(signature, _identity_signature(name), hand)
 
     return {"exact": exact, "signature": signature}
+
+
+def _load_alias_registry(path_text: str = str(DEFAULT_HANDEDNESS_FILE)) -> dict[str, dict[Any, str | None]]:
+    path = Path(path_text)
+    try:
+        stat = path.stat()
+        signature = (int(stat.st_mtime_ns), int(stat.st_size))
+    except OSError:
+        signature = (0, 0)
+    return _load_alias_registry_cached(str(path), *signature)
 
 
 def player_hand(player: str, *, manual_hand: Any = None, path: str | Path = DEFAULT_HANDEDNESS_FILE) -> str | None:
