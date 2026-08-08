@@ -4103,16 +4103,16 @@ with tabs[1]:
 
                 active_weather = nfl_result.get("weather_context") or st.session_state.get("nfl_weather_context", {})
                 if active_weather:
-                    st.markdown("### Weather")
-                    weather1, weather2, weather3 = st.columns([3, 1, 1])
-                    weather1.write(str(active_weather.get("summary") or "No weather adjustment."))
-                    weather2.metric("Impact", str(active_weather.get("impact") or "None"))
-                    total_weather_move = float(active_weather.get("total_adjustment", 0.0) or 0.0)
-                    weather3.metric("Total Adj.", f"{total_weather_move:+.1f}")
-                    if not active_weather.get("available", False):
-                        st.caption("Weather data was unavailable, so Macabets applied no weather adjustment.")
-                    elif float(active_weather.get("home_margin_adjustment", 0.0) or 0.0):
-                        st.caption(str(active_weather.get("climate_mismatch") or ""))
+                    with st.expander("Weather intelligence", expanded=False):
+                        weather1, weather2, weather3 = st.columns([3, 1, 1])
+                        weather1.write(str(active_weather.get("summary") or "No weather adjustment."))
+                        weather2.metric("Impact", str(active_weather.get("impact") or "None"))
+                        total_weather_move = float(active_weather.get("total_adjustment", 0.0) or 0.0)
+                        weather3.metric("Total Adj.", f"{total_weather_move:+.1f}")
+                        if not active_weather.get("available", False):
+                            st.caption("Weather data was unavailable, so Macabets applied no weather adjustment.")
+                        elif float(active_weather.get("home_margin_adjustment", 0.0) or 0.0):
+                            st.caption(str(active_weather.get("climate_mismatch") or ""))
 
                 st.markdown("### Matchup Advantages")
                 category_verdicts, category_wins, strongest_edge, category_leader = (
