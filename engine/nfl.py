@@ -15,6 +15,7 @@ from engine.nfl_brain import build_matchup_brain
 from engine.nfl_schedule_intelligence import build_schedule_context
 from engine.nfl_game_quality import build_game_quality_context
 from engine.nfl_personnel_matchup import build_personnel_matchup_context
+from engine.nfl_matchup_intelligence import build_matchup_intelligence
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -114,6 +115,7 @@ class NFLAnalysis:
     schedule_context: dict
     game_quality_context: dict
     personnel_context: dict
+    matchup_intelligence: dict
 
 
 def analyze(
@@ -177,12 +179,21 @@ def analyze(
         home_team=home_team,
         week=week,
     )
-    personnel_side_adjustment = float(personnel_context.get("home_margin_adjustment", 0.0) or 0.0)
-
-    projected_home_margin = (
-        home_power - away_power + applied_hfa + weather_side_adjustment
-        + schedule_side_adjustment + game_quality_side_adjustment + personnel_side_adjustment
+    matchup_intelligence = build_matchup_intelligence(
+        away_team=away_team,
+        home_team=home_team,
+        away_components=away_components,
+        home_components=home_components,
+        away_power=away_power,
+        home_power=home_power,
+        home_field_points=applied_hfa,
+        weather_home_adjustment=weather_side_adjustment,
+        schedule_home_adjustment=schedule_side_adjustment,
+        game_quality_home_adjustment=game_quality_side_adjustment,
+        personnel_context=personnel_context,
     )
+    personnel_side_adjustment = float(matchup_intelligence.get("matchup_adjustment_home", 0.0) or 0.0)
+    projected_home_margin = float(matchup_intelligence.get("football_home_edge_points", 0.0) or 0.0)
     fair_spread_home = round((-projected_home_margin) * 2.0) / 2.0
     spread_edge = round(float(market_spread_home) - fair_spread_home, 2)
 
@@ -225,6 +236,7 @@ def analyze(
         home_team=home_team,
         away_components=away_components,
         home_components=home_components,
+        unified_context=matchup_intelligence,
     )
     top_reason = matchup_brain["summary"]
 
@@ -312,5 +324,6 @@ def analyze(
         schedule_context=schedule_context,
         game_quality_context=game_quality_context,
         personnel_context=personnel_context,
+        matchup_intelligence=matchup_intelligence,
     )
     return asdict(result)

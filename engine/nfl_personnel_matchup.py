@@ -95,12 +95,17 @@ def _matchup_row(label: str, offense_team: str, defense_team: str, attack: float
 
 def _source_summary(team_data: dict[str, Any]) -> str:
     units = team_data.get("units", {}) if isinstance(team_data, dict) else {}
-    sources = [str(v.get("source", "")) for v in units.values() if isinstance(v, dict)]
-    live = sum("performance" in s.lower() for s in sources)
-    if live >= 4:
+    weights = [
+        _number(v.get("performance_weight"), 0.0)
+        for v in units.values() if isinstance(v, dict)
+    ]
+    average = sum(weights) / len(weights) if weights else 0.0
+    if average >= 0.60:
         return "NFL-performance heavy"
-    if live >= 1:
-        return "Blended Madden + NFL performance"
+    if average >= 0.30:
+        return "Balanced Madden + NFL performance"
+    if average > 0.0:
+        return "Madden-heavy + prior NFL performance"
     return "Madden-heavy personnel baseline"
 
 

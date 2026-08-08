@@ -557,9 +557,56 @@ def build_matchup_brain(
     home_team: str,
     away_components: Mapping[str, float],
     home_components: Mapping[str, float],
+    unified_context: Mapping[str, object] | None = None,
 ) -> dict:
     away_profile = profile_from_legacy_components(away_team, away_components)
     home_profile = profile_from_legacy_components(home_team, home_components)
+
+    if unified_context and unified_context.get("available"):
+        questions = list(unified_context.get("questions", []) or [])
+        scored_questions = []
+        for item in questions:
+            scored = dict(item)
+            scored.setdefault("status", "preseason_scored")
+            scored.setdefault("readiness_score", 70)
+            scored.setdefault("readiness_label", str(unified_context.get("data_mode", "Baseline readiness")))
+            scored.setdefault("missing_required", [])
+            scored.setdefault("missing_optional", ["Current injury/availability confirmation", "Current-season sample"] if "Preseason" in str(unified_context.get("data_mode", "")) else [])
+            scored.setdefault("refusal_rule", "Answer is downgraded, not blocked, when a verified roster/talent baseline exists but current health or current-season samples are incomplete.")
+            scored_questions.append(scored)
+        decision_framework = {
+            "version": "Decision Framework v2-unified",
+            "status": "preseason_ready" if "Preseason" in str(unified_context.get("data_mode", "")) else "data_ready",
+            "prediction_influence": "through unified matchup intelligence",
+            "ready_questions": len(scored_questions),
+            "message": "Questions are scored from the same unified matchup object used by the football model.",
+            "questions": scored_questions,
+        }
+        return {
+            "version": "NFL Brain v1-unified",
+            "status": decision_framework["status"],
+            "matchup_score_home": float(unified_context.get("football_home_edge_points", 0.0) or 0.0),
+            "matchup_leader": unified_context.get("overall_leader", "Even"),
+            "summary": unified_context.get("summary", ""),
+            "team_profiles": {away_team: away_profile.to_dict(), home_team: home_profile.to_dict()},
+            "decision_framework": decision_framework,
+            "qb_gates": {},
+            "exploits": [],
+            "win_conditions": {},
+            "failure_conditions": {},
+            "conflicts": list(unified_context.get("categories", []) or []),
+            "chain_reactions": [],
+            "data_contract": {
+                "status": "Unified current roster/talent baseline connected",
+                "current_source": unified_context.get("data_mode", "Unified NFL matchup inputs"),
+                "allowed_to_influence_prediction": True,
+            },
+            "limitations": [
+                "Current injury and confirmed-starter feeds are not yet fully automated, so preseason answers carry an explicit confidence penalty.",
+                "Prior-season performance is treated as a limited prior until current-season samples are available.",
+            ],
+        }
+
     decision_framework = build_decision_framework(away_profile, home_profile)
 
     # Strict no-fake-certainty gate. The current adapter produces useful schema
