@@ -69,8 +69,18 @@ def refresh_player_weekly_stats(
     active = requested
     fallback = False
 
-    frame = _load_one(requested)
-    if frame.empty:
+    try:
+        frame = _load_one(requested)
+    except Exception as exc:
+        active = requested - 1
+        fallback = True
+        print(
+            f"Weekly player stats unavailable for {requested} "
+            f"({type(exc).__name__}: {exc}); using {active} as a preseason prior."
+        )
+        frame = _load_one(active)
+
+    if frame.empty and not fallback:
         active = requested - 1
         fallback = True
         print(f"No weekly player stats available for {requested}; using {active} as a preseason prior.")
