@@ -17,7 +17,7 @@ from engine.api_tennis import APITennisClient, APITennisError
 DATA_DIR = Path(__file__).resolve().parent / "data"
 START_YEAR = 2021
 SOURCE_TEMPLATE = "http://www.tennis-data.co.uk/{year}/{year}.xlsx"
-LIVE_LOOKBACK_DAYS = 7
+LIVE_LOOKBACK_DAYS = 60
 REFRESH_STATUS_PATH = DATA_DIR / "tennis_refresh_status.json"
 MATCH_COLUMNS = [
     "tourney_date", "tourney_name", "surface", "tourney_level", "round",
@@ -26,6 +26,13 @@ MATCH_COLUMNS = [
     "w_svpt", "l_svpt", "w_1stIn", "l_1stIn", "w_1stWon", "l_1stWon",
     "w_2ndWon", "l_2ndWon", "w_SvGms", "l_SvGms", "w_bpSaved",
     "l_bpSaved", "w_bpFaced", "l_bpFaced",
+]
+
+
+STAT_COLUMNS = [
+    "w_ace", "l_ace", "w_df", "l_df", "w_svpt", "l_svpt",
+    "w_1stIn", "l_1stIn", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon",
+    "w_SvGms", "l_SvGms", "w_bpSaved", "l_bpSaved", "w_bpFaced", "l_bpFaced",
 ]
 
 
@@ -278,21 +285,47 @@ def _score_from_api(event: dict, winner_side: str) -> str:
     return " ".join(parts)
 
 
-def _stat_value(event: dict, player_key: str, stat_name: str) -> float | None:
-    wanted = stat_name.casefold()
+def _stat_row(event: dict, player_key: str, *stat_names: str) -> dict | None:
+    wanted = {str(name).strip().casefold() for name in stat_names if str(name).strip()}
     for row in event.get("statistics") or []:
         if str(row.get("player_key") or "") != str(player_key):
             continue
         if str(row.get("stat_period") or "match").casefold() != "match":
             continue
-        if str(row.get("stat_name") or "").casefold() != wanted:
-            continue
-        raw = row.get("stat_value")
-        try:
-            return float(str(raw).replace("%", "").strip())
-        except (TypeError, ValueError):
-            return None
+        if str(row.get("stat_name") or "").strip().casefold() in wanted:
+            return row
     return None
+
+
+def _numeric(value: object) -> float | None:
+    try:
+        if value is None or str(value).strip() == "":
+            return None
+        return float(str(value).replace("%", "").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _stat_value(event: dict, player_key: str, *stat_names: str) -> float | None:
+    row = _stat_row(event, player_key, *stat_names)
+    return _numeric(row.get("stat_value")) if row else None
+
+
+def _stat_won_total(event: dict, player_key: str, *stat_names: str) -> tuple[float | None, float | None]:
+    row = _stat_row(event, player_key, *stat_names)
+    if not row:
+        return None, None
+    won = _numeric(row.get("stat_won"))
+    total = _numeric(row.get("stat_total"))
+    if won is not None or total is not None:
+        return won, total
+
+    # Some providers encode count stats as "4/7" in stat_value.
+    raw = str(row.get("stat_value") or "").strip()
+    match = re.match(r"^\s*(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)\s*$", raw)
+    if match:
+        return float(match.group(1)), float(match.group(2))
+    return None, None
 
 
 def convert_api_fixtures(
@@ -332,6 +365,30 @@ def convert_api_fixtures(
         if pd.isna(event_date):
             continue
 
+        w_first_won, w_first_total = _stat_won_total(
+            event, winner_key, "1st serve points won", "First serve points won"
+        )
+        l_first_won, l_first_total = _stat_won_total(
+            event, loser_key, "1st serve points won", "First serve points won"
+        )
+        w_second_won, w_second_total = _stat_won_total(
+            event, winner_key, "2nd serve points won", "Second serve points won"
+        )
+        l_second_won, l_second_total = _stat_won_total(
+            event, loser_key, "2nd serve points won", "Second serve points won"
+        )
+        w_bp_saved, w_bp_faced = _stat_won_total(
+            event, winner_key, "Break Points Saved", "Break points saved"
+        )
+        l_bp_saved, l_bp_faced = _stat_won_total(
+            event, loser_key, "Break Points Saved", "Break points saved"
+        )
+
+        def _sum_if_known(a: float | None, b: float | None) -> float | None:
+            if a is None or b is None:
+                return None
+            return float(a + b)
+
         row = {column: pd.NA for column in MATCH_COLUMNS}
         row.update({
             "tourney_date": event_date.strftime("%Y%m%d"),
@@ -348,6 +405,20 @@ def convert_api_fixtures(
             "l_ace": _stat_value(event, loser_key, "Aces"),
             "w_df": _stat_value(event, winner_key, "Double Faults"),
             "l_df": _stat_value(event, loser_key, "Double Faults"),
+            "w_svpt": _sum_if_known(w_first_total, w_second_total),
+            "l_svpt": _sum_if_known(l_first_total, l_second_total),
+            "w_1stIn": w_first_total,
+            "l_1stIn": l_first_total,
+            "w_1stWon": w_first_won,
+            "l_1stWon": l_first_won,
+            "w_2ndWon": w_second_won,
+            "l_2ndWon": l_second_won,
+            "w_SvGms": _stat_value(event, winner_key, "Service Games Played", "Service Games"),
+            "l_SvGms": _stat_value(event, loser_key, "Service Games Played", "Service Games"),
+            "w_bpSaved": w_bp_saved,
+            "l_bpSaved": l_bp_saved,
+            "w_bpFaced": w_bp_faced,
+            "l_bpFaced": l_bp_faced,
         })
         rows.append(row)
 
@@ -386,6 +457,35 @@ def merge_live_matches(baseline: pd.DataFrame, live: pd.DataFrame) -> pd.DataFra
     combined["tourney_date"] = combined["tourney_date"].astype(str).str.replace(".0", "", regex=False)
     combined = combined.sort_values(["tourney_date", "tourney_name", "round", "winner_name"])
     return combined.reset_index(drop=True)
+
+
+def preserve_existing_statistics(baseline: pd.DataFrame, existing: pd.DataFrame) -> pd.DataFrame:
+    """Carry forward API-enriched point stats when the yearly baseline is refreshed.
+
+    The slower yearly workbook does not include serve/return point totals. Without
+    this merge, every daily refresh would erase API-Tennis statistics once a match
+    aged outside the rolling live window.
+    """
+    if baseline is None or baseline.empty or existing is None or existing.empty:
+        return baseline.copy() if baseline is not None else pd.DataFrame(columns=MATCH_COLUMNS)
+
+    out = baseline.copy()
+    old = existing.copy()
+    out["_match_key"] = out.apply(_match_key, axis=1)
+    old["_match_key"] = old.apply(_match_key, axis=1)
+    old = old.drop_duplicates("_match_key", keep="last").set_index("_match_key")
+
+    for column in STAT_COLUMNS:
+        if column not in out:
+            out[column] = pd.NA
+        if column not in old:
+            continue
+        lookup = old[column]
+        missing = out[column].isna()
+        if missing.any():
+            out.loc[missing, column] = out.loc[missing, "_match_key"].map(lookup)
+
+    return out.drop(columns=["_match_key"], errors="ignore")
 
 
 def fetch_live_atp_matches(
@@ -427,6 +527,10 @@ def fetch_live_atp_matches(
         "fixtures_fetched_at": fixtures_response.fetched_at,
         "all_fixtures_received": len(fixtures_response.result),
         "completed_atp_singles_imported": len(live),
+        "matches_with_serve_return_stats": int(
+            live[["w_svpt", "l_svpt", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon"]]
+            .notna().all(axis=1).sum()
+        ) if not live.empty else 0,
     }
     return live, metadata
 
@@ -486,6 +590,10 @@ def main() -> int:
             print(f"WARNING: current-year baseline refresh failed; using existing CSV: {exc}")
             baseline_current = existing_current
 
+    # Keep point-level statistics previously harvested from API-Tennis even when
+    # the slower yearly baseline is refreshed without those fields.
+    baseline_current = preserve_existing_statistics(baseline_current, existing_current)
+
     context_frames = list(frames_by_year.values()) + [baseline_current, existing_current]
     live_metadata: dict = {}
     live_matches = pd.DataFrame(columns=MATCH_COLUMNS)
@@ -512,6 +620,10 @@ def main() -> int:
         "updated_at_utc": datetime.now(timezone.utc).isoformat(),
         "current_year": current_year,
         "current_year_match_count": len(merged_current),
+        "current_year_matches_with_serve_return_stats": int(
+            merged_current[["w_svpt", "l_svpt", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon"]]
+            .notna().all(axis=1).sum()
+        ) if not merged_current.empty else 0,
         "latest_match_date": latest_date,
         "live_refresh": live_metadata,
         "ok": not failures,
