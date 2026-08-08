@@ -1321,8 +1321,43 @@ def required_nfl_spread_edge(american_odds, required_roi=0.05, margin_std=13.86)
     return (low + high) / 2
 
 
+VERDICT_ORDER = {
+    "Complete Pass": 0,
+    "Pass": 1,
+    "Lean": 2,
+    "Worth Betting": 3,
+    "Strong Bet": 4,
+}
+
+
+def verdict_probability_ceiling(model_probability):
+    """Return the strongest verdict allowed by projected win probability.
+
+    Price can make a bet attractive, but it cannot manufacture conviction that
+    the win-probability model does not have. These are ceilings, not automatic
+    recommendations.
+    """
+    probability = min(max(float(model_probability), 0.0), 1.0)
+    if probability < 0.52:
+        return "Pass"
+    if probability < 0.575:
+        return "Lean"
+    if probability < 0.65:
+        return "Worth Betting"
+    return "Strong Bet"
+
+
+def cap_verdict_by_probability(verdict, model_probability):
+    """Prevent price/confidence or Challenge mode from exceeding conviction."""
+    verdict = str(verdict or "Pass")
+    ceiling = verdict_probability_ceiling(model_probability)
+    if VERDICT_ORDER.get(verdict, VERDICT_ORDER["Pass"]) > VERDICT_ORDER[ceiling]:
+        return ceiling
+    return verdict
+
+
 def moneyline_price_quality(model_probability, market_odds, confidence_score):
-    """Separate the mathematical price assessment from the flexible final verdict."""
+    """Separate mathematical price value from the probability-capped verdict."""
     probability = min(max(float(model_probability), 0.0001), 0.9999)
     market_odds = int(market_odds)
     confidence_score = float(confidence_score)
@@ -1361,6 +1396,12 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
         verdict = "Complete Pass"
     else:
         verdict = "Pass"
+
+    # Final conviction gate. Market value can lower the price required to bet,
+    # but it cannot promote a low-probability pick into a stronger verdict.
+    # <52%: Pass max | 52-57.4%: Lean max | 57.5-64.9%: Worth Betting max
+    # >=65%: Strong Bet becomes eligible (still requires ROI/confidence above).
+    verdict = cap_verdict_by_probability(verdict, probability)
 
     return {
         "expected_roi": expected_roi,
@@ -2817,8 +2858,12 @@ with tabs[1]:
                         analysis_confidence["overall"],
                     )
                     if active_challenge and active_challenge.get("proposed_verdict"):
-                        projected_price_report["verdict"] = str(active_challenge["proposed_verdict"])
-                        projected_price_report["recommendation"] = str(active_challenge["proposed_verdict"])
+                        challenged_verdict = cap_verdict_by_probability(
+                            str(active_challenge["proposed_verdict"]),
+                            projected_winner_probability,
+                        )
+                        projected_price_report["verdict"] = challenged_verdict
+                        projected_price_report["recommendation"] = challenged_verdict
                     price_assessment = projected_price_report["price_assessment"]
 
                     original_probability_b = 1 - original_model_probability
