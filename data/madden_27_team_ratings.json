@@ -1,15 +1,15 @@
 {
-  "AZ": {
-    "player_count": 64,
+  "Arizona Cardinals": {
+    "player_count": 65,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.11,
+    "roster_grade": 76.18,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 67.0,
-        "grade": 72.53,
-        "player_count": 8,
+        "depth_grade": 69.75,
+        "grade": 73.03,
+        "player_count": 9,
         "starter_grade": 73.75,
         "top_players": [
           {
@@ -970,9 +970,9 @@
     }
   },
   "Carolina Panthers": {
-    "player_count": 56,
+    "player_count": 55,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.54,
+    "roster_grade": 76.5,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1132,19 +1132,14 @@
       },
       "running_backs": {
         "data_status": "complete",
-        "depth_grade": 73.5,
-        "grade": 78.83,
-        "player_count": 4,
+        "depth_grade": 71.0,
+        "grade": 78.38,
+        "player_count": 3,
         "starter_grade": 80.0,
         "top_players": [
           {
             "name": "Chuba Hubbard",
             "overall": 84.0,
-            "position": "RB"
-          },
-          {
-            "name": "A.J. Dillon",
-            "overall": 76.0,
             "position": "RB"
           },
           {
@@ -1217,7 +1212,7 @@
   "Chicago Bears": {
     "player_count": 50,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.71,
+    "roster_grade": 76.68,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1406,8 +1401,8 @@
       },
       "secondary": {
         "data_status": "complete",
-        "depth_grade": 71.0,
-        "grade": 78.58,
+        "depth_grade": 69.75,
+        "grade": 78.36,
         "player_count": 9,
         "starter_grade": 80.25,
         "top_players": [
@@ -1427,13 +1422,13 @@
             "position": "DB"
           },
           {
-            "name": "Jaylon Jones",
+            "name": "Tyrique Stevenson",
             "overall": 75.0,
             "position": "DB"
           },
           {
-            "name": "Tyrique Stevenson",
-            "overall": 75.0,
+            "name": "Cam Lewis",
+            "overall": 72.0,
             "position": "DB"
           }
         ]
@@ -1460,9 +1455,9 @@
     }
   },
   "Cincinnati Bengals": {
-    "player_count": 51,
+    "player_count": 50,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.44,
+    "roster_grade": 80.42,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1646,9 +1641,9 @@
       },
       "secondary": {
         "data_status": "complete",
-        "depth_grade": 68.5,
-        "grade": 76.7,
-        "player_count": 9,
+        "depth_grade": 67.75,
+        "grade": 76.56,
+        "player_count": 8,
         "starter_grade": 78.5,
         "top_players": [
           {
@@ -1945,9 +1940,9 @@
     }
   },
   "Dallas Cowboys": {
-    "player_count": 57,
+    "player_count": 56,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.55,
+    "roster_grade": 80.52,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -2020,9 +2015,9 @@
       },
       "offensive_line": {
         "data_status": "complete",
-        "depth_grade": 67.33,
-        "grade": 75.26,
-        "player_count": 10,
+        "depth_grade": 66.33,
+        "grade": 75.08,
+        "player_count": 9,
         "starter_grade": 77.0,
         "top_players": [
           {
@@ -3160,9 +3155,9 @@
     }
   },
   "Indianapolis Colts": {
-    "player_count": 51,
+    "player_count": 52,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.77,
+    "roster_grade": 78.81,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -3331,9 +3326,9 @@
       },
       "secondary": {
         "data_status": "complete",
-        "depth_grade": 72.25,
-        "grade": 83.93,
-        "player_count": 13,
+        "depth_grade": 74.0,
+        "grade": 84.25,
+        "player_count": 14,
         "starter_grade": 86.5,
         "top_players": [
           {
@@ -3357,7 +3352,7 @@
             "position": "DB"
           },
           {
-            "name": "Jonathan Owens",
+            "name": "Jaylon Jones",
             "overall": 75.0,
             "position": "DB"
           }
@@ -3630,16 +3625,16 @@
     }
   },
   "Kansas City Chiefs": {
-    "player_count": 47,
+    "player_count": 46,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.76,
+    "roster_grade": 81.77,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 70.33,
-        "grade": 79.28,
-        "player_count": 7,
+        "depth_grade": 71.0,
+        "grade": 79.41,
+        "player_count": 6,
         "starter_grade": 81.25,
         "top_players": [
           {
@@ -3870,9 +3865,9 @@
     }
   },
   "Las Vegas Raiders": {
-    "player_count": 48,
+    "player_count": 47,
     "prediction_influence_enabled": false,
-    "roster_grade": 75.86,
+    "roster_grade": 75.66,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4085,16 +4080,11 @@
       },
       "special_teams": {
         "data_status": "complete",
-        "depth_grade": 79.0,
-        "grade": 79.0,
-        "player_count": 2,
-        "starter_grade": 79.0,
+        "depth_grade": 74.0,
+        "grade": 74.0,
+        "player_count": 1,
+        "starter_grade": 74.0,
         "top_players": [
-          {
-            "name": "A.J. Cole",
-            "overall": 84.0,
-            "position": "P"
-          },
           {
             "name": "Matt Gay",
             "overall": 74.0,
@@ -4105,9 +4095,9 @@
     }
   },
   "Los Angeles Chargers": {
-    "player_count": 51,
+    "player_count": 50,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.09,
+    "roster_grade": 80.13,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4325,29 +4315,24 @@
       },
       "special_teams": {
         "data_status": "complete",
-        "depth_grade": 81.0,
-        "grade": 81.0,
-        "player_count": 2,
-        "starter_grade": 81.0,
+        "depth_grade": 82.0,
+        "grade": 82.0,
+        "player_count": 1,
+        "starter_grade": 82.0,
         "top_players": [
           {
             "name": "Cameron Dicker",
             "overall": 82.0,
             "position": "K"
-          },
-          {
-            "name": "JK Scott",
-            "overall": 80.0,
-            "position": "P"
           }
         ]
       }
     }
   },
   "Los Angeles Rams": {
-    "player_count": 45,
+    "player_count": 46,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.82,
+    "roster_grade": 81.12,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4386,11 +4371,16 @@
       },
       "linebackers": {
         "data_status": "complete",
-        "depth_grade": 65.0,
-        "grade": 74.02,
-        "player_count": 6,
-        "starter_grade": 76.0,
+        "depth_grade": 68.33,
+        "grade": 77.35,
+        "player_count": 7,
+        "starter_grade": 79.33,
         "top_players": [
+          {
+            "name": "Byron Young",
+            "overall": 82.0,
+            "position": "LB"
+          },
           {
             "name": "Nate Landman",
             "overall": 79.0,
@@ -4409,11 +4399,6 @@
           {
             "name": "Shaun Dolac",
             "overall": 69.0,
-            "position": "LB"
-          },
-          {
-            "name": "Grant Stuard",
-            "overall": 64.0,
             "position": "LB"
           }
         ]
@@ -4580,17 +4565,17 @@
     }
   },
   "Miami Dolphins": {
-    "player_count": 44,
+    "player_count": 46,
     "prediction_influence_enabled": false,
-    "roster_grade": 71.15,
+    "roster_grade": 71.32,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 64.0,
-        "grade": 72.41,
-        "player_count": 6,
-        "starter_grade": 74.25,
+        "depth_grade": 65.0,
+        "grade": 73.41,
+        "player_count": 7,
+        "starter_grade": 75.25,
         "top_players": [
           {
             "name": "Zach Sieler",
@@ -4608,13 +4593,13 @@
             "position": "DL"
           },
           {
-            "name": "Matthew Butler",
-            "overall": 67.0,
+            "name": "Jordan Phillips",
+            "overall": 71.0,
             "position": "DL"
           },
           {
-            "name": "Zeek Biggers",
-            "overall": 65.0,
+            "name": "Matthew Butler",
+            "overall": 67.0,
             "position": "DL"
           }
         ]
@@ -4655,9 +4640,9 @@
       },
       "offensive_line": {
         "data_status": "complete",
-        "depth_grade": 61.67,
-        "grade": 70.96,
-        "player_count": 8,
+        "depth_grade": 62.67,
+        "grade": 71.14,
+        "player_count": 9,
         "starter_grade": 73.0,
         "top_players": [
           {
@@ -4820,9 +4805,9 @@
     }
   },
   "Minnesota Vikings": {
-    "player_count": 53,
+    "player_count": 52,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.05,
+    "roster_grade": 77.85,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5011,10 +4996,10 @@
       },
       "secondary": {
         "data_status": "complete",
-        "depth_grade": 70.75,
-        "grade": 79.77,
-        "player_count": 10,
-        "starter_grade": 81.75,
+        "depth_grade": 69.0,
+        "grade": 78.22,
+        "player_count": 9,
+        "starter_grade": 80.25,
         "top_players": [
           {
             "name": "Byron Murphy Jr",
@@ -5032,13 +5017,13 @@
             "position": "DB"
           },
           {
-            "name": "Byron Murphy II",
-            "overall": 79.0,
+            "name": "James Pierre",
+            "overall": 73.0,
             "position": "DB"
           },
           {
-            "name": "James Pierre",
-            "overall": 73.0,
+            "name": "Tavierre Thomas",
+            "overall": 71.0,
             "position": "DB"
           }
         ]
@@ -5545,23 +5530,18 @@
     }
   },
   "New York Giants": {
-    "player_count": 64,
+    "player_count": 63,
     "prediction_influence_enabled": false,
-    "roster_grade": 77.22,
+    "roster_grade": 76.84,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 69.33,
-        "grade": 75.62,
-        "player_count": 7,
-        "starter_grade": 77.0,
+        "depth_grade": 68.0,
+        "grade": 72.92,
+        "player_count": 6,
+        "starter_grade": 74.0,
         "top_players": [
-          {
-            "name": "D.J. Reader",
-            "overall": 84.0,
-            "position": "DL"
-          },
           {
             "name": "Shelby Harris",
             "overall": 77.0,
@@ -5580,6 +5560,11 @@
           {
             "name": "Darius Alexander",
             "overall": 72.0,
+            "position": "DL"
+          },
+          {
+            "name": "Leki Fotu",
+            "overall": 70.0,
             "position": "DL"
           }
         ]
@@ -6027,24 +6012,19 @@
   "Philadelphia Eagles": {
     "player_count": 56,
     "prediction_influence_enabled": false,
-    "roster_grade": 82.34,
+    "roster_grade": 82.07,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 71.33,
-        "grade": 79.67,
+        "depth_grade": 69.67,
+        "grade": 77.73,
         "player_count": 7,
-        "starter_grade": 81.5,
+        "starter_grade": 79.5,
         "top_players": [
           {
             "name": "Jalen Carter",
             "overall": 90.0,
-            "position": "DL"
-          },
-          {
-            "name": "Byron Young",
-            "overall": 82.0,
             "position": "DL"
           },
           {
@@ -6060,6 +6040,11 @@
           {
             "name": "Moro Ojomo",
             "overall": 74.0,
+            "position": "DL"
+          },
+          {
+            "name": "Ty Robinson",
+            "overall": 71.0,
             "position": "DL"
           }
         ]
@@ -6270,9 +6255,9 @@
     }
   },
   "Pittsburgh Steelers": {
-    "player_count": 51,
+    "player_count": 50,
     "prediction_influence_enabled": false,
-    "roster_grade": 79.03,
+    "roster_grade": 78.55,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -6398,16 +6383,11 @@
       },
       "receiving_weapons": {
         "data_status": "complete",
-        "depth_grade": 69.67,
-        "grade": 79.58,
-        "player_count": 7,
-        "starter_grade": 81.75,
+        "depth_grade": 69.0,
+        "grade": 76.38,
+        "player_count": 6,
+        "starter_grade": 78.0,
         "top_players": [
-          {
-            "name": "D.K. Metcalf",
-            "overall": 86.0,
-            "position": "WR"
-          },
           {
             "name": "Michael Pittman Jr",
             "overall": 83.0,
@@ -6426,6 +6406,11 @@
           {
             "name": "Roman Wilson",
             "overall": 71.0,
+            "position": "WR"
+          },
+          {
+            "name": "Ben Skowronek",
+            "overall": 70.0,
             "position": "WR"
           }
         ]
@@ -6762,19 +6747,24 @@
   "Seattle Seahawks": {
     "player_count": 59,
     "prediction_influence_enabled": false,
-    "roster_grade": 77.89,
+    "roster_grade": 78.21,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 65.0,
-        "grade": 75.25,
-        "player_count": 6,
-        "starter_grade": 77.5,
+        "depth_grade": 66.0,
+        "grade": 77.68,
+        "player_count": 7,
+        "starter_grade": 80.25,
         "top_players": [
           {
             "name": "Leonard Williams",
             "overall": 87.0,
+            "position": "DL"
+          },
+          {
+            "name": "Byron Murphy II",
+            "overall": 79.0,
             "position": "DL"
           },
           {
@@ -6789,11 +6779,6 @@
           },
           {
             "name": "Mike Morris",
-            "overall": 68.0,
-            "position": "DL"
-          },
-          {
-            "name": "Rylie Mills",
             "overall": 68.0,
             "position": "DL"
           }
@@ -6888,9 +6873,9 @@
       },
       "receiving_weapons": {
         "data_status": "complete",
-        "depth_grade": 70.67,
-        "grade": 80.37,
-        "player_count": 11,
+        "depth_grade": 69.67,
+        "grade": 80.19,
+        "player_count": 10,
         "starter_grade": 82.5,
         "top_players": [
           {
@@ -6914,8 +6899,8 @@
             "position": "WR"
           },
           {
-            "name": "A.J. Barner",
-            "overall": 72.0,
+            "name": "Elijah Arroyo",
+            "overall": 70.0,
             "position": "TE"
           }
         ]
@@ -7252,7 +7237,7 @@
   "Tennessee Titans": {
     "player_count": 53,
     "prediction_influence_enabled": false,
-    "roster_grade": 74.61,
+    "roster_grade": 74.48,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -7441,18 +7426,13 @@
       },
       "secondary": {
         "data_status": "complete",
-        "depth_grade": 69.5,
-        "grade": 75.44,
+        "depth_grade": 68.25,
+        "grade": 74.4,
         "player_count": 10,
-        "starter_grade": 76.75,
+        "starter_grade": 75.75,
         "top_players": [
           {
             "name": "Amani Hooker",
-            "overall": 78.0,
-            "position": "DB"
-          },
-          {
-            "name": "Cor'Dale Flott",
             "overall": 78.0,
             "position": "DB"
           },
@@ -7469,6 +7449,11 @@
           {
             "name": "Joshua Williams",
             "overall": 74.0,
+            "position": "DB"
+          },
+          {
+            "name": "Kevin Winston Jr",
+            "overall": 71.0,
             "position": "DB"
           }
         ]
@@ -7495,23 +7480,18 @@
     }
   },
   "Washington Commanders": {
-    "player_count": 55,
+    "player_count": 53,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.28,
+    "roster_grade": 78.0,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
         "data_status": "complete",
-        "depth_grade": 73.5,
-        "grade": 77.39,
-        "player_count": 10,
-        "starter_grade": 78.25,
+        "depth_grade": 72.5,
+        "grade": 75.37,
+        "player_count": 8,
+        "starter_grade": 76.0,
         "top_players": [
-          {
-            "name": "Da'Ron Payne",
-            "overall": 84.0,
-            "position": "DL"
-          },
           {
             "name": "Dorance Armstrong",
             "overall": 79.0,
@@ -7530,6 +7510,11 @@
           {
             "name": "Jer'Zhan Newton",
             "overall": 75.0,
+            "position": "DL"
+          },
+          {
+            "name": "Drake Jackson",
+            "overall": 73.0,
             "position": "DL"
           }
         ]
