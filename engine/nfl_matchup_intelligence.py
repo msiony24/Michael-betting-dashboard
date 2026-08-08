@@ -143,10 +143,23 @@ def _question_answers(
         qb = _num(comps[team].get("quarterback"))
         pass_margin = matchup_margin(team, "passing attack vs secondary")
         composite = (qb - _num(comps[opp].get("quarterback"))) * 0.45 + pass_margin * 0.55
+        qb_gap = qb - _num(comps[opp].get("quarterback"))
+        if qb_gap >= 4:
+            qb_read = "has the stronger starting quarterback"
+        elif qb_gap <= -4:
+            qb_read = "is at a quarterback disadvantage"
+        else:
+            qb_read = "is close enough at quarterback that this is not a major talent mismatch"
+        if pass_margin >= 4:
+            matchup_read = "The passing matchup is favorable against this secondary."
+        elif pass_margin <= -4:
+            matchup_read = "The opposing secondary creates a difficult passing matchup."
+        else:
+            matchup_read = "The passing matchup itself is fairly balanced."
         q1["answers_by_team"][team] = {
             "answer": _answer_label(composite),
             "score": round(composite, 1),
-            "reason": f"{team}'s QB grade is {qb:.1f}; its passing matchup versus {opp}'s secondary is {pass_margin:+.1f} rating points.",
+            "reason": f"{team} {qb_read}. {matchup_read}",
         }
     questions.append(q1)
 
@@ -155,9 +168,21 @@ def _question_answers(
         protection = matchup_margin(team, "pass protection vs defensive front")
         run = matchup_margin(team, "run game vs front seven")
         composite = protection * 0.60 + run * 0.40
+        if protection >= 4:
+            protection_read = "The offensive line should hold up well in pass protection."
+        elif protection <= -4:
+            protection_read = "Pass protection is a real concern against this front."
+        else:
+            protection_read = "Pass protection looks competitive rather than one-sided."
+        if run >= 4:
+            run_read = "There should also be room to create rushing lanes."
+        elif run <= -4:
+            run_read = "Creating consistent rushing lanes could be difficult."
+        else:
+            run_read = "The run-blocking matchup is close."
         q2["answers_by_team"][team] = {
             "answer": _answer_label(composite), "score": round(composite, 1),
-            "reason": f"Pass protection grades {protection:+.1f} versus the opponent front and the run-game trench matchup grades {run:+.1f}.",
+            "reason": f"{protection_read} {run_read}",
         }
     questions.append(q2)
 
@@ -167,18 +192,32 @@ def _question_answers(
         run_m = matchup_margin(team, "run game vs front seven")
         offense = _num(comps[team].get("offense")) - _num(comps[opponent[team]].get("defense"))
         composite = pass_m * 0.45 + run_m * 0.25 + offense * 0.30
+        positives = sum(v >= 4 for v in (pass_m, run_m, offense))
+        negatives = sum(v <= -4 for v in (pass_m, run_m, offense))
+        if positives >= 2:
+            read = "The offense has multiple workable ways to move the ball rather than depending on one matchup."
+        elif negatives >= 2:
+            read = "The offense is facing resistance in more than one area, so sustaining drives may be difficult."
+        else:
+            read = "The offense has a path to success, but the matchup is mixed and execution will matter."
         q3["answers_by_team"][team] = {
             "answer": _answer_label(composite), "score": round(composite, 1),
-            "reason": f"Passing matchup {pass_m:+.1f}, run matchup {run_m:+.1f}, and overall offense-vs-defense baseline {offense:+.1f}.",
+            "reason": read,
         }
     questions.append(q3)
 
     q4 = {"number": 4, "key": "run_defense", "question": "Can this defense stop the run?", "answers_by_team": {}}
     for team in teams:
         opp_run = matchup_margin(opponent[team], "run game vs front seven")
+        if opp_run >= 4:
+            read = f"{opponent[team]} has a meaningful rushing matchup advantage, so {team}'s run defense has a real challenge."
+        elif opp_run <= -4:
+            read = f"{team}'s front seven has the better matchup and should be able to make the run game work for its yards."
+        else:
+            read = "The run matchup is close; neither side has an obvious trench advantage."
         q4["answers_by_team"][team] = {
             "answer": _answer_label(opp_run, reverse=True), "score": round(-opp_run, 1),
-            "reason": f"The opponent's run-game matchup against {team}'s front seven grades {opp_run:+.1f}; negative is favorable for {team}'s defense.",
+            "reason": read,
         }
     questions.append(q4)
 
@@ -187,9 +226,15 @@ def _question_answers(
         opp_pass = matchup_margin(opponent[team], "passing attack vs secondary")
         opp_prot = matchup_margin(opponent[team], "pass protection vs defensive front")
         composite = -(opp_pass * 0.65 + opp_prot * 0.35)
+        if composite >= 4:
+            read = "The coverage and pass-rush matchup gives this defense a credible way to disrupt the passing game."
+        elif composite <= -4:
+            read = "The opponent has too many favorable pieces in the passing matchup for this to grade as a defensive strength."
+        else:
+            read = "The pass-defense matchup is fairly balanced; pressure and coverage execution should decide it."
         q5["answers_by_team"][team] = {
             "answer": _answer_label(composite), "score": round(composite, 1),
-            "reason": f"Opponent passing-vs-secondary is {opp_pass:+.1f} and opponent protection-vs-front is {opp_prot:+.1f}.",
+            "reason": read,
         }
     questions.append(q5)
 

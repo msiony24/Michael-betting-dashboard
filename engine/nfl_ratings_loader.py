@@ -14,9 +14,9 @@ from engine.nfl_team_quality import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_RATINGS_PATH = PROJECT_ROOT / "data" / "nfl_team_ratings.json"
-DEFAULT_MADDEN_RATINGS_PATH = PROJECT_ROOT / "data" / "madden_27_team_ratings.json"
+DEFAULT_MADDEN_RATINGS_PATH = PROJECT_ROOT / "data" / "nfl" / "team_ratings_auto.json"
 
-DEFAULT_MADDEN_BLEND_WEIGHT = 0.40
+DEFAULT_MADDEN_BLEND_WEIGHT = 1.00
 
 
 REQUIRED_TEAM_FIELDS = {
@@ -163,10 +163,11 @@ def merge_team_ratings(
     madden_weight: float = DEFAULT_MADDEN_BLEND_WEIGHT,
 ) -> Dict[str, dict]:
     """
-    Blend Madden roster grades into existing Macabets team ratings.
+    Merge the audited automated personnel profile into the app-facing team ratings.
 
-    Madden affects player-driven categories. Coaching, continuity, and manual
-    injury/rookie adjustments remain controlled by the existing Macabets file.
+    Player-driven categories use the audited Madden + nflverse automated grades
+    directly by default. The legacy manual file is fallback/context only. Coaching,
+    continuity, and manual injury/rookie adjustments remain controlled there.
     """
     merged: Dict[str, dict] = {}
 
@@ -192,6 +193,9 @@ def merge_team_ratings(
 
         combined = dict(manual_team)
         for category, madden_value in madden_categories.items():
+            # Default weight is 1.0: do not let stale manual player grades dilute
+            # the audited personnel source. A caller can explicitly request a lower
+            # weight for diagnostics, but production uses the automated grade.
             combined[category] = _blend(
                 manual_team.get(category),
                 madden_value,
@@ -227,9 +231,10 @@ def load_all_team_ratings(
     madden_weight: float = DEFAULT_MADDEN_BLEND_WEIGHT,
 ) -> Dict[str, dict]:
     """
-    Load Macabets team ratings and, when available, blend in Madden 27 rosters.
+    Load Macabets team ratings with the audited automated personnel profile as
+    the production source for player-driven categories.
 
-    If the Madden file has not been generated yet, Macabets safely falls back
+    If the automated file has not been generated yet, Macabets safely falls back
     to the existing manual ratings instead of preventing the app from loading.
     """
     manual_ratings = load_manual_team_ratings(ratings_path)

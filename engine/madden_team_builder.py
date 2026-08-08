@@ -255,7 +255,9 @@ def _unit_grade(players: pd.DataFrame, unit_name: str) -> dict:
     )
 
     if unit_name == "quarterback":
-        grade = starter_grade * 0.90 + depth_grade * 0.10
+        # A healthy QB matchup is starter vs starter. Backup quality is retained
+        # separately as depth information but must not dilute the starter's grade.
+        grade = starter_grade
     else:
         grade = starter_grade * 0.82 + depth_grade * 0.18
 
