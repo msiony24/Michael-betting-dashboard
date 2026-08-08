@@ -36,7 +36,7 @@ jobs:
         run: python update_tennis_data.py
 
       - name: Test daily ATP refresh logic
-        run: python -m pytest tests/test_tennis_daily_refresh.py -q
+        run: python -m pytest tests/test_tennis_daily_refresh.py tests/test_tennis_serve_return.py -q
 
       - name: Show tennis freshness
         run: |
