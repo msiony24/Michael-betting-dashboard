@@ -923,11 +923,10 @@ def style_matchup_adjustment(
     if b == "Big Server" and surface_key in {"grass", "carpet"}:
         impact -= 0.008
 
-    if handedness_a != handedness_b and "Left" in {handedness_a, handedness_b}:
-        # Do not assume the left-hander always benefits; record the asymmetry and
-        # apply only a very small adjustment toward the left-handed player.
-        impact += 0.004 if handedness_a == "Left" else -0.004
-        notes.append("Opposite-handed matchup creates a small left-handed asymmetry")
+    # Handedness-specific performance is handled separately by the historical
+    # lefty/righty split engine. Do not apply a generic left-hander bonus here;
+    # that would double-count handedness and assume an effect the player's own
+    # results may not support.
 
     reason = "; ".join(notes) if notes else "No material style interaction detected"
     return float(np.clip(impact, -0.025, 0.025)), reason
@@ -1325,6 +1324,25 @@ def analyze(
     ))
     base = float(np.clip(base + trajectory_adjustment, 0.05, 0.95))
 
+    # Quietly account for each player's verified historical performance against
+    # the opponent's handedness. Small samples are strongly shrunk toward the
+    # player's normal baseline and the matchup effect is capped. This remains an
+    # internal model input rather than a new UI factor.
+    from .tennis_handedness import handedness_matchup_profile
+    handedness_profile_a = handedness_matchup_profile(
+        matches, resolved_a, handedness_b, event_date, surface
+    )
+    handedness_profile_b = handedness_matchup_profile(
+        matches, resolved_b, handedness_a, event_date, surface
+    )
+    handedness_adjustment = float(np.clip(
+        handedness_profile_a.get("adjustment", 0.0)
+        - handedness_profile_b.get("adjustment", 0.0),
+        -0.025,
+        0.025,
+    ))
+    base = float(np.clip(base + handedness_adjustment, 0.05, 0.95))
+
     serve_return_available = all(
         pd.notna(value) for value in (
             pa["serve_points_won"], pb["serve_points_won"],
@@ -1635,6 +1653,13 @@ def analyze(
             "player_a": trajectory_a,
             "player_b": trajectory_b,
             "probability_adjustment_a": trajectory_adjustment,
+        },
+        # Internal diagnostics only. Challenge Macabets can use the same verified
+        # split records through tennis_evidence, while the normal UI stays clean.
+        "handedness_engine": {
+            "player_a_vs_opponent_hand": handedness_profile_a,
+            "player_b_vs_opponent_hand": handedness_profile_b,
+            "probability_adjustment_a": handedness_adjustment,
         },
         "fatigue_resilience_a": fatigue_resilience_a,
         "fatigue_resilience_b": fatigue_resilience_b,
