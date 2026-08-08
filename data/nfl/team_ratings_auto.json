@@ -1,8 +1,9 @@
 {
   "Arizona Cardinals": {
-    "defense_rating": 65.74,
-    "offense_rating": 70.01,
-    "overall_rating": 68.06,
+    "defense_rating": 72.29,
+    "offense_rating": 73.59,
+    "overall_rating": 72.87,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 65,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -11,11 +12,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 69.75,
-        "grade": 63.37,
+        "grade": 69.57,
         "performance_grade": 55.41,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 73.11,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.75,
         "top_players": [
           {
@@ -48,11 +50,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 73.0,
-        "grade": 71.18,
+        "grade": 73.75,
         "performance_grade": 53.23,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 78.88,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -85,11 +88,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.33,
-        "grade": 65.24,
+        "grade": 71.84,
         "performance_grade": 56.74,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.62,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.2,
         "top_players": [
           {
@@ -121,103 +125,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 69.53,
+        "depth_grade": 69.94,
+        "grade": 71.99,
         "performance_grade": 68.41,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 70.9,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 71.0,
+        "roster_grade": 72.89,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 73.22,
         "top_players": [
           {
             "name": "Jacoby Brissett",
             "position": "QB",
-            "rating": 71.0
+            "rating": 73.22
           },
           {
             "name": "Gardner Minshew",
             "position": "QB",
-            "rating": 70.0
+            "rating": 69.94
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.67,
-        "grade": 73.89,
+        "depth_grade": 69.77,
+        "grade": 76.35,
         "performance_grade": 59.06,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 80.24,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.25,
+        "roster_grade": 80.67,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.74,
         "top_players": [
           {
             "name": "Trey McBride",
             "position": "TE",
-            "rating": 94.0
-          },
-          {
-            "name": "Marvin Harrison Jr",
-            "position": "WR",
-            "rating": 79.0
-          },
-          {
-            "name": "Kendrick Bourne",
-            "position": "WR",
-            "rating": 78.0
+            "rating": 93.75
           },
           {
             "name": "Michael Wilson",
             "position": "WR",
-            "rating": 78.0
+            "rating": 79.99
+          },
+          {
+            "name": "Marvin Harrison Jr",
+            "position": "WR",
+            "rating": 79.43
+          },
+          {
+            "name": "Kendrick Bourne",
+            "position": "WR",
+            "rating": 77.8
           },
           {
             "name": "Devin Duvernay",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.87
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 73.5,
-        "grade": 74.46,
+        "depth_grade": 73.72,
+        "grade": 76.57,
         "performance_grade": 59.06,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 81.06,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.5,
+        "roster_grade": 80.95,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.33,
         "top_players": [
           {
             "name": "James Conner",
             "position": "RB",
-            "rating": 84.0
+            "rating": 83.68
           },
           {
             "name": "Tyler Allgeier",
             "position": "RB",
-            "rating": 81.0
+            "rating": 80.98
           },
           {
             "name": "Trey Benson",
             "position": "RB",
-            "rating": 77.0
+            "rating": 76.8
           },
           {
             "name": "Bam Knight",
             "position": "RB",
-            "rating": 70.0
+            "rating": 70.63
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.67,
-        "grade": 64.62,
+        "grade": 73.87,
         "performance_grade": 52.73,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.15,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.2,
         "top_players": [
           {
@@ -250,11 +258,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 70.0,
-        "grade": 61.04,
+        "grade": 69.15,
         "performance_grade": 50.62,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 73.78,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.5,
         "top_players": [
           {
@@ -277,9 +286,10 @@
     }
   },
   "Atlanta Falcons": {
-    "defense_rating": 73.37,
-    "offense_rating": 73.07,
-    "overall_rating": 72.91,
+    "defense_rating": 75.12,
+    "offense_rating": 75.81,
+    "overall_rating": 75.39,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 56,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -288,11 +298,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 66.75,
-        "grade": 70.59,
+        "grade": 71.62,
         "performance_grade": 69.26,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 72.21,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.25,
         "top_players": [
           {
@@ -325,11 +336,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 71.67,
-        "grade": 74.59,
+        "grade": 75.39,
         "performance_grade": 68.98,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 76.99,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 78.0,
         "top_players": [
           {
@@ -362,11 +374,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 77.21,
+        "grade": 78.8,
         "performance_grade": 75.16,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.71,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.2,
         "top_players": [
           {
@@ -398,103 +411,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 75.0,
-        "grade": 68.05,
+        "depth_grade": 75.07,
+        "grade": 72.71,
         "performance_grade": 62.37,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 75.0,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 75.0,
+        "roster_grade": 75.29,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 75.31,
         "top_players": [
-          {
-            "name": "Michael Penix Jr",
-            "position": "QB",
-            "rating": 75.0
-          },
           {
             "name": "Tua Tagovailoa",
             "position": "QB",
-            "rating": 75.0
+            "rating": 75.31
+          },
+          {
+            "name": "Michael Penix Jr",
+            "position": "QB",
+            "rating": 75.07
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 73.26,
+        "depth_grade": 68.03,
+        "grade": 75.07,
         "performance_grade": 63.98,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 77.24,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.0,
+        "roster_grade": 77.84,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.71,
         "top_players": [
           {
             "name": "Drake London",
             "position": "WR",
-            "rating": 91.0
+            "rating": 90.68
           },
           {
             "name": "Kyle Pitts Sr",
             "position": "TE",
-            "rating": 78.0
+            "rating": 80.61
           },
           {
             "name": "Jahan Dotson",
             "position": "WR",
-            "rating": 74.0
-          },
-          {
-            "name": "Austin Hooper",
-            "position": "TE",
-            "rating": 73.0
+            "rating": 73.91
           },
           {
             "name": "Olamide Zaccheaus",
             "position": "WR",
-            "rating": 73.0
+            "rating": 73.62
+          },
+          {
+            "name": "Austin Hooper",
+            "position": "TE",
+            "rating": 73.19
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 67.5,
-        "grade": 77.62,
+        "depth_grade": 67.44,
+        "grade": 79.38,
         "performance_grade": 63.98,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 83.46,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 86.5,
+        "roster_grade": 83.23,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 86.24,
         "top_players": [
           {
             "name": "Bijan Robinson",
             "position": "RB",
-            "rating": 94.0
+            "rating": 93.81
           },
           {
             "name": "Brian Robinson Jr",
             "position": "RB",
-            "rating": 79.0
+            "rating": 78.67
           },
           {
             "name": "Tyler Goodson",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.93
           },
           {
             "name": "Nate Carter",
             "position": "RB",
-            "rating": 67.0
+            "rating": 66.94
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 72.67,
-        "grade": 75.14,
+        "grade": 78.12,
         "performance_grade": 71.3,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.83,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.2,
         "top_players": [
           {
@@ -527,11 +544,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 64.0,
-        "grade": 69.46,
+        "grade": 74.27,
         "performance_grade": 63.28,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 77.02,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.5,
         "top_players": [
           {
@@ -554,9 +572,10 @@
     }
   },
   "Baltimore Ravens": {
-    "defense_rating": 72.94,
-    "offense_rating": 76.17,
-    "overall_rating": 75.1,
+    "defense_rating": 78.52,
+    "offense_rating": 80.5,
+    "overall_rating": 79.7,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 48,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -565,11 +584,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 71.33,
-        "grade": 73.55,
+        "grade": 79.84,
         "performance_grade": 65.46,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 83.44,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 85.75,
         "top_players": [
           {
@@ -602,11 +622,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 72.67,
-        "grade": 76.11,
+        "grade": 77.67,
         "performance_grade": 65.18,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 80.79,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 82.33,
         "top_players": [
           {
@@ -639,11 +660,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 64.67,
-        "grade": 68.42,
+        "grade": 72.41,
         "performance_grade": 63.28,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 74.69,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.6,
         "top_players": [
           {
@@ -675,98 +697,102 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 79.22,
+        "depth_grade": 67.99,
+        "grade": 87.77,
         "performance_grade": 66.3,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 95.0,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 98.0,
+        "roster_grade": 93.14,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 95.93,
         "top_players": [
           {
             "name": "Lamar Jackson",
             "position": "QB",
-            "rating": 98.0
+            "rating": 95.93
           },
           {
             "name": "Tyler Huntley",
             "position": "QB",
-            "rating": 68.0
+            "rating": 67.99
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.5,
-        "grade": 78.43,
+        "depth_grade": 70.44,
+        "grade": 79.1,
         "performance_grade": 73.9,
+        "performance_weight": 0.2,
         "player_count": 6,
-        "roster_grade": 80.37,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.25,
+        "roster_grade": 80.4,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.29,
         "top_players": [
           {
             "name": "Mark Andrews",
             "position": "TE",
-            "rating": 90.0
+            "rating": 89.78
           },
           {
             "name": "Zay Flowers",
             "position": "WR",
-            "rating": 87.0
+            "rating": 87.8
           },
           {
             "name": "Rashod Bateman",
             "position": "WR",
-            "rating": 81.0
+            "rating": 80.62
           },
           {
             "name": "Devontez Walker",
             "position": "WR",
-            "rating": 71.0
+            "rating": 70.97
           },
           {
             "name": "Durham Smythe",
             "position": "TE",
-            "rating": 71.0
+            "rating": 70.89
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 80.65,
+        "depth_grade": 67.98,
+        "grade": 81.05,
         "performance_grade": 73.9,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 83.54,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 86.5,
+        "roster_grade": 82.84,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 85.66,
         "top_players": [
           {
             "name": "Derrick Henry",
             "position": "RB",
-            "rating": 96.0
+            "rating": 94.36
           },
           {
             "name": "Justice Hill",
             "position": "RB",
-            "rating": 77.0
+            "rating": 76.97
           },
           {
             "name": "Rasheen Ali",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.98
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 70.67,
-        "grade": 70.48,
+        "grade": 77.83,
         "performance_grade": 61.03,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.03,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.2,
         "top_players": [
           {
@@ -799,11 +825,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 73.5,
-        "grade": 77.16,
+        "grade": 74.83,
         "performance_grade": 80.16,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 73.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.5,
         "top_players": [
           {
@@ -821,9 +848,10 @@
     }
   },
   "Buffalo Bills": {
-    "defense_rating": 74.65,
-    "offense_rating": 82.57,
-    "overall_rating": 79.29,
+    "defense_rating": 76.12,
+    "offense_rating": 83.69,
+    "overall_rating": 80.63,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 51,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -832,11 +860,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 68.43,
+        "grade": 74.07,
         "performance_grade": 61.17,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 77.3,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.75,
         "top_players": [
           {
@@ -869,11 +898,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 75.51,
+        "grade": 76.11,
         "performance_grade": 71.37,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 77.29,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 79.0,
         "top_players": [
           {
@@ -906,11 +936,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 76.46,
+        "grade": 77.63,
         "performance_grade": 74.95,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.3,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.2,
         "top_players": [
           {
@@ -943,17 +974,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 60.0,
-        "grade": 88.2,
+        "grade": 90.88,
         "performance_grade": 82.55,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 95.1,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 99.0,
+        "roster_grade": 92.96,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 96.62,
         "top_players": [
           {
             "name": "Josh Allen",
             "position": "QB",
-            "rating": 99.0
+            "rating": 96.62
           },
           {
             "name": "Kyle Allen",
@@ -964,65 +996,67 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.0,
-        "grade": 81.63,
+        "depth_grade": 71.33,
+        "grade": 81.3,
         "performance_grade": 86.34,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 79.61,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 81.25,
+        "roster_grade": 80.04,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.69,
         "top_players": [
           {
             "name": "DJ Moore",
             "position": "WR",
-            "rating": 85.0
+            "rating": 85.35
           },
           {
             "name": "Khalil Shakir",
             "position": "WR",
-            "rating": 82.0
+            "rating": 82.7
           },
           {
             "name": "Dalton Kincaid",
             "position": "TE",
-            "rating": 81.0
+            "rating": 81.41
           },
           {
             "name": "Keon Coleman",
             "position": "WR",
-            "rating": 77.0
+            "rating": 77.31
           },
           {
             "name": "Dawson Knox",
             "position": "TE",
-            "rating": 74.0
+            "rating": 74.81
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 68.5,
-        "grade": 82.38,
+        "depth_grade": 68.64,
+        "grade": 81.86,
         "performance_grade": 86.34,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 80.68,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.0,
+        "roster_grade": 80.74,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.04,
         "top_players": [
           {
             "name": "James Cook III",
             "position": "RB",
-            "rating": 92.0
+            "rating": 92.13
           },
           {
             "name": "Ray Davis",
             "position": "RB",
-            "rating": 74.0
+            "rating": 73.96
           },
           {
             "name": "Ty Johnson",
             "position": "RB",
-            "rating": 73.0
+            "rating": 73.28
           },
           {
             "name": "Ben VanSumeren",
@@ -1034,11 +1068,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 72.67,
-        "grade": 79.73,
+        "grade": 77.98,
         "performance_grade": 81.98,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.98,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.8,
         "top_players": [
           {
@@ -1071,11 +1106,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 73.1,
+        "grade": 74.17,
         "performance_grade": 71.72,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 74.78,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.5,
         "top_players": [
           {
@@ -1098,9 +1134,10 @@
     }
   },
   "Carolina Panthers": {
-    "defense_rating": 69.36,
-    "offense_rating": 69.36,
-    "overall_rating": 69.5,
+    "defense_rating": 74.12,
+    "offense_rating": 73.43,
+    "overall_rating": 73.76,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 55,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -1109,11 +1146,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.5,
-        "grade": 66.2,
+        "grade": 73.27,
         "performance_grade": 57.09,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 77.32,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.0,
         "top_players": [
           {
@@ -1146,11 +1184,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 72.33,
-        "grade": 75.37,
+        "grade": 76.78,
         "performance_grade": 65.46,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.61,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 81.0,
         "top_players": [
           {
@@ -1183,11 +1222,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 65.0,
-        "grade": 72.57,
+        "grade": 76.95,
         "performance_grade": 66.94,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.45,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.2,
         "top_players": [
           {
@@ -1219,77 +1259,80 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 65.78,
+        "depth_grade": 66.92,
+        "grade": 71.7,
         "performance_grade": 59.62,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 73.3,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 74.0,
+        "roster_grade": 74.72,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 75.59,
         "top_players": [
           {
             "name": "Bryce Young",
             "position": "QB",
-            "rating": 74.0
+            "rating": 75.59
           },
           {
             "name": "Kenny Pickett",
             "position": "QB",
-            "rating": 67.0
+            "rating": 66.92
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.0,
-        "grade": 69.37,
+        "depth_grade": 71.23,
+        "grade": 71.48,
         "performance_grade": 57.73,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 74.36,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 75.0,
+        "roster_grade": 74.92,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 75.62,
         "top_players": [
           {
             "name": "Tetairoa McMillan",
             "position": "WR",
-            "rating": 80.0
+            "rating": 81.59
           },
           {
             "name": "Xavier Legette",
             "position": "WR",
-            "rating": 74.0
+            "rating": 74.47
           },
           {
             "name": "Jalen Coker",
             "position": "WR",
-            "rating": 73.0
+            "rating": 73.32
           },
           {
             "name": "John Metchie III",
             "position": "WR",
-            "rating": 73.0
+            "rating": 73.09
           },
           {
             "name": "Tommy Tremble",
             "position": "TE",
-            "rating": 72.0
+            "rating": 72.39
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 71.0,
-        "grade": 72.31,
+        "depth_grade": 70.89,
+        "grade": 74.32,
         "performance_grade": 57.73,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 78.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.0,
+        "roster_grade": 78.47,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.91,
         "top_players": [
           {
             "name": "Chuba Hubbard",
             "position": "RB",
-            "rating": 84.0
+            "rating": 83.82
           },
           {
             "name": "Jonathon Brooks",
@@ -1299,18 +1342,19 @@
           {
             "name": "Trevor Etienne",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.89
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 68.6,
+        "grade": 73.28,
         "performance_grade": 62.58,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.95,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.4,
         "top_players": [
           {
@@ -1343,11 +1387,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 74.0,
-        "grade": 74.65,
+        "grade": 75.84,
         "performance_grade": 73.12,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 76.52,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.0,
         "top_players": [
           {
@@ -1370,9 +1415,10 @@
     }
   },
   "Chicago Bears": {
-    "defense_rating": 68.68,
-    "offense_rating": 76.76,
-    "overall_rating": 73.31,
+    "defense_rating": 73.62,
+    "offense_rating": 77.45,
+    "overall_rating": 75.82,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 50,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -1381,11 +1427,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 70.25,
-        "grade": 67.62,
+        "grade": 73.84,
         "performance_grade": 59.62,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.39,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.75,
         "top_players": [
           {
@@ -1418,11 +1465,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 71.91,
+        "grade": 73.24,
         "performance_grade": 62.58,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 75.91,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 77.67,
         "top_players": [
           {
@@ -1455,11 +1503,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.67,
-        "grade": 82.6,
+        "grade": 79.68,
         "performance_grade": 86.34,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.02,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.8,
         "top_players": [
           {
@@ -1492,17 +1541,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 70.51,
+        "grade": 74.78,
         "performance_grade": 67.08,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 74.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 76.0,
+        "roster_grade": 76.71,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 78.23,
         "top_players": [
           {
             "name": "Caleb Williams",
             "position": "QB",
-            "rating": 76.0
+            "rating": 78.23
           },
           {
             "name": "Case Keenum",
@@ -1513,65 +1563,67 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.33,
-        "grade": 78.59,
+        "depth_grade": 70.98,
+        "grade": 78.43,
         "performance_grade": 81.35,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 77.4,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.75,
+        "roster_grade": 77.7,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.98,
         "top_players": [
           {
             "name": "Rome Odunze",
             "position": "WR",
-            "rating": 83.0
+            "rating": 83.29
           },
           {
             "name": "Cole Kmet",
             "position": "TE",
-            "rating": 79.0
+            "rating": 79.14
           },
           {
             "name": "Luther Burden III",
             "position": "WR",
-            "rating": 78.0
+            "rating": 78.5
           },
           {
             "name": "Kalif Raymond",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.99
           },
           {
             "name": "Colston Loveland",
             "position": "TE",
-            "rating": 72.0
+            "rating": 74.17
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 77.52,
+        "depth_grade": 69.98,
+        "grade": 77.96,
         "performance_grade": 81.35,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 75.88,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 77.0,
+        "roster_grade": 77.11,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.47,
         "top_players": [
           {
             "name": "D'Andre Swift",
             "position": "RB",
-            "rating": 82.0
+            "rating": 83.47
           },
           {
             "name": "Kyle Monangai",
             "position": "RB",
-            "rating": 72.0
+            "rating": 73.46
           },
           {
             "name": "Roschon Johnson",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.97
           },
           {
             "name": "Salvon Ahmed",
@@ -1583,11 +1635,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 67.7,
+        "grade": 73.66,
         "performance_grade": 60.05,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.06,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.6,
         "top_players": [
           {
@@ -1620,11 +1673,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 76.5,
-        "grade": 68.46,
+        "grade": 73.58,
         "performance_grade": 61.88,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 76.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.5,
         "top_players": [
           {
@@ -1642,9 +1696,10 @@
     }
   },
   "Cincinnati Bengals": {
-    "defense_rating": 64.6,
-    "offense_rating": 76.48,
-    "overall_rating": 72.12,
+    "defense_rating": 72.15,
+    "offense_rating": 79.57,
+    "overall_rating": 76.8,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 50,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -1653,11 +1708,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 70.5,
-        "grade": 66.14,
+        "grade": 76.4,
         "performance_grade": 52.95,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.26,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.5,
         "top_players": [
           {
@@ -1690,11 +1746,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 65.0,
-        "grade": 66.65,
+        "grade": 68.53,
         "performance_grade": 53.51,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 72.28,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 73.67,
         "top_players": [
           {
@@ -1727,11 +1784,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 75.37,
+        "grade": 73.78,
         "performance_grade": 77.41,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 72.87,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.8,
         "top_players": [
           {
@@ -1763,98 +1821,102 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 72.0,
-        "grade": 78.12,
+        "depth_grade": 72.86,
+        "grade": 86.43,
         "performance_grade": 65.46,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 93.6,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 96.0,
+        "roster_grade": 91.67,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 93.76,
         "top_players": [
           {
             "name": "Joe Burrow",
             "position": "QB",
-            "rating": 96.0
+            "rating": 93.76
           },
           {
             "name": "Joe Flacco",
             "position": "QB",
-            "rating": 72.0
+            "rating": 72.86
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.33,
-        "grade": 76.74,
+        "depth_grade": 70.3,
+        "grade": 78.36,
         "performance_grade": 65.39,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 81.6,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.75,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.76,
         "top_players": [
           {
             "name": "Ja'Marr Chase",
             "position": "WR",
-            "rating": 99.0
+            "rating": 97.94
           },
           {
             "name": "Tee Higgins",
             "position": "WR",
-            "rating": 87.0
+            "rating": 87.19
           },
           {
             "name": "Mike Gesicki",
             "position": "TE",
-            "rating": 78.0
+            "rating": 78.13
           },
           {
             "name": "Andrei Iosivas",
             "position": "WR",
-            "rating": 71.0
+            "rating": 71.77
           },
           {
             "name": "Mitchell Tinsley",
             "position": "WR",
-            "rating": 71.0
+            "rating": 70.93
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 71.0,
-        "grade": 73.73,
+        "depth_grade": 70.87,
+        "grade": 75.57,
         "performance_grade": 65.39,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 77.3,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.5,
+        "roster_grade": 78.11,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.49,
         "top_players": [
           {
             "name": "Chase Brown",
             "position": "RB",
-            "rating": 80.0
+            "rating": 81.97
           },
           {
             "name": "Samaje Perine",
             "position": "RB",
-            "rating": 77.0
+            "rating": 77.01
           },
           {
             "name": "Tahj Brooks",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.87
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 61.98,
+        "grade": 70.49,
         "performance_grade": 51.05,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.35,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.0,
         "top_players": [
           {
@@ -1887,11 +1949,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 75.8,
+        "grade": 74.6,
         "performance_grade": 77.34,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 73.92,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.0,
         "top_players": [
           {
@@ -1914,9 +1977,10 @@
     }
   },
   "Cleveland Browns": {
-    "defense_rating": 80.39,
-    "offense_rating": 62.37,
-    "overall_rating": 68.76,
+    "defense_rating": 78.18,
+    "offense_rating": 68.59,
+    "overall_rating": 72.0,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 53,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -1925,11 +1989,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 80.97,
+        "grade": 76.46,
         "performance_grade": 86.77,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 73.88,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.25,
         "top_players": [
           {
@@ -1962,11 +2027,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 71.33,
-        "grade": 81.59,
+        "grade": 81.72,
         "performance_grade": 80.72,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 81.97,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 84.0,
         "top_players": [
           {
@@ -1999,11 +2065,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.33,
-        "grade": 63.8,
+        "grade": 71.96,
         "performance_grade": 53.3,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.63,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.4,
         "top_players": [
           {
@@ -2035,12 +2102,13 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 56.53,
+        "depth_grade": 68.24,
+        "grade": 64.42,
         "performance_grade": 46.41,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 68.9,
-        "source": "45% roster + 55% live performance",
+        "roster_grade": 68.92,
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 69.0,
         "top_players": [
           {
@@ -2051,71 +2119,73 @@
           {
             "name": "Dillon Gabriel",
             "position": "QB",
-            "rating": 68.0
+            "rating": 68.24
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 66.53,
+        "depth_grade": 69.01,
+        "grade": 69.76,
         "performance_grade": 48.02,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 74.46,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 75.5,
+        "roster_grade": 75.19,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 76.37,
         "top_players": [
           {
             "name": "Jerry Jeudy",
             "position": "WR",
-            "rating": 83.0
-          },
-          {
-            "name": "Cedric Tillman",
-            "position": "WR",
-            "rating": 74.0
+            "rating": 83.23
           },
           {
             "name": "Harold Fannin Jr",
             "position": "TE",
-            "rating": 74.0
+            "rating": 77.31
+          },
+          {
+            "name": "Cedric Tillman",
+            "position": "WR",
+            "rating": 74.02
           },
           {
             "name": "Tylan Wallace",
             "position": "WR",
-            "rating": 71.0
+            "rating": 70.9
           },
           {
             "name": "Isaiah Bond",
             "position": "WR",
-            "rating": 69.0
+            "rating": 69.24
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 68.5,
-        "grade": 67.36,
+        "depth_grade": 68.48,
+        "grade": 70.43,
         "performance_grade": 48.02,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 75.64,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 77.0,
+        "roster_grade": 76.03,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.47,
         "top_players": [
           {
             "name": "Quinshon Judkins",
             "position": "RB",
-            "rating": 80.0
+            "rating": 80.88
           },
           {
             "name": "Dylan Sampson",
             "position": "RB",
-            "rating": 74.0
+            "rating": 74.06
           },
           {
             "name": "Raheim Sanders",
             "position": "RB",
-            "rating": 69.0
+            "rating": 68.97
           },
           {
             "name": "Michael Burton",
@@ -2127,11 +2197,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 63.67,
-        "grade": 79.15,
+        "grade": 77.6,
         "performance_grade": 81.14,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.71,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.2,
         "top_players": [
           {
@@ -2164,11 +2235,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 58.0,
-        "grade": 58.24,
+        "grade": 67.44,
         "performance_grade": 46.41,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 72.7,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.5,
         "top_players": [
           {
@@ -2191,9 +2263,10 @@
     }
   },
   "Dallas Cowboys": {
-    "defense_rating": 65.14,
-    "offense_rating": 81.08,
-    "overall_rating": 75.28,
+    "defense_rating": 72.66,
+    "offense_rating": 81.6,
+    "overall_rating": 78.42,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 56,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -2202,11 +2275,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 71.25,
-        "grade": 68.03,
+        "grade": 75.56,
         "performance_grade": 58.36,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.86,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.5,
         "top_players": [
           {
@@ -2239,11 +2313,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 64.5,
-        "grade": 65.2,
+        "grade": 67.81,
         "performance_grade": 46.9,
+        "performance_weight": 0.2,
         "player_count": 5,
         "roster_grade": 73.04,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 74.67,
         "top_players": [
           {
@@ -2276,11 +2351,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 66.33,
-        "grade": 76.34,
+        "grade": 75.67,
         "performance_grade": 77.2,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.29,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.0,
         "top_players": [
           {
@@ -2312,103 +2388,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 85.47,
+        "depth_grade": 67.95,
+        "grade": 86.98,
         "performance_grade": 82.83,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 88.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 91.0,
+        "roster_grade": 88.02,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 90.25,
         "top_players": [
           {
             "name": "Dak Prescott",
             "position": "QB",
-            "rating": 91.0
+            "rating": 90.25
           },
           {
             "name": "Joe Milton III",
             "position": "QB",
-            "rating": 68.0
+            "rating": 67.95
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.33,
-        "grade": 81.95,
+        "depth_grade": 71.58,
+        "grade": 82.63,
         "performance_grade": 79.45,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 83.02,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 85.25,
+        "roster_grade": 83.42,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 85.67,
         "top_players": [
           {
             "name": "CeeDee Lamb",
             "position": "WR",
-            "rating": 95.0
+            "rating": 94.1
           },
           {
             "name": "George Pickens",
             "position": "WR",
-            "rating": 86.0
+            "rating": 87.02
           },
           {
             "name": "Jake Ferguson",
             "position": "TE",
-            "rating": 84.0
+            "rating": 85.4
           },
           {
             "name": "KaVontae Turpin",
             "position": "WR",
-            "rating": 76.0
+            "rating": 76.18
           },
           {
-            "name": "Jonathan Mingo",
+            "name": "Ryan Flournoy",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.88
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 77.54,
+        "depth_grade": 69.91,
+        "grade": 77.63,
         "performance_grade": 79.45,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 76.72,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.0,
+        "roster_grade": 77.18,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.56,
         "top_players": [
           {
             "name": "Javonte Williams",
             "position": "RB",
-            "rating": 84.0
+            "rating": 85.17
           },
           {
             "name": "Hunter Luepke",
             "position": "RB",
-            "rating": 72.0
+            "rating": 71.95
           },
           {
             "name": "Jaydon Blue",
             "position": "RB",
-            "rating": 72.0
+            "rating": 71.86
           },
           {
             "name": "Phil Mafah",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.97
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.33,
-        "grade": 62.51,
+        "grade": 72.96,
         "performance_grade": 49.08,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.93,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -2441,11 +2521,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 73.0,
-        "grade": 80.51,
+        "grade": 81.88,
         "performance_grade": 78.75,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 82.66,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.5,
         "top_players": [
           {
@@ -2468,9 +2549,10 @@
     }
   },
   "Denver Broncos": {
-    "defense_rating": 81.75,
-    "offense_rating": 77.98,
-    "overall_rating": 78.85,
+    "defense_rating": 79.0,
+    "offense_rating": 79.35,
+    "overall_rating": 78.86,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 56,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -2479,11 +2561,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 64.67,
-        "grade": 81.02,
+        "grade": 76.94,
         "performance_grade": 86.27,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 74.61,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.5,
         "top_players": [
           {
@@ -2516,11 +2599,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 72.67,
-        "grade": 81.51,
+        "grade": 81.27,
         "performance_grade": 83.18,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 80.79,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 82.33,
         "top_players": [
           {
@@ -2553,11 +2637,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.67,
-        "grade": 82.18,
+        "grade": 81.68,
         "performance_grade": 82.83,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 81.39,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.0,
         "top_players": [
           {
@@ -2590,17 +2675,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 62.0,
-        "grade": 74.79,
+        "grade": 77.94,
         "performance_grade": 72.0,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 78.2,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 80.0,
+        "roster_grade": 79.42,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 81.35,
         "top_players": [
           {
             "name": "Bo Nix",
             "position": "QB",
-            "rating": 80.0
+            "rating": 81.35
           },
           {
             "name": "Jarrett Stidham",
@@ -2611,81 +2697,84 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 72.33,
-        "grade": 78.27,
+        "depth_grade": 72.87,
+        "grade": 79.52,
         "performance_grade": 73.2,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 80.45,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.0,
+        "roster_grade": 81.1,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.67,
         "top_players": [
           {
             "name": "Courtland Sutton",
             "position": "WR",
-            "rating": 86.0
+            "rating": 86.67
           },
           {
             "name": "Jaylen Waddle",
             "position": "WR",
-            "rating": 85.0
+            "rating": 85.68
           },
           {
             "name": "Evan Engram",
             "position": "TE",
-            "rating": 80.0
-          },
-          {
-            "name": "Marvin Mims Jr",
-            "position": "WR",
-            "rating": 77.0
+            "rating": 80.56
           },
           {
             "name": "Troy Franklin",
             "position": "WR",
-            "rating": 76.0
+            "rating": 77.78
+          },
+          {
+            "name": "Marvin Mims Jr",
+            "position": "WR",
+            "rating": 77.07
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 70.5,
-        "grade": 76.89,
+        "depth_grade": 70.45,
+        "grade": 77.7,
         "performance_grade": 73.2,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 78.48,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.0,
+        "roster_grade": 78.83,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 80.43,
         "top_players": [
           {
             "name": "J.K. Dobbins",
             "position": "RB",
-            "rating": 83.0
+            "rating": 82.59
           },
           {
             "name": "RJ Harvey",
             "position": "RB",
-            "rating": 77.0
+            "rating": 78.26
           },
           {
             "name": "Jaleel McLaughlin",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.97
           },
           {
             "name": "Adam Prentice",
             "position": "RB",
-            "rating": 70.0
+            "rating": 69.94
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 82.55,
+        "grade": 79.49,
         "performance_grade": 86.48,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.74,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.6,
         "top_players": [
           {
@@ -2718,11 +2807,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 66.69,
+        "grade": 71.53,
         "performance_grade": 60.47,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 74.3,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.5,
         "top_players": [
           {
@@ -2745,9 +2835,10 @@
     }
   },
   "Detroit Lions": {
-    "defense_rating": 76.71,
-    "offense_rating": 79.59,
-    "overall_rating": 78.79,
+    "defense_rating": 79.09,
+    "offense_rating": 81.14,
+    "overall_rating": 80.38,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 56,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -2756,11 +2847,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 69.75,
-        "grade": 77.42,
+        "grade": 78.95,
         "performance_grade": 75.45,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.83,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.75,
         "top_players": [
           {
@@ -2793,11 +2885,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 76.4,
+        "grade": 77.02,
         "performance_grade": 72.0,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 78.28,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 79.67,
         "top_players": [
           {
@@ -2830,11 +2923,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.67,
-        "grade": 69.66,
+        "grade": 73.8,
         "performance_grade": 64.34,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.17,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.6,
         "top_players": [
           {
@@ -2866,103 +2960,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 84.62,
+        "depth_grade": 66.95,
+        "grade": 85.29,
         "performance_grade": 82.83,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 86.8,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 89.0,
+        "roster_grade": 85.9,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 88.0,
         "top_players": [
           {
             "name": "Jared Goff",
             "position": "QB",
-            "rating": 89.0
+            "rating": 88.0
           },
           {
             "name": "Teddy Bridgewater",
             "position": "QB",
-            "rating": 67.0
+            "rating": 66.95
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 72.67,
-        "grade": 81.75,
+        "depth_grade": 72.61,
+        "grade": 82.2,
         "performance_grade": 79.24,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 82.82,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 84.75,
+        "roster_grade": 82.94,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 84.91,
         "top_players": [
           {
             "name": "Amon-Ra St. Brown",
             "position": "WR",
-            "rating": 96.0
+            "rating": 95.51
           },
           {
             "name": "Sam LaPorta",
             "position": "TE",
-            "rating": 87.0
+            "rating": 86.75
           },
           {
             "name": "Jameson Williams",
             "position": "WR",
-            "rating": 82.0
+            "rating": 83.27
           },
           {
             "name": "Greg Dortch",
             "position": "WR",
-            "rating": 74.0
+            "rating": 74.09
           },
           {
             "name": "Tyler Conklin",
             "position": "TE",
-            "rating": 74.0
+            "rating": 73.88
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 83.61,
+        "depth_grade": 66.98,
+        "grade": 83.93,
         "performance_grade": 79.24,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 85.48,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 89.0,
+        "roster_grade": 85.1,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 88.56,
         "top_players": [
           {
             "name": "Jahmyr Gibbs",
             "position": "RB",
-            "rating": 97.0
+            "rating": 96.33
           },
           {
             "name": "Isiah Pacheco",
             "position": "RB",
-            "rating": 81.0
+            "rating": 80.78
           },
           {
             "name": "Sione Vaki",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.99
           },
           {
             "name": "Jacob Saylors",
             "position": "RB",
-            "rating": 66.0
+            "rating": 65.98
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 74.67,
-        "grade": 76.26,
+        "grade": 80.45,
         "performance_grade": 70.88,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.84,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.4,
         "top_players": [
           {
@@ -2995,11 +3093,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 76.0,
-        "grade": 83.49,
+        "grade": 79.53,
         "performance_grade": 88.59,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 77.26,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.5,
         "top_players": [
           {
@@ -3022,9 +3121,10 @@
     }
   },
   "Green Bay Packers": {
-    "defense_rating": 72.19,
-    "offense_rating": 80.1,
-    "overall_rating": 76.97,
+    "defense_rating": 75.35,
+    "offense_rating": 79.51,
+    "overall_rating": 77.73,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 49,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -3033,11 +3133,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 67.0,
-        "grade": 67.97,
+        "grade": 71.9,
         "performance_grade": 62.93,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 74.14,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.5,
         "top_players": [
           {
@@ -3070,11 +3171,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 70.0,
-        "grade": 77.68,
+        "grade": 79.51,
         "performance_grade": 64.9,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 83.16,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 85.67,
         "top_players": [
           {
@@ -3107,11 +3209,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 65.67,
-        "grade": 72.79,
+        "grade": 73.35,
         "performance_grade": 72.07,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 73.67,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.2,
         "top_players": [
           {
@@ -3143,77 +3246,80 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 85.66,
+        "depth_grade": 69.13,
+        "grade": 84.18,
         "performance_grade": 86.77,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 84.3,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 86.0,
+        "roster_grade": 83.53,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 85.13,
         "top_players": [
           {
             "name": "Jordan Love",
             "position": "QB",
-            "rating": 86.0
+            "rating": 85.13
           },
           {
             "name": "Tyrod Taylor",
             "position": "QB",
-            "rating": 69.0
+            "rating": 69.13
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.67,
-        "grade": 80.44,
+        "depth_grade": 70.66,
+        "grade": 79.84,
         "performance_grade": 84.94,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 78.51,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.0,
+        "roster_grade": 78.57,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 80.08,
         "top_players": [
           {
             "name": "Tucker Kraft",
             "position": "TE",
-            "rating": 83.0
+            "rating": 83.28
           },
           {
             "name": "Jayden Reed",
             "position": "WR",
-            "rating": 80.0
+            "rating": 79.78
           },
           {
             "name": "Matthew Golden",
             "position": "WR",
-            "rating": 79.0
+            "rating": 78.73
           },
           {
             "name": "Christian Watson",
             "position": "WR",
-            "rating": 78.0
+            "rating": 78.51
           },
           {
             "name": "Skyy Moore",
             "position": "WR",
-            "rating": 72.0
+            "rating": 71.91
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 66.0,
-        "grade": 80.21,
+        "depth_grade": 66.04,
+        "grade": 79.59,
         "performance_grade": 84.94,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 78.18,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.5,
+        "roster_grade": 78.25,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 80.57,
         "top_players": [
           {
             "name": "Josh Jacobs",
             "position": "RB",
-            "rating": 89.0
+            "rating": 89.14
           },
           {
             "name": "MarShawn Lloyd",
@@ -3223,18 +3329,19 @@
           {
             "name": "Chris Brooks",
             "position": "RB",
-            "rating": 66.0
+            "rating": 66.04
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 72.69,
+        "grade": 75.97,
         "performance_grade": 68.48,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.84,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.4,
         "top_players": [
           {
@@ -3267,11 +3374,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 72.94,
+        "grade": 71.71,
         "performance_grade": 74.53,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 71.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 71.0,
         "top_players": [
           {
@@ -3289,9 +3397,10 @@
     }
   },
   "Houston Texans": {
-    "defense_rating": 81.11,
-    "offense_rating": 72.6,
-    "overall_rating": 75.38,
+    "defense_rating": 79.94,
+    "offense_rating": 75.72,
+    "overall_rating": 77.03,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 59,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -3300,11 +3409,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 67.25,
-        "grade": 80.06,
+        "grade": 79.93,
         "performance_grade": 80.23,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.85,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.25,
         "top_players": [
           {
@@ -3337,11 +3447,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 69.33,
-        "grade": 79.06,
+        "grade": 77.77,
         "performance_grade": 88.03,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 75.21,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 76.33,
         "top_players": [
           {
@@ -3374,11 +3485,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 70.67,
-        "grade": 73.23,
+        "grade": 76.48,
         "performance_grade": 69.05,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.34,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.8,
         "top_players": [
           {
@@ -3410,40 +3522,47 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 65.0,
-        "grade": 71.21,
+        "depth_grade": 65.4,
+        "grade": 75.06,
         "performance_grade": 66.73,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 76.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 78.0,
+        "roster_grade": 77.14,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 78.44,
         "top_players": [
           {
             "name": "C.J. Stroud",
             "position": "QB",
-            "rating": 78.0
+            "rating": 78.44
           },
           {
             "name": "Davis Mills",
             "position": "QB",
-            "rating": 65.0
+            "rating": 65.4
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 72.67,
-        "grade": 73.85,
+        "depth_grade": 72.65,
+        "grade": 76.22,
         "performance_grade": 60.75,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 79.46,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.75,
+        "roster_grade": 80.09,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.51,
         "top_players": [
           {
             "name": "Nico Collins",
             "position": "WR",
-            "rating": 88.0
+            "rating": 88.58
+          },
+          {
+            "name": "Dalton Schultz",
+            "position": "TE",
+            "rating": 81.62
           },
           {
             "name": "Tank Dell",
@@ -3451,57 +3570,54 @@
             "rating": 81.0
           },
           {
-            "name": "Dalton Schultz",
-            "position": "TE",
-            "rating": 80.0
-          },
-          {
             "name": "Jayden Higgins",
             "position": "WR",
-            "rating": 74.0
+            "rating": 74.84
           },
           {
             "name": "Jaylin Noel",
             "position": "WR",
-            "rating": 73.0
+            "rating": 73.17
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 72.59,
+        "depth_grade": 67.9,
+        "grade": 74.79,
         "performance_grade": 60.75,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 77.66,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.5,
+        "roster_grade": 78.3,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 80.28,
         "top_players": [
           {
             "name": "David Montgomery",
             "position": "RB",
-            "rating": 85.0
+            "rating": 84.86
           },
           {
             "name": "Woody Marks",
             "position": "RB",
-            "rating": 74.0
+            "rating": 75.69
           },
           {
             "name": "British Brooks",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.9
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 83.29,
+        "grade": 81.24,
         "performance_grade": 85.92,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 80.07,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.8,
         "top_players": [
           {
@@ -3534,11 +3650,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 65.0,
-        "grade": 64.74,
+        "grade": 70.25,
         "performance_grade": 57.66,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 73.4,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.0,
         "top_players": [
           {
@@ -3561,9 +3678,10 @@
     }
   },
   "Indianapolis Colts": {
-    "defense_rating": 71.46,
-    "offense_rating": 77.91,
-    "overall_rating": 75.45,
+    "defense_rating": 75.96,
+    "offense_rating": 78.53,
+    "overall_rating": 77.52,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 52,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -3572,11 +3690,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 72.5,
-        "grade": 72.82,
+        "grade": 77.83,
         "performance_grade": 66.38,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 80.69,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.25,
         "top_players": [
           {
@@ -3609,11 +3728,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 68.23,
+        "grade": 68.49,
         "performance_grade": 66.45,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 69.0,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 69.0,
         "top_players": [
           {
@@ -3636,11 +3756,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 63.67,
-        "grade": 79.26,
+        "grade": 77.85,
         "performance_grade": 81.07,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.05,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.6,
         "top_players": [
           {
@@ -3672,93 +3793,97 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 76.36,
+        "depth_grade": 68.99,
+        "grade": 78.57,
         "performance_grade": 73.55,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 79.8,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 81.0,
+        "roster_grade": 79.82,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 81.02,
         "top_players": [
           {
             "name": "Daniel Jones",
             "position": "QB",
-            "rating": 81.0
+            "rating": 81.02
           },
           {
             "name": "Anthony Richardson Sr",
             "position": "QB",
-            "rating": 69.0
+            "rating": 68.99
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.0,
-        "grade": 77.25,
+        "depth_grade": 70.95,
+        "grade": 77.95,
         "performance_grade": 75.16,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 78.14,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.5,
+        "roster_grade": 78.65,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 80.12,
         "top_players": [
           {
             "name": "Tyler Warren",
             "position": "TE",
-            "rating": 83.0
+            "rating": 84.7
           },
           {
             "name": "Alec Pierce",
             "position": "WR",
-            "rating": 80.0
+            "rating": 80.79
           },
           {
             "name": "Josh Downs",
             "position": "WR",
-            "rating": 80.0
+            "rating": 80.31
           },
           {
             "name": "Nick Westbrook-Ikhine",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.68
           },
           {
-            "name": "Ashton Dulin",
-            "position": "WR",
+            "name": "Mo Alie-Cox",
+            "position": "TE",
             "rating": 72.0
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 83.0,
-        "grade": 80.65,
+        "depth_grade": 82.77,
+        "grade": 81.25,
         "performance_grade": 75.16,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 83.0,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.0,
+        "roster_grade": 82.77,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.77,
         "top_players": [
           {
             "name": "Jonathan Taylor",
             "position": "RB",
-            "rating": 95.0
+            "rating": 94.73
           },
           {
             "name": "DJ Giddens",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.81
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.67,
-        "grade": 72.17,
+        "grade": 78.75,
         "performance_grade": 63.7,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.51,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.2,
         "top_players": [
           {
@@ -3791,11 +3916,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 75.0,
-        "grade": 76.65,
+        "grade": 77.2,
         "performance_grade": 75.94,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 77.52,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.0,
         "top_players": [
           {
@@ -3818,9 +3944,10 @@
     }
   },
   "Jacksonville Jaguars": {
-    "defense_rating": 75.16,
-    "offense_rating": 73.3,
-    "overall_rating": 74.34,
+    "defense_rating": 74.74,
+    "offense_rating": 75.2,
+    "overall_rating": 75.25,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 47,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -3829,11 +3956,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 66.33,
-        "grade": 71.85,
+        "grade": 75.78,
         "performance_grade": 66.8,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 78.02,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.25,
         "top_players": [
           {
@@ -3866,11 +3994,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 64.0,
-        "grade": 74.08,
+        "grade": 72.4,
         "performance_grade": 85.85,
+        "performance_weight": 0.2,
         "player_count": 5,
         "roster_grade": 69.04,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 70.0,
         "top_players": [
           {
@@ -3903,11 +4032,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 70.06,
+        "grade": 72.59,
         "performance_grade": 66.8,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 74.04,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.0,
         "top_players": [
           {
@@ -3939,40 +4069,42 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 61.0,
-        "grade": 73.92,
+        "depth_grade": 60.99,
+        "grade": 76.4,
         "performance_grade": 72.7,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 75.4,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 77.0,
+        "roster_grade": 77.33,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 79.14,
         "top_players": [
           {
             "name": "Trevor Lawrence",
             "position": "QB",
-            "rating": 77.0
+            "rating": 79.14
           },
           {
             "name": "Nick Mullens",
             "position": "QB",
-            "rating": 61.0
+            "rating": 60.99
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 67.67,
-        "grade": 76.43,
+        "depth_grade": 68.25,
+        "grade": 77.57,
         "performance_grade": 71.72,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 78.45,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.5,
+        "roster_grade": 79.03,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.08,
         "top_players": [
           {
             "name": "Jakobi Meyers",
             "position": "WR",
-            "rating": 82.0
+            "rating": 82.93
           },
           {
             "name": "Travis Hunter",
@@ -3982,60 +4114,62 @@
           {
             "name": "Brian Thomas Jr",
             "position": "WR",
-            "rating": 81.0
+            "rating": 81.54
           },
           {
             "name": "Brenton Strange",
             "position": "TE",
-            "rating": 77.0
+            "rating": 77.84
           },
           {
             "name": "Parker Washington",
             "position": "WR",
-            "rating": 75.0
+            "rating": 76.5
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 72.57,
+        "depth_grade": 70.31,
+        "grade": 72.82,
         "performance_grade": 71.72,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 72.94,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 73.5,
+        "roster_grade": 73.09,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 73.62,
         "top_players": [
           {
             "name": "Bhayshul Tuten",
             "position": "RB",
-            "rating": 75.0
+            "rating": 75.28
           },
           {
             "name": "Ameer Abdullah",
             "position": "RB",
-            "rating": 72.0
+            "rating": 71.96
           },
           {
             "name": "LeQuint Allen",
             "position": "RB",
-            "rating": 71.0
+            "rating": 70.92
           },
           {
             "name": "Chris Rodriguez Jr",
             "position": "RB",
-            "rating": 69.0
+            "rating": 69.69
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 78.79,
+        "grade": 75.21,
         "performance_grade": 83.39,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 73.16,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.4,
         "top_players": [
           {
@@ -4068,11 +4202,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 72.0,
-        "grade": 83.38,
+        "grade": 80.41,
         "performance_grade": 87.19,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 78.72,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -4095,9 +4230,10 @@
     }
   },
   "Kansas City Chiefs": {
-    "defense_rating": 74.28,
-    "offense_rating": 77.44,
-    "overall_rating": 76.1,
+    "defense_rating": 76.36,
+    "offense_rating": 81.38,
+    "overall_rating": 79.43,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 46,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -4106,11 +4242,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 75.31,
+        "grade": 78.05,
         "performance_grade": 71.79,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.61,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.25,
         "top_players": [
           {
@@ -4143,11 +4280,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 75.28,
+        "grade": 75.76,
         "performance_grade": 71.93,
+        "performance_weight": 0.2,
         "player_count": 5,
         "roster_grade": 76.72,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 79.33,
         "top_players": [
           {
@@ -4180,11 +4318,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.0,
-        "grade": 72.52,
+        "grade": 76.81,
         "performance_grade": 67.01,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.26,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.6,
         "top_players": [
           {
@@ -4216,98 +4355,102 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 74.0,
-        "grade": 80.78,
+        "depth_grade": 74.16,
+        "grade": 87.92,
         "performance_grade": 69.4,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 94.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 97.0,
+        "roster_grade": 92.55,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 94.59,
         "top_players": [
           {
             "name": "Patrick Mahomes",
             "position": "QB",
-            "rating": 97.0
+            "rating": 94.59
           },
           {
             "name": "Justin Fields",
             "position": "QB",
-            "rating": 74.0
+            "rating": 74.16
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.67,
-        "grade": 78.77,
+        "depth_grade": 71.57,
+        "grade": 79.6,
         "performance_grade": 73.62,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 80.98,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.75,
+        "roster_grade": 81.1,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.92,
         "top_players": [
           {
             "name": "Travis Kelce",
             "position": "TE",
-            "rating": 92.0
+            "rating": 92.07
           },
           {
             "name": "Rashee Rice",
             "position": "WR",
-            "rating": 84.0
+            "rating": 84.23
           },
           {
             "name": "Xavier Worthy",
             "position": "WR",
-            "rating": 79.0
+            "rating": 79.28
           },
           {
             "name": "Tyquan Thornton",
             "position": "WR",
-            "rating": 76.0
+            "rating": 76.1
           },
           {
             "name": "Noah Gray",
             "position": "TE",
-            "rating": 74.0
+            "rating": 73.82
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 76.38,
+        "depth_grade": 70.1,
+        "grade": 76.69,
         "performance_grade": 73.62,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 77.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.0,
+        "roster_grade": 77.46,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.86,
         "top_players": [
           {
             "name": "Kenneth Walker III",
             "position": "RB",
-            "rating": 88.0
-          },
-          {
-            "name": "Brashard Smith",
-            "position": "RB",
-            "rating": 70.0
+            "rating": 87.6
           },
           {
             "name": "Emari Demercado",
             "position": "RB",
-            "rating": 70.0
+            "rating": 70.12
+          },
+          {
+            "name": "Brashard Smith",
+            "position": "RB",
+            "rating": 70.1
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.33,
-        "grade": 72.75,
+        "grade": 75.19,
         "performance_grade": 69.61,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.58,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.2,
         "top_players": [
           {
@@ -4340,11 +4483,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 75.0,
-        "grade": 71.24,
+        "grade": 75.23,
         "performance_grade": 66.09,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 77.52,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.0,
         "top_players": [
           {
@@ -4367,9 +4511,10 @@
     }
   },
   "Las Vegas Raiders": {
-    "defense_rating": 70.29,
-    "offense_rating": 63.77,
-    "overall_rating": 66.0,
+    "defense_rating": 73.7,
+    "offense_rating": 70.38,
+    "overall_rating": 71.35,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 47,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -4378,11 +4523,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 70.4,
+        "grade": 75.29,
         "performance_grade": 64.12,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.08,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -4415,11 +4561,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 65.67,
-        "grade": 71.08,
+        "grade": 71.98,
         "performance_grade": 64.76,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 73.79,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 75.33,
         "top_players": [
           {
@@ -4452,11 +4599,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 61.65,
+        "grade": 72.63,
         "performance_grade": 47.53,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.91,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.8,
         "top_players": [
           {
@@ -4488,93 +4636,97 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 60.7,
+        "depth_grade": 66.93,
+        "grade": 67.23,
         "performance_grade": 52.59,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 70.6,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 71.0,
+        "roster_grade": 70.89,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 71.33,
         "top_players": [
           {
             "name": "Kirk Cousins",
             "position": "QB",
-            "rating": 71.0
+            "rating": 71.33
           },
           {
             "name": "Aidan O'Connell",
             "position": "QB",
-            "rating": 67.0
+            "rating": 66.93
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 68.8,
+        "depth_grade": 69.88,
+        "grade": 72.18,
         "performance_grade": 47.88,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 77.77,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.25,
+        "roster_grade": 78.26,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.86,
         "top_players": [
           {
             "name": "Brock Bowers",
             "position": "TE",
-            "rating": 91.0
+            "rating": 91.14
           },
           {
             "name": "Tre Tucker",
             "position": "WR",
-            "rating": 78.0
+            "rating": 79.24
           },
           {
             "name": "Jalen Nailor",
             "position": "WR",
-            "rating": 75.0
-          },
-          {
-            "name": "Jack Bech",
-            "position": "WR",
-            "rating": 73.0
+            "rating": 75.5
           },
           {
             "name": "Michael Mayer",
             "position": "TE",
-            "rating": 73.0
+            "rating": 73.54
+          },
+          {
+            "name": "Jack Bech",
+            "position": "WR",
+            "rating": 72.81
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 75.5,
-        "grade": 67.21,
+        "depth_grade": 76.19,
+        "grade": 70.53,
         "performance_grade": 47.88,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 75.5,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 75.5,
+        "roster_grade": 76.19,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 76.19,
         "top_players": [
           {
             "name": "Ashton Jeanty",
             "position": "RB",
-            "rating": 83.0
+            "rating": 84.43
           },
           {
             "name": "Dylan Laube",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.95
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 65.5,
-        "grade": 69.71,
+        "grade": 73.29,
         "performance_grade": 65.11,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 75.33,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.2,
         "top_players": [
           {
@@ -4607,11 +4759,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 60.76,
+        "grade": 65.37,
         "performance_grade": 54.84,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 68.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 68.0,
         "top_players": [
           {
@@ -4629,9 +4782,10 @@
     }
   },
   "Los Angeles Chargers": {
-    "defense_rating": 79.31,
-    "offense_rating": 70.86,
-    "overall_rating": 73.76,
+    "defense_rating": 78.46,
+    "offense_rating": 77.01,
+    "overall_rating": 77.54,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 50,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -4640,11 +4794,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 73.5,
-        "grade": 77.08,
+        "grade": 74.8,
         "performance_grade": 80.02,
+        "performance_weight": 0.2,
         "player_count": 4,
         "roster_grade": 73.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.5,
         "top_players": [
           {
@@ -4672,11 +4827,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 73.0,
-        "grade": 80.05,
+        "grade": 80.13,
         "performance_grade": 79.52,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 80.28,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 81.67,
         "top_players": [
           {
@@ -4709,11 +4865,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 67.48,
+        "grade": 74.41,
         "performance_grade": 58.57,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.37,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.6,
         "top_players": [
           {
@@ -4745,82 +4902,80 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 63.0,
-        "grade": 71.11,
+        "depth_grade": 62.99,
+        "grade": 80.89,
         "performance_grade": 57.87,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 87.3,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 90.0,
+        "roster_grade": 86.65,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 89.28,
         "top_players": [
           {
             "name": "Justin Herbert",
             "position": "QB",
-            "rating": 90.0
+            "rating": 89.28
           },
           {
             "name": "Trey Lance",
             "position": "QB",
-            "rating": 63.0
+            "rating": 62.99
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.67,
-        "grade": 73.9,
+        "depth_grade": 70.69,
+        "grade": 76.21,
         "performance_grade": 60.68,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 79.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 81.25,
+        "roster_grade": 80.09,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.88,
         "top_players": [
           {
             "name": "David Njoku",
             "position": "TE",
-            "rating": 87.0
+            "rating": 86.6
           },
           {
             "name": "Ladd McConkey",
             "position": "WR",
-            "rating": 84.0
+            "rating": 84.52
           },
           {
             "name": "Quentin Johnston",
             "position": "WR",
-            "rating": 80.0
+            "rating": 80.96
           },
           {
             "name": "Oronde Gadsden",
             "position": "TE",
-            "rating": 74.0
+            "rating": 75.46
           },
           {
             "name": "Tre' Harris",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.26
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 73.0,
-        "grade": 71.66,
+        "depth_grade": 73.65,
+        "grade": 73.42,
         "performance_grade": 60.68,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 76.36,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 77.0,
+        "roster_grade": 76.6,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.16,
         "top_players": [
           {
             "name": "Omarion Hampton",
             "position": "RB",
-            "rating": 80.0
-          },
-          {
-            "name": "Alec Ingold",
-            "position": "RB",
-            "rating": 74.0
+            "rating": 80.33
           },
           {
             "name": "Keaton Mitchell",
@@ -4828,20 +4983,26 @@
             "rating": 74.0
           },
           {
+            "name": "Alec Ingold",
+            "position": "RB",
+            "rating": 73.98
+          },
+          {
             "name": "Kimani Vidal",
             "position": "RB",
-            "rating": 72.0
+            "rating": 73.32
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 80.87,
+        "grade": 80.76,
         "performance_grade": 81.0,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 80.7,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.8,
         "top_players": [
           {
@@ -4874,11 +5035,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 81.5,
-        "grade": 66.07,
+        "grade": 75.89,
         "performance_grade": 53.44,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 81.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.5,
         "top_players": [
           {
@@ -4896,9 +5058,10 @@
     }
   },
   "Los Angeles Rams": {
-    "defense_rating": 78.58,
-    "offense_rating": 83.93,
-    "overall_rating": 81.36,
+    "defense_rating": 79.67,
+    "offense_rating": 82.56,
+    "overall_rating": 81.01,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 46,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -4907,11 +5070,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.25,
-        "grade": 81.98,
+        "grade": 83.13,
         "performance_grade": 80.51,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 83.79,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 86.75,
         "top_players": [
           {
@@ -4944,11 +5108,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 77.88,
+        "grade": 77.78,
         "performance_grade": 78.61,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 77.57,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 79.33,
         "top_players": [
           {
@@ -4981,11 +5146,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.33,
-        "grade": 81.1,
+        "grade": 77.29,
         "performance_grade": 85.99,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.12,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.6,
         "top_players": [
           {
@@ -5018,17 +5184,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 87.58,
+        "grade": 87.25,
         "performance_grade": 86.34,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 89.1,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 92.0,
+        "roster_grade": 87.48,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 90.2,
         "top_players": [
           {
             "name": "Matthew Stafford",
             "position": "QB",
-            "rating": 92.0
+            "rating": 90.2
           },
           {
             "name": "Stetson Bennett IV",
@@ -5039,60 +5206,62 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.67,
-        "grade": 82.87,
+        "depth_grade": 70.04,
+        "grade": 82.29,
         "performance_grade": 88.03,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 80.66,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.75,
+        "roster_grade": 80.85,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.91,
         "top_players": [
           {
             "name": "Puka Nacua",
             "position": "WR",
-            "rating": 94.0
+            "rating": 94.13
           },
           {
             "name": "Davante Adams",
             "position": "WR",
-            "rating": 90.0
+            "rating": 89.83
           },
           {
             "name": "Tyler Higbee",
             "position": "TE",
-            "rating": 75.0
-          },
-          {
-            "name": "Jordan Whittington",
-            "position": "WR",
-            "rating": 72.0
+            "rating": 75.27
           },
           {
             "name": "Colby Parkinson",
             "position": "TE",
-            "rating": 71.0
+            "rating": 72.4
+          },
+          {
+            "name": "Jordan Whittington",
+            "position": "WR",
+            "rating": 71.87
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
         "depth_grade": 72.0,
-        "grade": 82.1,
+        "grade": 81.78,
         "performance_grade": 88.03,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 79.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 81.0,
+        "roster_grade": 80.22,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.78,
         "top_players": [
           {
             "name": "Kyren Williams",
             "position": "RB",
-            "rating": 87.0
+            "rating": 88.0
           },
           {
             "name": "Blake Corum",
             "position": "RB",
-            "rating": 75.0
+            "rating": 75.56
           },
           {
             "name": "Jarquez Hunter",
@@ -5104,11 +5273,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 66.5,
-        "grade": 75.93,
+        "grade": 77.68,
         "performance_grade": 73.69,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 78.68,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.0,
         "top_players": [
           {
@@ -5141,11 +5311,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 66.18,
+        "grade": 67.34,
         "performance_grade": 64.69,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 68.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 68.0,
         "top_players": [
           {
@@ -5163,9 +5334,10 @@
     }
   },
   "Miami Dolphins": {
-    "defense_rating": 64.91,
-    "offense_rating": 67.76,
-    "overall_rating": 67.25,
+    "defense_rating": 69.52,
+    "offense_rating": 68.74,
+    "overall_rating": 69.36,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 46,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -5174,11 +5346,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 65.0,
-        "grade": 66.07,
+        "grade": 70.87,
         "performance_grade": 59.91,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 73.61,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.25,
         "top_players": [
           {
@@ -5211,11 +5384,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 73.33,
-        "grade": 69.4,
+        "grade": 71.55,
         "performance_grade": 54.35,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 75.85,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 76.33,
         "top_players": [
           {
@@ -5248,11 +5422,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 62.67,
-        "grade": 68.38,
+        "grade": 70.27,
         "performance_grade": 65.95,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 71.35,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 73.0,
         "top_players": [
           {
@@ -5284,98 +5459,102 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 63.0,
-        "grade": 65.47,
+        "depth_grade": 63.14,
+        "grade": 65.09,
         "performance_grade": 66.02,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 64.8,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 65.0,
+        "roster_grade": 64.86,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 65.05,
         "top_players": [
           {
             "name": "Malik Willis",
             "position": "QB",
-            "rating": 65.0
+            "rating": 65.05
           },
           {
             "name": "Quinn Ewers",
             "position": "QB",
-            "rating": 63.0
+            "rating": 63.14
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 64.5,
-        "grade": 67.99,
+        "depth_grade": 64.73,
+        "grade": 69.24,
         "performance_grade": 59.98,
+        "performance_weight": 0.2,
         "player_count": 6,
-        "roster_grade": 71.43,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 72.75,
+        "roster_grade": 71.55,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 72.85,
         "top_players": [
           {
             "name": "Jalen Tolbert",
             "position": "WR",
-            "rating": 76.0
+            "rating": 75.77
           },
           {
             "name": "Tutu Atwell",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.85
           },
           {
             "name": "Malik Washington",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.85
           },
           {
             "name": "Tahj Washington",
             "position": "WR",
-            "rating": 68.0
+            "rating": 67.93
           },
           {
             "name": "Greg Dulcich",
             "position": "TE",
-            "rating": 67.0
+            "rating": 67.49
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 72.0,
-        "grade": 72.51,
+        "depth_grade": 72.1,
+        "grade": 74.8,
         "performance_grade": 59.98,
+        "performance_weight": 0.2,
         "player_count": 3,
-        "roster_grade": 77.88,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.0,
+        "roster_grade": 78.51,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.74,
         "top_players": [
           {
             "name": "De'Von Achane",
             "position": "RB",
-            "rating": 86.0
-          },
-          {
-            "name": "Jaylen Wright",
-            "position": "RB",
-            "rating": 72.0
+            "rating": 87.29
           },
           {
             "name": "Ollie Gordon II",
             "position": "RB",
-            "rating": 72.0
+            "rating": 72.18
+          },
+          {
+            "name": "Jaylen Wright",
+            "position": "RB",
+            "rating": 72.1
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 66.67,
-        "grade": 61.18,
+        "grade": 67.09,
         "performance_grade": 53.58,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 70.47,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 71.2,
         "top_players": [
           {
@@ -5408,11 +5587,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 76.0,
-        "grade": 81.38,
+        "grade": 77.96,
         "performance_grade": 85.78,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 76.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.0,
         "top_players": [
           {
@@ -5430,9 +5610,10 @@
     }
   },
   "Minnesota Vikings": {
-    "defense_rating": 79.25,
-    "offense_rating": 68.48,
-    "overall_rating": 72.12,
+    "defense_rating": 76.04,
+    "offense_rating": 74.89,
+    "overall_rating": 75.16,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 52,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -5441,11 +5622,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 63.5,
-        "grade": 74.32,
+        "grade": 70.11,
         "performance_grade": 79.73,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 67.7,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 68.5,
         "top_players": [
           {
@@ -5478,11 +5660,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 72.0,
-        "grade": 80.32,
+        "grade": 79.88,
         "performance_grade": 83.39,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.0,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 80.33,
         "top_players": [
           {
@@ -5515,11 +5698,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 65.4,
+        "grade": 73.28,
         "performance_grade": 55.27,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.78,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.6,
         "top_players": [
           {
@@ -5551,103 +5735,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 73.0,
-        "grade": 63.39,
+        "depth_grade": 73.41,
+        "grade": 72.7,
         "performance_grade": 51.12,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 78.4,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 79.0,
+        "roster_grade": 78.1,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 78.62,
         "top_players": [
           {
             "name": "Kyler Murray",
             "position": "QB",
-            "rating": 79.0
+            "rating": 78.62
           },
           {
             "name": "J.J. McCarthy",
             "position": "QB",
-            "rating": 73.0
+            "rating": 73.41
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 73.67,
-        "grade": 76.73,
+        "depth_grade": 73.53,
+        "grade": 79.36,
         "performance_grade": 56.74,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 85.29,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 87.5,
+        "roster_grade": 85.02,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 87.21,
         "top_players": [
           {
             "name": "Justin Jefferson",
             "position": "WR",
-            "rating": 99.0
+            "rating": 97.13
           },
           {
             "name": "T.J. Hockenson",
             "position": "TE",
-            "rating": 86.0
+            "rating": 85.87
           },
           {
             "name": "Jordan Addison",
             "position": "WR",
-            "rating": 84.0
+            "rating": 84.17
           },
           {
             "name": "Jauan Jennings",
             "position": "WR",
-            "rating": 81.0
+            "rating": 81.66
           },
           {
             "name": "Adam Thielen",
             "position": "WR",
-            "rating": 77.0
+            "rating": 76.54
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
         "depth_grade": 72.5,
-        "grade": 73.36,
+        "grade": 75.71,
         "performance_grade": 56.74,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 80.48,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.0,
+        "roster_grade": 80.45,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.97,
         "top_players": [
           {
             "name": "Aaron Jones Sr",
             "position": "RB",
-            "rating": 82.0
+            "rating": 82.07
           },
           {
             "name": "Jordan Mason",
             "position": "RB",
-            "rating": 82.0
+            "rating": 81.87
           },
           {
             "name": "C.J. Ham",
             "position": "RB",
-            "rating": 75.0
+            "rating": 74.97
           },
           {
             "name": "Zavier Scott",
             "position": "RB",
-            "rating": 70.0
+            "rating": 70.02
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 83.05,
+        "grade": 79.07,
         "performance_grade": 88.17,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.79,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.4,
         "top_players": [
           {
@@ -5680,11 +5868,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 76.0,
-        "grade": 64.33,
+        "grade": 73.89,
         "performance_grade": 52.03,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 79.36,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -5707,9 +5896,10 @@
     }
   },
   "New England Patriots": {
-    "defense_rating": 74.07,
-    "offense_rating": 79.98,
-    "overall_rating": 77.5,
+    "defense_rating": 75.82,
+    "offense_rating": 80.76,
+    "overall_rating": 78.56,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 51,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -5718,11 +5908,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 57.0,
-        "grade": 68.75,
+        "grade": 71.03,
         "performance_grade": 65.81,
+        "performance_weight": 0.2,
         "player_count": 5,
         "roster_grade": 72.33,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.25,
         "top_players": [
           {
@@ -5755,11 +5946,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 70.67,
-        "grade": 76.66,
+        "grade": 77.28,
         "performance_grade": 72.35,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 78.51,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -5792,11 +5984,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 65.33,
-        "grade": 68.36,
+        "grade": 74.27,
         "performance_grade": 60.75,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.65,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -5829,17 +6022,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 61.0,
-        "grade": 86.67,
+        "grade": 84.49,
         "performance_grade": 90.0,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 82.6,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 85.0,
+        "roster_grade": 83.11,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 85.57,
         "top_players": [
           {
             "name": "Drake Maye",
             "position": "QB",
-            "rating": 85.0
+            "rating": 85.57
           },
           {
             "name": "Tommy DeVito",
@@ -5850,65 +6044,67 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 74.67,
-        "grade": 83.35,
+        "depth_grade": 74.99,
+        "grade": 83.15,
         "performance_grade": 87.26,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 81.67,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.0,
+        "roster_grade": 82.12,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.47,
         "top_players": [
           {
             "name": "A.J. Brown",
             "position": "WR",
-            "rating": 89.0
+            "rating": 89.09
           },
           {
             "name": "Hunter Henry",
             "position": "TE",
-            "rating": 85.0
-          },
-          {
-            "name": "Kayshon Boutte",
-            "position": "WR",
-            "rating": 79.0
+            "rating": 85.8
           },
           {
             "name": "Romeo Doubs",
             "position": "WR",
-            "rating": 79.0
+            "rating": 79.82
+          },
+          {
+            "name": "Kayshon Boutte",
+            "position": "WR",
+            "rating": 79.19
           },
           {
             "name": "DeMario Douglas",
             "position": "WR",
-            "rating": 77.0
+            "rating": 77.28
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 73.5,
-        "grade": 80.57,
+        "depth_grade": 74.39,
+        "grade": 80.03,
         "performance_grade": 87.26,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 77.7,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.5,
+        "roster_grade": 78.22,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.94,
         "top_players": [
           {
             "name": "Reggie Gilliam",
             "position": "RB",
-            "rating": 79.0
+            "rating": 78.96
           },
           {
             "name": "Rhamondre Stevenson",
             "position": "RB",
-            "rating": 78.0
+            "rating": 78.93
           },
           {
             "name": "TreVeyon Henderson",
             "position": "RB",
-            "rating": 76.0
+            "rating": 77.78
           },
           {
             "name": "Jack Westover",
@@ -5920,11 +6116,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 68.67,
-        "grade": 77.31,
+        "grade": 79.26,
         "performance_grade": 74.81,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 80.37,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.6,
         "top_players": [
           {
@@ -5957,11 +6154,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 71.5,
-        "grade": 70.85,
+        "grade": 71.26,
         "performance_grade": 70.31,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 71.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 71.5,
         "top_players": [
           {
@@ -5979,9 +6177,10 @@
     }
   },
   "New Orleans Saints": {
-    "defense_rating": 75.73,
-    "offense_rating": 67.74,
-    "overall_rating": 70.38,
+    "defense_rating": 76.07,
+    "offense_rating": 71.94,
+    "overall_rating": 73.38,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 55,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -5990,11 +6189,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 74.88,
+        "grade": 74.28,
         "performance_grade": 75.66,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 73.93,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.0,
         "top_players": [
           {
@@ -6027,11 +6227,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 74.33,
-        "grade": 78.19,
+        "grade": 78.59,
         "performance_grade": 75.45,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.37,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 80.33,
         "top_players": [
           {
@@ -6064,11 +6265,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 66.33,
-        "grade": 67.39,
+        "grade": 73.7,
         "performance_grade": 59.27,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.31,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.4,
         "top_players": [
           {
@@ -6100,45 +6302,52 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 65.23,
+        "depth_grade": 69.41,
+        "grade": 69.01,
         "performance_grade": 60.75,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 70.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 71.0,
+        "roster_grade": 71.08,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 71.27,
         "top_players": [
           {
             "name": "Spencer Rattler",
             "position": "QB",
-            "rating": 71.0
+            "rating": 71.27
           },
           {
             "name": "Tyler Shough",
             "position": "QB",
-            "rating": 68.0
+            "rating": 69.41
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 71.33,
-        "grade": 68.94,
+        "depth_grade": 71.39,
+        "grade": 71.86,
         "performance_grade": 53.23,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 75.67,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 76.5,
+        "roster_grade": 76.52,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.5,
         "top_players": [
           {
             "name": "Chris Olave",
             "position": "WR",
-            "rating": 85.0
+            "rating": 86.01
           },
           {
             "name": "Juwan Johnson",
             "position": "TE",
-            "rating": 75.0
+            "rating": 77.44
+          },
+          {
+            "name": "Noah Fant",
+            "position": "TE",
+            "rating": 73.53
           },
           {
             "name": "Ja'Lynn Polk",
@@ -6146,57 +6355,54 @@
             "rating": 73.0
           },
           {
-            "name": "Noah Fant",
-            "position": "TE",
-            "rating": 73.0
-          },
-          {
             "name": "Devaughn Vele",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.17
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 74.5,
-        "grade": 73.41,
+        "depth_grade": 74.32,
+        "grade": 76.57,
         "performance_grade": 53.23,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 82.06,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.5,
+        "roster_grade": 82.4,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.94,
         "top_players": [
           {
             "name": "Travis Etienne Jr",
             "position": "RB",
-            "rating": 85.0
+            "rating": 86.26
           },
           {
             "name": "Alvin Kamara",
             "position": "RB",
-            "rating": 82.0
+            "rating": 81.62
           },
           {
             "name": "Kendre Miller",
             "position": "RB",
-            "rating": 76.0
+            "rating": 75.8
           },
           {
             "name": "Ty Chandler",
             "position": "RB",
-            "rating": 73.0
+            "rating": 72.84
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 72.67,
-        "grade": 75.02,
+        "grade": 76.16,
         "performance_grade": 73.55,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.81,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.6,
         "top_players": [
           {
@@ -6229,11 +6435,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 77.0,
-        "grade": 60.95,
+        "grade": 71.16,
         "performance_grade": 47.81,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 77.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.0,
         "top_players": [
           {
@@ -6251,9 +6458,10 @@
     }
   },
   "New York Giants": {
-    "defense_rating": 70.01,
-    "offense_rating": 70.91,
-    "overall_rating": 70.19,
+    "defense_rating": 74.08,
+    "offense_rating": 74.31,
+    "overall_rating": 74.0,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 63,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -6262,11 +6470,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 64.93,
+        "grade": 70.09,
         "performance_grade": 58.29,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 73.04,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.0,
         "top_players": [
           {
@@ -6299,11 +6508,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 74.67,
-        "grade": 74.1,
+        "grade": 76.91,
         "performance_grade": 54.49,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 82.51,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 84.0,
         "top_players": [
           {
@@ -6336,11 +6546,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 69.87,
+        "grade": 74.22,
         "performance_grade": 64.27,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.71,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.8,
         "top_players": [
           {
@@ -6372,40 +6583,42 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 66.4,
+        "depth_grade": 69.94,
+        "grade": 71.16,
         "performance_grade": 61.24,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 72.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 73.0,
+        "roster_grade": 73.64,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 74.05,
         "top_players": [
           {
             "name": "Jaxson Dart",
             "position": "QB",
-            "rating": 73.0
+            "rating": 74.05
           },
           {
             "name": "Jameis Winston",
             "position": "QB",
-            "rating": 70.0
+            "rating": 69.94
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 76.33,
-        "grade": 75.56,
+        "depth_grade": 76.72,
+        "grade": 76.87,
         "performance_grade": 66.59,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 79.41,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 80.0,
+        "roster_grade": 79.44,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.96,
         "top_players": [
           {
             "name": "Malik Nabers",
             "position": "WR",
-            "rating": 88.0
+            "rating": 87.33
           },
           {
             "name": "Darnell Mooney",
@@ -6413,62 +6626,64 @@
             "rating": 78.0
           },
           {
+            "name": "Theo Johnson",
+            "position": "TE",
+            "rating": 77.36
+          },
+          {
             "name": "Darius Slayton",
             "position": "WR",
-            "rating": 77.0
+            "rating": 77.15
           },
           {
             "name": "Isaiah Likely",
             "position": "TE",
-            "rating": 77.0
-          },
-          {
-            "name": "JuJu Smith-Schuster",
-            "position": "WR",
-            "rating": 77.0
+            "rating": 77.04
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 77.0,
-        "grade": 76.82,
+        "depth_grade": 77.71,
+        "grade": 78.41,
         "performance_grade": 66.59,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 81.2,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.0,
+        "roster_grade": 81.36,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.06,
         "top_players": [
           {
             "name": "Patrick Ricard",
             "position": "RB",
-            "rating": 83.0
+            "rating": 82.98
           },
           {
             "name": "Cam Skattebo",
             "position": "RB",
-            "rating": 81.0
+            "rating": 81.14
           },
           {
             "name": "Tyrone Tracy Jr",
             "position": "RB",
-            "rating": 79.0
+            "rating": 79.98
           },
           {
             "name": "Devin Singletary",
             "position": "RB",
-            "rating": 75.0
+            "rating": 75.43
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 71.67,
-        "grade": 72.14,
+        "grade": 75.97,
         "performance_grade": 67.22,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.16,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.4,
         "top_players": [
           {
@@ -6501,11 +6716,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 75.0,
-        "grade": 64.69,
+        "grade": 71.25,
         "performance_grade": 56.25,
+        "performance_weight": 0.2,
         "player_count": 1,
         "roster_grade": 75.0,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.0,
         "top_players": [
           {
@@ -6518,9 +6734,10 @@
     }
   },
   "New York Jets": {
-    "defense_rating": 64.58,
-    "offense_rating": 63.92,
-    "overall_rating": 64.87,
+    "defense_rating": 72.07,
+    "offense_rating": 69.79,
+    "overall_rating": 70.92,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 50,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -6529,11 +6746,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 71.25,
-        "grade": 63.98,
+        "grade": 72.35,
         "performance_grade": 53.23,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.13,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.25,
         "top_players": [
           {
@@ -6566,11 +6784,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 65.67,
-        "grade": 68.99,
+        "grade": 71.52,
         "performance_grade": 51.26,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 76.59,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 78.67,
         "top_players": [
           {
@@ -6603,11 +6822,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 64.0,
-        "grade": 61.74,
+        "grade": 68.74,
         "performance_grade": 52.73,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 72.74,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.4,
         "top_players": [
           {
@@ -6639,98 +6859,102 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 72.0,
-        "grade": 60.17,
+        "depth_grade": 73.11,
+        "grade": 68.58,
         "performance_grade": 50.48,
+        "performance_weight": 0.2,
         "player_count": 1,
-        "roster_grade": 72.0,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 72.0,
+        "roster_grade": 73.11,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 73.11,
         "top_players": [
           {
             "name": "Geno Smith",
             "position": "QB",
-            "rating": 72.0
+            "rating": 73.11
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 67.67,
-        "grade": 68.84,
+        "depth_grade": 67.79,
+        "grade": 71.39,
         "performance_grade": 51.82,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 76.14,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 77.75,
+        "roster_grade": 76.28,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.89,
         "top_players": [
           {
             "name": "Garrett Wilson",
             "position": "WR",
-            "rating": 87.0
+            "rating": 86.49
           },
           {
             "name": "Tim Patrick",
             "position": "WR",
-            "rating": 76.0
+            "rating": 75.88
           },
           {
             "name": "Mason Taylor",
             "position": "TE",
-            "rating": 75.0
+            "rating": 75.64
           },
           {
             "name": "Adonai Mitchell",
             "position": "WR",
-            "rating": 73.0
+            "rating": 73.56
           },
           {
-            "name": "Arian Smith",
-            "position": "WR",
-            "rating": 68.0
+            "name": "Jeremy Ruckert",
+            "position": "TE",
+            "rating": 68.32
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 69.73,
+        "depth_grade": 69.09,
+        "grade": 72.44,
         "performance_grade": 51.82,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 77.4,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 79.0,
+        "roster_grade": 77.6,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.22,
         "top_players": [
           {
             "name": "Breece Hall",
             "position": "RB",
-            "rating": 86.0
+            "rating": 86.51
           },
           {
             "name": "Braelon Allen",
             "position": "RB",
-            "rating": 72.0
-          },
-          {
-            "name": "Andrew Beck",
-            "position": "RB",
-            "rating": 69.0
+            "rating": 71.92
           },
           {
             "name": "Isaiah Davis",
             "position": "RB",
-            "rating": 69.0
+            "rating": 69.2
+          },
+          {
+            "name": "Andrew Beck",
+            "position": "RB",
+            "rating": 68.99
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 71.67,
-        "grade": 62.48,
+        "grade": 72.14,
         "performance_grade": 50.06,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.66,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.8,
         "top_players": [
           {
@@ -6763,11 +6987,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 82.96,
+        "grade": 77.49,
         "performance_grade": 90.0,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 74.36,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 75.0,
         "top_players": [
           {
@@ -6790,9 +7015,10 @@
     }
   },
   "Philadelphia Eagles": {
-    "defense_rating": 78.75,
-    "offense_rating": 78.13,
-    "overall_rating": 77.93,
+    "defense_rating": 79.22,
+    "offense_rating": 81.04,
+    "overall_rating": 80.16,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 56,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -6801,11 +7027,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 74.4,
+        "grade": 76.65,
         "performance_grade": 71.51,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 77.93,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.5,
         "top_players": [
           {
@@ -6838,11 +7065,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 76.33,
-        "grade": 82.06,
+        "grade": 82.86,
         "performance_grade": 76.5,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 84.45,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 86.0,
         "top_players": [
           {
@@ -6875,11 +7103,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 65.33,
-        "grade": 77.24,
+        "grade": 80.71,
         "performance_grade": 72.77,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.69,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 86.0,
         "top_players": [
           {
@@ -6911,87 +7140,90 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 70.0,
-        "grade": 77.95,
+        "depth_grade": 69.88,
+        "grade": 82.31,
         "performance_grade": 71.93,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 85.3,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 87.0,
+        "roster_grade": 84.91,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 86.58,
         "top_players": [
           {
             "name": "Jalen Hurts",
             "position": "QB",
-            "rating": 87.0
+            "rating": 86.58
           },
           {
             "name": "Andy Dalton",
             "position": "QB",
-            "rating": 70.0
+            "rating": 69.88
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 70.67,
-        "grade": 77.84,
+        "depth_grade": 70.73,
+        "grade": 79.02,
         "performance_grade": 69.89,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 81.24,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 83.25,
+        "roster_grade": 81.3,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.31,
         "top_players": [
           {
             "name": "DeVonta Smith",
             "position": "WR",
-            "rating": 90.0
+            "rating": 89.71
           },
           {
             "name": "Dallas Goedert",
             "position": "TE",
-            "rating": 88.0
+            "rating": 88.26
           },
           {
             "name": "Marquise Brown",
             "position": "WR",
-            "rating": 79.0
+            "rating": 79.51
           },
           {
             "name": "Elijah Moore",
             "position": "WR",
-            "rating": 76.0
+            "rating": 75.76
           },
           {
             "name": "Dontayvion Wicks",
             "position": "WR",
-            "rating": 75.0
+            "rating": 75.2
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 74.5,
-        "grade": 81.35,
+        "depth_grade": 74.4,
+        "grade": 82.34,
         "performance_grade": 69.89,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 86.26,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 88.5,
+        "roster_grade": 85.45,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 87.56,
         "top_players": [
           {
             "name": "Saquon Barkley",
             "position": "RB",
-            "rating": 99.0
+            "rating": 97.33
           },
           {
             "name": "Tank Bigsby",
             "position": "RB",
-            "rating": 78.0
+            "rating": 77.79
           },
           {
             "name": "Dameon Pierce",
             "position": "RB",
-            "rating": 75.0
+            "rating": 74.8
           },
           {
             "name": "Elijah Mitchell",
@@ -7003,11 +7235,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.33,
-        "grade": 80.69,
+        "grade": 79.36,
         "performance_grade": 82.41,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.6,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.6,
         "top_players": [
           {
@@ -7040,11 +7273,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 79.5,
-        "grade": 68.26,
+        "grade": 75.41,
         "performance_grade": 59.06,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 79.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.5,
         "top_players": [
           {
@@ -7062,9 +7296,10 @@
     }
   },
   "Pittsburgh Steelers": {
-    "defense_rating": 77.06,
-    "offense_rating": 74.11,
-    "overall_rating": 75.13,
+    "defense_rating": 80.03,
+    "offense_rating": 75.42,
+    "overall_rating": 77.14,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 50,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -7073,11 +7308,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.75,
-        "grade": 76.77,
+        "grade": 78.35,
         "performance_grade": 74.74,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 79.25,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.25,
         "top_players": [
           {
@@ -7110,11 +7346,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 76.67,
-        "grade": 81.6,
+        "grade": 83.13,
         "performance_grade": 70.88,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 86.19,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 88.0,
         "top_players": [
           {
@@ -7147,11 +7384,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 59.5,
-        "grade": 75.95,
+        "grade": 73.66,
         "performance_grade": 78.89,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 72.35,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.8,
         "top_players": [
           {
@@ -7183,103 +7421,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 66.0,
-        "grade": 71.94,
+        "depth_grade": 65.96,
+        "grade": 76.0,
         "performance_grade": 67.22,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 77.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 79.0,
+        "roster_grade": 78.2,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 79.56,
         "top_players": [
           {
             "name": "Aaron Rodgers",
             "position": "QB",
-            "rating": 79.0
+            "rating": 79.56
           },
           {
             "name": "Mason Rudolph",
             "position": "QB",
-            "rating": 66.0
+            "rating": 65.96
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 73.93,
+        "depth_grade": 68.96,
+        "grade": 75.01,
         "performance_grade": 67.78,
+        "performance_weight": 0.2,
         "player_count": 6,
-        "roster_grade": 76.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.0,
+        "roster_grade": 76.82,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.32,
         "top_players": [
           {
             "name": "Michael Pittman Jr",
             "position": "WR",
-            "rating": 83.0
+            "rating": 83.82
           },
           {
             "name": "Pat Freiermuth",
             "position": "TE",
-            "rating": 82.0
+            "rating": 82.26
           },
           {
             "name": "Darnell Washington",
             "position": "TE",
-            "rating": 76.0
+            "rating": 76.22
           },
           {
             "name": "Roman Wilson",
             "position": "WR",
-            "rating": 71.0
+            "rating": 70.98
           },
           {
             "name": "Ben Skowronek",
             "position": "WR",
-            "rating": 70.0
+            "rating": 69.94
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 71.5,
-        "grade": 76.56,
+        "depth_grade": 71.37,
+        "grade": 78.66,
         "performance_grade": 67.78,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 80.32,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.0,
+        "roster_grade": 81.38,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 83.29,
         "top_players": [
           {
             "name": "Rico Dowdle",
             "position": "RB",
-            "rating": 83.0
+            "rating": 84.19
           },
           {
             "name": "Jaylen Warren",
             "position": "RB",
-            "rating": 81.0
+            "rating": 82.39
           },
           {
             "name": "Kaleb Johnson",
             "position": "RB",
-            "rating": 74.0
+            "rating": 73.75
           },
           {
             "name": "Travis Homer",
             "position": "RB",
-            "rating": 69.0
+            "rating": 68.99
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 71.0,
-        "grade": 74.6,
+        "grade": 79.68,
         "performance_grade": 68.06,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 82.59,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 84.8,
         "top_players": [
           {
@@ -7312,11 +7554,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 63.0,
-        "grade": 72.67,
+        "grade": 75.61,
         "performance_grade": 68.91,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 77.28,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.0,
         "top_players": [
           {
@@ -7339,9 +7582,10 @@
     }
   },
   "San Francisco 49ers": {
-    "defense_rating": 68.07,
-    "offense_rating": 81.39,
-    "overall_rating": 76.38,
+    "defense_rating": 74.36,
+    "offense_rating": 81.25,
+    "overall_rating": 78.52,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 54,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -7350,11 +7594,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 70.0,
-        "grade": 63.48,
+        "grade": 73.38,
         "performance_grade": 50.77,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 79.03,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.75,
         "top_players": [
           {
@@ -7387,11 +7632,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 65.33,
-        "grade": 74.92,
+        "grade": 77.14,
         "performance_grade": 59.41,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 81.57,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 84.67,
         "top_players": [
           {
@@ -7424,11 +7670,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 65.0,
-        "grade": 76.8,
+        "grade": 77.42,
         "performance_grade": 76.01,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.77,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.2,
         "top_players": [
           {
@@ -7460,82 +7707,85 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 73.0,
-        "grade": 82.75,
+        "depth_grade": 73.22,
+        "grade": 81.48,
         "performance_grade": 84.09,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 81.1,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 82.0,
+        "roster_grade": 80.83,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 81.68,
         "top_players": [
           {
             "name": "Brock Purdy",
             "position": "QB",
-            "rating": 82.0
+            "rating": 81.68
           },
           {
             "name": "Mac Jones",
             "position": "QB",
-            "rating": 73.0
+            "rating": 73.22
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 72.0,
-        "grade": 83.1,
+        "depth_grade": 72.31,
+        "grade": 83.17,
         "performance_grade": 79.1,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 84.81,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 87.25,
+        "roster_grade": 84.19,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 86.46,
         "top_players": [
           {
             "name": "George Kittle",
             "position": "TE",
-            "rating": 98.0
+            "rating": 96.76
           },
           {
             "name": "Mike Evans",
             "position": "WR",
-            "rating": 92.0
+            "rating": 90.93
           },
           {
             "name": "Ricky Pearsall",
             "position": "WR",
-            "rating": 81.0
+            "rating": 80.46
           },
           {
             "name": "Christian Kirk",
             "position": "WR",
-            "rating": 78.0
+            "rating": 77.68
           },
           {
             "name": "Demarcus Robinson",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.97
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
         "depth_grade": 73.0,
-        "grade": 84.53,
+        "grade": 85.48,
         "performance_grade": 79.1,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 86.86,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 89.5,
+        "roster_grade": 87.07,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 89.75,
         "top_players": [
           {
             "name": "Christian McCaffrey",
             "position": "RB",
-            "rating": 91.0
+            "rating": 91.55
           },
           {
             "name": "Kyle Juszczyk",
             "position": "RB",
-            "rating": 88.0
+            "rating": 87.96
           },
           {
             "name": "Isaac Guerendo",
@@ -7552,11 +7802,12 @@
       "secondary": {
         "confidence": "high",
         "depth_grade": 73.0,
-        "grade": 68.08,
+        "grade": 73.57,
         "performance_grade": 61.03,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 76.7,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.4,
         "top_players": [
           {
@@ -7589,11 +7840,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 79.33,
+        "grade": 76.5,
         "performance_grade": 82.97,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 74.88,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.0,
         "top_players": [
           {
@@ -7616,9 +7868,10 @@
     }
   },
   "Seattle Seahawks": {
-    "defense_rating": 81.11,
-    "offense_rating": 77.37,
-    "overall_rating": 79.03,
+    "defense_rating": 79.3,
+    "offense_rating": 77.78,
+    "overall_rating": 78.49,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 59,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -7627,11 +7880,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 66.0,
-        "grade": 82.23,
+        "grade": 79.52,
         "performance_grade": 85.71,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 77.97,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.25,
         "top_players": [
           {
@@ -7664,11 +7918,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 72.0,
-        "grade": 81.58,
+        "grade": 80.72,
         "performance_grade": 87.61,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.0,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 80.33,
         "top_players": [
           {
@@ -7701,11 +7956,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.0,
-        "grade": 72.22,
+        "grade": 73.81,
         "performance_grade": 70.17,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 74.72,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.0,
         "top_players": [
           {
@@ -7737,77 +7993,80 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 66.0,
-        "grade": 81.66,
+        "depth_grade": 65.99,
+        "grade": 80.89,
         "performance_grade": 82.69,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 80.4,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 82.0,
+        "roster_grade": 80.44,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 82.05,
         "top_players": [
           {
             "name": "Sam Darnold",
             "position": "QB",
-            "rating": 82.0
+            "rating": 82.05
           },
           {
             "name": "Drew Lock",
             "position": "QB",
-            "rating": 66.0
+            "rating": 65.99
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 78.63,
+        "grade": 79.41,
         "performance_grade": 74.39,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 80.45,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.5,
+        "roster_grade": 80.67,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 82.77,
         "top_players": [
           {
             "name": "Jaxon Smith-Njigba",
             "position": "WR",
-            "rating": 91.0
+            "rating": 91.68
           },
           {
             "name": "Cooper Kupp",
             "position": "WR",
-            "rating": 85.0
+            "rating": 84.7
           },
           {
             "name": "Rashid Shaheed",
             "position": "WR",
-            "rating": 80.0
+            "rating": 80.74
           },
           {
             "name": "Tory Horton",
             "position": "WR",
-            "rating": 74.0
+            "rating": 73.96
           },
           {
             "name": "Elijah Arroyo",
             "position": "TE",
-            "rating": 70.0
+            "rating": 70.17
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 74.22,
+        "depth_grade": 67.47,
+        "grade": 74.56,
         "performance_grade": 74.39,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 74.14,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 75.5,
+        "roster_grade": 74.6,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 75.95,
         "top_players": [
           {
             "name": "Zach Charbonnet",
             "position": "RB",
-            "rating": 78.0
+            "rating": 78.91
           },
           {
             "name": "Robbie Ouzts",
@@ -7817,23 +8076,24 @@
           {
             "name": "Emanuel Wilson",
             "position": "RB",
-            "rating": 69.0
+            "rating": 69.93
           },
           {
             "name": "George Holani",
             "position": "RB",
-            "rating": 65.0
+            "rating": 65.02
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 68.67,
-        "grade": 79.82,
+        "grade": 78.25,
         "performance_grade": 81.84,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.35,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.0,
         "top_players": [
           {
@@ -7866,11 +8126,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 62.0,
-        "grade": 81.87,
+        "grade": 79.91,
         "performance_grade": 84.38,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 78.8,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 82.0,
         "top_players": [
           {
@@ -7893,9 +8154,10 @@
     }
   },
   "Tampa Bay Buccaneers": {
-    "defense_rating": 72.12,
-    "offense_rating": 73.29,
-    "overall_rating": 72.37,
+    "defense_rating": 75.53,
+    "offense_rating": 77.59,
+    "overall_rating": 76.59,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 55,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -7904,11 +8166,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 68.67,
-        "grade": 76.1,
+        "grade": 77.16,
         "performance_grade": 74.74,
+        "performance_weight": 0.2,
         "player_count": 7,
         "roster_grade": 77.77,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 79.5,
         "top_players": [
           {
@@ -7941,11 +8204,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 71.33,
-        "grade": 73.82,
+        "grade": 74.76,
         "performance_grade": 67.22,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 76.65,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 77.67,
         "top_players": [
           {
@@ -7978,11 +8242,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 68.33,
-        "grade": 76.46,
+        "grade": 77.85,
         "performance_grade": 74.67,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.64,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.6,
         "top_players": [
           {
@@ -8014,77 +8279,80 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 68.0,
-        "grade": 70.57,
+        "depth_grade": 68.12,
+        "grade": 80.02,
         "performance_grade": 57.94,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 86.0,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 88.0,
+        "roster_grade": 85.54,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 87.48,
         "top_players": [
           {
             "name": "Baker Mayfield",
             "position": "QB",
-            "rating": 88.0
+            "rating": 87.48
           },
           {
             "name": "Jake Browning",
             "position": "QB",
-            "rating": 68.0
+            "rating": 68.12
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 67.33,
-        "grade": 72.81,
+        "depth_grade": 67.5,
+        "grade": 74.5,
         "performance_grade": 63.7,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 76.71,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.5,
+        "roster_grade": 77.2,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 79.05,
         "top_players": [
           {
             "name": "Chris Godwin Jr",
             "position": "WR",
-            "rating": 83.0
+            "rating": 82.63
           },
           {
             "name": "Emeka Egbuka",
             "position": "WR",
-            "rating": 80.0
+            "rating": 81.76
           },
           {
             "name": "Cade Otton",
             "position": "TE",
-            "rating": 77.0
+            "rating": 77.97
           },
           {
             "name": "Jalen McMillan",
             "position": "WR",
-            "rating": 74.0
+            "rating": 73.84
           },
           {
             "name": "Tez Johnson",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.49
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 67.0,
-        "grade": 74.83,
+        "depth_grade": 67.41,
+        "grade": 76.32,
         "performance_grade": 63.7,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 79.6,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 82.0,
+        "roster_grade": 79.48,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.78,
         "top_players": [
           {
             "name": "Bucky Irving",
             "position": "RB",
-            "rating": 87.0
+            "rating": 86.55
           },
           {
             "name": "Kenneth Gainwell",
@@ -8094,23 +8362,24 @@
           {
             "name": "Josh Williams",
             "position": "RB",
-            "rating": 68.0
+            "rating": 67.96
           },
           {
             "name": "Sean Tucker",
             "position": "RB",
-            "rating": 66.0
+            "rating": 66.87
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 67.67,
-        "grade": 67.51,
+        "grade": 74.52,
         "performance_grade": 58.5,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.53,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.6,
         "top_players": [
           {
@@ -8143,11 +8412,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 60.0,
-        "grade": 60.87,
+        "grade": 69.94,
         "performance_grade": 49.22,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 75.12,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 78.0,
         "top_players": [
           {
@@ -8170,9 +8440,10 @@
     }
   },
   "Tennessee Titans": {
-    "defense_rating": 68.22,
-    "offense_rating": 63.48,
-    "overall_rating": 65.54,
+    "defense_rating": 72.61,
+    "offense_rating": 69.55,
+    "overall_rating": 70.89,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 53,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -8181,11 +8452,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 65.5,
-        "grade": 74.63,
+        "grade": 76.84,
         "performance_grade": 71.79,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 78.1,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 80.5,
         "top_players": [
           {
@@ -8218,11 +8490,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 69.67,
-        "grade": 69.92,
+        "grade": 71.98,
         "performance_grade": 55.48,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 76.11,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 77.33,
         "top_players": [
           {
@@ -8255,11 +8528,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 62.33,
-        "grade": 62.17,
+        "grade": 67.87,
         "performance_grade": 54.84,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 71.13,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 72.8,
         "top_players": [
           {
@@ -8292,17 +8566,18 @@
       "quarterback": {
         "confidence": "high",
         "depth_grade": 69.0,
-        "grade": 58.72,
+        "grade": 68.31,
         "performance_grade": 48.09,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 71.7,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 72.0,
+        "roster_grade": 73.36,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 73.84,
         "top_players": [
           {
             "name": "Cam Ward",
             "position": "QB",
-            "rating": 72.0
+            "rating": 73.84
           },
           {
             "name": "Will Levis",
@@ -8313,81 +8588,84 @@
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.33,
-        "grade": 68.14,
+        "depth_grade": 69.83,
+        "grade": 71.21,
         "performance_grade": 51.33,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 75.35,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 76.5,
+        "roster_grade": 76.18,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.39,
         "top_players": [
           {
             "name": "Wan'Dale Robinson",
             "position": "WR",
-            "rating": 81.0
+            "rating": 82.77
           },
           {
             "name": "Calvin Ridley",
             "position": "WR",
-            "rating": 79.0
+            "rating": 78.55
           },
           {
             "name": "Elic Ayomanor",
             "position": "WR",
-            "rating": 74.0
+            "rating": 75.04
           },
           {
             "name": "Chimere Dike",
             "position": "WR",
-            "rating": 72.0
+            "rating": 73.19
           },
           {
             "name": "Daniel Bellinger",
             "position": "TE",
-            "rating": 71.0
+            "rating": 71.28
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 68.5,
-        "grade": 70.7,
+        "depth_grade": 68.44,
+        "grade": 73.63,
         "performance_grade": 51.33,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 79.0,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 81.0,
+        "roster_grade": 79.2,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 81.25,
         "top_players": [
           {
             "name": "Tony Pollard",
             "position": "RB",
-            "rating": 83.0
+            "rating": 83.53
           },
           {
             "name": "Tyjae Spears",
             "position": "RB",
-            "rating": 79.0
+            "rating": 78.98
           },
           {
             "name": "Kalel Mullings",
             "position": "RB",
-            "rating": 70.0
+            "rating": 69.96
           },
           {
             "name": "Julius Chestnut",
             "position": "RB",
-            "rating": 67.0
+            "rating": 66.92
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 67.33,
-        "grade": 61.43,
+        "grade": 69.18,
         "performance_grade": 51.47,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 73.61,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 74.8,
         "top_players": [
           {
@@ -8420,11 +8698,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 66.0,
-        "grade": 71.17,
+        "grade": 74.03,
         "performance_grade": 67.5,
+        "performance_weight": 0.2,
         "player_count": 3,
         "roster_grade": 75.66,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.5,
         "top_players": [
           {
@@ -8447,9 +8726,10 @@
     }
   },
   "Washington Commanders": {
-    "defense_rating": 66.54,
-    "offense_rating": 74.65,
-    "overall_rating": 71.74,
+    "defense_rating": 72.6,
+    "offense_rating": 77.15,
+    "overall_rating": 75.3,
+    "personnel_matchup_influence_enabled": true,
     "player_count": 53,
     "prediction_influence_enabled": false,
     "source": "Macabets automated rating engine v1",
@@ -8458,11 +8738,12 @@
       "defensive_front": {
         "confidence": "high",
         "depth_grade": 72.5,
-        "grade": 66.97,
+        "grade": 72.36,
         "performance_grade": 60.05,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 75.44,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 76.0,
         "top_players": [
           {
@@ -8495,11 +8776,12 @@
       "linebackers": {
         "confidence": "high",
         "depth_grade": 69.33,
-        "grade": 70.68,
+        "grade": 73.5,
         "performance_grade": 50.98,
+        "performance_weight": 0.2,
         "player_count": 6,
         "roster_grade": 79.13,
-        "source": "70% roster + 30% team performance",
+        "source": "80% roster + 20% NFL team performance",
         "starter_grade": 81.0,
         "top_players": [
           {
@@ -8532,11 +8814,12 @@
       "offensive_line": {
         "confidence": "high",
         "depth_grade": 67.33,
-        "grade": 74.14,
+        "grade": 77.11,
         "performance_grade": 70.31,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 78.81,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 81.0,
         "top_players": [
           {
@@ -8568,103 +8851,107 @@
       },
       "quarterback": {
         "confidence": "high",
-        "depth_grade": 72.0,
-        "grade": 74.87,
+        "depth_grade": 72.4,
+        "grade": 78.98,
         "performance_grade": 69.12,
+        "performance_weight": 0.2,
         "player_count": 2,
-        "roster_grade": 81.9,
-        "source": "45% roster + 55% live performance",
-        "starter_grade": 83.0,
+        "roster_grade": 81.44,
+        "source": "80% roster + 20% NFL performance",
+        "starter_grade": 82.44,
         "top_players": [
           {
             "name": "Jayden Daniels",
             "position": "QB",
-            "rating": 83.0
+            "rating": 82.44
           },
           {
             "name": "Marcus Mariota",
             "position": "QB",
-            "rating": 72.0
+            "rating": 72.4
           }
         ]
       },
       "receiving_weapons": {
         "confidence": "high",
-        "depth_grade": 69.0,
-        "grade": 74.66,
+        "depth_grade": 69.05,
+        "grade": 75.18,
         "performance_grade": 70.24,
+        "performance_weight": 0.2,
         "player_count": 7,
-        "roster_grade": 76.56,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.0,
+        "roster_grade": 76.41,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 77.81,
         "top_players": [
           {
             "name": "Terry McLaurin",
             "position": "WR",
-            "rating": 92.0
+            "rating": 91.19
           },
           {
             "name": "Dyami Brown",
             "position": "WR",
-            "rating": 75.0
+            "rating": 74.97
           },
           {
             "name": "Jaylin Lane",
             "position": "WR",
-            "rating": 73.0
-          },
-          {
-            "name": "Luke McCaffrey",
-            "position": "WR",
-            "rating": 72.0
+            "rating": 72.85
           },
           {
             "name": "Van Jefferson",
             "position": "WR",
-            "rating": 72.0
+            "rating": 72.25
+          },
+          {
+            "name": "Luke McCaffrey",
+            "position": "WR",
+            "rating": 71.99
           }
         ]
       },
       "running_backs": {
         "confidence": "high",
-        "depth_grade": 73.5,
-        "grade": 75.17,
+        "depth_grade": 73.97,
+        "grade": 76.02,
         "performance_grade": 70.24,
+        "performance_weight": 0.2,
         "player_count": 4,
-        "roster_grade": 77.28,
-        "source": "70% roster + 30% team performance",
-        "starter_grade": 78.0,
+        "roster_grade": 77.47,
+        "source": "80% roster + 20% NFL team performance",
+        "starter_grade": 78.14,
         "top_players": [
           {
             "name": "Rachaad White",
             "position": "RB",
-            "rating": 80.0
-          },
-          {
-            "name": "Jerome Ford",
-            "position": "RB",
-            "rating": 76.0
+            "rating": 80.25
           },
           {
             "name": "Jacory Croskey-Merritt",
             "position": "RB",
-            "rating": 75.0
+            "rating": 76.03
+          },
+          {
+            "name": "Jerome Ford",
+            "position": "RB",
+            "rating": 75.84
           },
           {
             "name": "Jeremy McNichols",
             "position": "RB",
-            "rating": 72.0
+            "rating": 72.11
           }
         ]
       },
       "secondary": {
         "confidence": "high",
         "depth_grade": 74.0,
-        "grade": 63.66,
+        "grade": 72.27,
         "performance_grade": 52.59,
+        "performance_weight": 0.2,
         "player_count": 8,
         "roster_grade": 77.19,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 77.8,
         "top_players": [
           {
@@ -8697,11 +8984,12 @@
       "special_teams": {
         "confidence": "high",
         "depth_grade": 69.5,
-        "grade": 76.13,
+        "grade": 71.91,
         "performance_grade": 81.56,
+        "performance_weight": 0.2,
         "player_count": 2,
         "roster_grade": 69.5,
-        "source": "45% roster + 55% live performance",
+        "source": "80% roster + 20% NFL performance",
         "starter_grade": 69.5,
         "top_players": [
           {

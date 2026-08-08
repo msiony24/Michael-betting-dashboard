@@ -5,9 +5,9 @@
     "teams": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/team_ratings_auto.json"
   },
   "players_rated": 1689,
-  "players_with_performance_data": 0,
+  "players_with_performance_data": 446,
   "prediction_influence_enabled": false,
   "schema_version": "1.0",
   "teams_rated": 32,
-  "updated_at_utc": "2026-08-08T21:14:52+00:00"
+  "updated_at_utc": "2026-08-08T21:37:51+00:00"
 }
