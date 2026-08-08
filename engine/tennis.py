@@ -15,6 +15,7 @@ from .player_profiles import (
     compare_experience,
     experience_reliability,
 )
+from .tennis_serve_return import serve_return_profile, serve_return_matchup_adjustment
 
 
 ROUND_MAP = {
@@ -1343,31 +1344,31 @@ def analyze(
     ))
     base = float(np.clip(base + handedness_adjustment, 0.05, 0.95))
 
-    serve_return_available = all(
-        pd.notna(value) for value in (
-            pa["serve_points_won"], pb["serve_points_won"],
-            pa["return_points_won"], pb["return_points_won"],
-        )
+    # Serve/Return Engine: build opponent-aware, sample-shrunk profiles from
+    # verified match-level point statistics. It blends the last year, recent 90
+    # days, and surface history, then compares A's serve against B's return and
+    # vice versa. The normal UI does not need a new section; diagnostics are
+    # retained for Challenge Macabets and later calibration.
+    serve_return_profile_a = serve_return_profile(matches, resolved_a, event_date, surface)
+    serve_return_profile_b = serve_return_profile(matches, resolved_b, event_date, surface)
+    serve_return_matchup = serve_return_matchup_adjustment(
+        serve_return_profile_a, serve_return_profile_b
     )
+    serve_return_available = bool(serve_return_matchup.get("available"))
+    matchup = float(serve_return_matchup.get("probability_adjustment_a", 0.0))
     if serve_return_available:
-        serve_difference = pa["serve_points_won"] - pb["serve_points_won"]
-        return_difference = pa["return_points_won"] - pb["return_points_won"]
-        matchup = float(np.clip(
-            (serve_difference * weights["serve"] + return_difference * weights["return"]) * .35,
-            -.055, .055
-        ))
         matchup_reason = (
-            f"{surface}, {environment}, {match_format}: serve weight {weights['serve']:.2f}x and "
-            f"return weight {weights['return']:.2f}x. Profiles: {player_a} "
-            f"{pa['serve_points_won']:.1%}/{pa['return_points_won']:.1%}; "
-            f"{player_b} {pb['serve_points_won']:.1%}/{pb['return_points_won']:.1%}."
+            f"{surface}, {environment}, {match_format}. "
+            f"{serve_return_matchup['reason']} "
+            f"Profiles: {player_a} serve {serve_return_profile_a['serve_points_won']:.1%}, "
+            f"return {serve_return_profile_a['return_points_won']:.1%}; "
+            f"{player_b} serve {serve_return_profile_b['serve_points_won']:.1%}, "
+            f"return {serve_return_profile_b['return_points_won']:.1%}."
         )
     else:
-        matchup = 0.0
-        matchup_reason = (
-            "Serve/return point totals are not supplied by the current historical provider, "
-            "so this factor was excluded rather than filled with placeholder values."
-        )
+        matchup_reason = str(serve_return_matchup.get("reason") or (
+            "Verified serve/return point totals are unavailable, so the factor was excluded."
+        ))
     # Recent form is quality-adjusted: raw last-10 results remain the majority
     # signal, while opponent quality gives those results context.
     form = float(np.clip(
@@ -1660,6 +1661,12 @@ def analyze(
             "player_a_vs_opponent_hand": handedness_profile_a,
             "player_b_vs_opponent_hand": handedness_profile_b,
             "probability_adjustment_a": handedness_adjustment,
+        },
+        "serve_return_engine": {
+            "player_a": serve_return_profile_a,
+            "player_b": serve_return_profile_b,
+            "matchup": serve_return_matchup,
+            "probability_adjustment_a": matchup,
         },
         "fatigue_resilience_a": fatigue_resilience_a,
         "fatigue_resilience_b": fatigue_resilience_b,

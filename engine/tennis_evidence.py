@@ -13,6 +13,7 @@ import pandas as pd
 
 from .tennis import canonical_player_key, resolve_player_name
 from .tennis_handedness import handedness_record_splits, player_hand
+from .tennis_serve_return import serve_return_profile
 
 
 def _date(value: Any) -> pd.Timestamp:
@@ -118,6 +119,9 @@ def build_player_evidence(
         "matches_available_before_event": int(len(player_matches)),
         "verified_handedness": player_hand(target),
         "handedness_splits": handedness_record_splits(
+            matches, target, event_ts, surface
+        ),
+        "serve_return_profile": serve_return_profile(
             matches, target, event_ts, surface
         ),
     }

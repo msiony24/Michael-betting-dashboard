@@ -136,7 +136,7 @@ def _row_identity_mask(series: pd.Series, target: str) -> pd.Series:
 
     target_signature = _identity_signature(target)
     if target_signature != ("", ""):
-        return series.astype(str).map(_identity_signature).eq(target_signature)
+        return series.astype(str).map(lambda value: _identity_signature(value) == target_signature)
     return exact
 
 
