@@ -69,6 +69,7 @@ COLUMN_ALIASES = {
 
 TEAM_ALIASES = {
     "ARI": "Arizona Cardinals",
+    "AZ": "Arizona Cardinals",
     "ATL": "Atlanta Falcons",
     "BAL": "Baltimore Ravens",
     "BUF": "Buffalo Bills",

@@ -30,7 +30,7 @@ DEFAULT_STATUS_OUTPUT = DEFAULT_NFL_DIR / "rating_status.json"
 DEFAULT_HISTORY_OUTPUT = DEFAULT_NFL_DIR / "rating_history.jsonl"
 
 FULL_TO_ABBR = {full: abbr for abbr, full in TEAM_ALIASES.items() if len(abbr) <= 3}
-FULL_TO_ABBR.update({"Washington Commanders": "WAS", "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC", "Green Bay Packers": "GB", "New England Patriots": "NE", "New Orleans Saints": "NO", "San Francisco 49ers": "SF", "Tampa Bay Buccaneers": "TB", "Las Vegas Raiders": "LV"})
+FULL_TO_ABBR.update({"Arizona Cardinals": "ARI", "Washington Commanders": "WAS", "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC", "Green Bay Packers": "GB", "New England Patriots": "NE", "New Orleans Saints": "NO", "San Francisco 49ers": "SF", "Tampa Bay Buccaneers": "TB", "Las Vegas Raiders": "LV", "Los Angeles Rams": "LA"})
 
 POSITION_GROUPS = {
     "quarterback": {"QB"},
@@ -275,7 +275,7 @@ def build_player_ratings(
     players["availability_adjustment"] = adjustment
     players["macabets_rating"] = (players["base_rating"] + players["availability_adjustment"]).clip(0, 99).round(2)
     players["rating_confidence"] = np.where(players["performance_weight"] > .35, "high", np.where(players["performance_weight"] > .10, "medium", "baseline"))
-    players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 26 + nflverse performance", "Madden 26 baseline")
+    players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 27 + nflverse performance", "Madden 27 baseline")
 
     keep = ["player_name", "team_abbr", "position", "position_family", "overall", "trait_grade",
             "performance_grade", "performance_weight", "availability_adjustment", "macabets_rating",
