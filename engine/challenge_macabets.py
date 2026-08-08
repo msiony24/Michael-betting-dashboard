@@ -8,6 +8,7 @@ ratings, model weights, or future matchups.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 
@@ -16,6 +17,40 @@ class ChallengeMacabetsError(RuntimeError):
 
 
 VERDICTS = ["Strong Bet", "Worth Betting", "Lean", "Pass", "Complete Pass"]
+STRONG_BET_MIN_WIN_PROBABILITY = 0.65
+
+
+def _sanitize_reply_text(value: Any) -> str:
+    """Keep only the human-facing Challenge reply and drop accidental model/tool debris."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+
+    # Hosted model/tool traces should never be visible in the Streamlit chat.
+    hard_markers = [
+        "</macabets_challenge_response>",
+        "<macabets_challenge_response>",
+        "debug_info_remaining_points",
+        "production_proof",
+        "sensitive_c",
+    ]
+    for marker in hard_markers:
+        idx = text.find(marker)
+        if idx >= 0:
+            text = text[:idx].rstrip()
+
+    # The interface renders these structured fields separately. If the model echoes
+    # them into reply, truncate the duplicate/debug tail rather than showing it raw.
+    structured_tail = re.search(
+        r"(?im)^\s*(agree_points|pushback_points|adjustment_reason|adjustment_category|"
+        r"proposed_probability_a|proposed_confidence|proposed_verdict|revision_summary|"
+        r"should_offer_apply|uses_unverified_user_claim)\s*:",
+        text,
+    )
+    if structured_tail:
+        text = text[: structured_tail.start()].rstrip()
+
+    return text[:5000].strip()
 
 _RESPONSE_SCHEMA = {
     "type": "object",
@@ -162,6 +197,8 @@ Rules:
 23. For tennis, recent_resume_comparison is deterministic model evidence. Use it before web search when comparing recent form or strength of schedule. Never claim one player's recent wins/resume are stronger unless the supplied resume metrics support that conclusion; if the metrics are mixed, say they are mixed.
 24. Treat fatigue as a risk signal, not proof of deterioration. If fatigue_resilience_a/b is positive, explicitly account for the fact that high-level recent performance has already softened the workload penalty. Do not repeatedly cite raw match counts as if the resilience adjustment did not exist.
 25. Keep winner projection and betting verdict conceptually separate. If the user asks only "who wins?", answer from win probability and do not use market value as a reason the player is more likely to win. Strong Bet/Worth Betting describe price + confidence, not certainty of winning.
+26. HARD VERDICT RULE: "Strong Bet" is unavailable unless the current projected winner has at least a 65% win probability. At 58.6%, for example, the maximum headline verdict is "Worth Betting" regardless of market edge.
+27. The reply field is human-facing prose only. Never echo schema field names, JSON, XML/tool tags, hidden annotations, debug tokens, or internal metadata in reply. Keep reply concise; the UI renders agree_points, pushback_points, adjustment_reason, probability, confidence, and verdict separately.
 26. Do not use web search merely to defend the current opinion when deterministic matchup evidence already answers the question. Web search is a freshness fallback for facts missing from or newer than the supplied evidence.
 """.strip()
 
@@ -208,6 +245,20 @@ def _normalize_response(
     if normalized.get("proposed_verdict") not in VERDICTS:
         normalized["proposed_verdict"] = current_verdict
 
+    normalized["reply"] = _sanitize_reply_text(normalized.get("reply"))
+
+    # Deterministic guardrail: Challenge Macabets cannot label a sub-65% projected
+    # winner a Strong Bet, even if the language model tries to preserve that label.
+    projected_winner_probability = max(
+        float(normalized["proposed_probability_a"]),
+        1.0 - float(normalized["proposed_probability_a"]),
+    )
+    if (
+        str(normalized.get("proposed_verdict")) == "Strong Bet"
+        and projected_winner_probability < STRONG_BET_MIN_WIN_PROBABILITY
+    ):
+        normalized["proposed_verdict"] = "Worth Betting"
+
     intent_contract_present = "message_intent" in payload
     intent = str(normalized.get("message_intent") or "challenge")
     if intent not in {"research_question", "evidence_claim", "challenge", "command"}:
@@ -249,6 +300,17 @@ def _normalize_response(
         normalized["proposed_confidence"] = int(current_confidence)
         normalized["proposed_verdict"] = current_verdict
         normalized["should_offer_apply"] = False
+
+    # Re-apply the hard Strong Bet floor after intent-specific state restoration.
+    final_winner_probability = max(
+        float(normalized["proposed_probability_a"]),
+        1.0 - float(normalized["proposed_probability_a"]),
+    )
+    if (
+        str(normalized.get("proposed_verdict")) == "Strong Bet"
+        and final_winner_probability < STRONG_BET_MIN_WIN_PROBABILITY
+    ):
+        normalized["proposed_verdict"] = "Worth Betting"
 
     changed = (
         abs(normalized["proposed_probability_a"] - current_probability_a) >= 0.002
