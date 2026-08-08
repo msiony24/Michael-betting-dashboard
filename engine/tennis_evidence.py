@@ -12,6 +12,7 @@ from typing import Any
 import pandas as pd
 
 from .tennis import canonical_player_key, resolve_player_name
+from .tennis_handedness import handedness_record_splits, player_hand
 
 
 def _date(value: Any) -> pd.Timestamp:
@@ -115,6 +116,10 @@ def build_player_evidence(
         "top_50_wins": _notable_wins(recent, 50),
         "recent_matches": recent,
         "matches_available_before_event": int(len(player_matches)),
+        "verified_handedness": player_hand(target),
+        "handedness_splits": handedness_record_splits(
+            matches, target, event_ts, surface
+        ),
     }
 
 
