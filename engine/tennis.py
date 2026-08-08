@@ -1214,13 +1214,25 @@ def analyze(
     ))
 
     travel_penalty = {"None": 0.0, "Moderate": 0.9, "Heavy": 1.8}
+    # Workload signals fatigue risk, not automatic performance deterioration.
+    # Sustained high-level results during a busy stretch can soften (never erase) it.
+    def _fatigue_resilience(profile_data: dict, strength_data: dict) -> float:
+        if profile_data.get("matches_7", 0) < 3:
+            return 0.0
+        form = float(strength_data.get("quality_adjusted_form", 0.5))
+        raw = float(strength_data.get("raw_win_rate", 0.5))
+        evidence = max(0.0, (0.65 * form + 0.35 * raw) - 0.58)
+        return min(evidence * 2.0, 0.30)
+
+    fatigue_resilience_a = _fatigue_resilience(fatigue_profile_a, opponent_strength_a)
+    fatigue_resilience_b = _fatigue_resilience(fatigue_profile_b, opponent_strength_b)
     fatigue_score_a = (
-        fatigue_profile_a["score"]
+        fatigue_profile_a["score"] * (1.0 - fatigue_resilience_a)
         + travel_penalty.get(travel_load_a, 0.0)
         + (1.2 if late_finish_a else 0.0)
     )
     fatigue_score_b = (
-        fatigue_profile_b["score"]
+        fatigue_profile_b["score"] * (1.0 - fatigue_resilience_b)
         + travel_penalty.get(travel_load_b, 0.0)
         + (1.2 if late_finish_b else 0.0)
     )
@@ -1317,6 +1329,12 @@ def analyze(
          f"{opponent_strength_a['avg_opponent_rank'] or 'N/A'} vs "
          f"{opponent_strength_b['avg_opponent_rank'] or 'N/A'}. Top-50 records: "
          f"{opponent_strength_a['top_50_record']} vs {opponent_strength_b['top_50_record']}. "
+         f"Quality wins (top 100): {player_a} "
+         f"{', '.join(x['opponent'] + ' (#' + str(x['rank']) + ')' for x in opponent_strength_a['quality_wins']) or 'none'}; "
+         f"{player_b} {', '.join(x['opponent'] + ' (#' + str(x['rank']) + ')' for x in opponent_strength_b['quality_wins']) or 'none'}. "
+         f"Bad losses (outside top 100): {player_a} "
+         f"{', '.join(x['opponent'] + ' (#' + str(x['rank']) + ')' for x in opponent_strength_a['bad_losses']) or 'none'}; "
+         f"{player_b} {', '.join(x['opponent'] + ' (#' + str(x['rank']) + ')' for x in opponent_strength_b['bad_losses']) or 'none'}. "
          f"Strength of schedule is capped as a modest context adjustment; correlation discount applied."),
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
@@ -1330,7 +1348,9 @@ def analyze(
          f"{fatigue_profile_b['matches_7']} matches, {fatigue_profile_b['sets_7']} sets, "
          f"{fatigue_profile_b['deciders_7']} deciders, "
          f"{fatigue_profile_b['rest_days']} rest days, travel {travel_load_b}"
-         f"{', late finish' if late_finish_b else ''}."),
+         f"{', late finish' if late_finish_b else ''}. High-level recent performance offsets "
+         f"{player_a}'s workload score by {fatigue_resilience_a:.0%} and {player_b}'s by "
+         f"{fatigue_resilience_b:.0%}; workload remains a risk signal rather than assumed deterioration."),
         ("Surface transition", transition,
          f"{player_a}: previous surface {transition_a['previous_surface'] or 'unknown'}, "
          f"{transition_a['matches_current_surface_30']} current-surface matches in 30 days, "
@@ -1437,6 +1457,14 @@ def analyze(
         "context_weights": weights,
         "opponent_strength_a": opponent_strength_a,
         "opponent_strength_b": opponent_strength_b,
+        "recent_resume_comparison": {
+            "player_a": opponent_strength_a,
+            "player_b": opponent_strength_b,
+            "quality_adjusted_form_edge_a": float(opponent_strength_a["quality_adjusted_form"] - opponent_strength_b["quality_adjusted_form"]),
+            "schedule_strength_edge_a": float(opponent_strength_a["strength_score"] - opponent_strength_b["strength_score"]),
+        },
+        "fatigue_resilience_a": fatigue_resilience_a,
+        "fatigue_resilience_b": fatigue_resilience_b,
         "fatigue_profile_a": fatigue_profile_a,
         "fatigue_profile_b": fatigue_profile_b,
         "surface_transition_a": transition_a,
