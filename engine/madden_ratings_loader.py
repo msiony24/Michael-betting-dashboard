@@ -203,6 +203,58 @@ def _flatten_record(record: Dict[str, Any]) -> Dict[str, Any]:
     return flat
 
 
+def _diagnostic_key_paths(value: Any, prefix: str = "", depth: int = 0) -> list[str]:
+    """Return useful field paths without dumping the huge ratings payload."""
+    if depth > 4:
+        return []
+    paths: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            path = f"{prefix}.{key}" if prefix else str(key)
+            key_cf = str(key).casefold()
+            if any(token in key_cf for token in ("team", "position", "club", "roster", "depth")):
+                if isinstance(child, (str, int, float, bool)) or child is None:
+                    paths.append(f"{path}={child!r}")
+                elif isinstance(child, dict):
+                    scalar_preview = {
+                        k: v for k, v in child.items()
+                        if isinstance(v, (str, int, float, bool)) or v is None
+                    }
+                    paths.append(f"{path}={scalar_preview!r}")
+                else:
+                    paths.append(f"{path}=<{type(child).__name__}>")
+            paths.extend(_diagnostic_key_paths(child, path, depth + 1))
+    elif isinstance(value, list):
+        for idx, child in enumerate(value[:2]):
+            paths.extend(_diagnostic_key_paths(child, f"{prefix}[{idx}]", depth + 1))
+    return paths
+
+
+def _print_schema_diagnostic(records: List[Dict[str, Any]]) -> None:
+    print("\n=== EA Madden schema diagnostic ===")
+    print(f"Player records available: {len(records)}")
+    for idx, record in enumerate(records[:3]):
+        print(f"Record {idx + 1} top-level keys: {sorted(record.keys())}")
+        useful = _diagnostic_key_paths(record)
+        if useful:
+            print("Team/position-like paths:")
+            for path in useful[:40]:
+                print(f"  {path}")
+        else:
+            print("No team/position-like paths found in this record.")
+        # Print compact identity fields only; do not dump huge ratings/abilities payloads.
+        compact = {}
+        for key, value in record.items():
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                compact[key] = value
+            elif isinstance(value, dict) and key.casefold() in {
+                "team", "position", "club", "iteration", "archetype"
+            }:
+                compact[key] = value
+        print("Compact scalar fields:")
+        print(json.dumps(compact, indent=2, default=str)[:5000])
+    print("=== End EA Madden schema diagnostic ===\n")
+
 def normalize_players(records: List[Dict[str, Any]]) -> pd.DataFrame:
     rows = []
     for raw_record in records:
@@ -244,6 +296,7 @@ def normalize_players(records: List[Dict[str, Any]]) -> pd.DataFrame:
     required = ("player_name", "team", "position", "overall")
     missing = [c for c in required if c not in frame.columns or frame[c].isna().all()]
     if missing:
+        _print_schema_diagnostic(records)
         raise RuntimeError(
             "The EA response format was recognized incompletely. Missing usable fields: "
             + ", ".join(missing)
