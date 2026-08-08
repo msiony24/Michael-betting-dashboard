@@ -379,10 +379,13 @@ def opponent_strength_profile(
     lookback_matches: int = 10,
 ) -> dict:
     """
-    Evaluate the quality of a player's recent opposition.
+    Evaluate recent form *and* the strength of the opposition that produced it.
 
-    Uses the opponent's Elo at the analysis date, ranking recorded in the match,
-    and whether the player won or lost. The result is centered around 50%.
+    Strength of schedule is intentionally kept separate from results. That prevents
+    Macabets from double-counting a good win as both "good form" and a stronger
+    schedule. ``quality_adjusted_form`` then blends the raw result with opponent
+    quality so recent form gets appropriate context without becoming a dominant
+    input.
     """
     key = canonical_player_key(player)
     history = matches[
@@ -396,44 +399,58 @@ def opponent_strength_profile(
     if history.empty:
         return {
             "matches": 0,
+            "raw_win_rate": 0.5,
             "avg_opponent_rank": None,
             "avg_opponent_elo": 1500.0,
             "quality_form": 0.5,
+            "quality_adjusted_form": 0.5,
             "top_50_record": "0-0",
             "top_100_record": "0-0",
+            "quality_wins": [],
+            "bad_losses": [],
             "strength_score": 0.5,
         }
 
     opponent_ranks = []
     opponent_elos = []
     quality_results = []
+    results = []
+    quality_wins = []
+    bad_losses = []
     top_50_wins = top_50_losses = 0
     top_100_wins = top_100_losses = 0
 
     for _, row in history.iterrows():
         won = canonical_player_key(row["winner_name"]) == key
+        results.append(1.0 if won else 0.0)
         opponent_name = row["loser_name"] if won else row["winner_name"]
         opponent_rank = row.get("loser_rank" if won else "winner_rank", np.nan)
-        opponent_elo = overall_elo.get(canonical_player_key(opponent_name), 1500.0)
+        opponent_elo = float(overall_elo.get(canonical_player_key(opponent_name), 1500.0))
 
-        opponent_elos.append(float(opponent_elo))
+        opponent_elos.append(opponent_elo)
+        rank_value = None
         if pd.notna(opponent_rank):
-            opponent_rank = float(opponent_rank)
-            opponent_ranks.append(opponent_rank)
+            rank_value = float(opponent_rank)
+            opponent_ranks.append(rank_value)
 
-            if opponent_rank <= 50:
+            if rank_value <= 50:
                 if won:
                     top_50_wins += 1
                 else:
                     top_50_losses += 1
-            if opponent_rank <= 100:
+            if rank_value <= 100:
                 if won:
                     top_100_wins += 1
                 else:
                     top_100_losses += 1
 
-        # A win over a strong opponent earns more credit; a loss to a strong
-        # opponent is penalized less than a loss to weak opposition.
+            if won and rank_value <= 100:
+                quality_wins.append({"opponent": str(opponent_name), "rank": int(rank_value)})
+            elif not won and rank_value > 100:
+                bad_losses.append({"opponent": str(opponent_name), "rank": int(rank_value)})
+
+        # Result quality: strong-opponent wins receive more credit, while losses
+        # to strong opponents are treated more gently than losses to weak ones.
         opponent_quality = 1 / (1 + math.exp(-(opponent_elo - 1500.0) / 170.0))
         quality_results.append(
             0.55 + 0.45 * opponent_quality
@@ -446,29 +463,45 @@ def opponent_strength_profile(
         if opponent_ranks else None
     )
     avg_elo = float(sum(opponent_elos) / len(opponent_elos))
+    raw_win_rate = float(sum(results) / len(results))
     quality_form = float(sum(quality_results) / len(quality_results))
 
+    # Schedule score uses opponent quality only -- not wins/losses. This makes
+    # strength of schedule a clean, modest context signal rather than a second
+    # version of recent form.
     elo_component = 1 / (1 + math.exp(-(avg_elo - 1500.0) / 160.0))
     rank_component = (
         1 / (1 + math.exp((avg_rank - 75.0) / 35.0))
         if avg_rank is not None else 0.5
     )
-
     strength_score = float(np.clip(
-        0.45 * elo_component
-        + 0.30 * rank_component
-        + 0.25 * quality_form,
+        0.60 * elo_component + 0.40 * rank_component,
         0.0,
         1.0,
     ))
 
+    # Keep the player's actual recent record as the majority of the form signal.
+    # Opponent-aware result quality supplies context, but cannot overwhelm it.
+    quality_adjusted_form = float(np.clip(
+        0.60 * raw_win_rate + 0.40 * quality_form,
+        0.0,
+        1.0,
+    ))
+
+    quality_wins.sort(key=lambda item: item["rank"])
+    bad_losses.sort(key=lambda item: item["rank"], reverse=True)
+
     return {
         "matches": int(len(history)),
+        "raw_win_rate": raw_win_rate,
         "avg_opponent_rank": avg_rank,
         "avg_opponent_elo": avg_elo,
         "quality_form": quality_form,
+        "quality_adjusted_form": quality_adjusted_form,
         "top_50_record": f"{top_50_wins}-{top_50_losses}",
         "top_100_record": f"{top_100_wins}-{top_100_losses}",
+        "quality_wins": quality_wins[:3],
+        "bad_losses": bad_losses[:3],
         "strength_score": strength_score,
     }
 
@@ -1158,17 +1191,22 @@ def analyze(
             "Serve/return point totals are not supplied by the current historical provider, "
             "so this factor was excluded rather than filled with placeholder values."
         )
+    # Recent form is quality-adjusted: raw last-10 results remain the majority
+    # signal, while opponent quality gives those results context.
     form = float(np.clip(
-        (pa["recent_win"] - pb["recent_win"]) * .04 * weights["form"],
+        (
+            opponent_strength_a["quality_adjusted_form"]
+            - opponent_strength_b["quality_adjusted_form"]
+        ) * .04 * weights["form"],
         -.045, .045
     ))
     opponent_strength = float(np.clip(
         (
             opponent_strength_a["strength_score"]
             - opponent_strength_b["strength_score"]
-        ) * 0.055,
-        -0.035,
-        0.035,
+        ) * 0.045,
+        -0.025,
+        0.025,
     ))
     surface_adj = float(np.clip(
         (pa["surface_win"] - pb["surface_win"]) * .045,
@@ -1264,15 +1302,22 @@ def analyze(
         ("Experience Engine", experience_adjustment, experience_reason),
         ("Context-weighted matchup", matchup, matchup_reason),
         ("Context-weighted recent form", form,
-         f"Last-10 win rate: {player_a} {pa['recent_win']:.0%}; {player_b} "
-         f"{pb['recent_win']:.0%}. Context multiplier: {weights['form']:.2f}x. "
-         f"A correlation discount is applied because recent form overlaps with Elo."),
+         f"Last-10 win rate: {player_a} {opponent_strength_a['raw_win_rate']:.0%}; "
+         f"{player_b} {opponent_strength_b['raw_win_rate']:.0%}. Quality-adjusted form: "
+         f"{opponent_strength_a['quality_adjusted_form']:.0%} vs "
+         f"{opponent_strength_b['quality_adjusted_form']:.0%}. The adjustment considers "
+         f"who produced those results while keeping raw form as the majority signal. "
+         f"Context multiplier: {weights['form']:.2f}x; correlation discount applied."),
         ("Opponent strength", opponent_strength,
-         f"Recent opposition score: {player_a} "
-         f"{opponent_strength_a['strength_score']:.0%} vs {player_b} "
+         f"Last-{opponent_strength_a['matches']}/{opponent_strength_b['matches']} schedule score: "
+         f"{player_a} {opponent_strength_a['strength_score']:.0%} vs {player_b} "
          f"{opponent_strength_b['strength_score']:.0%}. Average opponent Elo: "
          f"{opponent_strength_a['avg_opponent_elo']:.0f} vs "
-         f"{opponent_strength_b['avg_opponent_elo']:.0f}. A correlation discount is applied."),
+         f"{opponent_strength_b['avg_opponent_elo']:.0f}; average opponent rank: "
+         f"{opponent_strength_a['avg_opponent_rank'] or 'N/A'} vs "
+         f"{opponent_strength_b['avg_opponent_rank'] or 'N/A'}. Top-50 records: "
+         f"{opponent_strength_a['top_50_record']} vs {opponent_strength_b['top_50_record']}. "
+         f"Strength of schedule is capped as a modest context adjustment; correlation discount applied."),
         ("Surface", surface_adj,
          f"Two-year {surface} win rate: {player_a} {pa['surface_win']:.0%}; "
          f"{player_b} {pb['surface_win']:.0%}. A correlation discount is applied because "
