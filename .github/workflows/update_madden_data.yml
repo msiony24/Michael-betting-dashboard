@@ -24,11 +24,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Update Madden ratings and join NFL rosters
+      - name: Import audited Madden 27 launch ratings and rebuild NFL ratings
         run: python update_madden_data.py
-
-      - name: Build automated NFL ratings
-        run: python update_nfl_ratings.py
 
       - name: Validate Madden 27 rosters
         run: python validate_madden_rosters.py
@@ -38,6 +35,7 @@ jobs:
           ls -lh data/madden_27_players.csv data/madden_27_raw.json data/madden_27_metadata.json data/madden_27_team_ratings.json
           ls -lh data/nfl/roster_*.csv data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json
           ls -lh data/nfl/madden_27_validation.json data/nfl/madden_27_validation.csv
+          ls -lh data/nfl/madden_27_personnel_audit.json data/nfl/madden_27_personnel_audit.csv
 
       - name: Commit updated Madden data
         run: |
@@ -46,6 +44,8 @@ jobs:
           git add data/madden_27_players.csv data/madden_27_raw.json data/madden_27_metadata.json data/madden_27_team_ratings.json
           git add data/nfl/roster_*.csv data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json data/nfl/rating_history.jsonl
           git add data/nfl/madden_27_validation.json data/nfl/madden_27_validation.csv
+          git add data/nfl/madden_27_personnel_audit.json data/nfl/madden_27_personnel_audit.csv
+          git add data/madden_27_launch_ratings.xlsx
           if git diff --cached --quiet; then
             echo "No Madden data changes to commit."
           else
