@@ -1343,9 +1343,10 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     else:
         quality = "Very Overpriced"
 
-    # Verdict remains flexible: price matters most, but strong model conviction can
-    # keep a modestly expensive favorite playable rather than forcing an automatic pass.
-    if expected_roi >= 0.08 and confidence_score >= 70:
+    # A Strong Bet must clear BOTH the value test and a minimum win-probability
+    # conviction floor. A large pricing edge alone cannot turn a modest favorite
+    # into Macabets' strongest recommendation.
+    if expected_roi >= 0.08 and confidence_score >= 75 and probability >= 0.65:
         verdict = "Strong Bet"
     elif expected_roi >= 0.025 and confidence_score >= 62:
         verdict = "Worth Betting"
@@ -1423,9 +1424,12 @@ def decision_label(expected_roi, confidence):
     if confidence_score <= 10:
         confidence_score *= 10
 
-    # Convert ROI back through the same thresholds used by the main price engine.
+    # This compatibility helper does not know the underlying model probability,
+    # so it must never manufacture a Strong Bet from ROI + confidence alone.
+    # The main moneyline_price_quality() function is the source of truth for that
+    # verdict because it can enforce the win-probability floor.
     if expected_roi >= 0.08 and confidence_score >= 70:
-        verdict = "Strong Bet"
+        verdict = "Worth Betting"
     elif expected_roi >= 0.025 and confidence_score >= 62:
         verdict = "Worth Betting"
     elif expected_roi >= -0.015 and confidence_score >= 82:
