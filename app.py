@@ -2895,6 +2895,14 @@ with tabs[1]:
                         "head_to_head": h2h_context,
                         "matchup_context": matchup_context,
                         "match_intelligence": result.get("match_intelligence", {}),
+                        # Deterministic model evidence: Challenge Macabets should reason from
+                        # the same recent-resume and fatigue inputs as the prediction engine
+                        # before reaching for web search or constructing a narrative.
+                        "recent_resume_comparison": result.get("recent_resume_comparison", {}),
+                        "fatigue_profile_a": result.get("fatigue_profile_a", {}),
+                        "fatigue_profile_b": result.get("fatigue_profile_b", {}),
+                        "fatigue_resilience_a": result.get("fatigue_resilience_a", 0.0),
+                        "fatigue_resilience_b": result.get("fatigue_resilience_b", 0.0),
                         "player_intelligence_a": intelligence_a,
                         "player_intelligence_b": intelligence_b,
                         "factors": [
