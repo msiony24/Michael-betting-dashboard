@@ -71,7 +71,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.78 — Plain-English Style Matchups"
+APP_VERSION = "Macabets v0.79 — Wrapped Style Matchup Table"
 BUILD_DATE = "August 10, 2026"
 
 st.set_page_config(
@@ -353,6 +353,149 @@ def _plain_nfl_style_why(category, advantage, strength, raw_why, away_team, home
     if is_even:
         return "The relevant starter traits are closely matched, so this area does not create a meaningful matchup advantage."
     return f"{advantage} has a {strength_word} matchup edge here based on the relevant starter traits."
+
+
+def _render_nfl_style_matchup_table(style_table, away_team, home_team):
+    """Render the style-matchup table with readable wrapping and a dominant Why column."""
+    away_team = str(away_team or "")
+    home_team = str(home_team or "")
+
+    def advantage_class(value):
+        value = str(value or "")
+        if value == away_team:
+            return "away"
+        if value == home_team:
+            return "home"
+        if value.lower() == "even":
+            return "even"
+        return "other"
+
+    def strength_class(value):
+        value = str(value or "").lower()
+        if value == "strong":
+            return "strong"
+        if value in {"moderate", "clear"}:
+            return "moderate"
+        if value == "slight":
+            return "slight"
+        return "even"
+
+    def why_html(value):
+        value = str(value or "").strip()
+        if not value:
+            return "—"
+        # Make the takeaway immediately scannable, then put the supporting football
+        # context on a second line. This preserves the explanation while avoiding a
+        # wall of text inside the table.
+        parts = re.split(r"(?<=[.!?])\s+", value, maxsplit=1)
+        lead = html.escape(parts[0])
+        detail = html.escape(parts[1]) if len(parts) > 1 else ""
+        if detail:
+            return f'<span class="style-why-lead">{lead}</span><span class="style-why-detail">{detail}</span>'
+        return f'<span class="style-why-lead">{lead}</span>'
+
+    rows_html = []
+    for _, row in style_table.iterrows():
+        category = html.escape(str(row.get("Category", "—")))
+        advantage = str(row.get("Advantage", "Even"))
+        strength = str(row.get("Strength", "Even"))
+        gap = row.get("Trait Gap", None)
+        try:
+            gap_text = f"{float(gap):.1f}"
+        except (TypeError, ValueError):
+            gap_text = html.escape(str(gap if gap not in (None, "") else "—"))
+        rows_html.append(
+            f'''<tr>
+                <td class="style-category">{category}</td>
+                <td><span class="style-advantage {advantage_class(advantage)}">{html.escape(advantage)}</span></td>
+                <td><span class="style-strength {strength_class(strength)}">{html.escape(strength)}</span></td>
+                <td class="style-gap">{gap_text}</td>
+                <td class="style-why">{why_html(row.get("Why", ""))}</td>
+            </tr>'''
+        )
+
+    table_html = f'''
+    <style>
+      .macabets-style-wrap {{
+        width: 100%;
+        overflow-x: auto;
+        margin: 0.15rem 0 0.75rem 0;
+      }}
+      .macabets-style-table {{
+        width: 100%;
+        min-width: 980px;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+        border: 1px solid #d9dee7;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+        color: #172033;
+        font-size: 0.88rem;
+      }}
+      .macabets-style-table th {{
+        background: #f8fafc;
+        color: #667085;
+        font-weight: 600;
+        text-align: left;
+        padding: 0.62rem 0.7rem;
+        border-bottom: 1px solid #d9dee7;
+      }}
+      .macabets-style-table td {{
+        padding: 0.68rem 0.7rem;
+        vertical-align: top;
+        border-bottom: 1px solid #e7eaf0;
+        line-height: 1.38;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }}
+      .macabets-style-table tr:last-child td {{ border-bottom: 0; }}
+      .macabets-style-table th:nth-child(1), .macabets-style-table td:nth-child(1) {{ width: 21%; }}
+      .macabets-style-table th:nth-child(2), .macabets-style-table td:nth-child(2) {{ width: 14%; }}
+      .macabets-style-table th:nth-child(3), .macabets-style-table td:nth-child(3) {{ width: 8%; }}
+      .macabets-style-table th:nth-child(4), .macabets-style-table td:nth-child(4) {{ width: 6%; }}
+      .macabets-style-table th:nth-child(5), .macabets-style-table td:nth-child(5) {{ width: 51%; }}
+      .style-category {{ font-weight: 600; }}
+      .style-gap {{ text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap !important; }}
+      .style-advantage, .style-strength {{
+        display: inline-block;
+        padding: 0.22rem 0.48rem;
+        border-radius: 7px;
+        font-weight: 700;
+        line-height: 1.2;
+      }}
+      .style-advantage.away {{ background: #eef2ff; color: #3730a3; }}
+      .style-advantage.home {{ background: #ecfdf3; color: #166534; }}
+      .style-advantage.even {{ background: #f3f4f6; color: #4b5563; }}
+      .style-advantage.other {{ background: #f8fafc; color: #334155; }}
+      .style-strength.strong {{ background: #ecfdf3; color: #166534; }}
+      .style-strength.moderate {{ background: #eef2ff; color: #3730a3; }}
+      .style-strength.slight {{ background: #eff6ff; color: #1d4ed8; }}
+      .style-strength.even {{ background: #f3f4f6; color: #4b5563; }}
+      .style-why {{ line-height: 1.45 !important; }}
+      .style-why-lead {{ display: block; font-weight: 700; color: #172033; margin-bottom: 0.18rem; }}
+      .style-why-detail {{ display: block; color: #475467; }}
+      @media (max-width: 900px) {{
+        .macabets-style-table {{ min-width: 900px; font-size: 0.84rem; }}
+      }}
+    </style>
+    <div class="macabets-style-wrap">
+      <table class="macabets-style-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Advantage</th>
+            <th>Strength</th>
+            <th>Gap</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>{''.join(rows_html)}</tbody>
+      </table>
+    </div>
+    '''
+    st.markdown(table_html, unsafe_allow_html=True)
 
 
 def _availability_unit_effect(unit_name):
@@ -4526,54 +4669,13 @@ with tabs[1]:
                                 axis=1,
                             )
 
-                        # Make the decision columns compact so the football explanation gets the space.
-                        # Highlight the winning side in Advantage without changing any matchup logic.
-                        away_team = str(nfl_result.get("away_team", ""))
-                        home_team = str(nfl_result.get("home_team", ""))
-
-                        def _highlight_style_advantage(value):
-                            value = str(value)
-                            if value == away_team:
-                                return "background-color: #eef2ff; color: #3730a3; font-weight: 700;"
-                            if value == home_team:
-                                return "background-color: #ecfdf3; color: #166534; font-weight: 700;"
-                            if value.lower() == "even":
-                                return "background-color: #f3f4f6; color: #4b5563; font-weight: 650;"
-                            return "font-weight: 650;"
-
-                        # pandas 2.1+ renamed Styler.applymap() to Styler.map(), and
-                        # newer pandas releases can remove applymap entirely. Support both so
-                        # Streamlit Cloud upgrades cannot break the NFL report.
-                        style_styler = style_table.style
-                        advantage_subset = ["Advantage"] if "Advantage" in style_table.columns else None
-                        if hasattr(style_styler, "map"):
-                            styled_style_table = style_styler.map(
-                                _highlight_style_advantage,
-                                subset=advantage_subset,
-                            )
-                        else:
-                            styled_style_table = style_styler.applymap(
-                                _highlight_style_advantage,
-                                subset=advantage_subset,
-                            )
-
-                        style_column_config = {}
-                        if "Category" in style_table.columns:
-                            style_column_config["Category"] = st.column_config.TextColumn(width=310)
-                        if "Advantage" in style_table.columns:
-                            style_column_config["Advantage"] = st.column_config.TextColumn(width=190)
-                        if "Strength" in style_table.columns:
-                            style_column_config["Strength"] = st.column_config.TextColumn(width=90)
-                        if "Trait Gap" in style_table.columns:
-                            style_column_config["Trait Gap"] = st.column_config.NumberColumn(width=80, format="%.1f")
-                        if "Why" in style_table.columns:
-                            style_column_config["Why"] = st.column_config.TextColumn(width=760)
-
-                        st.dataframe(
-                            styled_style_table,
-                            use_container_width=True,
-                            hide_index=True,
-                            column_config=style_column_config,
+                        # Use a custom HTML table here so the Why explanation wraps onto
+                        # multiple lines and can take most of the available width. The raw
+                        # calculations are unchanged; this only improves presentation.
+                        _render_nfl_style_matchup_table(
+                            style_table,
+                            nfl_result.get("away_team"),
+                            nfl_result.get("home_team"),
                         )
                         style_adj = float(matchup_intelligence.get("style_adjustment_home", 0.0) or 0.0)
                         if abs(style_adj) < 0.005:
