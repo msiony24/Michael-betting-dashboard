@@ -6,6 +6,8 @@ import html
 import urllib.error
 import urllib.parse
 import urllib.request
+import importlib
+from pathlib import Path
 from zoneinfo import ZoneInfo
 from datetime import date, datetime, time, timedelta, timezone
 
@@ -68,7 +70,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.70 — Availability Intelligence UI"
+APP_VERSION = "Macabets v0.71 — Availability Intelligence v2"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -134,8 +136,40 @@ def _format_nfl_availability_timestamp(value):
         return str(value)
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _load_nfl_personnel_details():
+    """Load the detailed generated team/unit ratings used by Availability Intelligence."""
+    candidates = [
+        Path(__file__).resolve().parent / "data" / "nfl" / "team_ratings_auto.json",
+        Path(__file__).resolve().parent / "data" / "team_ratings_auto.json",
+    ]
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            return payload if isinstance(payload, dict) else {}
+        except Exception:
+            continue
+    return {}
+
+
+def _availability_unit_effect(unit_name):
+    effects = {
+        "quarterback": "Passing efficiency, sack avoidance and offensive ceiling",
+        "running_backs": "Rushing efficiency, pass protection and receiving out of the backfield",
+        "receiving_weapons": "Separation, explosive passing and third-down receiving",
+        "offensive_line": "Pass protection, pressure exposure and run blocking",
+        "defensive_front": "Pass rush, edge containment and run defense",
+        "linebackers": "Run fits, underneath coverage and tackling",
+        "secondary": "Coverage quality, explosive-pass prevention and receiver matchups",
+        "special_teams": "Kicking, punting and field-position value",
+    }
+    return effects.get(str(unit_name), "The affected personnel matchup")
+
+
 def _team_availability_rows(team_profile):
-    """Flatten unit-level Sleeper availability details for display."""
+    """Flatten unit-level Sleeper availability details into football-readable rows."""
     rows = []
     if not isinstance(team_profile, dict):
         return rows
@@ -144,102 +178,185 @@ def _team_availability_rows(team_profile):
         if not isinstance(unit, dict):
             continue
         unit_label = str(unit_name).replace("_", " ").title()
+        effect = _availability_unit_effect(unit_name)
+        grade = unit.get("grade")
+        healthy_grade = unit.get("healthy_grade", grade)
+        delta = unit.get("availability_grade_delta")
         for item in unit.get("unavailable_starters", []) or []:
             rows.append({
-                "Type": "Unavailable starter",
+                "kind": "out",
                 "Player": item.get("name", "—"),
                 "Status": item.get("status", "Out"),
-                "Role": item.get("role", "") or "—",
+                "Role": item.get("role", "") or "Starter",
                 "Unit": unit_label,
                 "Replacement": "—",
+                "Effect": effect,
+                "HealthyGrade": healthy_grade,
+                "CurrentGrade": grade,
+                "Delta": delta,
             })
         for item in unit.get("availability_promotions", []) or []:
             rows.append({
-                "Type": "Backup activated",
+                "kind": "promotion",
                 "Player": item.get("out", "—"),
-                "Status": "Replaced",
-                "Role": item.get("role", "") or "—",
+                "Status": "Out → backup activated",
+                "Role": item.get("role", "") or "Starter",
                 "Unit": unit_label,
                 "Replacement": item.get("in", "—"),
+                "Effect": effect,
+                "HealthyGrade": healthy_grade,
+                "CurrentGrade": grade,
+                "Delta": delta,
             })
         for item in unit.get("availability_uncertainty", []) or []:
             rows.append({
-                "Type": "Uncertain",
+                "kind": "uncertain",
                 "Player": item.get("name", "—"),
                 "Status": item.get("status", "Questionable"),
-                "Role": item.get("role", "") or "—",
+                "Role": item.get("role", "") or "Depth-chart player",
                 "Unit": unit_label,
-                "Replacement": "—",
+                "Replacement": "Not activated",
+                "Effect": effect,
+                "HealthyGrade": grade,
+                "CurrentGrade": grade,
+                "Delta": 0.0,
             })
     return rows
 
 
+def _refresh_nfl_availability_now():
+    """Refresh Sleeper, rebuild player/team ratings, and reload NFL runtime state."""
+    global NFL_QUALITY_RATINGS, analyze_nfl_match
+    from engine.nfl_availability import refresh_sleeper_availability
+    from engine.nfl_rating_engine import build_and_save_ratings
+
+    refresh_sleeper_availability()
+    build_and_save_ratings()
+
+    import engine.nfl_data as nfl_data_module
+    import engine.nfl as nfl_module
+    importlib.reload(nfl_data_module)
+    nfl_module = importlib.reload(nfl_module)
+
+    NFL_TEAM_RATINGS.clear()
+    NFL_TEAM_RATINGS.update(nfl_data_module.NFL_TEAM_RATINGS)
+    NFL_DATA_STATUS.clear()
+    NFL_DATA_STATUS.update(nfl_data_module.NFL_DATA_STATUS)
+    NFL_QUALITY_RATINGS = load_all_team_ratings()
+    analyze_nfl_match = nfl_module.analyze
+    st.cache_data.clear()
+
+
+def _render_team_availability_detail(team_name, profile, rows):
+    st.markdown(f"**{team_name}**")
+    m1, m2, m3 = st.columns(3)
+    unavailable = int(profile.get("unavailable_starters", 0) or 0)
+    promotions = int(profile.get("availability_promotions", 0) or 0)
+    uncertain = int(profile.get("availability_uncertain", 0) or 0)
+    m1.metric("Unavailable starters", unavailable)
+    m2.metric("Backups activated", promotions)
+    m3.metric("Questionable / Doubtful", uncertain)
+
+    definitive_rows = [row for row in rows if row.get("kind") in {"out", "promotion"}]
+    uncertain_rows = [row for row in rows if row.get("kind") == "uncertain"]
+
+    if definitive_rows:
+        seen = set()
+        for row in definitive_rows:
+            key = (row.get("Player"), row.get("Unit"), row.get("Replacement"))
+            if key in seen:
+                continue
+            seen.add(key)
+            replacement = row.get("Replacement", "—")
+            if replacement and replacement != "—":
+                st.error(f"🔴 {row['Player']} — {row['Status']} · {row['Unit']}")
+                st.markdown(f"**Backup activated:** {replacement}")
+            else:
+                st.error(f"🔴 {row['Player']} — {row['Status']} · {row['Unit']}")
+            hg, cg, delta = row.get("HealthyGrade"), row.get("CurrentGrade"), row.get("Delta")
+            if isinstance(hg, (int, float)) and isinstance(cg, (int, float)):
+                delta_text = f" ({float(delta):+.1f})" if isinstance(delta, (int, float)) else ""
+                st.caption(f"{row['Effect']} · Unit grade {float(hg):.1f} → {float(cg):.1f}{delta_text}")
+            else:
+                st.caption(row["Effect"])
+
+    if uncertain_rows:
+        for row in uncertain_rows:
+            icon = "🟠" if str(row["Status"]).lower().startswith("doubt") else "🟡"
+            st.warning(f"{icon} {row['Player']} — {row['Status']} · {row['Unit']}")
+            st.caption(f"If inactive: {row['Effect']}. No backup is activated and no unit downgrade is applied yet.")
+
+    if not definitive_rows and not uncertain_rows:
+        st.success("🟢 No current Sleeper availability flags affecting the tracked depth chart.")
+    elif not definitive_rows:
+        st.success("🟢 No definitive starter replacement is active.")
+
+
 def _render_nfl_availability_intelligence(away_team, home_team, away_profile, home_profile):
-    """Show exactly how Sleeper availability changed the current matchup personnel."""
-    away_profile = away_profile if isinstance(away_profile, dict) else {}
-    home_profile = home_profile if isinstance(home_profile, dict) else {}
+    """Show who is hurt, who replaced them, and which football units changed."""
+    details = _load_nfl_personnel_details()
+    away_detail = details.get(away_team, {}) if isinstance(details, dict) else {}
+    home_detail = details.get(home_team, {}) if isinstance(details, dict) else {}
+
+    # Detailed generated profiles carry unit/player lists. Keep aggregate loader profiles
+    # as a fallback for counts and timestamps.
+    if not isinstance(away_detail, dict) or not away_detail:
+        away_detail = away_profile if isinstance(away_profile, dict) else {}
+    if not isinstance(home_detail, dict) or not home_detail:
+        home_detail = home_profile if isinstance(home_profile, dict) else {}
+
     updates = [
         value for value in [
-            away_profile.get("availability_updated_at_utc"),
-            home_profile.get("availability_updated_at_utc"),
+            away_detail.get("availability_updated_at_utc"),
+            home_detail.get("availability_updated_at_utc"),
+            away_profile.get("availability_updated_at_utc") if isinstance(away_profile, dict) else None,
+            home_profile.get("availability_updated_at_utc") if isinstance(home_profile, dict) else None,
             NFL_DATA_STATUS.get("availability_updated_at_utc"),
         ] if value
     ]
     updated = max(updates) if updates else None
 
-    st.markdown("### NFL Availability Intelligence")
-    st.caption(
-        f"Source: Sleeper availability + Footballguys depth chart · Last updated: "
-        f"{_format_nfl_availability_timestamp(updated)}"
-    )
-
-    away_rows = _team_availability_rows(away_profile)
-    home_rows = _team_availability_rows(home_profile)
-    c1, c2 = st.columns(2)
-    for col, team_name, profile, rows in [
-        (c1, away_team, away_profile, away_rows),
-        (c2, home_team, home_profile, home_rows),
-    ]:
-        with col:
-            st.markdown(f"**{team_name}**")
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Unavailable starters", int(profile.get("unavailable_starters", 0) or 0))
-            m2.metric("Backups activated", int(profile.get("availability_promotions", 0) or 0))
-            m3.metric("Q / Doubtful", int(profile.get("availability_uncertain", 0) or 0))
-            if rows:
-                st.dataframe(
-                    pd.DataFrame(rows)[["Player", "Status", "Unit", "Replacement"]],
-                    use_container_width=True,
-                    hide_index=True,
-                )
-            else:
-                st.success("No current Sleeper availability flags affecting the tracked depth chart.")
-
-    total_changes = sum(
-        int(profile.get("availability_promotions", 0) or 0)
-        for profile in [away_profile, home_profile]
-    )
-    total_unavailable = sum(
-        int(profile.get("unavailable_starters", 0) or 0)
-        for profile in [away_profile, home_profile]
-    )
-    total_uncertain = sum(
-        int(profile.get("availability_uncertain", 0) or 0)
-        for profile in [away_profile, home_profile]
-    )
-    if total_changes:
-        st.warning(
-            f"Availability changed the active depth chart in this matchup: {total_changes} backup "
-            f"activation(s) across {total_unavailable} unavailable starter(s). Unit grades already reflect those replacements."
+    header1, header2 = st.columns([4, 1])
+    with header1:
+        st.markdown("### NFL Availability Intelligence")
+        st.caption(
+            f"Source: Sleeper availability + Footballguys depth chart · Last updated: "
+            f"{_format_nfl_availability_timestamp(updated)}"
         )
-    elif total_uncertain:
+    with header2:
+        if st.button("Refresh Sleeper Data", key="refresh_sleeper_availability", use_container_width=True):
+            try:
+                with st.spinner("Refreshing Sleeper availability and rebuilding NFL personnel ratings..."):
+                    _refresh_nfl_availability_now()
+                st.success("NFL availability refreshed. Rebuilding matchup with the latest personnel.")
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Could not refresh Sleeper availability: {exc}")
+
+    away_rows = _team_availability_rows(away_detail)
+    home_rows = _team_availability_rows(home_detail)
+    c1, c2 = st.columns(2)
+    with c1:
+        _render_team_availability_detail(away_team, away_detail or away_profile, away_rows)
+    with c2:
+        _render_team_availability_detail(home_team, home_detail or home_profile, home_rows)
+
+    all_rows = away_rows + home_rows
+    promotions = [row for row in all_rows if row.get("kind") == "promotion"]
+    uncertain_rows = [row for row in all_rows if row.get("kind") == "uncertain"]
+    if promotions:
+        affected = sorted({row.get("Unit", "") for row in promotions if row.get("Unit")})
+        st.warning(
+            f"Availability has changed the active depth chart: {len(promotions)} backup activation(s). "
+            f"Affected unit(s): {', '.join(affected)}. Macabets' current unit grades already include these replacements."
+        )
+    elif uncertain_rows:
         st.info(
-            f"No definitive starter replacement is active, but {total_uncertain} Questionable/Doubtful "
-            "designation(s) remain unresolved. Macabets does not automatically bench uncertain players."
+            f"No definitive starter replacement is active, but {len(uncertain_rows)} Questionable/Doubtful "
+            "designation(s) remain unresolved. Macabets keeps those players active until Sleeper reports a definitive unavailable status."
         )
     else:
         st.success("No injury-driven starter substitutions are currently applied to this matchup.")
-
 
 def _odds_api_key():
     """Read the API key safely from Streamlit secrets without exposing it."""
@@ -3861,34 +3978,6 @@ with tabs[1]:
 
             nfl_result = st.session_state.get("nfl_result")
             if nfl_result:
-                # Streamlit reruns the script whenever the user changes tabs/widgets.
-                # venue_type/weather were previously created only inside the Generate
-                # NFL Report button handler, which caused intermittent NameError crashes
-                # when a saved NFL result was rendered on a later rerun. Rebuild the
-                # display values from the frozen result/session weather context every run.
-                persisted_weather = (
-                    nfl_result.get("weather_context")
-                    or st.session_state.get("nfl_weather_context", {})
-                    or {}
-                )
-                persisted_venue = str(
-                    persisted_weather.get("venue_type")
-                    or nfl_result.get("venue_type")
-                    or auto_venue_type
-                    or "Outdoor"
-                ).strip()
-                persisted_venue_lower = persisted_venue.lower()
-                venue_type = (
-                    "Dome" if persisted_venue_lower == "dome"
-                    else "Retractable roof" if "retract" in persisted_venue_lower
-                    else "Outdoor"
-                )
-                weather = str(
-                    persisted_weather.get("label")
-                    or nfl_result.get("weather")
-                    or "Normal"
-                )
-
                 fair_home_spread = float(nfl_result["fair_spread_home"])
                 entered_market_home_spread = float(market_spread_home)
                 spread_difference = fair_home_spread - entered_market_home_spread
