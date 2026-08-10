@@ -2,7 +2,7 @@
   "Arizona Cardinals": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.91,
+    "roster_grade": 76.95,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -110,7 +110,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 70.0,
-        "grade": 71.8,
+        "grade": 72.0,
         "player_count": 3,
         "starter_grade": 72.0,
         "top_players": [
@@ -247,7 +247,7 @@
   "Atlanta Falcons": {
     "player_count": 73,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.06,
+    "roster_grade": 78.08,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -355,7 +355,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 73.0,
-        "grade": 73.9,
+        "grade": 74.0,
         "player_count": 3,
         "starter_grade": 74.0,
         "top_players": [
@@ -492,7 +492,7 @@
   "Baltimore Ravens": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 82.48,
+    "roster_grade": 83.0,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -600,7 +600,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 68.0,
-        "grade": 91.4,
+        "grade": 94.0,
         "player_count": 4,
         "starter_grade": 94.0,
         "top_players": [
@@ -737,7 +737,7 @@
   "Buffalo Bills": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 82.11,
+    "roster_grade": 82.89,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -845,7 +845,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 60.0,
-        "grade": 95.1,
+        "grade": 99.0,
         "player_count": 3,
         "starter_grade": 99.0,
         "top_players": [
@@ -982,7 +982,7 @@
   "Carolina Panthers": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 77.81,
+    "roster_grade": 78.03,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1090,7 +1090,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 67.0,
-        "grade": 76.9,
+        "grade": 78.0,
         "player_count": 3,
         "starter_grade": 78.0,
         "top_players": [
@@ -1227,7 +1227,7 @@
   "Chicago Bears": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.65,
+    "roster_grade": 81.19,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1335,7 +1335,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 63.0,
-        "grade": 87.3,
+        "grade": 90.0,
         "player_count": 3,
         "starter_grade": 90.0,
         "top_players": [
@@ -1472,7 +1472,7 @@
   "Cincinnati Bengals": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.81,
+    "roster_grade": 81.29,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -1580,7 +1580,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 73.0,
-        "grade": 94.6,
+        "grade": 97.0,
         "player_count": 4,
         "starter_grade": 97.0,
         "top_players": [
@@ -1962,7 +1962,7 @@
   "Dallas Cowboys": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.44,
+    "roster_grade": 81.88,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -2070,7 +2070,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 69.0,
-        "grade": 88.8,
+        "grade": 91.0,
         "player_count": 3,
         "starter_grade": 91.0,
         "top_players": [
@@ -2207,7 +2207,7 @@
   "Denver Broncos": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.52,
+    "roster_grade": 80.86,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -2315,7 +2315,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 64.0,
-        "grade": 79.3,
+        "grade": 81.0,
         "player_count": 3,
         "starter_grade": 81.0,
         "top_players": [
@@ -2452,7 +2452,7 @@
   "Detroit Lions": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.64,
+    "roster_grade": 82.06,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -2560,7 +2560,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 67.0,
-        "grade": 85.9,
+        "grade": 88.0,
         "player_count": 3,
         "starter_grade": 88.0,
         "top_players": [
@@ -2697,7 +2697,7 @@
   "Green Bay Packers": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 79.03,
+    "roster_grade": 79.37,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -2805,7 +2805,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 69.0,
-        "grade": 84.3,
+        "grade": 86.0,
         "player_count": 3,
         "starter_grade": 86.0,
         "top_players": [
@@ -2942,7 +2942,7 @@
   "Houston Texans": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 79.3,
+    "roster_grade": 79.5,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -3050,7 +3050,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 66.0,
-        "grade": 75.0,
+        "grade": 76.0,
         "player_count": 3,
         "starter_grade": 76.0,
         "top_players": [
@@ -3187,7 +3187,7 @@
   "Indianapolis Colts": {
     "player_count": 72,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.84,
+    "roster_grade": 79.0,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -3295,7 +3295,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 70.0,
-        "grade": 77.2,
+        "grade": 78.0,
         "player_count": 4,
         "starter_grade": 78.0,
         "top_players": [
@@ -3427,7 +3427,7 @@
   "Jacksonville Jaguars": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 77.86,
+    "roster_grade": 78.32,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -3535,7 +3535,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 61.0,
-        "grade": 81.7,
+        "grade": 84.0,
         "player_count": 4,
         "starter_grade": 84.0,
         "top_players": [
@@ -3672,7 +3672,7 @@
   "Kansas City Chiefs": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.44,
+    "roster_grade": 81.9,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -3780,7 +3780,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 70.0,
-        "grade": 90.7,
+        "grade": 93.0,
         "player_count": 4,
         "starter_grade": 93.0,
         "top_players": [
@@ -3917,7 +3917,7 @@
   "Las Vegas Raiders": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.91,
+    "roster_grade": 76.93,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4025,7 +4025,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 73.0,
-        "grade": 73.9,
+        "grade": 74.0,
         "player_count": 3,
         "starter_grade": 74.0,
         "top_players": [
@@ -4157,7 +4157,7 @@
   "Los Angeles Chargers": {
     "player_count": 73,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.44,
+    "roster_grade": 80.96,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4265,7 +4265,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 64.0,
-        "grade": 87.4,
+        "grade": 90.0,
         "player_count": 2,
         "starter_grade": 90.0,
         "top_players": [
@@ -4402,7 +4402,7 @@
   "Los Angeles Rams": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 83.98,
+    "roster_grade": 84.54,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4510,7 +4510,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 71.0,
-        "grade": 96.2,
+        "grade": 99.0,
         "player_count": 3,
         "starter_grade": 99.0,
         "top_players": [
@@ -4647,7 +4647,7 @@
   "Miami Dolphins": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 74.82,
+    "roster_grade": 75.04,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -4755,7 +4755,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 63.0,
-        "grade": 72.9,
+        "grade": 74.0,
         "player_count": 4,
         "starter_grade": 74.0,
         "top_players": [
@@ -4892,7 +4892,7 @@
   "Minnesota Vikings": {
     "player_count": 73,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.01,
+    "roster_grade": 78.09,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5000,7 +5000,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 71.0,
-        "grade": 74.6,
+        "grade": 75.0,
         "player_count": 4,
         "starter_grade": 75.0,
         "top_players": [
@@ -5137,7 +5137,7 @@
   "New England Patriots": {
     "player_count": 73,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.93,
+    "roster_grade": 82.55,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5245,7 +5245,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 61.0,
-        "grade": 88.9,
+        "grade": 92.0,
         "player_count": 3,
         "starter_grade": 92.0,
         "top_players": [
@@ -5382,7 +5382,7 @@
   "New Orleans Saints": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 77.4,
+    "roster_grade": 77.52,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5490,7 +5490,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 71.0,
-        "grade": 76.4,
+        "grade": 77.0,
         "player_count": 3,
         "starter_grade": 77.0,
         "top_players": [
@@ -5627,7 +5627,7 @@
   "New York Giants": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.36,
+    "roster_grade": 78.48,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5735,7 +5735,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 71.0,
-        "grade": 76.4,
+        "grade": 77.0,
         "player_count": 3,
         "starter_grade": 77.0,
         "top_players": [
@@ -5872,7 +5872,7 @@
   "New York Jets": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 75.87,
+    "roster_grade": 75.97,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -5980,7 +5980,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 67.0,
-        "grade": 71.5,
+        "grade": 72.0,
         "player_count": 4,
         "starter_grade": 72.0,
         "top_players": [
@@ -6117,7 +6117,7 @@
   "Philadelphia Eagles": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.45,
+    "roster_grade": 81.67,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -6225,7 +6225,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 71.0,
-        "grade": 80.9,
+        "grade": 82.0,
         "player_count": 4,
         "starter_grade": 82.0,
         "top_players": [
@@ -6362,7 +6362,7 @@
   "Pittsburgh Steelers": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 79.71,
+    "roster_grade": 79.93,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -6470,7 +6470,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 68.0,
-        "grade": 77.9,
+        "grade": 79.0,
         "player_count": 4,
         "starter_grade": 79.0,
         "top_players": [
@@ -6607,7 +6607,7 @@
   "San Francisco 49ers": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 81.47,
+    "roster_grade": 81.67,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -6715,7 +6715,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 75.0,
-        "grade": 84.0,
+        "grade": 85.0,
         "player_count": 3,
         "starter_grade": 85.0,
         "top_players": [
@@ -6852,7 +6852,7 @@
   "Seattle Seahawks": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 80.8,
+    "roster_grade": 81.22,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -6960,7 +6960,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 66.0,
-        "grade": 84.9,
+        "grade": 87.0,
         "player_count": 3,
         "starter_grade": 87.0,
         "top_players": [
@@ -7097,7 +7097,7 @@
   "Tampa Bay Buccaneers": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 79.39,
+    "roster_grade": 79.69,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -7205,7 +7205,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 68.0,
-        "grade": 81.5,
+        "grade": 83.0,
         "player_count": 3,
         "starter_grade": 83.0,
         "top_players": [
@@ -7342,7 +7342,7 @@
   "Tennessee Titans": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 76.44,
+    "roster_grade": 76.58,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -7450,7 +7450,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 68.0,
-        "grade": 74.3,
+        "grade": 75.0,
         "player_count": 4,
         "starter_grade": 75.0,
         "top_players": [
@@ -7587,7 +7587,7 @@
   "Washington Commanders": {
     "player_count": 74,
     "prediction_influence_enabled": false,
-    "roster_grade": 78.18,
+    "roster_grade": 78.34,
     "source": "Madden NFL 27",
     "units": {
       "defensive_front": {
@@ -7695,7 +7695,7 @@
       "quarterback": {
         "data_status": "complete",
         "depth_grade": 72.0,
-        "grade": 79.2,
+        "grade": 80.0,
         "player_count": 4,
         "starter_grade": 80.0,
         "top_players": [
