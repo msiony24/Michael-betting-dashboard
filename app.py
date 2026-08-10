@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.69 — Automatic NFL Availability"
+APP_VERSION = "Macabets v0.70 — Availability Intelligence UI"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -119,6 +119,126 @@ SLATE_COLUMNS = [
 
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 EASTERN_TZ = ZoneInfo("America/New_York")
+
+def _format_nfl_availability_timestamp(value):
+    """Format an ISO availability timestamp in Eastern Time for the NFL UI."""
+    if not value:
+        return "Unavailable"
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        local = dt.astimezone(EASTERN_TZ)
+        return local.strftime("%B %d, %Y · %-I:%M %p ET").replace(" 0", " ")
+    except Exception:
+        return str(value)
+
+
+def _team_availability_rows(team_profile):
+    """Flatten unit-level Sleeper availability details for display."""
+    rows = []
+    if not isinstance(team_profile, dict):
+        return rows
+    units = team_profile.get("units", {}) or {}
+    for unit_name, unit in units.items():
+        if not isinstance(unit, dict):
+            continue
+        unit_label = str(unit_name).replace("_", " ").title()
+        for item in unit.get("unavailable_starters", []) or []:
+            rows.append({
+                "Type": "Unavailable starter",
+                "Player": item.get("name", "—"),
+                "Status": item.get("status", "Out"),
+                "Role": item.get("role", "") or "—",
+                "Unit": unit_label,
+                "Replacement": "—",
+            })
+        for item in unit.get("availability_promotions", []) or []:
+            rows.append({
+                "Type": "Backup activated",
+                "Player": item.get("out", "—"),
+                "Status": "Replaced",
+                "Role": item.get("role", "") or "—",
+                "Unit": unit_label,
+                "Replacement": item.get("in", "—"),
+            })
+        for item in unit.get("availability_uncertainty", []) or []:
+            rows.append({
+                "Type": "Uncertain",
+                "Player": item.get("name", "—"),
+                "Status": item.get("status", "Questionable"),
+                "Role": item.get("role", "") or "—",
+                "Unit": unit_label,
+                "Replacement": "—",
+            })
+    return rows
+
+
+def _render_nfl_availability_intelligence(away_team, home_team, away_profile, home_profile):
+    """Show exactly how Sleeper availability changed the current matchup personnel."""
+    away_profile = away_profile if isinstance(away_profile, dict) else {}
+    home_profile = home_profile if isinstance(home_profile, dict) else {}
+    updates = [
+        value for value in [
+            away_profile.get("availability_updated_at_utc"),
+            home_profile.get("availability_updated_at_utc"),
+            NFL_DATA_STATUS.get("availability_updated_at_utc"),
+        ] if value
+    ]
+    updated = max(updates) if updates else None
+
+    st.markdown("### NFL Availability Intelligence")
+    st.caption(
+        f"Source: Sleeper availability + Footballguys depth chart · Last updated: "
+        f"{_format_nfl_availability_timestamp(updated)}"
+    )
+
+    away_rows = _team_availability_rows(away_profile)
+    home_rows = _team_availability_rows(home_profile)
+    c1, c2 = st.columns(2)
+    for col, team_name, profile, rows in [
+        (c1, away_team, away_profile, away_rows),
+        (c2, home_team, home_profile, home_rows),
+    ]:
+        with col:
+            st.markdown(f"**{team_name}**")
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Unavailable starters", int(profile.get("unavailable_starters", 0) or 0))
+            m2.metric("Backups activated", int(profile.get("availability_promotions", 0) or 0))
+            m3.metric("Q / Doubtful", int(profile.get("availability_uncertain", 0) or 0))
+            if rows:
+                st.dataframe(
+                    pd.DataFrame(rows)[["Player", "Status", "Unit", "Replacement"]],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            else:
+                st.success("No current Sleeper availability flags affecting the tracked depth chart.")
+
+    total_changes = sum(
+        int(profile.get("availability_promotions", 0) or 0)
+        for profile in [away_profile, home_profile]
+    )
+    total_unavailable = sum(
+        int(profile.get("unavailable_starters", 0) or 0)
+        for profile in [away_profile, home_profile]
+    )
+    total_uncertain = sum(
+        int(profile.get("availability_uncertain", 0) or 0)
+        for profile in [away_profile, home_profile]
+    )
+    if total_changes:
+        st.warning(
+            f"Availability changed the active depth chart in this matchup: {total_changes} backup "
+            f"activation(s) across {total_unavailable} unavailable starter(s). Unit grades already reflect those replacements."
+        )
+    elif total_uncertain:
+        st.info(
+            f"No definitive starter replacement is active, but {total_uncertain} Questionable/Doubtful "
+            "designation(s) remain unresolved. Macabets does not automatically bench uncertain players."
+        )
+    else:
+        st.success("No injury-driven starter substitutions are currently applied to this matchup.")
 
 
 def _odds_api_key():
@@ -3798,6 +3918,13 @@ with tabs[1]:
                 st.caption(
                     f"Game date: {nfl_date.strftime('%B %-d, %Y')} · "
                     f"{len(NFL_QUALITY_RATINGS)} team profiles loaded"
+                )
+
+                _render_nfl_availability_intelligence(
+                    nfl_result["away_team"],
+                    nfl_result["home_team"],
+                    NFL_QUALITY_RATINGS.get(nfl_result["away_team"], {}),
+                    NFL_QUALITY_RATINGS.get(nfl_result["home_team"], {}),
                 )
 
                 projected_nfl_winner = (
