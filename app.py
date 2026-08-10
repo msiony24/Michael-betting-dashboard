@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.65 — Performance Center Polish"
+APP_VERSION = "Macabets v0.66 — Depth Chart Engine"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
