@@ -70,7 +70,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.76 — Style Table Separation Fix"
+APP_VERSION = "Macabets v0.77 — Style Table Compatibility Fix"
 BUILD_DATE = "August 10, 2026"
 
 st.set_page_config(
@@ -4324,10 +4324,21 @@ with tabs[1]:
                                 return "background-color: #f3f4f6; color: #4b5563; font-weight: 650;"
                             return "font-weight: 650;"
 
-                        styled_style_table = style_table.style.applymap(
-                            _highlight_style_advantage,
-                            subset=["Advantage"] if "Advantage" in style_table.columns else None,
-                        )
+                        # pandas 2.1+ renamed Styler.applymap() to Styler.map(), and
+                        # newer pandas releases can remove applymap entirely. Support both so
+                        # Streamlit Cloud upgrades cannot break the NFL report.
+                        style_styler = style_table.style
+                        advantage_subset = ["Advantage"] if "Advantage" in style_table.columns else None
+                        if hasattr(style_styler, "map"):
+                            styled_style_table = style_styler.map(
+                                _highlight_style_advantage,
+                                subset=advantage_subset,
+                            )
+                        else:
+                            styled_style_table = style_styler.applymap(
+                                _highlight_style_advantage,
+                                subset=advantage_subset,
+                            )
 
                         style_column_config = {}
                         if "Category" in style_table.columns:
