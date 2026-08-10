@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.67 — Preseason Weighting Audit"
+APP_VERSION = "Macabets v0.68 — NFL Re-Audit Fix"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
