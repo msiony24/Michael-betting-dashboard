@@ -1,0 +1,15 @@
+{
+  "depth_chart_file": "/mnt/data/macabets_depthchart_build/Michael-betting-dashboard-main/data/nfl/footballguys_depth_charts.csv",
+  "depth_chart_source": "Footballguys",
+  "engine_version": "1.2-depth-chart-first",
+  "files": {
+    "players": "/mnt/data/macabets_depthchart_build/Michael-betting-dashboard-main/data/nfl/player_ratings.csv",
+    "teams": "/mnt/data/macabets_depthchart_build/Michael-betting-dashboard-main/data/nfl/team_ratings_auto.json"
+  },
+  "players_rated": 2362,
+  "players_with_performance_data": 483,
+  "prediction_influence_enabled": false,
+  "schema_version": "1.2",
+  "teams_rated": 32,
+  "updated_at_utc": "2026-08-10T21:06:44+00:00"
+}
