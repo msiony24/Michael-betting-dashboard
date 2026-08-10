@@ -2,6 +2,7 @@
 import io
 import math
 import json
+import re
 import html
 import urllib.error
 import urllib.parse
@@ -70,7 +71,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.77 — Style Table Compatibility Fix"
+APP_VERSION = "Macabets v0.78 — Plain-English Style Matchups"
 BUILD_DATE = "August 10, 2026"
 
 st.set_page_config(
@@ -152,6 +153,206 @@ def _load_nfl_personnel_details():
         except Exception:
             continue
     return {}
+
+
+
+def _style_metric(raw_text, label):
+    """Extract one signed trait edge from the technical style-matchup explanation."""
+    match = re.search(rf"{re.escape(label)}\s*([+-]?\d+(?:\.\d+)?)", str(raw_text), flags=re.IGNORECASE)
+    if not match:
+        return None
+    try:
+        return float(match.group(1))
+    except (TypeError, ValueError):
+        return None
+
+
+def _plain_nfl_style_why(category, advantage, strength, raw_why, away_team, home_team):
+    """Translate technical Madden trait deltas into direct football language for the UI.
+
+    The underlying matchup calculations stay untouched. This function only changes how
+    the already-computed result is explained to the user.
+    """
+    category = str(category or "")
+    advantage = str(advantage or "Even")
+    strength = str(strength or "Even")
+    raw_why = str(raw_why or "")
+    away_team = str(away_team or "")
+    home_team = str(home_team or "")
+
+    subject_team = None
+    for team in (away_team, home_team):
+        if team and category.lower().startswith(team.lower()):
+            subject_team = team
+            break
+    if not subject_team:
+        subject_team = away_team or home_team or "This team"
+
+    if subject_team == away_team:
+        opponent = home_team
+    elif subject_team == home_team:
+        opponent = away_team
+    else:
+        opponent = home_team or away_team or "the opponent"
+
+    strength_word = strength.lower() if strength and strength.lower() != "even" else "small"
+    subject_poss = f"{subject_team}\'" if subject_team.lower().endswith("s") else f"{subject_team}\'s"
+    opponent_poss = f"{opponent}\'" if opponent.lower().endswith("s") else f"{opponent}\'s"
+    is_even = advantage.lower() == "even"
+    subject_has_edge = advantage == subject_team
+    opponent_has_edge = advantage == opponent
+    cat = category.lower()
+
+    def strongest(metrics, positive=True):
+        available = [(label, value) for label, value in metrics if isinstance(value, (int, float))]
+        if not available:
+            return None
+        return max(available, key=lambda item: item[1]) if positive else min(available, key=lambda item: item[1])
+
+    if "receiver/qb traits vs coverage" in cat:
+        metrics = [
+            ("speed", _style_metric(raw_why, "receiver speed")),
+            ("route running", _style_metric(raw_why, "route-vs-coverage")),
+            ("press release", _style_metric(raw_why, "release-vs-press")),
+            ("deep passing", _style_metric(raw_why, "deep-pass-vs-coverage")),
+        ]
+        best = strongest(metrics, True)
+        worst = strongest(metrics, False)
+        positive_text = {
+            "speed": "receiver speed can stress the coverage vertically",
+            "route running": "the route-running matchup should create separation",
+            "press release": "the receivers are well equipped to beat press coverage",
+            "deep passing": "the deep-passing matchup creates real big-play potential",
+        }
+        negative_text = {
+            "speed": "the receivers do not have a clear speed advantage",
+            "route running": "consistent separation could be difficult",
+            "press release": "beating press coverage could be a problem",
+            "deep passing": "the defense is positioned to limit deep shots",
+        }
+        best_text = positive_text.get(best[0]) if best and best[1] > 0.5 else None
+        worst_text = negative_text.get(worst[0]) if worst and worst[1] < -0.5 else None
+
+        if is_even:
+            parts = ["The passing-game matchup is fairly balanced."]
+            if best_text:
+                parts.append(f"For {subject_team}, {best_text}.")
+            if worst_text:
+                parts.append(f"The counter is that {worst_text}.")
+            return " ".join(parts)
+        if subject_has_edge:
+            sentence = f"{subject_poss} passing game has a {strength_word} matchup advantage against {opponent_poss} coverage."
+            if best_text:
+                sentence += f" The biggest reason is that {best_text}."
+            if worst_text:
+                sentence += f" It is not a bigger edge because {worst_text}."
+            return sentence
+        if opponent_has_edge:
+            sentence = f"{opponent_poss} secondary has a {strength_word} edge against {subject_poss} passing-game traits."
+            if worst_text:
+                sentence += f" The main concern for {subject_team} is that {worst_text}."
+            if best_text:
+                sentence += f" {subject_team} still has some upside because {best_text}."
+            return sentence
+
+    if "ol technique vs pass rush" in cat:
+        metrics = [
+            ("finesse", _style_metric(raw_why, "pass-block finesse vs finesse rush")),
+            ("power", _style_metric(raw_why, "pass-block power vs power rush")),
+            ("recognition", _style_metric(raw_why, "protection recognition")),
+        ]
+        best = strongest(metrics, True)
+        worst = strongest(metrics, False)
+        positive_text = {
+            "finesse": "its blockers match up well with finesse rushers",
+            "power": "its blockers are well equipped to handle power rushers",
+            "recognition": "its protection recognition should help identify pressure cleanly",
+        }
+        negative_text = {
+            "finesse": "finesse pressure could give the tackles problems",
+            "power": "power rushers could collapse the pocket",
+            "recognition": "pressure recognition and pickup could be stressed",
+        }
+        best_text = positive_text.get(best[0]) if best and best[1] > 0.5 else None
+        worst_text = negative_text.get(worst[0]) if worst and worst[1] < -0.5 else None
+
+        if is_even:
+            return f"{subject_poss} offensive line and {opponent_poss} pass rush are closely matched; neither side has a dependable technique advantage."
+        if subject_has_edge:
+            sentence = f"{subject_poss} offensive line has a {strength_word} edge against {opponent_poss} pass rush."
+            if best_text:
+                sentence += f" The clearest reason is that {best_text}."
+            if worst_text:
+                sentence += f" The vulnerability is that {worst_text}."
+            return sentence
+        if opponent_has_edge:
+            sentence = f"{opponent_poss} pass rush has a {strength_word} matchup edge against {subject_poss} offensive line."
+            if worst_text:
+                sentence += f" The biggest concern is that {worst_text}."
+            if best_text:
+                sentence += f" {subject_team} can offset some of that because {best_text}."
+            return sentence
+
+    if "run style vs front seven" in cat:
+        metrics = [
+            ("blocking", _style_metric(raw_why, "blocking vs shedding")),
+            ("runner creation", _style_metric(raw_why, "runner creation vs tackling")),
+            ("backfield speed", _style_metric(raw_why, "backfield speed vs pursuit")),
+        ]
+        best = strongest(metrics, True)
+        worst = strongest(metrics, False)
+        positive_text = {
+            "blocking": "the blocking matchup should create cleaner running lanes",
+            "runner creation": "the backs have an advantage creating yards after contact",
+            "backfield speed": "the backfield speed can stress pursuit and edge discipline",
+        }
+        negative_text = {
+            "blocking": "the front can win blocks and close running lanes",
+            "runner creation": "the backs do not hold a clear tackle-breaking advantage",
+            "backfield speed": "the defense has enough pursuit speed to limit runs to the edge",
+        }
+        best_text = positive_text.get(best[0]) if best and best[1] > 0.5 else None
+        worst_text = negative_text.get(worst[0]) if worst and worst[1] < -0.5 else None
+
+        if is_even:
+            parts = [f"{subject_poss} rushing style is a fairly even match for {opponent_poss} front seven."]
+            if best_text:
+                parts.append(f"The offense can still lean on the fact that {best_text}.")
+            if worst_text:
+                parts.append(f"But {worst_text}.")
+            return " ".join(parts)
+        if subject_has_edge:
+            sentence = f"{subject_team} has a {strength_word} rushing matchup advantage against {opponent_poss} front seven."
+            if best_text:
+                sentence += f" The biggest reason is that {best_text}."
+            if worst_text:
+                sentence += f" The matchup is not one-sided because {worst_text}."
+            return sentence
+        if opponent_has_edge:
+            sentence = f"{opponent_poss} front seven has a {strength_word} edge against {subject_poss} rushing style."
+            if worst_text:
+                sentence += f" The main issue is that {worst_text}."
+            if best_text:
+                sentence += f" {subject_team} still has a counter because {best_text}."
+            return sentence
+
+    if "qb movement vs contain" in cat:
+        if is_even:
+            return f"{subject_poss} quarterback mobility and {opponent_poss} ability to contain it are closely matched, so neither side owns a meaningful edge outside the pocket."
+        if subject_has_edge:
+            return (
+                f"{subject_poss} quarterback has a {strength_word} mobility advantage. "
+                f"Scrambling and movement outside the pocket can put extra stress on {opponent_poss} front-seven contain responsibilities."
+            )
+        if opponent_has_edge:
+            return (
+                f"{opponent_poss} front seven has a {strength_word} contain advantage. "
+                f"It is well equipped to keep {subject_poss} quarterback from consistently creating extra yards or extended plays with mobility."
+            )
+
+    if is_even:
+        return "The relevant starter traits are closely matched, so this area does not create a meaningful matchup advantage."
+    return f"{advantage} has a {strength_word} matchup edge here based on the relevant starter traits."
 
 
 def _availability_unit_effect(unit_name):
@@ -4308,6 +4509,22 @@ with tabs[1]:
                         style_display = style_rows.rename(columns={"Matchup": "Category", "Edge": "Trait Gap"})
                         style_cols = [c for c in ["Category", "Advantage", "Strength", "Trait Gap", "Why"] if c in style_display.columns]
                         style_table = style_display[style_cols].copy()
+
+                        # Keep the model's technical trait calculations intact, but translate
+                        # their UI explanation into direct football language. The raw trait
+                        # numbers remain inside matchup_intelligence for technical auditing.
+                        if "Why" in style_table.columns:
+                            style_table["Why"] = style_table.apply(
+                                lambda row: _plain_nfl_style_why(
+                                    row.get("Category"),
+                                    row.get("Advantage"),
+                                    row.get("Strength"),
+                                    row.get("Why"),
+                                    nfl_result.get("away_team"),
+                                    nfl_result.get("home_team"),
+                                ),
+                                axis=1,
+                            )
 
                         # Make the decision columns compact so the football explanation gets the space.
                         # Highlight the winning side in Advantage without changing any matchup logic.
