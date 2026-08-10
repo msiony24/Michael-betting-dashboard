@@ -46,11 +46,14 @@ jobs:
       - name: Run NFL data tests
         run: python -m pytest tests/test_nfl_foundation.py tests/test_nfl_fetch_upgrade.py tests/test_nfl_team_state.py -q
 
+      - name: Refresh Sleeper NFL availability
+        run: python update_nfl_availability.py
+
       - name: Build automated NFL ratings
         run: python update_nfl_ratings.py
 
       - name: Run NFL rating tests
-        run: python -m pytest tests/test_nfl_rating_engine.py -q
+        run: python -m pytest tests/test_nfl_rating_engine.py tests/test_nfl_availability.py -q
 
       - name: Commit refreshed NFL data
         run: |
