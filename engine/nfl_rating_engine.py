@@ -501,6 +501,11 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
         unmatched_starters = []
         unmatched_depth = []
 
+    # Preserve the healthy depth-chart baseline so the UI can show the exact
+    # personnel-grade impact of an unavailable starter after a backup is activated.
+    healthy_starters = starters.copy()
+    healthy_depth = depth.copy()
+
     unavailable_starters: list[dict[str, Any]] = []
     availability_promotions: list[dict[str, Any]] = []
     if selection_source == "Footballguys depth chart" and not starters.empty:
@@ -528,6 +533,15 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
     }.get(unit, 0.05)
     grade = starter_grade * (1.0 - depth_blend) + depth_grade * depth_blend
 
+    if not healthy_starters.empty:
+        healthy_starter_grade = float(healthy_starters["macabets_rating"].mean())
+        healthy_depth_grade = float(healthy_depth["macabets_rating"].mean()) if not healthy_depth.empty else healthy_starter_grade
+        healthy_grade = healthy_starter_grade * (1.0 - depth_blend) + healthy_depth_grade * depth_blend
+    else:
+        healthy_starter_grade = starter_grade
+        healthy_depth_grade = depth_grade
+        healthy_grade = grade
+
     matched_starter_count = len(starters)
     confidence = "high" if selection_source == "Footballguys depth chart" and matched_starter_count >= max(1, expected_starters) else "limited"
     top = pd.concat([starters.assign(depth_order=0), depth.assign(depth_order=1)], ignore_index=True)
@@ -542,6 +556,9 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
 
     return {
         "grade": round(grade, 2), "starter_grade": round(starter_grade, 2), "depth_grade": round(depth_grade, 2),
+        "healthy_grade": round(healthy_grade, 2),
+        "healthy_starter_grade": round(healthy_starter_grade, 2),
+        "availability_grade_delta": round(grade - healthy_grade, 2),
         "player_count": int(len(starters) + len(depth)), "starter_count": int(len(starters)),
         "depth_count": int(len(depth)), "confidence": confidence, "top_players": top_players,
         "selection_source": selection_source, "depth_chart_source": plan.get("source", ""),
