@@ -33,7 +33,7 @@ def test_builds_players_and_blends_qb_performance(tmp_path):
     players = build_player_ratings(madden, nfl)
     qb = players.loc[players.player_name.eq("Test Quarterback")].iloc[0]
     assert qb.performance_weight > 0
-    assert qb.rating_source == "Madden 26 + nflverse performance"
+    assert qb.rating_source == "Madden 27 + nflverse performance"
 
 
 def test_builds_team_units_and_keeps_prediction_off(tmp_path):
