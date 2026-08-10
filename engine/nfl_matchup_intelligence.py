@@ -248,8 +248,9 @@ def _question_answers(
         "reason": "This combines baseline team strength, opponent-specific personnel matchups, home field, schedule, weather, and game-quality context once each.",
     })
 
+    exploit_rows = list(personnel_context.get("matchups", []) or []) + list(personnel_context.get("style_matchups", []) or [])
     ranked = sorted(
-        [r for r in personnel_context.get("matchups", []) or [] if r.get("Advantage") not in {None, "Even"}],
+        [r for r in exploit_rows if r.get("Advantage") not in {None, "Even"}],
         key=lambda r: _num(r.get("Edge"), 0.0), reverse=True,
     )
     exploit_text = "; ".join(
@@ -348,6 +349,21 @@ def build_matchup_intelligence(
             "Why": f"Attack {row.get('Attack Grade', '—')} vs defense {row.get('Defense Grade', '—')}",
         })
 
+    # Starter-level trait compatibility is reported separately from the broad
+    # unit mismatch rows. Its scoreboard influence is already contained in the
+    # tightly capped personnel adjustment, so it is not counted again below.
+    for row in personnel.get("style_matchups", []) or []:
+        categories.append({
+            "Category": str(row.get("Matchup", "Style matchup")),
+            "Advantage": row.get("Advantage", "Even"),
+            "Strength": row.get("Strength", "Even"),
+            "Rating Gap": round(_num(row.get("Edge"), 0.0), 1),
+            away_team: "—",
+            home_team: "—",
+            "Source": row.get("Source", "Madden 27 starter traits"),
+            "Why": row.get("Why", "Opponent-specific starter trait compatibility."),
+        })
+
     # Weighted directional drivers. No category-count scoreboard.
     drivers = []
     qb_gap = _num(home_components.get("quarterback")) - _num(away_components.get("quarterback"))
@@ -386,7 +402,7 @@ def build_matchup_intelligence(
     )
 
     return {
-        "version": "Unified NFL Matchup Intelligence v1",
+        "version": "Unified NFL Matchup Intelligence v2 — Starter Trait Compatibility",
         "available": True,
         "overall_leader": overall_leader,
         "overall_strength": overall_strength,
@@ -404,5 +420,5 @@ def build_matchup_intelligence(
             f"{overall_leader if overall_leader != 'Even' else 'Neither team'} holds the {overall_strength.lower()} overall football edge "
             f"after baseline team strength, opponent-specific personnel matchups and game context are combined without category-count scoring."
         ),
-        "guardrail": "Team-level performance enters the base power rating once; only opponent-specific mismatch information is added as a separate matchup adjustment.",
+        "guardrail": "Team-level performance enters base power once. Unit mismatches and starter-trait compatibility are opponent-specific refinements with hard caps; trait talent is never re-awarded at full strength.",
     }

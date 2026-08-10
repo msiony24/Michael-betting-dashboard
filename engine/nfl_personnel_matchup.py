@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from engine.nfl_style_matchups import DEFAULT_MADDEN_PLAYERS, build_style_matchup_context
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_TEAM_RATINGS = PROJECT_ROOT / "data" / "nfl" / "team_ratings_auto.json"
 DEFAULT_MADDEN_RATINGS = PROJECT_ROOT / "data" / "madden_27_team_ratings.json"
@@ -116,6 +118,7 @@ def build_personnel_matchup_context(
     week: int | None = None,
     team_ratings_path: Path | str = DEFAULT_TEAM_RATINGS,
     madden_ratings_path: Path | str = DEFAULT_MADDEN_RATINGS,
+    madden_players_path: Path | str = DEFAULT_MADDEN_PLAYERS,
 ) -> dict[str, Any]:
     automated = _load_json(Path(team_ratings_path))
     baseline = _load_json(Path(madden_ratings_path))
@@ -168,10 +171,17 @@ def build_personnel_matchup_context(
     away_composite = sum(signed_for(away_team, row) * weight for row, weight in zip(away_rows, weights))
     home_composite = sum(signed_for(home_team, row) * weight for row, weight in zip(home_rows, weights))
 
-    # Personnel is deliberately a secondary adjustment because the base NFL model
-    # already contains team performance. Hard cap prevents double counting.
+    # Base unit mismatch is deliberately secondary because the team power rating
+    # already contains the underlying personnel talent. Style compatibility is a
+    # second, even smaller refinement built from starter-level Madden traits.
     net_home_edge = home_composite - away_composite
-    home_margin_adjustment = max(-1.5, min(1.5, net_home_edge * 0.06))
+    base_home_adjustment = max(-1.25, min(1.25, net_home_edge * 0.05))
+    style_context = build_style_matchup_context(
+        away_team=away_team, home_team=home_team, away_data=away_data, home_data=home_data,
+        madden_players_path=madden_players_path,
+    )
+    style_home_adjustment = float(style_context.get("home_margin_adjustment", 0.0) or 0.0)
+    home_margin_adjustment = max(-1.5, min(1.5, base_home_adjustment + style_home_adjustment))
 
     strongest = max(rows, key=lambda row: float(row["Edge"])) if rows else None
     away_wins = sum(row["Advantage"] == away_team for row in rows)
@@ -182,7 +192,11 @@ def build_personnel_matchup_context(
     return {
         "available": True,
         "home_margin_adjustment": round(home_margin_adjustment, 2),
+        "base_home_margin_adjustment": round(base_home_adjustment, 2),
+        "style_home_margin_adjustment": round(style_home_adjustment, 2),
         "adjustment_cap": 1.5,
+        "style_context": style_context,
+        "style_matchups": list(style_context.get("matchups", []) or []),
         "leader": leader,
         "away_advantages": away_wins,
         "home_advantages": home_wins,
@@ -193,6 +207,7 @@ def build_personnel_matchup_context(
         "summary": (
             f"{week_text}: Madden 27 supplies the roster/talent baseline. As current NFL data accumulates, "
             "Macabets' automated player and unit ratings shift toward real performance, with current-season "
-            "player production allowed to reach 80% of a skill player's rating."
+            "player production allowed to reach 80% of a skill player's rating. Starter-level Madden traits "
+            "also refine style compatibility, but that layer is tightly capped to prevent double counting."
         ),
     }
