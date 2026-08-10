@@ -3861,6 +3861,34 @@ with tabs[1]:
 
             nfl_result = st.session_state.get("nfl_result")
             if nfl_result:
+                # Streamlit reruns the script whenever the user changes tabs/widgets.
+                # venue_type/weather were previously created only inside the Generate
+                # NFL Report button handler, which caused intermittent NameError crashes
+                # when a saved NFL result was rendered on a later rerun. Rebuild the
+                # display values from the frozen result/session weather context every run.
+                persisted_weather = (
+                    nfl_result.get("weather_context")
+                    or st.session_state.get("nfl_weather_context", {})
+                    or {}
+                )
+                persisted_venue = str(
+                    persisted_weather.get("venue_type")
+                    or nfl_result.get("venue_type")
+                    or auto_venue_type
+                    or "Outdoor"
+                ).strip()
+                persisted_venue_lower = persisted_venue.lower()
+                venue_type = (
+                    "Dome" if persisted_venue_lower == "dome"
+                    else "Retractable roof" if "retract" in persisted_venue_lower
+                    else "Outdoor"
+                )
+                weather = str(
+                    persisted_weather.get("label")
+                    or nfl_result.get("weather")
+                    or "Normal"
+                )
+
                 fair_home_spread = float(nfl_result["fair_spread_home"])
                 entered_market_home_spread = float(market_spread_home)
                 spread_difference = fair_home_spread - entered_market_home_spread
