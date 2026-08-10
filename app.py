@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.64 — Performance Center Refinements"
+APP_VERSION = "Macabets v0.65 — Performance Center Polish"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -5006,7 +5006,7 @@ with tabs[4]:
     with archive_tabs[0]:
         st.subheader("Performance Center")
         st.caption(
-            "One place for every Macabets prediction, live performance tracking, your -200 to -280 Core Zone, "
+            "One place for every Macabets prediction, live performance tracking, your -200 to -380 Core Zone, "
             "and clean CSV exports for deeper analysis."
         )
 
@@ -5087,7 +5087,7 @@ with tabs[4]:
                     "Prediction": str(row.get("prediction", "")),
                     "Actual Line": odds,
                     "Line Bucket": _pc_line_bucket(odds),
-                    "Core Zone": bool(odds is not None and -280 <= odds <= -200),
+                    "Core Zone": bool(odds is not None and -380 <= odds <= -200),
                     "Market Implied %": implied_probability(odds) if odds not in (None, 0) else float("nan"),
                     "Fair Line": row.get("fair_line", ""),
                     "Prediction Confidence": confidence,
@@ -5127,7 +5127,7 @@ with tabs[4]:
                     "Date range", value=(min_date, max_date), min_value=min_date, max_value=max_date,
                     key="pc_date_range",
                 )
-                pc_core_only = f6.checkbox("Core Zone only (-200 to -280)", value=False, key="pc_core_zone_only")
+                pc_core_only = f6.checkbox("Core Zone only (-200 to -380)", value=False, key="pc_core_zone_only")
                 pc_search = f7.text_input(
                     "Search", placeholder="Player, team, event or prediction", key="pc_search_filter"
                 )
@@ -5208,7 +5208,7 @@ with tabs[4]:
 
                 core_frame = pc_filtered[pc_filtered["Core Zone"]].copy()
                 core_graded, core_w, core_l, core_acc, core_units, core_roi, core_expected = _pc_summary(core_frame)
-                st.markdown("### Core Zone — -200 to -280")
+                st.markdown("### Core Zone — -200 to -380")
                 c1, c2, c3, c4, c5, c6 = st.columns(6)
                 c1.metric("Record", f"{core_w}-{core_l}")
                 c2.metric("Win %", f"{core_acc:.1%}" if core_acc is not None else "—")
@@ -5272,7 +5272,8 @@ with tabs[4]:
                     {d for d in pc_filtered["Date"].dropna().dt.date.tolist()},
                     reverse=True,
                 )
-                prediction_date_options = ["All dates"] + [d.isoformat() for d in prediction_dates]
+                prediction_date_labels = {d.strftime("%B %d, %Y").replace(" 0", " "): d for d in prediction_dates}
+                prediction_date_options = ["All dates"] + list(prediction_date_labels.keys())
                 selected_prediction_date = st.selectbox(
                     "Prediction date",
                     prediction_date_options,
@@ -5281,7 +5282,7 @@ with tabs[4]:
 
                 prediction_view = pc_filtered.copy()
                 if selected_prediction_date != "All dates":
-                    selected_date_value = pd.to_datetime(selected_prediction_date).date()
+                    selected_date_value = prediction_date_labels[selected_prediction_date]
                     prediction_view = prediction_view[prediction_view["Date"].dt.date == selected_date_value]
 
                 display_cols = [
@@ -5289,14 +5290,14 @@ with tabs[4]:
                     "Fair Line", "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
                 ]
                 display_frame = prediction_view[display_cols].copy().sort_values("Date", ascending=False)
-                display_frame["Date"] = display_frame["Date"].dt.date
+                display_frame["Date"] = display_frame["Date"].dt.strftime("%B %d, %Y").str.replace(" 0", " ", regex=False)
                 st.dataframe(display_frame, use_container_width=True, hide_index=True, height=520)
 
                 export_cols = [
                     "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction",
-                    "Actual Line", "Line Bucket", "Core Zone", "Market Implied %", "Fair Line",
+                    "Actual Line", "Core Zone", "Market Implied %", "Fair Line",
                     "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
-                    "Flat Units", "Model Version",
+                    "Model Version",
                 ]
                 export_all = pc_all[export_cols].copy()
                 export_filtered = prediction_view[export_cols].copy()
