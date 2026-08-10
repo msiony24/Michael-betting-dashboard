@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.68 — NFL Re-Audit Fix"
+APP_VERSION = "Macabets v0.69 — Automatic NFL Availability"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -3408,6 +3408,18 @@ with tabs[1]:
                         f"{NFL_DATA_STATUS.get('updated_at_utc', 'unknown')}."
                         f"{foundation_text}"
                     )
+                    availability_updated = NFL_DATA_STATUS.get("availability_updated_at_utc")
+                    if availability_updated:
+                        st.info(
+                            f"Automatic NFL availability: Sleeper — updated {availability_updated}. "
+                            f"{NFL_DATA_STATUS.get('availability_definitively_unavailable', 0)} players currently marked definitively unavailable; "
+                            f"{NFL_DATA_STATUS.get('availability_uncertain', 0)} Questionable/Doubtful."
+                        )
+                    else:
+                        st.warning(
+                            "Automatic Sleeper availability snapshot is not present yet. "
+                            "Run the Update Macabets NFL Data workflow to refresh injuries/availability."
+                        )
                 else:
                     st.warning(
                         "Starter ratings are active because no generated NFL performance snapshot "
