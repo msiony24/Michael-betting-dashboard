@@ -68,7 +68,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.62 — Live Debate"
+APP_VERSION = "Macabets v0.63 — Performance Center"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -5001,9 +5001,310 @@ with tabs[3]:
         )
 
 with tabs[4]:
-    archive_tabs = st.tabs(["Analysis Log", "Legacy Tennis Archive", "Matchup Lab"])
+    archive_tabs = st.tabs(["Performance Center", "Analysis Log", "Legacy Tennis Archive", "Matchup Lab"])
 
     with archive_tabs[0]:
+        st.subheader("Performance Center")
+        st.caption(
+            "One place for every Macabets prediction, live performance tracking, your -250 to -380 Core Zone, "
+            "and clean CSV exports for deeper analysis."
+        )
+
+        if not analysis_db_configured():
+            st.error("Permanent storage is not configured yet.")
+            st.info("Configure Supabase to use the Performance Center with the permanent Analysis Log.")
+        else:
+            try:
+                performance_rows = db_list_analyses(5000)
+            except Exception as exc:
+                performance_rows = []
+                st.error(f"Could not load predictions for the Performance Center: {exc}")
+
+            def _pc_result(row):
+                status = str(row.get("status", "Pending"))
+                if status == "Won":
+                    return "Correct"
+                if status == "Lost":
+                    return "Incorrect"
+                return status if status in {"Pending", "Push", "Void"} else "Pending"
+
+            def _pc_line_number(row):
+                raw = _analysis_market_line(row)
+                try:
+                    return int(float(str(raw).replace("+", "").replace(",", "").strip()))
+                except (TypeError, ValueError):
+                    return None
+
+            def _pc_flat_units(result, odds):
+                if result not in {"Correct", "Incorrect"} or odds in (None, 0):
+                    return None
+                if result == "Incorrect":
+                    return -1.0
+                return float(odds) / 100.0 if float(odds) > 0 else 100.0 / abs(float(odds))
+
+            def _pc_line_bucket(odds):
+                if odds is None:
+                    return "Unknown"
+                if odds >= 100:
+                    return "+Money"
+                if -149 <= odds <= -101:
+                    return "-101 to -149"
+                if -199 <= odds <= -150:
+                    return "-150 to -199"
+                if -249 <= odds <= -200:
+                    return "-200 to -249"
+                if -299 <= odds <= -250:
+                    return "-250 to -299"
+                if -349 <= odds <= -300:
+                    return "-300 to -349"
+                if -399 <= odds <= -350:
+                    return "-350 to -399"
+                if -449 <= odds <= -400:
+                    return "-400 to -449"
+                if odds <= -450:
+                    return "-450+"
+                return "Other"
+
+            pc_records = []
+            for row in performance_rows:
+                odds = _pc_line_number(row)
+                result = _pc_result(row)
+                confidence = pd.to_numeric(pd.Series([row.get("confidence")]), errors="coerce").iloc[0]
+                try:
+                    confidence = float(confidence)
+                    if confidence <= 10:
+                        confidence *= 10
+                except (TypeError, ValueError):
+                    confidence = float("nan")
+                event_date = pd.to_datetime(row.get("event_date") or row.get("created_at"), errors="coerce")
+                pc_records.append({
+                    "ID": row.get("id", ""),
+                    "Date": event_date,
+                    "Sport": str(row.get("sport", "")),
+                    "Event": str(row.get("event_name", "")),
+                    "Participant A": str(row.get("participant_a", "")),
+                    "Participant B": str(row.get("participant_b", "")),
+                    "Prediction": str(row.get("prediction", "")),
+                    "Actual Line": odds,
+                    "Line Bucket": _pc_line_bucket(odds),
+                    "Core Zone": bool(odds is not None and -380 <= odds <= -250),
+                    "Market Implied %": implied_probability(odds) if odds not in (None, 0) else float("nan"),
+                    "Fair Line": row.get("fair_line", ""),
+                    "Prediction Confidence": confidence,
+                    "Price Assessment": _analysis_price_assessment(row),
+                    "Verdict": _analysis_verdict(row),
+                    "Prediction Result": result,
+                    "Flat Units": _pc_flat_units(result, odds),
+                    "Model Version": str(row.get("model_version", "")),
+                })
+
+            pc_all = pd.DataFrame(pc_records)
+            if pc_all.empty:
+                st.info("No saved predictions yet.")
+            else:
+                pc_all["Date"] = pd.to_datetime(pc_all["Date"], errors="coerce")
+                valid_dates = pc_all["Date"].dropna()
+                min_date = valid_dates.min().date() if not valid_dates.empty else date.today()
+                max_date = valid_dates.max().date() if not valid_dates.empty else date.today()
+
+                st.markdown("### Filters")
+                f1, f2, f3, f4 = st.columns(4)
+                pc_sport = f1.selectbox(
+                    "Sport", ["All"] + sorted(x for x in pc_all["Sport"].dropna().unique().tolist() if x),
+                    key="pc_sport_filter",
+                )
+                pc_result_filter = f2.selectbox(
+                    "Result", ["All", "Correct", "Incorrect", "Pending", "Push", "Void"],
+                    key="pc_result_filter",
+                )
+                verdict_options = ["All"] + sorted(x for x in pc_all["Verdict"].dropna().unique().tolist() if x and x != "—")
+                pc_verdict = f3.selectbox("Verdict", verdict_options, key="pc_verdict_filter")
+                assessment_options = ["All"] + sorted(x for x in pc_all["Price Assessment"].dropna().unique().tolist() if x and x != "—")
+                pc_assessment = f4.selectbox("Price Assessment", assessment_options, key="pc_assessment_filter")
+
+                f5, f6, f7 = st.columns([1.4, 1.4, 2.2])
+                pc_date_range = f5.date_input(
+                    "Date range", value=(min_date, max_date), min_value=min_date, max_value=max_date,
+                    key="pc_date_range",
+                )
+                pc_core_only = f6.checkbox("Core Zone only (-250 to -380)", value=False, key="pc_core_zone_only")
+                pc_search = f7.text_input(
+                    "Search", placeholder="Player, team, event or prediction", key="pc_search_filter"
+                )
+
+                line_values = pc_all["Actual Line"].dropna()
+                if not line_values.empty:
+                    line_min = int(line_values.min())
+                    line_max = int(line_values.max())
+                    chosen_line_range = st.slider(
+                        "Actual Line range", min_value=line_min, max_value=line_max,
+                        value=(line_min, line_max), key="pc_actual_line_range"
+                    )
+                else:
+                    chosen_line_range = (0, 0)
+
+                confidence_values = pc_all["Prediction Confidence"].dropna()
+                if not confidence_values.empty:
+                    conf_low = int(max(0, confidence_values.min()))
+                    conf_high = int(min(100, confidence_values.max()))
+                    if conf_low < conf_high:
+                        chosen_confidence = st.slider(
+                            "Prediction Confidence", min_value=conf_low, max_value=conf_high,
+                            value=(conf_low, conf_high), key="pc_confidence_range"
+                        )
+                    else:
+                        chosen_confidence = (conf_low, conf_high)
+                else:
+                    chosen_confidence = (0, 100)
+
+                pc_filtered = pc_all.copy()
+                if pc_sport != "All":
+                    pc_filtered = pc_filtered[pc_filtered["Sport"] == pc_sport]
+                if pc_result_filter != "All":
+                    pc_filtered = pc_filtered[pc_filtered["Prediction Result"] == pc_result_filter]
+                if pc_verdict != "All":
+                    pc_filtered = pc_filtered[pc_filtered["Verdict"] == pc_verdict]
+                if pc_assessment != "All":
+                    pc_filtered = pc_filtered[pc_filtered["Price Assessment"] == pc_assessment]
+                if pc_core_only:
+                    pc_filtered = pc_filtered[pc_filtered["Core Zone"]]
+                if isinstance(pc_date_range, (list, tuple)) and len(pc_date_range) == 2:
+                    start_date, end_date = pc_date_range
+                    pc_filtered = pc_filtered[
+                        (pc_filtered["Date"].dt.date >= start_date) & (pc_filtered["Date"].dt.date <= end_date)
+                    ]
+                if not line_values.empty:
+                    pc_filtered = pc_filtered[
+                        pc_filtered["Actual Line"].between(chosen_line_range[0], chosen_line_range[1], inclusive="both")
+                    ]
+                if not confidence_values.empty and chosen_confidence[0] != chosen_confidence[1]:
+                    pc_filtered = pc_filtered[
+                        pc_filtered["Prediction Confidence"].between(chosen_confidence[0], chosen_confidence[1], inclusive="both")
+                    ]
+                if pc_search.strip():
+                    q = pc_search.strip().casefold()
+                    searchable = pc_filtered[["Event", "Participant A", "Participant B", "Prediction"]].fillna("").astype(str).agg(" ".join, axis=1).str.casefold()
+                    pc_filtered = pc_filtered[searchable.str.contains(q, regex=False)]
+
+                def _pc_summary(frame):
+                    graded = frame[frame["Prediction Result"].isin(["Correct", "Incorrect"])].copy()
+                    wins = int((graded["Prediction Result"] == "Correct").sum())
+                    losses = int((graded["Prediction Result"] == "Incorrect").sum())
+                    accuracy = wins / len(graded) if len(graded) else None
+                    units = graded["Flat Units"].dropna().sum() if not graded.empty else 0.0
+                    roi = units / len(graded) if len(graded) else None
+                    expected = graded["Market Implied %"].dropna().mean() if not graded.empty else None
+                    return graded, wins, losses, accuracy, units, roi, expected
+
+                graded, wins, losses, accuracy, units, flat_roi, expected_rate = _pc_summary(pc_filtered)
+                st.markdown("### Live Performance")
+                m1, m2, m3, m4, m5, m6 = st.columns(6)
+                m1.metric("Record", f"{wins}-{losses}")
+                m2.metric("Win %", f"{accuracy:.1%}" if accuracy is not None else "—")
+                m3.metric("Flat Units", f"{units:+.2f}u")
+                m4.metric("Flat ROI", f"{flat_roi:+.1%}" if flat_roi is not None else "—")
+                m5.metric("Market Expected", f"{expected_rate:.1%}" if expected_rate is not None else "—")
+                m6.metric("Predictions", len(pc_filtered))
+
+                core_frame = pc_filtered[pc_filtered["Core Zone"]].copy()
+                core_graded, core_w, core_l, core_acc, core_units, core_roi, core_expected = _pc_summary(core_frame)
+                st.markdown("### Core Zone — -250 to -380")
+                c1, c2, c3, c4, c5, c6 = st.columns(6)
+                c1.metric("Record", f"{core_w}-{core_l}")
+                c2.metric("Win %", f"{core_acc:.1%}" if core_acc is not None else "—")
+                c3.metric("Market Expected", f"{core_expected:.1%}" if core_expected is not None else "—")
+                c4.metric("Edge vs Market", f"{(core_acc-core_expected):+.1%}" if core_acc is not None and core_expected is not None else "—")
+                c5.metric("Flat Units", f"{core_units:+.2f}u")
+                c6.metric("Flat ROI", f"{core_roi:+.1%}" if core_roi is not None else "—")
+                st.caption(f"Core Zone graded sample: {len(core_graded)}. Flat-unit ROI assumes a 1-unit stake on every graded prediction at the saved Actual Line.")
+
+                def _pc_group_table(frame, group_col, order=None):
+                    rows = []
+                    groups = order or [x for x in frame[group_col].dropna().unique().tolist() if x]
+                    for group in groups:
+                        segment = frame[frame[group_col] == group]
+                        segment_graded, sw, sl, sa, su, sr, se = _pc_summary(segment)
+                        rows.append({
+                            group_col: group,
+                            "Record": f"{sw}-{sl}",
+                            "Graded": len(segment_graded),
+                            "Win %": sa,
+                            "Market Expected": se,
+                            "Edge vs Market": (sa - se) if sa is not None and se is not None else None,
+                            "Flat Units": su,
+                            "Flat ROI": sr,
+                        })
+                    return pd.DataFrame(rows)
+
+                breakdown1, breakdown2 = st.columns(2)
+                with breakdown1:
+                    st.markdown("#### By Actual Line")
+                    bucket_order = [
+                        "+Money", "-101 to -149", "-150 to -199", "-200 to -249",
+                        "-250 to -299", "-300 to -349", "-350 to -399", "-400 to -449", "-450+",
+                    ]
+                    line_table = _pc_group_table(pc_filtered, "Line Bucket", bucket_order)
+                    st.dataframe(line_table, use_container_width=True, hide_index=True)
+                with breakdown2:
+                    st.markdown("#### By Verdict")
+                    verdict_order = ["Strong Bet", "Worth Betting", "Lean", "Pass", "Complete Pass"]
+                    verdict_table = _pc_group_table(pc_filtered, "Verdict", verdict_order)
+                    st.dataframe(verdict_table, use_container_width=True, hide_index=True)
+
+                st.markdown("#### By Prediction Confidence")
+                confidence_bands = [(0, 59, "Below 60"), (60, 69, "60-69"), (70, 74, "70-74"), (75, 79, "75-79"), (80, 84, "80-84"), (85, 89, "85-89"), (90, 100, "90-100")]
+                confidence_rows = []
+                for low, high, label in confidence_bands:
+                    segment = pc_filtered[pc_filtered["Prediction Confidence"].between(low, high, inclusive="both")]
+                    sg, sw, sl, sa, su, sr, se = _pc_summary(segment)
+                    confidence_rows.append({
+                        "Confidence": label, "Record": f"{sw}-{sl}", "Graded": len(sg),
+                        "Win %": sa, "Market Expected": se,
+                        "Edge vs Market": (sa-se) if sa is not None and se is not None else None,
+                        "Flat Units": su, "Flat ROI": sr,
+                    })
+                st.dataframe(pd.DataFrame(confidence_rows), use_container_width=True, hide_index=True)
+
+                st.markdown("### All Predictions")
+                st.caption("This is the one-stop prediction history. Use the filters above to narrow it without opening individual days.")
+                display_cols = [
+                    "Date", "Sport", "Event", "Prediction", "Actual Line", "Line Bucket", "Core Zone",
+                    "Fair Line", "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result", "Flat Units",
+                ]
+                display_frame = pc_filtered[display_cols].copy().sort_values("Date", ascending=False)
+                display_frame["Date"] = display_frame["Date"].dt.date
+                st.dataframe(display_frame, use_container_width=True, hide_index=True, height=520)
+
+                export_cols = [
+                    "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction",
+                    "Actual Line", "Line Bucket", "Core Zone", "Market Implied %", "Fair Line",
+                    "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
+                    "Flat Units", "Model Version",
+                ]
+                export_all = pc_all[export_cols].copy()
+                export_filtered = pc_filtered[export_cols].copy()
+                export_tennis = pc_all[pc_all["Sport"] == "Tennis"][export_cols].copy()
+                for export_df in (export_all, export_filtered, export_tennis):
+                    export_df["Date"] = pd.to_datetime(export_df["Date"], errors="coerce").dt.date
+
+                e1, e2, e3 = st.columns(3)
+                e1.download_button(
+                    "Export All Predictions", export_all.to_csv(index=False).encode("utf-8"),
+                    f"macabets_all_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
+                    use_container_width=True, key="pc_export_all",
+                )
+                e2.download_button(
+                    "Export Filtered View", export_filtered.to_csv(index=False).encode("utf-8"),
+                    f"macabets_filtered_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
+                    use_container_width=True, key="pc_export_filtered",
+                )
+                e3.download_button(
+                    "Export All Tennis Predictions", export_tennis.to_csv(index=False).encode("utf-8"),
+                    f"macabets_tennis_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
+                    use_container_width=True, key="pc_export_tennis",
+                )
+
+    with archive_tabs[1]:
         st.subheader("Universal Analysis Log")
         st.caption("Every Tennis and NFL analysis is saved automatically as a frozen snapshot.")
         render_price_verdict_guide()
@@ -5410,7 +5711,7 @@ with tabs[4]:
                     "text/csv", use_container_width=True,
                 )
 
-    with archive_tabs[1]:
+    with archive_tabs[2]:
         st.subheader("Legacy Tennis Analysis Archive")
         analyses = normalize_analyses(st.session_state.analyses)
 
@@ -5532,7 +5833,7 @@ with tabs[4]:
                 use_container_width=True,
             )
 
-    with archive_tabs[2]:
+    with archive_tabs[3]:
         st.subheader("Matchup Lab")
         sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
 
