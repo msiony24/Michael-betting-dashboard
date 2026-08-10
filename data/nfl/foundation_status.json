@@ -62,12 +62,12 @@
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 413654
+      "rows": 420090
     }
   ],
   "performance_season": 2025,
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 9,
-  "updated_at_utc": "2026-08-08T20:13:57+00:00"
+  "updated_at_utc": "2026-08-10T19:08:50+00:00"
 }
