@@ -53,11 +53,13 @@ def test_live_snapshot_replaces_available_components(tmp_path: Path):
 
     state = build_team_state("Test Team", snapshot_path=snapshot, ratings_path=priors)
 
-    assert state.components["quarterback"] == 88
-    assert state.components["offensive_line"] == 83
-    assert state.components["recent_form"] == 89
+    # Week 4 current-season evidence carries 38% weight under the audited
+    # progressive blend; the personnel prior still matters early in the season.
+    assert state.components["quarterback"] == 83.04
+    assert state.components["offensive_line"] == 78.66
+    assert state.components["recent_form"] == 75.67
     assert state.components["coaching"] == 82
-    assert state.component_sources["coaching"] == "manual prior"
+    assert state.component_sources["coaching"] == "personnel prior"
     assert state.season == 2026
     assert state.week == 4
 
