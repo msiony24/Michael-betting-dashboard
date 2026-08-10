@@ -70,7 +70,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.71 — Availability Intelligence v2"
+APP_VERSION = "Macabets v0.74 — Visible Style Matchups"
 BUILD_DATE = "July 31, 2026"
 
 st.set_page_config(
@@ -4263,19 +4263,39 @@ with tabs[1]:
                     st.markdown("### Unified NFL Matchup Intelligence")
                     st.caption(matchup_intelligence.get("data_note", ""))
 
-                    mi1, mi2, mi3, mi4 = st.columns(4)
+                    mi1, mi2, mi3, mi4, mi5 = st.columns(5)
                     mi1.metric("Overall Football Edge", str(matchup_intelligence.get("overall_leader", "Even")))
                     edge_points = float(matchup_intelligence.get("football_edge_points", 0.0) or 0.0)
                     mi2.metric("Edge Strength", f"{matchup_intelligence.get('overall_strength', 'Toss-up')} · {edge_points:.1f} pts")
                     mi3.metric("Matchup Adjustment", f"{float(matchup_intelligence.get('matchup_adjustment_home', 0.0) or 0.0):+.2f} pts home")
-                    mi4.metric("Data Mode", str(matchup_intelligence.get("data_mode", "Baseline")))
+                    mi4.metric("Trait / Style Adj.", f"{float(matchup_intelligence.get('style_adjustment_home', 0.0) or 0.0):+.2f} pts home")
+                    mi5.metric("Data Mode", str(matchup_intelligence.get("data_mode", "Baseline")))
 
                     st.info(matchup_intelligence.get("summary", ""))
 
                     unified_rows = pd.DataFrame(matchup_intelligence.get("categories", []))
                     if not unified_rows.empty:
-                        visible_cols = [c for c in ["Category", "Advantage", "Strength"] if c in unified_rows.columns]
-                        st.dataframe(unified_rows[visible_cols], use_container_width=True, hide_index=True)
+                        style_mask = unified_rows.get("Source", pd.Series(index=unified_rows.index, dtype=str)).astype(str).str.contains("starter traits", case=False, na=False)
+                        core_rows = unified_rows.loc[~style_mask].copy()
+                        if not core_rows.empty:
+                            visible_cols = [c for c in ["Category", "Advantage", "Strength"] if c in core_rows.columns]
+                            st.dataframe(core_rows[visible_cols], use_container_width=True, hide_index=True)
+
+                    style_rows = pd.DataFrame(matchup_intelligence.get("style_matchups", []))
+                    if not style_rows.empty:
+                        st.markdown("#### Player-Style & Line-of-Scrimmage Matchups")
+                        st.caption(
+                            "These are starter-level Madden 27 compatibility checks. They refine the existing personnel matchup rather than re-awarding raw talent, and their combined spread influence is hard-capped."
+                        )
+                        style_display = style_rows.rename(columns={"Matchup": "Category", "Edge": "Trait Gap"})
+                        style_cols = [c for c in ["Category", "Advantage", "Strength", "Trait Gap", "Why"] if c in style_display.columns]
+                        st.dataframe(style_display[style_cols], use_container_width=True, hide_index=True)
+                        style_adj = float(matchup_intelligence.get("style_adjustment_home", 0.0) or 0.0)
+                        if abs(style_adj) < 0.005:
+                            st.info("Starter-trait compatibility is effectively neutral for the projected margin in this matchup.")
+                        else:
+                            direction = nfl_result["home_team"] if style_adj > 0 else nfl_result["away_team"]
+                            st.info(f"Net starter-trait compatibility moves the projected margin {abs(style_adj):.2f} points toward {direction}.")
 
                     drivers = matchup_intelligence.get("top_drivers", []) or []
                     if drivers:
