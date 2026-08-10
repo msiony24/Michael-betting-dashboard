@@ -17,7 +17,7 @@ from typing import Any
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DEPTH_CHART_PATH = PROJECT_ROOT / "data" / "nfl" / "footballguys_depth_charts.csv"
+DEFAULT_DEPTH_CHART_PATH = PROJECT_ROOT / "data" / "footballguys_depth_charts.csv"
 
 DEPTH_COLUMNS = ("Starter", "2nd String", "3rd String", "4th String", "5th String")
 
