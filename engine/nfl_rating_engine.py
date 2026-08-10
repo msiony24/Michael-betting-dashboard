@@ -20,6 +20,11 @@ import numpy as np
 import pandas as pd
 
 from engine.madden_team_builder import TEAM_ALIASES, load_madden_players
+from engine.nfl_availability import (
+    DEFAULT_AVAILABILITY_PATH,
+    load_availability,
+    load_availability_status,
+)
 from engine.nfl_depth_chart import (
     DEFAULT_DEPTH_CHART_PATH,
     depth_chart_team_assignments,
@@ -326,9 +331,51 @@ def build_player_ratings(
             players["gsis_id"] = fresh.where(fresh.ne(""), current)
             players = players.drop(columns=["_fresh_gsis_id"])
 
-    injuries = _load_injuries(root / "injuries.csv")
-    if not injuries.empty: players = players.merge(injuries, on="name_key", how="left")
-    else: players["injury_status"] = ""
+    # Sleeper is the primary live availability feed. nflverse injuries remain a
+    # fallback when a Sleeper snapshot has not been refreshed yet. Definitive
+    # unavailable states drive depth-chart substitution later; Questionable and
+    # Doubtful are preserved as uncertainty rather than being silently benched.
+    sleeper = load_availability(root / "sleeper_availability.csv")
+    if not sleeper.empty:
+        sleeper_cols = [
+            "name_key", "team_abbr", "roster_status", "injury_status",
+            "practice_participation", "availability_state",
+            "definitively_unavailable", "updated_at_utc",
+        ]
+        sleeper = sleeper[[c for c in sleeper_cols if c in sleeper.columns]].copy()
+        sleeper = sleeper.rename(columns={
+            "team_abbr": "_sleeper_team_abbr",
+            "roster_status": "_sleeper_roster_status",
+            "injury_status": "_sleeper_injury_status",
+            "updated_at_utc": "availability_updated_at_utc",
+        })
+        players = players.merge(sleeper.drop_duplicates("name_key", keep="last"), on="name_key", how="left")
+        if "_sleeper_roster_status" in players.columns:
+            live = players["_sleeper_roster_status"].fillna("").astype(str).str.strip()
+            current = players["roster_status"].fillna("").astype(str).str.strip()
+            players["roster_status"] = live.where(live.ne(""), current)
+        players["injury_status"] = players.get("_sleeper_injury_status", "").fillna("").astype(str)
+        players["availability_state"] = players.get("availability_state", "").fillna("").astype(str)
+        players["definitively_unavailable"] = players.get("definitively_unavailable", False).fillna(False).astype(bool)
+        players["practice_participation"] = players.get("practice_participation", "").fillna("").astype(str)
+        players["availability_source"] = np.where(players["availability_state"].ne(""), "Sleeper", "")
+    else:
+        injuries = _load_injuries(root / "injuries.csv")
+        if not injuries.empty:
+            players = players.merge(injuries, on="name_key", how="left")
+        else:
+            players["injury_status"] = ""
+        injury_text = players["injury_status"].fillna("").astype(str).str.lower()
+        players["availability_state"] = np.select(
+            [injury_text.str.contains(r"\bout\b|reserve|\bir\b", regex=True),
+             injury_text.str.contains("doubt"),
+             injury_text.str.contains("question")],
+            ["Out", "Doubtful", "Questionable"], default="Active",
+        )
+        players["definitively_unavailable"] = players["availability_state"].eq("Out")
+        players["practice_participation"] = ""
+        players["availability_updated_at_utc"] = ""
+        players["availability_source"] = np.where(players["injury_status"].fillna("").astype(str).str.strip().ne(""), "nflverse fallback", "")
 
     thresholds = {"QB": 500, "RB": 250, "WR": 150, "TE": 120}
     players["performance_confidence"] = players.apply(
@@ -346,13 +393,11 @@ def build_player_ratings(
         + players["performance_grade"].fillna(players["trait_grade"]) * players["performance_weight"]
     )
 
-    injury_text = players["injury_status"].fillna("").astype(str).str.lower()
-    adjustment = np.select(
-        [injury_text.str.contains("out|reserve|ir"), injury_text.str.contains("doubt"), injury_text.str.contains("question")],
-        [-8.0, -4.0, -1.5], default=0.0,
-    )
-    players["availability_adjustment"] = adjustment
-    players["macabets_rating"] = (players["base_rating"] + players["availability_adjustment"]).clip(0, 99).round(2)
+    # Availability does not apply arbitrary point deductions to healthy/questionable
+    # players. Definitively unavailable players are replaced by the next available
+    # depth-chart option inside _unit_grade().
+    players["availability_adjustment"] = 0.0
+    players["macabets_rating"] = players["base_rating"].clip(0, 99).round(2)
     players["rating_confidence"] = np.where(players["performance_weight"] > .35, "high", np.where(players["performance_weight"] > .10, "medium", "baseline"))
     players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 27 + nflverse performance", "Madden 27 baseline")
 
@@ -370,7 +415,8 @@ def build_player_ratings(
     keep = ["player_name", "team_abbr", "position", "position_family", "overall", "trait_grade",
             "performance_grade", "performance_weight", "availability_adjustment", "macabets_rating",
             "rating_confidence", "rating_source", "roster_status", "injury_status", "gsis_id",
-            "depth_chart_team_override"]
+            "depth_chart_team_override", "availability_state", "definitively_unavailable",
+            "practice_participation", "availability_updated_at_utc", "availability_source"]
     return players[keep].sort_values(["team_abbr", "macabets_rating"], ascending=[True, False]).reset_index(drop=True)
 
 
@@ -380,6 +426,63 @@ def _legacy_unit_selection(team_players: pd.DataFrame, unit: str) -> tuple[pd.Da
     group = team_players[team_players["position"].isin(allowed)].sort_values("macabets_rating", ascending=False).head(DEPTH_LIMITS[unit])
     starter_n = min(STARTER_COUNTS[unit], len(group))
     return group.head(starter_n).copy(), group.iloc[starter_n:].copy()
+
+
+def _is_unavailable(row: pd.Series) -> bool:
+    value = row.get("definitively_unavailable", False)
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes"}
+    return bool(value)
+
+
+def _apply_availability(starters: pd.DataFrame, depth: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, list[dict[str, Any]], list[dict[str, Any]]]:
+    """Promote same-role backups when a starter is definitively unavailable."""
+    if starters.empty:
+        return starters, depth, [], []
+
+    starters = starters.copy()
+    depth = depth.copy()
+    unavailable: list[dict[str, Any]] = []
+    promotions: list[dict[str, Any]] = []
+    active_rows = []
+    consumed_depth: set[int] = set()
+
+    for _, starter in starters.iterrows():
+        if not _is_unavailable(starter):
+            active_rows.append(starter)
+            continue
+
+        role = str(starter.get("depth_chart_role", "") or "")
+        unavailable.append({
+            "name": str(starter.get("player_name", "")),
+            "role": role,
+            "status": str(starter.get("availability_state", "Out") or "Out"),
+            "injury_status": str(starter.get("injury_status", "") or ""),
+        })
+        candidates = depth[depth.get("depth_chart_role", pd.Series(index=depth.index, dtype=str)).astype(str).eq(role)] if not depth.empty else depth
+        replacement = None
+        replacement_idx = None
+        for idx, candidate in candidates.iterrows():
+            if idx in consumed_depth or _is_unavailable(candidate):
+                continue
+            replacement = candidate.copy()
+            replacement_idx = idx
+            break
+        if replacement is not None:
+            active_rows.append(replacement)
+            consumed_depth.add(replacement_idx)
+            promotions.append({
+                "role": role,
+                "out": str(starter.get("player_name", "")),
+                "in": str(replacement.get("player_name", "")),
+                "replacement_rating": round(float(replacement.get("macabets_rating", 0.0)), 2),
+            })
+
+    active_starters = pd.DataFrame(active_rows) if active_rows else starters.iloc[0:0].copy()
+    remaining_depth = depth.drop(index=list(consumed_depth), errors="ignore").copy()
+    if not remaining_depth.empty:
+        remaining_depth = remaining_depth[~remaining_depth.apply(_is_unavailable, axis=1)].copy()
+    return active_starters.reset_index(drop=True), remaining_depth.reset_index(drop=True), unavailable, promotions
 
 
 def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame | None = None) -> dict[str, Any]:
@@ -398,11 +501,18 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
         unmatched_starters = []
         unmatched_depth = []
 
+    unavailable_starters: list[dict[str, Any]] = []
+    availability_promotions: list[dict[str, Any]] = []
+    if selection_source == "Footballguys depth chart" and not starters.empty:
+        starters, depth, unavailable_starters, availability_promotions = _apply_availability(starters, depth)
+
     if starters.empty:
         return {
             "grade": 50.0, "starter_grade": 50.0, "depth_grade": 50.0, "player_count": 0,
             "confidence": "missing", "top_players": [], "selection_source": selection_source,
-            "scheme": plan.get("scheme", "unknown"), "unmatched_depth_chart": [],
+            "scheme": plan.get("scheme", "unknown"), "unmatched_depth_chart": unmatched_starters + unmatched_depth,
+            "unavailable_starters": unavailable_starters, "availability_promotions": availability_promotions,
+            "availability_source": "Sleeper" if unavailable_starters else "",
         }
 
     starter_grade = float(starters["macabets_rating"].mean())
@@ -426,6 +536,8 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
         top_players.append({
             "name": r["player_name"], "position": r["position"], "rating": float(r["macabets_rating"]),
             "role": str(r.get("depth_chart_role", "") or ""), "starter": bool(int(r.get("depth_order", 1)) == 0),
+            "availability": str(r.get("availability_state", "Active") or "Active"),
+            "injury_status": str(r.get("injury_status", "") or ""),
         })
 
     return {
@@ -435,6 +547,15 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
         "selection_source": selection_source, "depth_chart_source": plan.get("source", ""),
         "scheme": plan.get("scheme", "unknown"),
         "unmatched_depth_chart": unmatched_starters + unmatched_depth,
+        "unavailable_starters": unavailable_starters,
+        "availability_promotions": availability_promotions,
+        "availability_source": "Sleeper" if unavailable_starters or availability_promotions else "",
+        "availability_uncertainty": [
+            {"name": str(r.get("player_name", "")), "role": str(r.get("depth_chart_role", "") or ""),
+             "status": str(r.get("availability_state", ""))}
+            for _, r in pd.concat([starters, depth], ignore_index=True).iterrows()
+            if str(r.get("availability_state", "")) in {"Questionable", "Doubtful"}
+        ],
     }
 
 
@@ -495,13 +616,23 @@ def build_team_ratings(
         offense = units["quarterback"]["grade"] * .35 + units["running_backs"]["grade"] * .12 + units["receiving_weapons"]["grade"] * .25 + units["offensive_line"]["grade"] * .28
         defense = units["defensive_front"]["grade"] * .36 + units["linebackers"]["grade"] * .24 + units["secondary"]["grade"] * .40
         full_name = TEAM_ALIASES.get(str(abbr), str(abbr))
+        availability_sources = [str(v) for v in team_players.get("availability_source", pd.Series(dtype=str)).dropna().tolist() if str(v)]
+        availability_updates = [str(v) for v in team_players.get("availability_updated_at_utc", pd.Series(dtype=str)).dropna().tolist() if str(v)]
+        unavailable_count = sum(len(unit.get("unavailable_starters", []) or []) for unit in units.values())
+        promotion_count = sum(len(unit.get("availability_promotions", []) or []) for unit in units.values())
+        uncertain_count = sum(len(unit.get("availability_uncertainty", []) or []) for unit in units.values())
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": "Macabets automated rating engine v1.2 - Footballguys depth chart + audited Madden 27 baseline", "prediction_influence_enabled": False,
+            "source": "Macabets automated rating engine v1.3 - Footballguys depth chart + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": False,
             "personnel_matchup_influence_enabled": True,
             "depth_chart_source": "Footballguys" if not current_depth.empty else "rating-order fallback",
             "depth_chart_rows": int(len(current_depth)),
+            "availability_source": "Sleeper" if "Sleeper" in availability_sources else (availability_sources[0] if availability_sources else ""),
+            "availability_updated_at_utc": max(availability_updates) if availability_updates else "",
+            "unavailable_starters": int(unavailable_count),
+            "availability_promotions": int(promotion_count),
+            "availability_uncertain": int(uncertain_count),
         }
     return dict(sorted(result.items()))
 
@@ -519,13 +650,19 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
     player_path, team_path = root / "player_ratings.csv", root / "team_ratings_auto.json"
     temp = player_path.with_suffix(".csv.tmp"); player_ratings.to_csv(temp, index=False); temp.replace(player_path)
     _write_json(team_path, team_ratings)
+    availability_status = load_availability_status(Path(nfl_dir) / "sleeper_availability_status.json")
     status = {
-        "schema_version": "1.2", "engine_version": "1.2-depth-chart-first", "updated_at_utc": updated,
+        "schema_version": "1.3", "engine_version": "1.3-depth-chart-plus-availability", "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
         "prediction_influence_enabled": False,
         "depth_chart_source": "Footballguys",
         "depth_chart_file": str(Path(nfl_dir) / "footballguys_depth_charts.csv"),
+        "availability_source": availability_status.get("source", "Sleeper snapshot not available"),
+        "availability_updated_at_utc": availability_status.get("updated_at_utc"),
+        "availability_players": availability_status.get("players", 0),
+        "availability_definitively_unavailable": availability_status.get("definitively_unavailable", 0),
+        "availability_uncertain": availability_status.get("uncertain", 0),
         "files": {"players": str(player_path), "teams": str(team_path)},
     }
     _write_json(root / "rating_status.json", status)

@@ -571,7 +571,7 @@ def build_matchup_brain(
             scored.setdefault("readiness_score", 70)
             scored.setdefault("readiness_label", str(unified_context.get("data_mode", "Baseline readiness")))
             scored.setdefault("missing_required", [])
-            scored.setdefault("missing_optional", ["Current injury/availability confirmation", "Current-season sample"] if "Preseason" in str(unified_context.get("data_mode", "")) else [])
+            scored.setdefault("missing_optional", ["Current-season sample"] if "Preseason" in str(unified_context.get("data_mode", "")) else [])
             scored.setdefault("refusal_rule", "Answer is downgraded, not blocked, when a verified roster/talent baseline exists but current health or current-season samples are incomplete.")
             scored_questions.append(scored)
         decision_framework = {
@@ -602,7 +602,7 @@ def build_matchup_brain(
                 "allowed_to_influence_prediction": True,
             },
             "limitations": [
-                "Current injury and confirmed-starter feeds are not yet fully automated, so preseason answers carry an explicit confidence penalty.",
+                "Sleeper availability is automated; Questionable/Doubtful designations remain uncertainty flags until a definitive game status is available.",
                 "Prior-season performance is treated as a limited prior until current-season samples are available.",
             ],
         }

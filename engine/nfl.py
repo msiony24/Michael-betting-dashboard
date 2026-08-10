@@ -297,7 +297,7 @@ def analyze(
             "Whether recent final scores match the teams' underlying play quality",
         ],
         biggest_risk=(
-            "The weekly snapshot still rates team passing rather than a confirmed starting quarterback, and injury adjustments remain manual."
+            "Questionable/Doubtful availability can still change before kickoff; definitive Sleeper Out/IR/PUP statuses automatically activate the next Footballguys depth-chart option."
             if NFL_DATA_STATUS.get("available") else
             "No live weekly snapshot is loaded; the model is using manual priors and neutral recent form."
         ),

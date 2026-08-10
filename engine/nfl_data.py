@@ -6,6 +6,7 @@ from pathlib import Path
 
 from engine.nfl_team_state import TEAM_STATE_WEIGHTS, build_all_team_states
 from engine.nfl_foundation import load_foundation_status
+from engine.nfl_availability import load_availability_status
 
 NFL_TEAMS = [
     "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
@@ -40,6 +41,7 @@ NFL_TEAM_RATINGS = {
 }
 
 _FOUNDATION_STATUS = load_foundation_status()
+_AVAILABILITY_STATUS = load_availability_status()
 _available_states = [state for state in _TEAM_STATES.values() if state.get("season") is not None]
 _latest = max(_available_states, key=lambda state: (state.get("season") or 0, state.get("week") or 0), default=None)
 
@@ -57,4 +59,9 @@ NFL_DATA_STATUS = {
     "foundation_total_datasets": _FOUNDATION_STATUS.get("total_datasets", 0),
     "foundation_requested_season": _FOUNDATION_STATUS.get("requested_season"),
     "foundation_performance_season": _FOUNDATION_STATUS.get("performance_season"),
+    "availability_source": _AVAILABILITY_STATUS.get("source"),
+    "availability_updated_at_utc": _AVAILABILITY_STATUS.get("updated_at_utc"),
+    "availability_players": _AVAILABILITY_STATUS.get("players", 0),
+    "availability_definitively_unavailable": _AVAILABILITY_STATUS.get("definitively_unavailable", 0),
+    "availability_uncertain": _AVAILABILITY_STATUS.get("uncertain", 0),
 }

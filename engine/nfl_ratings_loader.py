@@ -204,10 +204,19 @@ def merge_team_ratings(
 
         combined["coaching"] = _number(manual_team.get("coaching"))
         combined["continuity"] = _number(manual_team.get("continuity"))
-        combined["injury_adjustment"] = _number(
-            manual_team.get("injury_adjustment"),
-            0.0,
-        )
+        # Automatic Sleeper availability is already reflected by starter replacement
+        # inside the audited unit grades. Do not stack the legacy manual team-level
+        # injury adjustment on top of the same personnel loss.
+        if str(madden_team.get("availability_source", "")).strip().lower() == "sleeper":
+            combined["injury_adjustment"] = 0.0
+            combined["injury_adjustment_source"] = "Sleeper availability already embedded in personnel units"
+        else:
+            combined["injury_adjustment"] = _number(manual_team.get("injury_adjustment"), 0.0)
+            combined["injury_adjustment_source"] = "Legacy manual fallback"
+        combined["availability_source"] = str(madden_team.get("availability_source", "") or "")
+        combined["availability_updated_at_utc"] = str(madden_team.get("availability_updated_at_utc", "") or "")
+        combined["unavailable_starters"] = int(_number(madden_team.get("unavailable_starters"), 0))
+        combined["availability_uncertain"] = int(_number(madden_team.get("availability_uncertain"), 0))
         combined["rookie_adjustment"] = _number(
             manual_team.get("rookie_adjustment"),
             0.0,
