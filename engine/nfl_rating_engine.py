@@ -20,6 +20,14 @@ import numpy as np
 import pandas as pd
 
 from engine.madden_team_builder import TEAM_ALIASES, load_madden_players
+from engine.nfl_depth_chart import (
+    DEFAULT_DEPTH_CHART_PATH,
+    depth_chart_team_assignments,
+    load_depth_charts,
+    match_depth_players,
+    team_depth_chart,
+    unit_depth_plan,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_NFL_DIR = PROJECT_ROOT / "data" / "nfl"
@@ -28,6 +36,7 @@ DEFAULT_PLAYER_OUTPUT = DEFAULT_NFL_DIR / "player_ratings.csv"
 DEFAULT_TEAM_OUTPUT = DEFAULT_NFL_DIR / "team_ratings_auto.json"
 DEFAULT_STATUS_OUTPUT = DEFAULT_NFL_DIR / "rating_status.json"
 DEFAULT_HISTORY_OUTPUT = DEFAULT_NFL_DIR / "rating_history.jsonl"
+DEFAULT_DEPTH_CHART_OUTPUT = DEFAULT_NFL_DIR / "footballguys_depth_charts.csv"
 
 FULL_TO_ABBR = {full: abbr for abbr, full in TEAM_ALIASES.items() if len(abbr) <= 3}
 FULL_TO_ABBR.update({"Arizona Cardinals": "ARI", "Washington Commanders": "WAS", "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC", "Green Bay Packers": "GB", "New England Patriots": "NE", "New Orleans Saints": "NO", "San Francisco 49ers": "SF", "Tampa Bay Buccaneers": "TB", "Las Vegas Raiders": "LV", "Los Angeles Rams": "LA"})
@@ -254,6 +263,7 @@ def _load_injuries(path: Path) -> pd.DataFrame:
 def build_player_ratings(
     madden_path: Path | str = DEFAULT_MADDEN_PATH,
     nfl_dir: Path | str = DEFAULT_NFL_DIR,
+    depth_chart_path: Path | str | None = None,
 ) -> pd.DataFrame:
     players = load_madden_players(madden_path).copy()
     players["name_key"] = players["player_name"].map(_name_key)
@@ -346,35 +356,100 @@ def build_player_ratings(
     players["rating_confidence"] = np.where(players["performance_weight"] > .35, "high", np.where(players["performance_weight"] > .10, "medium", "baseline"))
     players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 27 + nflverse performance", "Madden 27 baseline")
 
+    # The depth chart is authoritative for current team assignment. This matters for
+    # offseason trades/free-agent moves that Madden launch rosters or nflverse files
+    # may not yet reflect. Madden still supplies the talent grade; it does not decide
+    # which team the player currently belongs to.
+    chart_path = Path(depth_chart_path) if depth_chart_path is not None else root / "footballguys_depth_charts.csv"
+    depth_charts = load_depth_charts(chart_path)
+    assignments = depth_chart_team_assignments(depth_charts)
+    assigned = players["name_key"].map(assignments)
+    players["depth_chart_team_override"] = assigned.notna() & assigned.ne(players["team_abbr"])
+    players["team_abbr"] = assigned.where(assigned.notna(), players["team_abbr"])
+
     keep = ["player_name", "team_abbr", "position", "position_family", "overall", "trait_grade",
             "performance_grade", "performance_weight", "availability_adjustment", "macabets_rating",
-            "rating_confidence", "rating_source", "roster_status", "injury_status", "gsis_id"]
+            "rating_confidence", "rating_source", "roster_status", "injury_status", "gsis_id",
+            "depth_chart_team_override"]
     return players[keep].sort_values(["team_abbr", "macabets_rating"], ascending=[True, False]).reset_index(drop=True)
 
 
-def _unit_grade(team_players: pd.DataFrame, unit: str) -> dict[str, Any]:
+def _legacy_unit_selection(team_players: pd.DataFrame, unit: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Rating-order fallback used only when authoritative depth data is unavailable."""
     allowed = POSITION_GROUPS[unit]
     group = team_players[team_players["position"].isin(allowed)].sort_values("macabets_rating", ascending=False).head(DEPTH_LIMITS[unit])
-    if group.empty:
-        return {"grade": 50.0, "starter_grade": 50.0, "depth_grade": 50.0, "player_count": 0, "confidence": "missing", "top_players": []}
     starter_n = min(STARTER_COUNTS[unit], len(group))
-    starters, depth = group.head(starter_n), group.iloc[starter_n:]
+    return group.head(starter_n).copy(), group.iloc[starter_n:].copy()
+
+
+def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame | None = None) -> dict[str, Any]:
+    plan = unit_depth_plan(team_depth, unit) if team_depth is not None else {"starters": [], "depth": [], "scheme": "unknown", "source": "missing"}
+    starters, unmatched_starters = match_depth_players(team_players, plan.get("starters", []))
+    depth, unmatched_depth = match_depth_players(team_players, plan.get("depth", []))
+
+    selection_source = "Footballguys depth chart"
+    expected_starters = len(plan.get("starters", []))
+    # Fall back only when a unit has no usable depth-chart starters. Partial matches
+    # remain visible as limited confidence instead of silently promoting a higher-OVR backup.
+    if starters.empty:
+        starters, depth = _legacy_unit_selection(team_players, unit)
+        selection_source = "rating-order fallback"
+        expected_starters = len(starters)
+        unmatched_starters = []
+        unmatched_depth = []
+
+    if starters.empty:
+        return {
+            "grade": 50.0, "starter_grade": 50.0, "depth_grade": 50.0, "player_count": 0,
+            "confidence": "missing", "top_players": [], "selection_source": selection_source,
+            "scheme": plan.get("scheme", "unknown"), "unmatched_depth_chart": [],
+        }
+
     starter_grade = float(starters["macabets_rating"].mean())
     depth_grade = float(depth["macabets_rating"].mean()) if not depth.empty else starter_grade
-    grade = starter_grade if unit == "quarterback" else starter_grade * .88 + depth_grade * .12
+
+    # Healthy starters define the current unit. Backup quality is retained as depth
+    # information without materially diluting a healthy starting lineup. RB/QB/ST are
+    # completely starter-driven until availability logic activates a backup.
+    depth_blend = {
+        "quarterback": 0.00, "running_backs": 0.00, "receiving_weapons": 0.05,
+        "offensive_line": 0.05, "defensive_front": 0.05, "linebackers": 0.05,
+        "secondary": 0.05, "special_teams": 0.00,
+    }.get(unit, 0.05)
+    grade = starter_grade * (1.0 - depth_blend) + depth_grade * depth_blend
+
+    matched_starter_count = len(starters)
+    confidence = "high" if selection_source == "Footballguys depth chart" and matched_starter_count >= max(1, expected_starters) else "limited"
+    top = pd.concat([starters.assign(depth_order=0), depth.assign(depth_order=1)], ignore_index=True)
+    top_players = []
+    for _, r in top.head(8).iterrows():
+        top_players.append({
+            "name": r["player_name"], "position": r["position"], "rating": float(r["macabets_rating"]),
+            "role": str(r.get("depth_chart_role", "") or ""), "starter": bool(int(r.get("depth_order", 1)) == 0),
+        })
+
     return {
         "grade": round(grade, 2), "starter_grade": round(starter_grade, 2), "depth_grade": round(depth_grade, 2),
-        "player_count": int(len(group)), "confidence": "high" if len(group) >= starter_n else "limited",
-        "top_players": [{"name": r.player_name, "position": r.position, "rating": float(r.macabets_rating)} for r in group.head(5).itertuples()],
+        "player_count": int(len(starters) + len(depth)), "starter_count": int(len(starters)),
+        "depth_count": int(len(depth)), "confidence": confidence, "top_players": top_players,
+        "selection_source": selection_source, "depth_chart_source": plan.get("source", ""),
+        "scheme": plan.get("scheme", "unknown"),
+        "unmatched_depth_chart": unmatched_starters + unmatched_depth,
     }
 
 
-def build_team_ratings(player_ratings: pd.DataFrame, snapshot_path: Path | str = DEFAULT_NFL_DIR / "team_snapshot.csv") -> dict[str, dict[str, Any]]:
+def build_team_ratings(
+    player_ratings: pd.DataFrame,
+    snapshot_path: Path | str = DEFAULT_NFL_DIR / "team_snapshot.csv",
+    depth_chart_path: Path | str = DEFAULT_DEPTH_CHART_PATH,
+) -> dict[str, dict[str, Any]]:
     snapshot = pd.read_csv(snapshot_path) if Path(snapshot_path).exists() else pd.DataFrame()
+    depth_charts = load_depth_charts(depth_chart_path)
     snap_by_abbr = {str(r["team_abbr"]): r for _, r in snapshot.iterrows()} if "team_abbr" in snapshot else {}
     result = {}
     for abbr, team_players in player_ratings.groupby("team_abbr"):
-        units = {name: _unit_grade(team_players, name) for name in POSITION_GROUPS}
+        current_depth = team_depth_chart(depth_charts, str(abbr))
+        units = {name: _unit_grade(team_players, name, current_depth) for name in POSITION_GROUPS}
         row = snap_by_abbr.get(str(abbr))
         # Team-unit performance gradually replaces the Madden roster prior as the
         # current season accumulates. Previous-season snapshots are capped at 20%.
@@ -423,8 +498,10 @@ def build_team_ratings(player_ratings: pd.DataFrame, snapshot_path: Path | str =
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": "Macabets automated rating engine v1.1 - audited Madden 27 baseline", "prediction_influence_enabled": False,
+            "source": "Macabets automated rating engine v1.2 - Footballguys depth chart + audited Madden 27 baseline", "prediction_influence_enabled": False,
             "personnel_matchup_influence_enabled": True,
+            "depth_chart_source": "Footballguys" if not current_depth.empty else "rating-order fallback",
+            "depth_chart_rows": int(len(current_depth)),
         }
     return dict(sorted(result.items()))
 
@@ -443,10 +520,12 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
     temp = player_path.with_suffix(".csv.tmp"); player_ratings.to_csv(temp, index=False); temp.replace(player_path)
     _write_json(team_path, team_ratings)
     status = {
-        "schema_version": "1.1", "engine_version": "1.1-madden27-audited", "updated_at_utc": updated,
+        "schema_version": "1.2", "engine_version": "1.2-depth-chart-first", "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
         "prediction_influence_enabled": False,
+        "depth_chart_source": "Footballguys",
+        "depth_chart_file": str(Path(nfl_dir) / "footballguys_depth_charts.csv"),
         "files": {"players": str(player_path), "teams": str(team_path)},
     }
     _write_json(root / "rating_status.json", status)
@@ -457,6 +536,14 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
 
 
 def build_and_save_ratings(*, madden_path: Path | str = DEFAULT_MADDEN_PATH, nfl_dir: Path | str = DEFAULT_NFL_DIR) -> dict[str, Any]:
-    players = build_player_ratings(madden_path=madden_path, nfl_dir=nfl_dir)
-    teams = build_team_ratings(players, snapshot_path=Path(nfl_dir) / "team_snapshot.csv")
+    players = build_player_ratings(
+        madden_path=madden_path,
+        nfl_dir=nfl_dir,
+        depth_chart_path=Path(nfl_dir) / "footballguys_depth_charts.csv",
+    )
+    teams = build_team_ratings(
+        players,
+        snapshot_path=Path(nfl_dir) / "team_snapshot.csv",
+        depth_chart_path=Path(nfl_dir) / "footballguys_depth_charts.csv",
+    )
     return save_rating_outputs(players, teams, nfl_dir=nfl_dir)
