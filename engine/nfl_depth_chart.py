@@ -189,7 +189,9 @@ def _role_compatible(position: Any, role: str) -> bool:
     if role == "RB": return pos in {"RB", "HB", "FB"}
     if role == "WR": return pos == "WR"
     if role == "TE": return pos == "TE"
-    if role in {"LT", "LG", "C", "RG", "RT"}: return pos in {role, "OL", "G", "T"}
+    if role in {"LG", "RG"}: return pos in {"LG", "RG", "OL", "G"}
+    if role in {"LT", "RT"}: return pos in {"LT", "RT", "OL", "T"}
+    if role == "C": return pos in {"C", "OL"}
     if role in {"LDE", "RDE", "LDT", "RDT", "NT"}: return pos in {"DE", "DT", "DL", "LE", "RE", "EDGE", "LEDG", "REDG"}
     if role in {"SLB", "WLB", "MLB", "LILB", "RILB"}: return pos in {"LB", "MLB", "ILB", "OLB", "LOLB", "ROLB", "MIKE", "WILL", "SAM", "EDGE", "LEDG", "REDG"}
     if role in {"LCB", "RCB", "SCB", "SS", "FS"}: return pos in {"CB", "DB", "FS", "SS", "S"}

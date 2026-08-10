@@ -63,7 +63,7 @@ DEPTH_LIMITS = {
     "secondary": 8, "special_teams": 3,
 }
 STARTER_COUNTS = {
-    "quarterback": 1, "running_backs": 2, "receiving_weapons": 4,
+    "quarterback": 1, "running_backs": 1, "receiving_weapons": 4,
     "offensive_line": 5, "defensive_front": 4, "linebackers": 3,
     "secondary": 5, "special_teams": 2,
 }
@@ -689,15 +689,33 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
     return status
 
 
+def _resolve_depth_chart_path(nfl_dir: Path | str = DEFAULT_NFL_DIR) -> Path:
+    """Resolve the authoritative Footballguys depth-chart file robustly.
+
+    The project historically stored this CSV in both ``data/`` and ``data/nfl/``.
+    Production must not silently fall back to rating order because one location is
+    absent, so prefer the canonical root-data path and accept the legacy nfl path.
+    """
+    candidates = [
+        DEFAULT_DEPTH_CHART_PATH,
+        Path(nfl_dir) / "footballguys_depth_charts.csv",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return DEFAULT_DEPTH_CHART_PATH
+
+
 def build_and_save_ratings(*, madden_path: Path | str = DEFAULT_MADDEN_PATH, nfl_dir: Path | str = DEFAULT_NFL_DIR) -> dict[str, Any]:
+    depth_chart_path = _resolve_depth_chart_path(nfl_dir)
     players = build_player_ratings(
         madden_path=madden_path,
         nfl_dir=nfl_dir,
-        depth_chart_path=Path(nfl_dir) / "footballguys_depth_charts.csv",
+        depth_chart_path=depth_chart_path,
     )
     teams = build_team_ratings(
         players,
         snapshot_path=Path(nfl_dir) / "team_snapshot.csv",
-        depth_chart_path=Path(nfl_dir) / "footballguys_depth_charts.csv",
+        depth_chart_path=depth_chart_path,
     )
     return save_rating_outputs(players, teams, nfl_dir=nfl_dir)
