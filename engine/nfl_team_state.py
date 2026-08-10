@@ -20,22 +20,29 @@ DEFAULT_SNAPSHOT_PATH = (
     Path(__file__).resolve().parents[1] / "data" / "nfl" / "team_snapshot.csv"
 )
 
-# The order reflects the user's stated NFL philosophy: quarterback first,
-# followed by offensive line, defense, recent form, coaching, and supporting
-# units. Weights sum to 1.00.
+# Production team-power weights deliberately favor independent personnel units.
+# Aggregate offense/defense remain available to the reasoning layer, but receive
+# small weights here because QB/OL/skill and DL/secondary already carry much of
+# the same information. This avoids counting one season of NFL performance
+# several times in the base team-power number. Weights sum to 1.00.
 TEAM_STATE_WEIGHTS: Mapping[str, float] = {
-    "quarterback": 0.25,
+    "quarterback": 0.22,
     "offensive_line": 0.14,
-    "defense": 0.16,
-    "offense": 0.13,
-    "recent_form": 0.12,
-    "coaching": 0.08,
-    "defensive_line": 0.04,
-    "secondary": 0.025,
-    "skill_positions": 0.025,
-    "special_teams": 0.015,
-    "continuity": 0.015,
+    "skill_positions": 0.12,
+    "defensive_line": 0.14,
+    "secondary": 0.13,
+    "offense": 0.03,
+    "defense": 0.04,
+    "recent_form": 0.04,
+    "coaching": 0.07,
+    "continuity": 0.04,
+    "special_teams": 0.03,
 }
+
+PRIOR_SEASON_PERFORMANCE_WEIGHT = 0.0
+CURRENT_SEASON_START_WEIGHT = 0.20
+CURRENT_SEASON_WEEK_STEP = 0.06
+CURRENT_SEASON_MAX_WEIGHT = 0.85
 
 LIVE_COMPONENTS = {
     "quarterback",
@@ -85,6 +92,32 @@ def _load_snapshot(path: Path | str) -> pd.DataFrame:
     return frame
 
 
+
+def performance_evidence_weight(
+    snapshot_season: int | None,
+    through_week: int | None,
+    *,
+    target_season: int,
+) -> float:
+    """Return how much team-level NFL performance may influence a component.
+
+    Prior-season team snapshots are not blended again here because the personnel layer already carries a capped prior-season performance adjustment. Current-season evidence
+    starts conservatively and earns more weight as games accumulate. Future or
+    invalid snapshots receive no weight.
+    """
+    if not snapshot_season or snapshot_season > target_season:
+        return 0.0
+    if snapshot_season < target_season:
+        return PRIOR_SEASON_PERFORMANCE_WEIGHT
+    week = max(0, int(through_week or 0))
+    if week <= 0:
+        return 0.0
+    return min(
+        CURRENT_SEASON_MAX_WEIGHT,
+        CURRENT_SEASON_START_WEIGHT + max(0, week - 1) * CURRENT_SEASON_WEEK_STEP,
+    )
+
+
 def build_team_state(
     team: str,
     *,
@@ -114,18 +147,52 @@ def build_team_state(
     sources: dict[str, str] = {}
     warnings: list[str] = []
 
+    # The requested/current NFL season is the calendar year used by this build.
+    # A prior-season snapshot is context only; it must not replace the audited
+    # Madden/depth-chart personnel baseline.
+    from datetime import datetime, timezone
+    target_season = datetime.now(timezone.utc).year
+    snapshot_season = None
+    snapshot_week = None
+    if row is not None:
+        season_num = pd.to_numeric(row.get("season"), errors="coerce")
+        week_num = pd.to_numeric(row.get("through_week"), errors="coerce")
+        snapshot_season = int(season_num) if pd.notna(season_num) else None
+        snapshot_week = int(week_num) if pd.notna(week_num) else None
+    evidence_weight = performance_evidence_weight(
+        snapshot_season, snapshot_week, target_season=target_season
+    )
+
     for component in TEAM_STATE_WEIGHTS:
-        prior_value = prior.get(component, 67.5)
+        prior_value = _score(prior.get(component, 67.5))
         live_value = row.get(component) if row is not None and component in row else None
-        if component in LIVE_COMPONENTS and live_value is not None and pd.notna(live_value):
-            components[component] = _score(live_value, _score(prior_value))
-            sources[component] = "nflverse snapshot"
+
+        # Recent form is intentionally current-season only. Carrying Week 18
+        # momentum from the prior season into a new season creates false recency.
+        if component == "recent_form" and snapshot_season != target_season:
+            components[component] = 67.5
+            sources[component] = "neutral preseason baseline"
+            continue
+
+        if (
+            component in LIVE_COMPONENTS
+            and live_value is not None
+            and pd.notna(live_value)
+            and evidence_weight > 0
+        ):
+            live_score = _score(live_value, prior_value)
+            components[component] = round(
+                prior_value * (1.0 - evidence_weight) + live_score * evidence_weight, 2
+            )
+            season_label = "current-season" if snapshot_season == target_season else "prior-season"
+            sources[component] = (
+                f"{1.0-evidence_weight:.0%} personnel prior + "
+                f"{evidence_weight:.0%} {season_label} NFL performance"
+            )
         else:
-            # Recent form has no meaningful static prior. Neutral is safer until
-            # the upgraded workflow has produced the field.
             fallback = 67.5 if component == "recent_form" else prior_value
             components[component] = _score(fallback)
-            sources[component] = "neutral fallback" if component == "recent_form" else "manual prior"
+            sources[component] = "neutral fallback" if component == "recent_form" else "personnel prior"
             if component in LIVE_COMPONENTS:
                 warnings.append(f"{component} is using {sources[component]}")
 
