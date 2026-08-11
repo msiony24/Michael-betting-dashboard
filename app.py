@@ -4677,6 +4677,28 @@ with tabs[1]:
                             nfl_result.get("away_team"),
                             nfl_result.get("home_team"),
                         )
+
+                        # One overall conclusion after all eight style/LOS matchups are
+                        # weighted together. This summarizes the existing style signal only;
+                        # it does NOT create a second projection adjustment.
+                        overall_style_advantage = matchup_intelligence.get("overall_style_advantage") or matchup_intelligence.get("overall_advantage")
+                        overall_style_strength = matchup_intelligence.get("overall_style_strength") or matchup_intelligence.get("overall_strength")
+                        overall_style_why = matchup_intelligence.get("overall_style_why") or matchup_intelligence.get("overall_why")
+                        overall_style_edge = matchup_intelligence.get("overall_style_edge") or matchup_intelligence.get("overall_edge")
+                        if overall_style_advantage:
+                            if str(overall_style_advantage).lower() == "even":
+                                st.markdown("##### Overall Player-Style & LOS Advantage: EVEN")
+                            else:
+                                strength_label = f" — {overall_style_strength} Advantage" if overall_style_strength else ""
+                                st.markdown(f"##### Overall Player-Style & LOS Advantage: {overall_style_advantage}{strength_label}")
+                            if overall_style_why:
+                                st.write(overall_style_why)
+                            if overall_style_edge not in (None, ""):
+                                try:
+                                    st.caption(f"Combined weighted matchup gap: {float(overall_style_edge):.2f}. This is a summary of the existing style signal, not an additional model adjustment.")
+                                except (TypeError, ValueError):
+                                    pass
+
                         style_adj = float(matchup_intelligence.get("style_adjustment_home", 0.0) or 0.0)
                         if abs(style_adj) < 0.005:
                             st.info("Starter-trait compatibility is effectively neutral for the projected margin in this matchup.")
