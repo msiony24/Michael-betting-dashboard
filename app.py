@@ -71,7 +71,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.79 — Wrapped Style Matchup Table"
+APP_VERSION = "Macabets v0.81 — Stable NFL Context State"
 BUILD_DATE = "August 10, 2026"
 
 st.set_page_config(
@@ -4189,6 +4189,13 @@ with tabs[1]:
                     "Weather", WEATHER_OPTIONS, disabled=not manual_weather_override, key="nfl_weather_override"
                 )
 
+            # Keep venue/weather defined on every Streamlit rerun. The generated NFL
+            # result persists in session state, while the button body only runs once;
+            # without stable defaults these locals could disappear on later reruns and
+            # crash the archived/report view with NameError.
+            venue_type = manual_venue_type if manual_weather_override else auto_venue_type
+            weather = manual_weather if manual_weather_override else "Automatic"
+
             st.markdown("#### Bet consideration")
             nfl_considered_side = st.radio(
                 "Who are you considering betting on?",
@@ -4837,6 +4844,22 @@ with tabs[1]:
                     )
 
                 active_weather = nfl_result.get("weather_context") or st.session_state.get("nfl_weather_context", {})
+
+                # Prefer the context attached to the saved analysis when displaying a
+                # persisted report. This keeps the report stable even if Streamlit reruns
+                # after a tab change, widget interaction, or Archive navigation.
+                active_venue_raw = str(active_weather.get("venue_type") or venue_type or auto_venue_type).strip()
+                active_venue_key = active_venue_raw.lower()
+                if active_venue_key in {"dome", "closed"}:
+                    display_venue_type = "Dome"
+                elif "retract" in active_venue_key:
+                    display_venue_type = "Retractable roof"
+                elif active_venue_key == "outdoor":
+                    display_venue_type = "Outdoor"
+                else:
+                    display_venue_type = active_venue_raw or auto_venue_type
+                display_weather = str(active_weather.get("label") or weather or "Automatic")
+
                 if active_weather:
                     with st.expander("Weather intelligence", expanded=False):
                         weather1, weather2, weather3 = st.columns([3, 1, 1])
@@ -4876,8 +4899,8 @@ with tabs[1]:
                     with context1:
                         st.markdown("**Game setting**")
                         st.write(f"Week: {int(nfl_week)}")
-                        st.write(f"Venue: {venue_type}")
-                        st.write(f"Weather: {weather}")
+                        st.write(f"Venue: {display_venue_type}")
+                        st.write(f"Weather: {display_weather}")
                         if active_weather.get("source"):
                             st.write(f"Weather source: {active_weather.get('source')}")
                         st.write(f"Neutral site: {'Yes' if neutral_site else 'No'}")
