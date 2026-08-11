@@ -224,11 +224,80 @@ def build_style_matchup_context(
     net_home = home_score - away_score
     adjustment = max(-STYLE_ADJUSTMENT_CAP, min(STYLE_ADJUSTMENT_CAP, net_home * 0.035))
     strongest = max(rows, key=lambda row: _num(row.get("Edge"), 0.0)) if rows else None
+
+    # Overall style/LOS verdict. This is a presentation summary of the SAME weighted
+    # trait compatibility already used above; it does not add another model adjustment.
+    magnitude = abs(net_home)
+    if magnitude < 1.5:
+        overall_advantage = "Even"
+        overall_strength = "Even"
+    elif magnitude < 4.0:
+        overall_advantage = home_team if net_home > 0 else away_team
+        overall_strength = "Slight"
+    elif magnitude < 7.0:
+        overall_advantage = home_team if net_home > 0 else away_team
+        overall_strength = "Clear"
+    else:
+        overall_advantage = home_team if net_home > 0 else away_team
+        overall_strength = "Strong"
+
+    # Rank the individual weighted matchup contributions in home-margin terms so the
+    # UI can explain what drove the overall conclusion without simply counting rows.
+    weighted_drivers = []
+    for row in rows:
+        matchup = str(row.get("Matchup", ""))
+        offense_team = home_team if matchup.startswith(home_team + " ") else away_team
+        label = matchup[len(offense_team) + 1:] if matchup.startswith(offense_team + " ") else matchup
+        key = next((key for key in weights if label.startswith(key)), None)
+        if not key:
+            continue
+        signed_edge = _num(row.get("Signed Edge"), 0.0)
+        home_contribution = signed_edge * weights[key] if offense_team == home_team else -signed_edge * weights[key]
+        beneficiary = home_team if home_contribution > 0 else away_team if home_contribution < 0 else "Even"
+        weighted_drivers.append({
+            "matchup": matchup,
+            "beneficiary": beneficiary,
+            "weighted_edge": round(abs(home_contribution), 2),
+            "home_contribution": round(home_contribution, 3),
+        })
+
+    if overall_advantage == "Even":
+        overall_why = (
+            "The combined player-style and line-of-scrimmage matchups are too close to give either team a meaningful overall edge."
+        )
+    else:
+        winner_drivers = sorted(
+            [d for d in weighted_drivers if d.get("beneficiary") == overall_advantage],
+            key=lambda d: d.get("weighted_edge", 0.0),
+            reverse=True,
+        )[:2]
+        driver_labels = []
+        for driver in winner_drivers:
+            label = str(driver.get("matchup", ""))
+            if label.startswith(overall_advantage + " "):
+                label = label[len(overall_advantage) + 1:]
+            driver_labels.append(label)
+        if len(driver_labels) >= 2:
+            driver_text = f"{driver_labels[0]} and {driver_labels[1]}"
+        elif driver_labels:
+            driver_text = driver_labels[0]
+        else:
+            driver_text = "the combined starter-trait matchups"
+        overall_why = (
+            f"{overall_advantage} has the {overall_strength.lower()} overall style/LOS advantage after all eight matchups are weighted together. "
+            f"The biggest drivers are {driver_text}."
+        )
+
     return {
         "available": True,
         "home_margin_adjustment": round(adjustment, 2),
         "adjustment_cap": STYLE_ADJUSTMENT_CAP,
         "matchups": rows,
         "strongest_edge": strongest,
+        "overall_advantage": overall_advantage,
+        "overall_strength": overall_strength,
+        "overall_edge": round(magnitude, 2),
+        "overall_why": overall_why,
+        "overall_weighted_drivers": weighted_drivers,
         "summary": "Madden 27 starter traits refine matchup compatibility with a ±0.75-point cap to avoid double counting base talent.",
     }
