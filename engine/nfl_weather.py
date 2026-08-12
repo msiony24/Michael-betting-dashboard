@@ -8,8 +8,10 @@ the total, confidence, and (slightly) the side.
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+import json
+import time
 from typing import Any
 
 import pandas as pd
@@ -19,6 +21,8 @@ from engine.nfl_fetch import TEAM_ABBR_TO_NAME
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 SCHEDULE_PATH = Path(__file__).resolve().parents[1] / "data" / "nfl" / "schedules.csv"
+WEATHER_CACHE_PATH = Path(__file__).resolve().parents[1] / "data" / "nfl" / "weather_cache.json"
+MAX_FORECAST_DAYS = 16
 
 # Home-stadium coordinates. Neutral-site games prefer the stadium information in
 # the nflverse schedule; known international sites are included below.
@@ -89,6 +93,82 @@ class WeatherContext:
     confidence_penalty: float
     climate_mismatch: str
     fetched_at_utc: str | None
+
+
+
+
+def _parse_game_day(value: date | str) -> date | None:
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value)[:10])
+    except Exception:
+        return None
+
+
+def _weather_cache_key(*, lat: float, lon: float, day: str, gametime: str) -> str:
+    return f"{lat:.4f}|{lon:.4f}|{day}|{gametime}"
+
+
+def _load_weather_cache(path: Path = WEATHER_CACHE_PATH) -> dict:
+    try:
+        if not path.exists():
+            return {}
+        payload = json.loads(path.read_text())
+        return payload if isinstance(payload, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_weather_cache(cache: dict, path: Path = WEATHER_CACHE_PATH) -> None:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text(json.dumps(cache, indent=2, sort_keys=True))
+        tmp.replace(path)
+    except Exception:
+        # Cache writes should never be allowed to break an analysis.
+        pass
+
+
+def _cache_ttl_seconds(game_day: date | None) -> int:
+    if game_day is None:
+        return 3 * 60 * 60
+    days_until = (game_day - date.today()).days
+    if days_until <= 2:
+        return 60 * 60
+    if days_until <= 7:
+        return 3 * 60 * 60
+    return 6 * 60 * 60
+
+
+def _cached_weather(cache: dict, key: str, *, max_age_seconds: int) -> dict | None:
+    entry = cache.get(key)
+    if not isinstance(entry, dict):
+        return None
+    saved_at = float(entry.get("saved_at_epoch", 0) or 0)
+    result = entry.get("result")
+    if not isinstance(result, dict) or saved_at <= 0:
+        return None
+    if time.time() - saved_at > max_age_seconds:
+        return None
+    cached = dict(result)
+    cached["source"] = str(cached.get("source") or "Open-Meteo") + " (cached)"
+    return cached
+
+
+def _store_weather_cache(cache: dict, key: str, result: dict) -> None:
+    cache[key] = {"saved_at_epoch": time.time(), "result": result}
+    # Prevent unbounded cache growth. Keep the newest 100 entries.
+    if len(cache) > 100:
+        ordered = sorted(
+            cache.items(),
+            key=lambda item: float((item[1] or {}).get("saved_at_epoch", 0) or 0),
+            reverse=True,
+        )[:100]
+        cache.clear()
+        cache.update(dict(ordered))
+    _save_weather_cache(cache)
 
 
 def _clean_roof(value: Any) -> str:
@@ -253,7 +333,13 @@ def get_nfl_weather(
     timeout: int = 8,
     session=None,
 ) -> dict:
-    """Return automatic kickoff weather and conservative model adjustments."""
+    """Return automatic kickoff weather and conservative model adjustments.
+
+    The lookup is intentionally conservative: games outside Open-Meteo's
+    supported forecast horizon do not trigger an API request, successful
+    forecasts are cached across Streamlit reruns, and a recent cached forecast
+    can be reused if the provider is temporarily rate-limited or unavailable.
+    """
     schedule_row = find_scheduled_game(away_team, home_team, game_date)
     lat, lon, stadium, venue_type = _venue_details(home_team, schedule_row)
     day, gametime = _kickoff_parts(game_date, schedule_row)
@@ -269,6 +355,41 @@ def get_nfl_weather(
             climate_mismatch="No outdoor weather exposure.", fetched_at_utc=None,
         ))
 
+    game_day = _parse_game_day(day)
+    today = date.today()
+    if game_day is not None and session is None:
+        days_until = (game_day - today).days
+        if days_until < 0:
+            return asdict(WeatherContext(
+                available=False, source="Open-Meteo", stadium=stadium, venue_type=venue_type,
+                kickoff_local=kickoff_local, temperature_f=None, humidity_pct=None,
+                precipitation_in=None, snowfall_in=None, wind_mph=None, gust_mph=None,
+                label="Unavailable", impact="None",
+                summary="This game date is in the past, so no live forecast was requested. No weather adjustment applied.",
+                home_margin_adjustment=0.0, total_adjustment=0.0, confidence_penalty=0.0,
+                climate_mismatch="Not evaluated.", fetched_at_utc=None,
+            ))
+        if days_until >= MAX_FORECAST_DAYS:
+            return asdict(WeatherContext(
+                available=False, source="Open-Meteo", stadium=stadium, venue_type=venue_type,
+                kickoff_local=kickoff_local, temperature_f=None, humidity_pct=None,
+                precipitation_in=None, snowfall_in=None, wind_mph=None, gust_mph=None,
+                label="Not yet available", impact="None",
+                summary=(
+                    f"Kickoff is {days_until} days away. Weather is not requested until the game is "
+                    f"inside the {MAX_FORECAST_DAYS}-day forecast window. No weather adjustment applied."
+                ),
+                home_margin_adjustment=0.0, total_adjustment=0.0, confidence_penalty=0.0,
+                climate_mismatch="Not evaluated yet.", fetched_at_utc=None,
+            ))
+
+    cache = _load_weather_cache() if session is None else {}
+    cache_key = _weather_cache_key(lat=lat, lon=lon, day=day, gametime=gametime)
+    if session is None:
+        fresh_cached = _cached_weather(cache, cache_key, max_age_seconds=_cache_ttl_seconds(game_day))
+        if fresh_cached is not None:
+            return fresh_cached
+
     requester = session or requests
     params = {
         "latitude": lat,
@@ -278,10 +399,12 @@ def get_nfl_weather(
         "wind_speed_unit": "mph",
         "precipitation_unit": "inch",
         "timezone": "auto",
-        "forecast_days": 16,
+        "start_date": day,
+        "end_date": day,
     }
+    headers = {"User-Agent": "Macabets/1.0 weather-context"}
     try:
-        response = requester.get(OPEN_METEO_URL, params=params, timeout=timeout)
+        response = requester.get(OPEN_METEO_URL, params=params, timeout=timeout, headers=headers)
         response.raise_for_status()
         payload = response.json()
         hourly = payload.get("hourly") or {}
@@ -312,7 +435,7 @@ def get_nfl_weather(
         if side_adjustment:
             summary_parts.append(mismatch.rstrip("."))
         summary = ", ".join(summary_parts) + f" — {impact.lower()} impact."
-        return asdict(WeatherContext(
+        result = asdict(WeatherContext(
             available=True, source="Open-Meteo", stadium=stadium, venue_type=venue_type,
             kickoff_local=kickoff_local, temperature_f=round(temp, 1), humidity_pct=round(humidity, 1),
             precipitation_in=round(precip, 3), snowfall_in=round(snow, 3), wind_mph=round(wind, 1),
@@ -321,13 +444,29 @@ def get_nfl_weather(
             confidence_penalty=round(confidence_penalty, 2), climate_mismatch=mismatch,
             fetched_at_utc=datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         ))
+        if session is None:
+            _store_weather_cache(cache, cache_key, result)
+        return result
     except Exception as exc:
+        stale_cached = _cached_weather(cache, cache_key, max_age_seconds=24 * 60 * 60) if session is None else None
+        if stale_cached is not None:
+            stale_cached["summary"] = (
+                str(stale_cached.get("summary") or "Cached weather available.")
+                + " Provider refresh failed, so Macabets reused the most recent forecast."
+            )
+            return stale_cached
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        if status == 429:
+            reason = "provider rate limit reached"
+        else:
+            reason = str(exc)
         return asdict(WeatherContext(
             available=False, source="Open-Meteo", stadium=stadium, venue_type=venue_type,
             kickoff_local=kickoff_local, temperature_f=None, humidity_pct=None,
             precipitation_in=None, snowfall_in=None, wind_mph=None, gust_mph=None,
             label="Unavailable", impact="None",
-            summary=f"Automatic weather unavailable ({exc}). No weather adjustment applied.",
+            summary=f"Automatic weather unavailable ({reason}). No weather adjustment applied.",
             home_margin_adjustment=0.0, total_adjustment=0.0, confidence_penalty=0.0,
             climate_mismatch="Not evaluated.", fetched_at_utc=None,
         ))
+
