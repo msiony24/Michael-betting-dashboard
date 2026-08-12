@@ -339,6 +339,155 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
 
 
 
+
+def build_scheme_snapshot(
+    pbp: pd.DataFrame,
+    season: int,
+    *,
+    ftn: pd.DataFrame | None = None,
+    participation: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build team-level scheme/tendency rates from public play data.
+
+    Play-by-play supplies stable behavioral and situation splits. FTN charting
+    adds motion/play-action/RPO/blitz detail when available. Participation adds
+    man/zone coverage splits when that season is published. Missing optional
+    charting fields remain NA rather than being guessed.
+    """
+    plays = pbp.copy()
+    if "season" in plays.columns:
+        plays = plays[pd.to_numeric(plays["season"], errors="coerce").eq(int(season))]
+    if "season_type" in plays.columns:
+        plays = plays[plays["season_type"].astype(str).eq("REG")]
+    if "play_type" in plays.columns:
+        plays = plays[plays["play_type"].isin(["pass", "run"])].copy()
+    plays = plays[plays["posteam"].notna() & plays["defteam"].notna()].copy()
+    if plays.empty:
+        return pd.DataFrame()
+
+    pass_flag = _numeric(plays, "pass_attempt", 0.0).astype(bool)
+    rush_flag = _numeric(plays, "rush_attempt", 0.0).astype(bool)
+    if "pass_attempt" not in plays.columns and "play_type" in plays.columns:
+        pass_flag = plays["play_type"].eq("pass")
+    if "rush_attempt" not in plays.columns and "play_type" in plays.columns:
+        rush_flag = plays["play_type"].eq("run")
+    plays["_pass"] = pass_flag.astype(float)
+    plays["_rush"] = rush_flag.astype(float)
+    plays["_success"] = _numeric(plays, "success", 0.0) if "success" in plays.columns else _numeric(plays, "epa", 0.0).gt(0).astype(float)
+    yards = _numeric(plays, "yards_gained", 0.0)
+    plays["_explosive"] = ((pass_flag & (yards >= 20)) | (rush_flag & (yards >= 10))).astype(float)
+    plays["_pressure"] = pd.concat([_numeric(plays, "qb_hit", 0.0), _numeric(plays, "sack", 0.0)], axis=1).max(axis=1).clip(0, 1)
+
+    down = _numeric(plays, "down", 0.0)
+    early = plays[down.isin([1.0, 2.0])].copy()
+    neutral = early.copy()
+    if "wp" in neutral.columns:
+        wp = pd.to_numeric(neutral["wp"], errors="coerce")
+        neutral = neutral[wp.between(0.20, 0.80, inclusive="both")]
+    rz = plays[_numeric(plays, "yardline_100", 999.0).le(20.0)].copy()
+
+    offense = plays.groupby("posteam", as_index=False).agg(
+        offensive_plays=("_pass", "size"),
+        pass_rate=("_pass", "mean"),
+        offense_explosive_rate=("_explosive", "mean"),
+    ).rename(columns={"posteam": "team_abbr"})
+    early_o = early.groupby("posteam", as_index=False)["_pass"].mean().rename(columns={"posteam": "team_abbr", "_pass": "early_down_pass_rate"})
+    neutral_o = neutral.groupby("posteam", as_index=False)["_pass"].mean().rename(columns={"posteam": "team_abbr", "_pass": "neutral_early_down_pass_rate"})
+    defense = plays.groupby("defteam", as_index=False).agg(
+        defense_explosive_allowed=("_explosive", "mean"),
+    ).rename(columns={"defteam": "team_abbr"})
+    pass_plays = plays[pass_flag].copy()
+    pressure_o = pass_plays.groupby("posteam", as_index=False)["_pressure"].mean().rename(columns={"posteam": "team_abbr", "_pressure": "pressure_rate_allowed"})
+    pressure_d = pass_plays.groupby("defteam", as_index=False)["_pressure"].mean().rename(columns={"defteam": "team_abbr", "_pressure": "pressure_rate"})
+    rz_o = rz.groupby("posteam", as_index=False)["_success"].mean().rename(columns={"posteam": "team_abbr", "_success": "red_zone_success_rate"})
+    rz_d = rz.groupby("defteam", as_index=False)["_success"].mean().rename(columns={"defteam": "team_abbr", "_success": "red_zone_defense_success_allowed"})
+
+    # Plays/game is a useful volume proxy even when clock-derived pace is absent.
+    games = plays.groupby("posteam")["game_id"].nunique() if "game_id" in plays.columns else pd.Series(dtype=float)
+    offense["plays_per_game"] = offense["team_abbr"].map(
+        lambda t: float(offense.loc[offense["team_abbr"].eq(t), "offensive_plays"].iloc[0]) / max(1.0, float(games.get(t, 1)))
+    )
+
+    # Approximate between-play tempo from consecutive same-offense snaps. Clock
+    # deltas are capped to remove quarter breaks, timeouts and possession gaps.
+    pace_rows = []
+    if {"game_id", "game_seconds_remaining", "posteam"}.issubset(plays.columns):
+        ordered = plays.copy()
+        if "play_id" in ordered.columns:
+            ordered = ordered.sort_values(["game_id", "play_id"])
+        else:
+            ordered = ordered.sort_values(["game_id", "game_seconds_remaining"], ascending=[True, False])
+        ordered["_prev_team"] = ordered.groupby("game_id")["posteam"].shift(1)
+        ordered["_prev_clock"] = ordered.groupby("game_id")["game_seconds_remaining"].shift(1)
+        delta = pd.to_numeric(ordered["_prev_clock"], errors="coerce") - pd.to_numeric(ordered["game_seconds_remaining"], errors="coerce")
+        ordered["_snap_gap"] = delta.where(ordered["_prev_team"].eq(ordered["posteam"]) & delta.between(5, 45))
+        pace_rows = ordered.groupby("posteam", as_index=False)["_snap_gap"].mean().rename(columns={"posteam": "team_abbr", "_snap_gap": "seconds_per_play"})
+
+    stats = offense.merge(early_o, on="team_abbr", how="left").merge(neutral_o, on="team_abbr", how="left")
+    for table in (defense, pressure_o, pressure_d, rz_o, rz_d):
+        stats = stats.merge(table, on="team_abbr", how="left")
+    if isinstance(pace_rows, pd.DataFrame) and not pace_rows.empty:
+        stats = stats.merge(pace_rows, on="team_abbr", how="left")
+    else:
+        stats["seconds_per_play"] = pd.NA
+
+    # FTN play charting: join team identity from PBP via game/play IDs.
+    for col in ("no_huddle_rate", "motion_rate", "play_action_rate", "rpo_rate", "blitz_rate"):
+        stats[col] = pd.NA
+    if ftn is not None and not ftn.empty and {"nflverse_game_id", "nflverse_play_id"}.issubset(ftn.columns) and {"game_id", "play_id"}.issubset(plays.columns):
+        identity = plays[["game_id", "play_id", "posteam", "defteam"]].drop_duplicates(["game_id", "play_id"])
+        chart = ftn.copy().merge(identity, left_on=["nflverse_game_id", "nflverse_play_id"], right_on=["game_id", "play_id"], how="left")
+        offense_specs = {
+            "is_no_huddle": "no_huddle_rate",
+            "is_motion": "motion_rate",
+            "is_play_action": "play_action_rate",
+            "is_rpo": "rpo_rate",
+        }
+        for source, target in offense_specs.items():
+            if source in chart.columns:
+                temp = chart[chart["posteam"].notna()].copy()
+                temp["_value"] = temp[source].astype("boolean").astype(float)
+                agg = temp.groupby("posteam", as_index=False)["_value"].mean().rename(columns={"posteam": "team_abbr", "_value": target})
+                stats = stats.drop(columns=[target], errors="ignore").merge(agg, on="team_abbr", how="left")
+        if "n_blitzers" in chart.columns:
+            temp = chart[chart["defteam"].notna()].copy()
+            blitzers = pd.to_numeric(temp["n_blitzers"], errors="coerce")
+            temp["_blitz"] = blitzers.gt(0).where(blitzers.notna())
+            agg = temp.groupby("defteam", as_index=False)["_blitz"].mean().rename(columns={"defteam": "team_abbr", "_blitz": "blitz_rate"})
+            stats = stats.drop(columns=["blitz_rate"], errors="ignore").merge(agg, on="team_abbr", how="left")
+
+    # Participation data can provide man/zone splits. This dataset may lag the
+    # current season; if unavailable the fields stay NA rather than being guessed.
+    stats["man_rate"] = pd.NA
+    stats["zone_rate"] = pd.NA
+    if participation is not None and not participation.empty and "defense_man_zone_type" in participation.columns:
+        part = participation.copy()
+        team_col = None
+        if "defense_team" in part.columns:
+            team_col = "defense_team"
+        elif "possession_team" in part.columns and "nflverse_game_id" in part.columns and "play_id" in part.columns and {"game_id", "play_id", "defteam"}.issubset(plays.columns):
+            identity = plays[["game_id", "play_id", "defteam"]].drop_duplicates(["game_id", "play_id"])
+            part = part.merge(identity, left_on=["nflverse_game_id", "play_id"], right_on=["game_id", "play_id"], how="left")
+            team_col = "defteam"
+        if team_col:
+            cov = part[part[team_col].notna()].copy()
+            text = cov["defense_man_zone_type"].astype(str).str.upper()
+            cov["_man"] = text.str.contains("MAN", na=False).astype(float)
+            cov["_zone"] = text.str.contains("ZONE", na=False).astype(float)
+            valid = ~(text.isin(["", "NAN", "NONE"]))
+            cov = cov[valid]
+            if not cov.empty:
+                agg = cov.groupby(team_col, as_index=False).agg(man_rate=("_man", "mean"), zone_rate=("_zone", "mean")).rename(columns={team_col: "team_abbr"})
+                stats = stats.drop(columns=["man_rate", "zone_rate"], errors="ignore").merge(agg, on="team_abbr", how="left")
+
+    stats["team"] = stats["team_abbr"].map(TEAM_ABBR_TO_NAME)
+    stats = stats[stats["team"].notna()].copy()
+    stats["season"] = int(season)
+    stats["through_week"] = int(pd.to_numeric(plays.get("week"), errors="coerce").max()) if "week" in plays.columns else None
+    stats["data_source"] = "nflverse play-by-play + FTN charting/participation when available"
+    stats["updated_at_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return stats.sort_values("team").reset_index(drop=True)
+
 def build_game_quality_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     """Build one underlying-performance row per team/game from nflverse PBP.
 
@@ -472,10 +621,22 @@ def fetch_and_build(season: int, output_path: str | Path) -> FetchResult:
     pbp = _to_pandas(nfl.load_pbp([int(season)]))
     snapshot = build_team_snapshot(pbp, int(season))
     game_quality = build_game_quality_snapshot(pbp, int(season))
+    ftn = pd.DataFrame()
+    participation = pd.DataFrame()
+    try:
+        ftn = _to_pandas(nfl.load_ftn_charting([int(season)]))
+    except Exception:
+        pass
+    try:
+        participation = _to_pandas(nfl.load_participation([int(season)]))
+    except Exception:
+        pass
+    scheme = build_scheme_snapshot(pbp, int(season), ftn=ftn, participation=participation)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     snapshot.to_csv(output, index=False)
     game_quality.to_csv(output.parent / "game_quality.csv", index=False)
+    scheme.to_csv(output.parent / "scheme_tendencies.csv", index=False)
     return FetchResult(
         season=int(season), rows=len(snapshot), output_path=str(output),
         fetched_at_utc=snapshot["updated_at_utc"].iloc[0],

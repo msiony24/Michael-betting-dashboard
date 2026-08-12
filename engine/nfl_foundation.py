@@ -151,13 +151,26 @@ def refresh_nfl_foundation(
     performance = _fetch_performance_with_fallback(
         int(requested_season), root / "team_snapshot.csv"
     )
+    scheme_path = root / "scheme_tendencies.csv"
+    scheme_rows = 0
+    try:
+        scheme_rows = len(pd.read_csv(scheme_path)) if scheme_path.exists() else 0
+    except Exception:
+        scheme_rows = 0
     statuses: list[DatasetStatus] = [
         DatasetStatus(
             name="team_performance",
             file=str(root / "team_snapshot.csv"),
             rows=performance.rows,
             available=True,
-        )
+        ),
+        DatasetStatus(
+            name="scheme_tendencies",
+            file=str(scheme_path),
+            rows=scheme_rows,
+            available=scheme_rows > 0,
+            error="" if scheme_rows > 0 else "scheme snapshot unavailable",
+        ),
     ]
 
     season = int(requested_season)

@@ -286,6 +286,7 @@ def build_matchup_intelligence(
     weather_home_adjustment: float = 0.0,
     schedule_home_adjustment: float = 0.0,
     game_quality_home_adjustment: float = 0.0,
+    scheme_home_adjustment: float = 0.0,
     personnel_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     personnel = dict(personnel_context or {})
@@ -294,7 +295,7 @@ def build_matchup_intelligence(
     # One coherent football edge. Base power already contains team-level performance;
     # only the opponent-specific personnel mismatch adjustment is added on top.
     base_team_edge = float(home_power) - float(away_power)
-    context_edge = float(home_field_points) + float(weather_home_adjustment) + float(schedule_home_adjustment) + float(game_quality_home_adjustment)
+    context_edge = float(home_field_points) + float(weather_home_adjustment) + float(schedule_home_adjustment) + float(game_quality_home_adjustment) + float(scheme_home_adjustment)
     football_home_edge = base_team_edge + context_edge + matchup_adjustment
 
     if abs(football_home_edge) < 0.5:
@@ -411,6 +412,7 @@ def build_matchup_intelligence(
         "base_team_edge_home": round(base_team_edge, 2),
         "context_edge_home": round(context_edge, 2),
         "matchup_adjustment_home": round(matchup_adjustment, 2),
+        "scheme_adjustment_home": round(float(scheme_home_adjustment), 2),
         "base_personnel_adjustment_home": round(_num(personnel.get("base_home_margin_adjustment"), 0.0), 2),
         "style_adjustment_home": round(_num(personnel.get("style_home_margin_adjustment"), 0.0), 2),
         "style_matchups": list(personnel.get("style_matchups", []) or []),
@@ -426,7 +428,7 @@ def build_matchup_intelligence(
         "questions": questions,
         "summary": (
             f"{overall_leader if overall_leader != 'Even' else 'Neither team'} holds the {overall_strength.lower()} overall football edge "
-            f"after baseline team strength, opponent-specific personnel matchups and game context are combined without category-count scoring."
+            f"after baseline team strength, opponent-specific personnel matchups, scheme compatibility and game context are combined without category-count scoring."
         ),
-        "guardrail": "Team-level performance enters base power once. Unit mismatches and starter-trait compatibility are opponent-specific refinements with hard caps; trait talent is never re-awarded at full strength.",
+        "guardrail": "Team-level performance enters base power once. Unit mismatches, starter-trait compatibility and scheme compatibility are opponent-specific refinements with hard caps; the same talent or performance signal is never re-awarded at full strength.",
     }
