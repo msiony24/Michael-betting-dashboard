@@ -4713,6 +4713,40 @@ with tabs[1]:
                             direction = nfl_result["home_team"] if style_adj > 0 else nfl_result["away_team"]
                             st.info(f"Net starter-trait compatibility moves the projected margin {abs(style_adj):.2f} points toward {direction}.")
 
+                    scheme_context = nfl_result.get("scheme_context") or {}
+                    if scheme_context.get("available"):
+                        st.markdown("#### Scheme & Team Tendencies")
+                        st.caption(
+                            f"Data mode: {scheme_context.get('data_mode', 'available')} · "
+                            "Behavioral tendencies are used as a small compatibility layer, not as a second copy of team strength."
+                        )
+                        scheme_rows = pd.DataFrame(scheme_context.get("rows", []))
+                        if not scheme_rows.empty:
+                            st.dataframe(scheme_rows, use_container_width=True, hide_index=True)
+                        sc1, sc2, sc3 = st.columns(3)
+                        sc1.metric("Overall Scheme Edge", str(scheme_context.get("overall_advantage", "Even")))
+                        sc2.metric("Scheme Strength", str(scheme_context.get("overall_strength", "Even")))
+                        sc3.metric(
+                            "Projection Adjustment",
+                            f"{float(scheme_context.get('home_margin_adjustment', 0.0) or 0.0):+.2f} pts home",
+                        )
+                        st.info(scheme_context.get("summary", ""))
+                        with st.expander("How Macabets uses scheme tendencies", expanded=False):
+                            away_scheme = scheme_context.get("away") or {}
+                            home_scheme = scheme_context.get("home") or {}
+                            st.write(
+                                "Macabets currently measures pass/run identity, early-down aggressiveness, pace, "
+                                "motion, play action, RPO usage, blitz tendency, coverage mix when published, "
+                                "explosive-play rates, red-zone success and pressure context."
+                            )
+                            st.write(
+                                "Only behavioral compatibility with the existing personnel matchup affects the side projection. "
+                                "The performance-style fields remain context until their dedicated model layers are built."
+                            )
+                            if away_scheme.get("data_source") or home_scheme.get("data_source"):
+                                st.caption(scheme_context.get("source", "nflverse"))
+                            st.caption(scheme_context.get("guardrail", ""))
+
                     drivers = matchup_intelligence.get("top_drivers", []) or []
                     if drivers:
                         st.markdown("**Most important matchup drivers**")
