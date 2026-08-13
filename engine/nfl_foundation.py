@@ -195,12 +195,22 @@ def _ensure_scheme_snapshot(
                     "red_zone_td_rate_allowed",
                 }
                 has_current_schema = required_scheme_columns.issubset(existing.columns)
+                existing_season = int(seasons.max()) if not seasons.empty else None
+                season_matches_source = existing_season == int(source_season)
                 if (
                     not seasons.empty
                     and existing["team"].nunique() >= 30
                     and has_current_schema
+                    and season_matches_source
                 ):
                     return len(existing), ""
+                if has_current_schema and not season_matches_source:
+                    print(
+                        "Scheme tendencies: rebuilding snapshot for current regular "
+                        f"season {source_season}; existing snapshot is season "
+                        f"{existing_season}. Prior-season scheme is discarded as soon "
+                        "as current-season regular-season data is available."
+                    )
                 if not has_current_schema:
                     missing = sorted(required_scheme_columns.difference(existing.columns))
                     print(
@@ -229,8 +239,9 @@ def _ensure_scheme_snapshot(
             return 0, f"no usable regular-season scheme data for {source_season}"
         _atomic_csv(scheme, scheme_path)
         print(
-            f"Scheme tendencies: using {source_season} regular-season data as the "
-            "preseason/current fallback prior."
+            f"Scheme tendencies: using {source_season} regular-season data. "
+            "When this is the requested current season, no prior-season scheme "
+            "data is blended into the snapshot."
         )
         return len(scheme), ""
     except Exception as exc:
