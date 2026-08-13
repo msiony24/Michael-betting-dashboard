@@ -1,11 +1,18 @@
 {
-  "available_datasets": 4,
+  "available_datasets": 5,
   "datasets": [
     {
       "available": true,
       "error": "",
       "file": "data/nfl/team_snapshot.csv",
       "name": "team_performance",
+      "rows": 32
+    },
+    {
+      "available": true,
+      "error": "",
+      "file": "data/nfl/scheme_tendencies.csv",
+      "name": "scheme_tendencies",
       "rows": 32
     },
     {
@@ -62,12 +69,12 @@
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 426595
+      "rows": 429851
     }
   ],
   "performance_season": 2025,
   "requested_season": 2026,
   "schema_version": "1.0",
-  "total_datasets": 9,
-  "updated_at_utc": "2026-08-12T14:34:31+00:00"
+  "total_datasets": 10,
+  "updated_at_utc": "2026-08-13T21:07:42+00:00"
 }
