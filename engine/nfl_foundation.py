@@ -16,7 +16,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from engine.nfl_fetch import FetchResult, fetch_and_build
+from engine.nfl_fetch import FetchResult, build_scheme_snapshot, fetch_and_build
 
 
 DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "nfl"
@@ -166,6 +166,58 @@ def _fetch_performance_with_fallback(
     raise RuntimeError("No supported NFL performance season could be loaded.") from last_error
 
 
+
+def _ensure_scheme_snapshot(
+    *,
+    source_season: int,
+    scheme_path: Path,
+    nfl_module: Any,
+) -> tuple[int, str]:
+    """Ensure a usable regular-season scheme snapshot exists.
+
+    During preseason, current-season regular-season PBP does not exist yet.
+    Macabets should therefore use the same latest completed regular season that
+    powers the team-performance fallback (normally the prior season) as a
+    reduced scheme prior instead of showing scheme as unavailable.
+    """
+    try:
+        if scheme_path.exists():
+            existing = pd.read_csv(scheme_path)
+            if not existing.empty and "team" in existing.columns:
+                seasons = pd.to_numeric(existing.get("season"), errors="coerce").dropna()
+                # A complete prior/current snapshot should cover essentially the
+                # whole league. Do not replace it just because optional fields are NA.
+                if not seasons.empty and existing["team"].nunique() >= 30:
+                    return len(existing), ""
+    except Exception:
+        pass
+
+    try:
+        pbp = _to_pandas(nfl_module.load_pbp([int(source_season)]))
+        ftn = pd.DataFrame()
+        participation = pd.DataFrame()
+        try:
+            ftn = _to_pandas(nfl_module.load_ftn_charting([int(source_season)]))
+        except Exception:
+            pass
+        try:
+            participation = _to_pandas(nfl_module.load_participation([int(source_season)]))
+        except Exception:
+            pass
+        scheme = build_scheme_snapshot(
+            pbp, int(source_season), ftn=ftn, participation=participation
+        )
+        if scheme.empty:
+            return 0, f"no usable regular-season scheme data for {source_season}"
+        _atomic_csv(scheme, scheme_path)
+        print(
+            f"Scheme tendencies: using {source_season} regular-season data as the "
+            "preseason/current fallback prior."
+        )
+        return len(scheme), ""
+    except Exception as exc:
+        return 0, str(exc)
+
 def refresh_nfl_foundation(
     requested_season: int,
     *,
@@ -191,11 +243,11 @@ def refresh_nfl_foundation(
         int(requested_season), root / "team_snapshot.csv"
     )
     scheme_path = root / "scheme_tendencies.csv"
-    scheme_rows = 0
-    try:
-        scheme_rows = len(pd.read_csv(scheme_path)) if scheme_path.exists() else 0
-    except Exception:
-        scheme_rows = 0
+    scheme_rows, scheme_error = _ensure_scheme_snapshot(
+        source_season=int(performance.season),
+        scheme_path=scheme_path,
+        nfl_module=nfl_module,
+    )
     statuses: list[DatasetStatus] = [
         DatasetStatus(
             name="team_performance",
@@ -209,7 +261,7 @@ def refresh_nfl_foundation(
             file=str(scheme_path),
             rows=scheme_rows,
             available=scheme_rows > 0,
-            error="" if scheme_rows > 0 else "scheme snapshot unavailable",
+            error="" if scheme_rows > 0 else (scheme_error or "scheme snapshot unavailable"),
         ),
     ]
 
