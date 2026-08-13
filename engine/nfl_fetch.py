@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
+import time
 
 import pandas as pd
 
@@ -34,6 +35,8 @@ class FetchResult:
     rows: int
     output_path: str
     fetched_at_utc: str
+    source_mode: str = "fresh"
+    warning: str = ""
 
 
 def _to_pandas(frame) -> pd.DataFrame:
@@ -612,13 +615,38 @@ def build_game_quality_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     ]
     return quality[[c for c in columns if c in quality.columns]].sort_values(["week", "game_id", "team_abbr"]).reset_index(drop=True)
 
+def _load_pbp_with_retry(nfl, season: int, *, attempts: int = 4, base_delay_seconds: float = 2.0) -> pd.DataFrame:
+    """Load nflverse play-by-play with bounded retries for transient network failures."""
+    last_error: Exception | None = None
+    for attempt in range(1, max(1, int(attempts)) + 1):
+        try:
+            return _to_pandas(nfl.load_pbp([int(season)]))
+        except ValueError:
+            # Availability/season errors are deterministic and should be handled by
+            # the season-fallback logic rather than retried.
+            raise
+        except Exception as exc:
+            last_error = exc
+            if attempt >= attempts:
+                break
+            delay = base_delay_seconds * (2 ** (attempt - 1))
+            print(
+                f"nflverse play-by-play download failed for {season} "
+                f"(attempt {attempt}/{attempts}): {exc}. Retrying in {delay:.0f}s..."
+            )
+            time.sleep(delay)
+    raise ConnectionError(
+        f"nflverse play-by-play download failed for {season} after {attempts} attempts: {last_error}"
+    ) from last_error
+
+
 def fetch_and_build(season: int, output_path: str | Path) -> FetchResult:
     try:
         import nflreadpy as nfl
     except ImportError as exc:
         raise RuntimeError("Install nflreadpy before refreshing NFL data.") from exc
 
-    pbp = _to_pandas(nfl.load_pbp([int(season)]))
+    pbp = _load_pbp_with_retry(nfl, int(season))
     snapshot = build_team_snapshot(pbp, int(season))
     game_quality = build_game_quality_snapshot(pbp, int(season))
     ftn = pd.DataFrame()

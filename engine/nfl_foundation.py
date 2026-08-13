@@ -108,6 +108,36 @@ def _safe_dataset(
         return DatasetStatus(name=name, file=str(path), rows=0, available=False, error=str(exc))
 
 
+def _cached_performance_result(output_path: Path, error: Exception) -> FetchResult | None:
+    """Return the last-good team snapshot when nflverse is temporarily unavailable."""
+    if not output_path.exists():
+        return None
+    try:
+        frame = pd.read_csv(output_path)
+    except Exception:
+        return None
+    if frame.empty:
+        return None
+    season = pd.to_numeric(frame.get("season"), errors="coerce").dropna()
+    if season.empty:
+        return None
+    fetched_at = "cached"
+    if "updated_at_utc" in frame.columns:
+        values = frame["updated_at_utc"].dropna().astype(str)
+        if not values.empty:
+            fetched_at = values.iloc[-1]
+    warning = f"Using last-good cached NFL performance snapshot because refresh failed: {error}"
+    print(warning)
+    return FetchResult(
+        season=int(season.max()),
+        rows=len(frame),
+        output_path=str(output_path),
+        fetched_at_utc=fetched_at,
+        source_mode="cached",
+        warning=warning,
+    )
+
+
 def _fetch_performance_with_fallback(
     requested_season: int,
     output_path: Path,
@@ -124,6 +154,15 @@ def _fetch_performance_with_fallback(
             if "season must be between" in message or "no usable regular-season plays" in message:
                 continue
             raise
+        except (ConnectionError, OSError) as exc:
+            last_error = exc
+            cached = _cached_performance_result(output_path, exc)
+            if cached is not None:
+                return cached
+            raise
+    cached = _cached_performance_result(output_path, last_error or RuntimeError("No supported season"))
+    if cached is not None:
+        return cached
     raise RuntimeError("No supported NFL performance season could be loaded.") from last_error
 
 
@@ -163,6 +202,7 @@ def refresh_nfl_foundation(
             file=str(root / "team_snapshot.csv"),
             rows=performance.rows,
             available=True,
+            error=performance.warning,
         ),
         DatasetStatus(
             name="scheme_tendencies",
