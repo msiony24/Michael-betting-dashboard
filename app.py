@@ -4714,37 +4714,123 @@ with tabs[1]:
                             st.info(f"Net starter-trait compatibility moves the projected margin {abs(style_adj):.2f} points toward {direction}.")
 
                     scheme_context = nfl_result.get("scheme_context") or {}
-                    if scheme_context.get("available"):
-                        st.markdown("#### Scheme & Team Tendencies")
+                    st.markdown("#### Scheme & Team Tendencies")
+                    if not scheme_context.get("available"):
+                        st.warning(
+                            scheme_context.get(
+                                "summary",
+                                "Scheme tendency data is not available for both teams yet. No scheme adjustment was applied.",
+                            )
+                        )
+                        st.caption(
+                            "This section stays visible even when the data feed is unavailable so you can audit whether scheme intelligence is actually active."
+                        )
+                    else:
+                        away_scheme = scheme_context.get("away") or {}
+                        home_scheme = scheme_context.get("home") or {}
                         st.caption(
                             f"Data mode: {scheme_context.get('data_mode', 'available')} · "
-                            "Behavioral tendencies are used as a small compatibility layer, not as a second copy of team strength."
+                            "Behavioral tendencies are a small compatibility layer, not a second copy of team strength."
                         )
-                        scheme_rows = pd.DataFrame(scheme_context.get("rows", []))
-                        if not scheme_rows.empty:
-                            st.dataframe(scheme_rows, use_container_width=True, hide_index=True)
+
+                        def _scheme_pct(value):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.1%}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        def _scheme_num(value, digits=1, suffix=""):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.{digits}f}{suffix}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        def _scheme_identity(profile):
+                            rate = profile.get("early_down_pass_rate")
+                            try:
+                                if rate is None or pd.isna(rate):
+                                    return "Unavailable"
+                                rate = float(rate)
+                                if rate <= 0.50:
+                                    return "Run-leaning"
+                                if rate >= 0.62:
+                                    return "Pass-leaning"
+                                return "Balanced"
+                            except (TypeError, ValueError):
+                                return "Unavailable"
+
+                        team_profiles = [
+                            (str(nfl_result.get("away_team", "Away")), away_scheme),
+                            (str(nfl_result.get("home_team", "Home")), home_scheme),
+                        ]
+                        profile_cols = st.columns(2)
+                        for idx, (team_name, profile) in enumerate(team_profiles):
+                            with profile_cols[idx]:
+                                st.markdown(f"##### {team_name}")
+                                a, b, c = st.columns(3)
+                                a.metric("Identity", _scheme_identity(profile))
+                                b.metric("Early-Down Pass", _scheme_pct(profile.get("early_down_pass_rate")))
+                                c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
+
+                                tendency_rows = [
+                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Value": _scheme_num(profile.get("plays_per_game"), 1)},
+                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Value": _scheme_pct(profile.get("no_huddle_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Motion", "Value": _scheme_pct(profile.get("motion_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Play action", "Value": _scheme_pct(profile.get("play_action_rate"))},
+                                    {"Area": "Offensive design", "Metric": "RPO", "Value": _scheme_pct(profile.get("rpo_rate"))},
+                                    {"Area": "Defense", "Metric": "Blitz rate", "Value": _scheme_pct(profile.get("blitz_rate"))},
+                                    {"Area": "Defense", "Metric": "Man coverage", "Value": _scheme_pct(profile.get("man_rate"))},
+                                    {"Area": "Defense", "Metric": "Zone coverage", "Value": _scheme_pct(profile.get("zone_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure generated", "Value": _scheme_pct(profile.get("pressure_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Value": _scheme_pct(profile.get("pressure_rate_allowed"))},
+                                    {"Area": "Explosives", "Metric": "Explosive offense", "Value": _scheme_pct(profile.get("offense_explosive_rate"))},
+                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Value": _scheme_pct(profile.get("defense_explosive_allowed"))},
+                                    {"Area": "Red zone", "Metric": "Offensive success", "Value": _scheme_pct(profile.get("red_zone_success_rate"))},
+                                    {"Area": "Red zone", "Metric": "Defensive success allowed", "Value": _scheme_pct(profile.get("red_zone_defense_success_allowed"))},
+                                ]
+                                st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
+                                season_label = profile.get("season") or "—"
+                                week_label = profile.get("through_week") or "—"
+                                updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
+                                st.caption(f"Season {season_label} · Through week {week_label} · Updated {updated_label}")
+
+                        st.markdown("##### Overall Scheme Matchup Conclusion")
                         sc1, sc2, sc3 = st.columns(3)
-                        sc1.metric("Overall Scheme Edge", str(scheme_context.get("overall_advantage", "Even")))
-                        sc2.metric("Scheme Strength", str(scheme_context.get("overall_strength", "Even")))
-                        sc3.metric(
-                            "Projection Adjustment",
-                            f"{float(scheme_context.get('home_margin_adjustment', 0.0) or 0.0):+.2f} pts home",
-                        )
+                        overall_advantage = str(scheme_context.get("overall_advantage", "Even"))
+                        overall_strength = str(scheme_context.get("overall_strength", "Even"))
+                        scheme_adj = float(scheme_context.get("home_margin_adjustment", 0.0) or 0.0)
+                        if abs(scheme_adj) < 0.005:
+                            adj_label = "0.00 pts"
+                        else:
+                            adj_team = nfl_result.get("home_team") if scheme_adj > 0 else nfl_result.get("away_team")
+                            adj_label = f"{abs(scheme_adj):.2f} pts toward {adj_team}"
+                        sc1.metric("Overall Scheme Edge", overall_advantage)
+                        sc2.metric("Scheme Strength", overall_strength)
+                        sc3.metric("Projection Adjustment", adj_label)
                         st.info(scheme_context.get("summary", ""))
-                        with st.expander("How Macabets uses scheme tendencies", expanded=False):
-                            away_scheme = scheme_context.get("away") or {}
-                            home_scheme = scheme_context.get("home") or {}
+
+                        evidence_weight = scheme_context.get("evidence_weight")
+                        source = scheme_context.get("source", "nflverse")
+                        with st.expander("Audit scheme data, source and model guardrails", expanded=False):
+                            if evidence_weight is not None:
+                                try:
+                                    st.write(f"Evidence weight: {float(evidence_weight):.0%}")
+                                except (TypeError, ValueError):
+                                    pass
                             st.write(
-                                "Macabets currently measures pass/run identity, early-down aggressiveness, pace, "
-                                "motion, play action, RPO usage, blitz tendency, coverage mix when published, "
-                                "explosive-play rates, red-zone success and pressure context."
+                                "Macabets measures pass/run identity, early-down aggressiveness, pace, no-huddle, motion, "
+                                "play action, RPO usage, blitz tendency, coverage mix when published, pressure context, "
+                                "explosive-play rates and red-zone success."
                             )
                             st.write(
                                 "Only behavioral compatibility with the existing personnel matchup affects the side projection. "
-                                "The performance-style fields remain context until their dedicated model layers are built."
+                                "Performance-style fields remain context until their dedicated model layers are built."
                             )
-                            if away_scheme.get("data_source") or home_scheme.get("data_source"):
-                                st.caption(scheme_context.get("source", "nflverse"))
+                            st.caption(f"Source: {source}")
                             st.caption(scheme_context.get("guardrail", ""))
 
                     drivers = matchup_intelligence.get("top_drivers", []) or []
