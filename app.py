@@ -4777,22 +4777,23 @@ with tabs[1]:
                                 c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
 
                                 tendency_rows = [
-                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Value": _scheme_num(profile.get("plays_per_game"), 1)},
-                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Value": _scheme_pct(profile.get("no_huddle_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Motion", "Value": _scheme_pct(profile.get("motion_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Play action", "Value": _scheme_pct(profile.get("play_action_rate"))},
-                                    {"Area": "Offensive design", "Metric": "RPO", "Value": _scheme_pct(profile.get("rpo_rate"))},
-                                    {"Area": "Defense", "Metric": "Blitz rate", "Value": _scheme_pct(profile.get("blitz_rate"))},
-                                    {"Area": "Defense", "Metric": "Man coverage", "Value": _scheme_pct(profile.get("man_rate"))},
-                                    {"Area": "Defense", "Metric": "Zone coverage", "Value": _scheme_pct(profile.get("zone_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure generated", "Value": _scheme_pct(profile.get("pressure_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Value": _scheme_pct(profile.get("pressure_rate_allowed"))},
-                                    {"Area": "Explosives", "Metric": "Explosive offense", "Value": _scheme_pct(profile.get("offense_explosive_rate"))},
-                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Value": _scheme_pct(profile.get("defense_explosive_allowed"))},
-                                    {"Area": "Red zone", "Metric": "Offensive success", "Value": _scheme_pct(profile.get("red_zone_success_rate"))},
-                                    {"Area": "Red zone", "Metric": "Defensive success allowed", "Value": _scheme_pct(profile.get("red_zone_defense_success_allowed"))},
+                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
+                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
+                                    {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
+                                    {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
+                                    {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
+                                    {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
+                                    {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
+                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
+                                    {"Area": "Red zone", "Metric": "Offensive success", "Rate": _scheme_pct(profile.get("red_zone_success_rate"))},
+                                    {"Area": "Red zone", "Metric": "Defensive success allowed", "Rate": _scheme_pct(profile.get("red_zone_defense_success_allowed"))},
                                 ]
-                                st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
+                                with st.expander("Show detailed scheme tendencies", expanded=False):
+                                    st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
                                 season_label = profile.get("season") or "—"
                                 week_label = profile.get("through_week") or "—"
                                 updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
