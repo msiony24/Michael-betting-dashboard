@@ -186,9 +186,27 @@ def _ensure_scheme_snapshot(
             if not existing.empty and "team" in existing.columns:
                 seasons = pd.to_numeric(existing.get("season"), errors="coerce").dropna()
                 # A complete prior/current snapshot should cover essentially the
-                # whole league. Do not replace it just because optional fields are NA.
-                if not seasons.empty and existing["team"].nunique() >= 30:
+                # whole league. Also require the current scheme schema. This matters
+                # when a metric definition changes (for example, the 2026-08 red-zone
+                # update from play-level success to drive-level TD rate): an older
+                # full-league CSV must be rebuilt rather than silently reused.
+                required_scheme_columns = {
+                    "red_zone_td_rate",
+                    "red_zone_td_rate_allowed",
+                }
+                has_current_schema = required_scheme_columns.issubset(existing.columns)
+                if (
+                    not seasons.empty
+                    and existing["team"].nunique() >= 30
+                    and has_current_schema
+                ):
                     return len(existing), ""
+                if not has_current_schema:
+                    missing = sorted(required_scheme_columns.difference(existing.columns))
+                    print(
+                        "Scheme tendencies: rebuilding stale snapshot; missing current "
+                        f"columns: {', '.join(missing)}"
+                    )
     except Exception:
         pass
 
