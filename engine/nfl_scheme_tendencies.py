@@ -108,8 +108,8 @@ def _team_summary(team: str, row: pd.Series | None) -> dict[str, Any]:
         "zone_rate": _num(row.get("zone_rate"), float("nan")),
         "offense_explosive_rate": _num(row.get("offense_explosive_rate"), float("nan")),
         "defense_explosive_allowed": _num(row.get("defense_explosive_allowed"), float("nan")),
-        "red_zone_success_rate": _num(row.get("red_zone_success_rate"), float("nan")),
-        "red_zone_defense_success_allowed": _num(row.get("red_zone_defense_success_allowed"), float("nan")),
+        "red_zone_td_rate": _num(row.get("red_zone_td_rate"), float("nan")),
+        "red_zone_td_rate_allowed": _num(row.get("red_zone_td_rate_allowed"), float("nan")),
         "pressure_rate": _num(row.get("pressure_rate"), float("nan")),
         "pressure_rate_allowed": _num(row.get("pressure_rate_allowed"), float("nan")),
         "data_source": str(row.get("data_source", "nflverse")),
@@ -218,7 +218,7 @@ def build_scheme_matchup_context(
             "RPO": _pct(profile.get("rpo_rate")),
             "Explosive O": _pct(profile.get("offense_explosive_rate")),
             "Explosive Allowed": _pct(profile.get("defense_explosive_allowed")),
-            "RZ Success": _pct(profile.get("red_zone_success_rate")),
+            "RZ TD Rate": _pct(profile.get("red_zone_td_rate")),
         })
 
     leader = "Even"

@@ -357,14 +357,19 @@ def build_scheme_snapshot(
     man/zone coverage splits when that season is published. Missing optional
     charting fields remain NA rather than being guessed.
     """
-    plays = pbp.copy()
-    if "season" in plays.columns:
-        plays = plays[pd.to_numeric(plays["season"], errors="coerce").eq(int(season))]
-    if "season_type" in plays.columns:
-        plays = plays[plays["season_type"].astype(str).eq("REG")]
+    # Keep a full regular-season play set for drive-level metrics such as
+    # red-zone touchdown rate. The narrower pass/run set below is still used
+    # for play-level tendency metrics.
+    season_plays = pbp.copy()
+    if "season" in season_plays.columns:
+        season_plays = season_plays[pd.to_numeric(season_plays["season"], errors="coerce").eq(int(season))]
+    if "season_type" in season_plays.columns:
+        season_plays = season_plays[season_plays["season_type"].astype(str).eq("REG")]
+    season_plays = season_plays[season_plays["posteam"].notna() & season_plays["defteam"].notna()].copy()
+
+    plays = season_plays.copy()
     if "play_type" in plays.columns:
         plays = plays[plays["play_type"].isin(["pass", "run"])].copy()
-    plays = plays[plays["posteam"].notna() & plays["defteam"].notna()].copy()
     if plays.empty:
         return pd.DataFrame()
 
@@ -387,7 +392,38 @@ def build_scheme_snapshot(
     if "wp" in neutral.columns:
         wp = pd.to_numeric(neutral["wp"], errors="coerce")
         neutral = neutral[wp.between(0.20, 0.80, inclusive="both")]
-    rz = plays[_numeric(plays, "yardline_100", 999.0).le(20.0)].copy()
+    # Standard red-zone offense/defense rate: percentage of red-zone drives
+    # that result in an offensive touchdown. This intentionally replaces the
+    # old play-level `success` average, which was mislabeled as red-zone
+    # success and produced numbers that did not correspond to the familiar
+    # NFL red-zone TD percentage.
+    rz_o = pd.DataFrame(columns=["team_abbr", "red_zone_td_rate"])
+    rz_d = pd.DataFrame(columns=["team_abbr", "red_zone_td_rate_allowed"])
+    if {"game_id", "drive", "yardline_100", "posteam", "defteam"}.issubset(season_plays.columns):
+        rz_plays = season_plays[_numeric(season_plays, "yardline_100", 999.0).le(20.0)].copy()
+        if not rz_plays.empty:
+            if "touchdown" in season_plays.columns:
+                season_plays["_touchdown"] = _numeric(season_plays, "touchdown", 0.0).clip(0, 1)
+            else:
+                # nflverse normally supplies `touchdown`; if it is absent,
+                # leave the metric unavailable rather than infer it from EPA.
+                season_plays["_touchdown"] = float("nan")
+            trip_keys = ["game_id", "drive", "posteam", "defteam"]
+            trips = rz_plays[trip_keys].drop_duplicates()
+            drive_td = (
+                season_plays.groupby(trip_keys, as_index=False)["_touchdown"]
+                .max()
+                .merge(trips, on=trip_keys, how="inner")
+            )
+            if drive_td["_touchdown"].notna().any():
+                rz_o = (
+                    drive_td.groupby("posteam", as_index=False)["_touchdown"].mean()
+                    .rename(columns={"posteam": "team_abbr", "_touchdown": "red_zone_td_rate"})
+                )
+                rz_d = (
+                    drive_td.groupby("defteam", as_index=False)["_touchdown"].mean()
+                    .rename(columns={"defteam": "team_abbr", "_touchdown": "red_zone_td_rate_allowed"})
+                )
 
     offense = plays.groupby("posteam", as_index=False).agg(
         offensive_plays=("_pass", "size"),
@@ -402,8 +438,6 @@ def build_scheme_snapshot(
     pass_plays = plays[pass_flag].copy()
     pressure_o = pass_plays.groupby("posteam", as_index=False)["_pressure"].mean().rename(columns={"posteam": "team_abbr", "_pressure": "pressure_rate_allowed"})
     pressure_d = pass_plays.groupby("defteam", as_index=False)["_pressure"].mean().rename(columns={"defteam": "team_abbr", "_pressure": "pressure_rate"})
-    rz_o = rz.groupby("posteam", as_index=False)["_success"].mean().rename(columns={"posteam": "team_abbr", "_success": "red_zone_success_rate"})
-    rz_d = rz.groupby("defteam", as_index=False)["_success"].mean().rename(columns={"defteam": "team_abbr", "_success": "red_zone_defense_success_allowed"})
 
     # Plays/game is a useful volume proxy even when clock-derived pace is absent.
     games = plays.groupby("posteam")["game_id"].nunique() if "game_id" in plays.columns else pd.Series(dtype=float)
