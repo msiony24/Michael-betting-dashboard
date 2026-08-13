@@ -4789,8 +4789,8 @@ with tabs[1]:
                                     {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
                                     {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
                                     {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
-                                    {"Area": "Red zone", "Metric": "Offensive success", "Rate": _scheme_pct(profile.get("red_zone_success_rate"))},
-                                    {"Area": "Red zone", "Metric": "Defensive success allowed", "Rate": _scheme_pct(profile.get("red_zone_defense_success_allowed"))},
+                                    {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
+                                    {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
                                 ]
                                 with st.expander("Show detailed scheme tendencies", expanded=False):
                                     st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
