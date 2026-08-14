@@ -71,7 +71,7 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.81 — Stable NFL Context State"
+APP_VERSION = "Macabets v0.82 — Conclusion-First UI"
 BUILD_DATE = "August 10, 2026"
 
 st.set_page_config(
@@ -1444,7 +1444,7 @@ def tennis_matchup_context(h2h, player_a, player_b, base_probability_a):
     }
 
 def render_head_to_head_summary(matches, player_a, player_b, current_surface):
-    """Render a compact, decision-useful H2H card in the match analysis."""
+    """Render H2H as a conclusion first; keep the raw record one click deeper."""
     h2h = build_head_to_head_summary(matches, player_a, player_b, current_surface)
     st.markdown("#### Head-to-Head Summary")
 
@@ -1452,21 +1452,32 @@ def render_head_to_head_summary(matches, player_a, player_b, current_surface):
         st.info("No previous meetings were found in the available Macabets match data.")
         return
 
-    h1, h2, h3 = st.columns(3)
-    h1.metric("Overall meetings", h2h["meetings"])
-    h2.metric(f"{player_a} H2H wins", h2h["wins_a"])
-    h3.metric(f"{player_b} H2H wins", h2h["wins_b"])
-
-    s1, s2, s3 = st.columns(3)
-    s1.metric(f"Meetings on {current_surface}", h2h["surface_meetings"])
-    s2.metric(f"{player_a} {current_surface} wins", h2h["surface_wins_a"])
-    s3.metric(f"{player_b} {current_surface} wins", h2h["surface_wins_b"])
+    meetings = int(h2h.get("meetings", 0) or 0)
+    wins_a = int(h2h.get("wins_a", 0) or 0)
+    wins_b = int(h2h.get("wins_b", 0) or 0)
+    if meetings < 3 or wins_a == wins_b:
+        h2h_take = "The available head-to-head does not create a meaningful matchup edge."
+    else:
+        leader = player_a if wins_a > wins_b else player_b
+        h2h_take = f"{leader} owns the better available head-to-head record, but Macabets treats it as supporting context rather than a primary signal."
+    st.info(h2h_take)
 
     last = h2h["last_meeting"]
     score_text = f" Score: {last['score']}." if last.get("score") else ""
     st.caption(
         f"Last meeting: {last['winner']} won on {last['date']} at {last['event']}.{score_text}"
     )
+
+    with st.expander("Show head-to-head record", expanded=False):
+        h1, h2, h3 = st.columns(3)
+        h1.metric("Overall meetings", h2h["meetings"])
+        h2.metric(f"{player_a} H2H wins", h2h["wins_a"])
+        h3.metric(f"{player_b} H2H wins", h2h["wins_b"])
+
+        s1, s2, s3 = st.columns(3)
+        s1.metric(f"Meetings on {current_surface}", h2h["surface_meetings"])
+        s2.metric(f"{player_a} {current_surface} wins", h2h["surface_wins_a"])
+        s3.metric(f"{player_b} {current_surface} wins", h2h["surface_wins_b"])
 
 
 def build_matchup_analysis(result, selected_player=None):
@@ -3592,39 +3603,41 @@ with tabs[1]:
                     match_intelligence = result.get("match_intelligence", {})
                     if match_intelligence:
                         st.markdown("#### Matchup Stability & Volatility")
-                        intel1, intel2, intel3 = st.columns(3)
-                        intel1.metric(
-                            "Matchup Stability",
-                            f"{match_intelligence.get('stability_score', 0)}/100",
-                            match_intelligence.get("stability_band", "—"),
-                        )
-                        intel2.metric(
-                            "Volatility",
-                            f"{match_intelligence.get('volatility_score', 0)}/100",
-                            match_intelligence.get("volatility_band", "—"),
-                        )
-                        intel3.metric(
-                            "Factor Consensus",
-                            f"{match_intelligence.get('factor_consensus', 0):.0%}",
-                            f"{match_intelligence.get('supporting_factors', 0)} support / "
-                            f"{match_intelligence.get('opposing_factors', 0)} oppose",
-                        )
-                        st.caption(
-                            "Stability measures how repeatable the projected edge appears. Volatility measures "
-                            "how easily tiebreaks, close-set variance, health, fatigue or conflicting matchup "
-                            "signals could disrupt the prediction. Neither score considers the sportsbook price."
+                        stability_band = str(match_intelligence.get("stability_band", "—"))
+                        volatility_band = str(match_intelligence.get("volatility_band", "—"))
+                        st.info(
+                            f"Matchup stability: **{stability_band}** · Volatility: **{volatility_band}**. "
+                            "Macabets uses the underlying scores internally; the bands are the decision-useful takeaway."
                         )
 
-                        st.markdown("**Primary volatility drivers**")
-                        for driver in match_intelligence.get("drivers", []):
-                            st.markdown(f"- {driver.capitalize()}")
+                        drivers = match_intelligence.get("drivers", []) or []
+                        if drivers:
+                            st.markdown("**Primary volatility drivers**")
+                            for driver in drivers:
+                                st.markdown(f"- {driver.capitalize()}")
 
                         st.markdown(f"#### Upset Paths for {match_intelligence.get('underdog', 'the underdog')}")
                         for path in match_intelligence.get("upset_paths", []):
                             st.markdown(f"- {path}")
 
+                        with st.expander("Audit stability and volatility scores", expanded=False):
+                            intel1, intel2, intel3 = st.columns(3)
+                            intel1.metric("Matchup Stability", f"{match_intelligence.get('stability_score', 0)}/100")
+                            intel2.metric("Volatility", f"{match_intelligence.get('volatility_score', 0)}/100")
+                            intel3.metric(
+                                "Factor Consensus",
+                                f"{match_intelligence.get('factor_consensus', 0):.0%}",
+                                f"{match_intelligence.get('supporting_factors', 0)} support / "
+                                f"{match_intelligence.get('opposing_factors', 0)} oppose",
+                            )
+                            st.caption(
+                                "Stability measures how repeatable the projected edge appears. Volatility measures "
+                                "how easily tiebreaks, close-set variance, health, fatigue or conflicting matchup "
+                                "signals could disrupt the prediction. Neither score considers the sportsbook price."
+                            )
+
                     st.markdown("#### Objective Match Price")
-                    m1, m2, m3, m4 = st.columns(4)
+                    m1, m2, m3 = st.columns(3)
                     m1.metric(
                         f"{analyzed_a} probability",
                         f"{model_probability:.1%}",
@@ -3635,14 +3648,11 @@ with tabs[1]:
                         f"{probability_b:.1%}",
                         f"Fair {format_american(fair_odds_b)}",
                     )
-                    m3.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
-                    m4.metric(
+                    m3.metric(
                         "Analysis Confidence",
                         f"{analysis_confidence['overall']}/100",
                         analysis_confidence["band"],
                     )
-
-                    st.markdown("#### Macabets vs. Market")
 
                     comparison = pd.DataFrame(
                         {
@@ -3651,11 +3661,9 @@ with tabs[1]:
                             "Macabets": [f"{model_probability:.1%}", f"{probability_b:.1%}"],
                         }
                     )
-                    st.dataframe(
-                        comparison,
-                        use_container_width=True,
-                        hide_index=True,
-                    )
+                    with st.expander("Audit Macabets vs. market probabilities", expanded=False):
+                        st.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
+                        st.dataframe(comparison, use_container_width=True, hide_index=True)
 
                     if abs(no_vig_edge) < 0.03:
                         st.info(
@@ -3832,61 +3840,69 @@ with tabs[1]:
                         and max(parsed_scores[raw_score]) >= 2
                     )
 
-                    st.markdown("#### Outcome Simulation")
-                    win_col_a, win_col_b = st.columns(2)
-                    win_col_a.metric(f"{analyzed_a} wins", f"{model_probability:.1%}")
-                    win_col_b.metric(f"{analyzed_b} wins", f"{probability_b:.1%}")
+                    st.markdown("#### Outcome Shape")
+                    if straight_sets_a > straight_sets_b and straight_sets_a >= deciding_set_probability:
+                        shape_take = f"The most likely clean match shape is {analyzed_a} winning in straight sets."
+                    elif straight_sets_b > straight_sets_a and straight_sets_b >= deciding_set_probability:
+                        shape_take = f"The most likely clean match shape is {analyzed_b} winning in straight sets."
+                    else:
+                        shape_take = "Macabets sees a meaningful path to a deciding set; the match shape is less clean than the headline winner probability."
+                    st.info(shape_take)
+                    with st.expander("Show simulation probabilities and exact set scores", expanded=False):
+                        win_col_a, win_col_b = st.columns(2)
+                        win_col_a.metric(f"{analyzed_a} wins", f"{model_probability:.1%}")
+                        win_col_b.metric(f"{analyzed_b} wins", f"{probability_b:.1%}")
 
-                    s1, s2, s3 = st.columns(3)
-                    s1.metric(f"{analyzed_a} straight sets", f"{straight_sets_a:.1%}")
-                    s2.metric(f"{analyzed_b} straight sets", f"{straight_sets_b:.1%}")
-                    s3.metric("Deciding set", f"{deciding_set_probability:.1%}")
+                        s1, s2, s3 = st.columns(3)
+                        s1.metric(f"{analyzed_a} straight sets", f"{straight_sets_a:.1%}")
+                        s2.metric(f"{analyzed_b} straight sets", f"{straight_sets_b:.1%}")
+                        s3.metric("Deciding set", f"{deciding_set_probability:.1%}")
 
-                    st.markdown("#### Exact Set Score")
-                    set_score_results = []
-                    for raw_score, probability in synchronized_set_scores.items():
-                        try:
-                            a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
-                        except (TypeError, ValueError):
-                            # Defensive fallback in case the simulation format changes later.
+                        st.markdown("#### Exact Set Score")
+                        set_score_results = []
+                        for raw_score, probability in synchronized_set_scores.items():
+                            try:
+                                a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
+                            except (TypeError, ValueError):
+                                # Defensive fallback in case the simulation format changes later.
+                                set_score_results.append({
+                                    "label": str(raw_score),
+                                    "probability": probability,
+                                    "winner_order": 2,
+                                    "loser_sets": 99,
+                                })
+                                continue
+
+                            if a_sets > b_sets:
+                                winner = analyzed_a
+                                winner_sets, loser_sets = a_sets, b_sets
+                                winner_order = 0
+                            else:
+                                winner = analyzed_b
+                                winner_sets, loser_sets = b_sets, a_sets
+                                winner_order = 1
+
                             set_score_results.append({
-                                "label": str(raw_score),
+                                "label": f"{winner} wins {winner_sets}-{loser_sets}",
                                 "probability": probability,
-                                "winner_order": 2,
-                                "loser_sets": 99,
+                                "winner_order": winner_order,
+                                "loser_sets": loser_sets,
                             })
-                            continue
 
-                        if a_sets > b_sets:
-                            winner = analyzed_a
-                            winner_sets, loser_sets = a_sets, b_sets
-                            winner_order = 0
-                        else:
-                            winner = analyzed_b
-                            winner_sets, loser_sets = b_sets, a_sets
-                            winner_order = 1
+                        # Keep each player's possible wins together and show the most decisive score first.
+                        set_score_results.sort(
+                            key=lambda item: (item["winner_order"], item["loser_sets"])
+                        )
 
-                        set_score_results.append({
-                            "label": f"{winner} wins {winner_sets}-{loser_sets}",
-                            "probability": probability,
-                            "winner_order": winner_order,
-                            "loser_sets": loser_sets,
-                        })
-
-                    # Keep each player's possible wins together and show the most decisive score first.
-                    set_score_results.sort(
-                        key=lambda item: (item["winner_order"], item["loser_sets"])
-                    )
-
-                    cards_per_row = 4 if len(set_score_results) <= 4 else 3
-                    for row_start in range(0, len(set_score_results), cards_per_row):
-                        row_results = set_score_results[row_start:row_start + cards_per_row]
-                        score_columns = st.columns(len(row_results))
-                        for column, score_result in zip(score_columns, row_results):
-                            column.metric(
-                                score_result["label"],
-                                f"{score_result['probability']:.1%}",
-                            )
+                        cards_per_row = 4 if len(set_score_results) <= 4 else 3
+                        for row_start in range(0, len(set_score_results), cards_per_row):
+                            row_results = set_score_results[row_start:row_start + cards_per_row]
+                            score_columns = st.columns(len(row_results))
+                            for column, score_result in zip(score_columns, row_results):
+                                column.metric(
+                                    score_result["label"],
+                                    f"{score_result['probability']:.1%}",
+                                )
 
                     st.markdown("#### Pre-Match Decision Record")
                     d1, d2 = st.columns(2)
@@ -4614,15 +4630,20 @@ with tabs[1]:
                     st.markdown("### Unified NFL Matchup Intelligence")
                     st.caption(matchup_intelligence.get("data_note", ""))
 
-                    mi1, mi2, mi3, mi4, mi5 = st.columns(5)
+                    mi1, mi2 = st.columns(2)
                     mi1.metric("Overall Football Edge", str(matchup_intelligence.get("overall_leader", "Even")))
-                    edge_points = float(matchup_intelligence.get("football_edge_points", 0.0) or 0.0)
-                    mi2.metric("Edge Strength", f"{matchup_intelligence.get('overall_strength', 'Toss-up')} · {edge_points:.1f} pts")
-                    mi3.metric("Matchup Adjustment", f"{float(matchup_intelligence.get('matchup_adjustment_home', 0.0) or 0.0):+.2f} pts home")
-                    mi4.metric("Trait / Style Adj.", f"{float(matchup_intelligence.get('style_adjustment_home', 0.0) or 0.0):+.2f} pts home")
-                    mi5.metric("Data Mode", str(matchup_intelligence.get("data_mode", "Baseline")))
-
+                    mi2.metric("Edge Strength", str(matchup_intelligence.get("overall_strength", "Toss-up")))
                     st.info(matchup_intelligence.get("summary", ""))
+
+                    # Keep intermediate scoring and adjustment values available for audit,
+                    # but do not make them compete with the football conclusion in the default UI.
+                    with st.expander("Show matchup model details", expanded=False):
+                        edge_points = float(matchup_intelligence.get("football_edge_points", 0.0) or 0.0)
+                        md1, md2, md3 = st.columns(3)
+                        md1.metric("Weighted Edge", f"{edge_points:.1f} pts")
+                        md2.metric("Matchup Adjustment", f"{float(matchup_intelligence.get('matchup_adjustment_home', 0.0) or 0.0):+.2f} pts home")
+                        md3.metric("Trait / Style Adjustment", f"{float(matchup_intelligence.get('style_adjustment_home', 0.0) or 0.0):+.2f} pts home")
+                        st.caption(f"Data mode: {matchup_intelligence.get('data_mode', 'Baseline')}")
 
                     # Build the style rows first so the main Unified table can reliably
                     # exclude them by exact matchup name. Do not depend on Source text: older
@@ -4649,12 +4670,13 @@ with tabs[1]:
 
                         if not core_rows.empty:
                             visible_cols = [c for c in ["Category", "Advantage", "Strength"] if c in core_rows.columns]
-                            st.dataframe(core_rows[visible_cols], use_container_width=True, hide_index=True)
+                            with st.expander("Show core matchup breakdown", expanded=False):
+                                st.dataframe(core_rows[visible_cols], use_container_width=True, hide_index=True)
 
                     if not style_rows.empty:
                         st.markdown("#### Player-Style & Line-of-Scrimmage Matchups")
                         st.caption(
-                            "These are starter-level Madden 27 compatibility checks. They refine the existing personnel matchup rather than re-awarding raw talent, and their combined spread influence is hard-capped."
+                            "Macabets checks how the actual starters' styles fit this opponent. The conclusion stays visible; the trait-by-trait detail is optional."
                         )
                         style_display = style_rows.rename(columns={"Matchup": "Category", "Edge": "Trait Gap"})
                         style_cols = [c for c in ["Category", "Advantage", "Strength", "Trait Gap", "Why"] if c in style_display.columns]
@@ -4676,14 +4698,14 @@ with tabs[1]:
                                 axis=1,
                             )
 
-                        # Use a custom HTML table here so the Why explanation wraps onto
-                        # multiple lines and can take most of the available width. The raw
-                        # calculations are unchanged; this only improves presentation.
-                        _render_nfl_style_matchup_table(
-                            style_table,
-                            nfl_result.get("away_team"),
-                            nfl_result.get("home_team"),
-                        )
+                        # Keep the detailed starter-by-starter trait table available, but
+                        # make the overall football conclusion the default experience.
+                        with st.expander("Show player-style matchup details", expanded=False):
+                            _render_nfl_style_matchup_table(
+                                style_table,
+                                nfl_result.get("away_team"),
+                                nfl_result.get("home_team"),
+                            )
 
                         # One overall conclusion after all eight style/LOS matchups are
                         # weighted together. This summarizes the existing style signal only;
@@ -4702,7 +4724,8 @@ with tabs[1]:
                                 st.write(overall_style_why)
                             if overall_style_edge not in (None, ""):
                                 try:
-                                    st.caption(f"Combined weighted matchup gap: {float(overall_style_edge):.2f}. This is a summary of the existing style signal, not an additional model adjustment.")
+                                    with st.expander("Audit player-style scoring", expanded=False):
+                                        st.caption(f"Combined weighted matchup gap: {float(overall_style_edge):.2f}. This is a summary of the existing style signal, not an additional model adjustment.")
                                 except (TypeError, ValueError):
                                     pass
 
@@ -4729,8 +4752,7 @@ with tabs[1]:
                         away_scheme = scheme_context.get("away") or {}
                         home_scheme = scheme_context.get("home") or {}
                         st.caption(
-                            f"Data mode: {scheme_context.get('data_mode', 'available')} · "
-                            "Behavioral tendencies are a small compatibility layer, not a second copy of team strength."
+                            "Scheme tendencies help explain how each team is likely to attack this matchup. Detailed rates and source information are available below."
                         )
 
                         def _scheme_pct(value):
@@ -4767,37 +4789,45 @@ with tabs[1]:
                             (str(nfl_result.get("away_team", "Away")), away_scheme),
                             (str(nfl_result.get("home_team", "Home")), home_scheme),
                         ]
-                        profile_cols = st.columns(2)
-                        for idx, (team_name, profile) in enumerate(team_profiles):
-                            with profile_cols[idx]:
-                                st.markdown(f"##### {team_name}")
-                                a, b, c = st.columns(3)
-                                a.metric("Identity", _scheme_identity(profile))
-                                b.metric("Early-Down Pass", _scheme_pct(profile.get("early_down_pass_rate")))
-                                c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
 
-                                tendency_rows = [
-                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
-                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
-                                    {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
-                                    {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
-                                    {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
-                                    {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
-                                    {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
-                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
-                                    {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
-                                    {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
-                                ]
-                                with st.expander("Show detailed scheme tendencies", expanded=False):
+                        # Scheme rates inform the model, but the default screen should answer
+                        # what the matchup means. Keep the raw tendencies in a single audit view.
+                        identity_text = " · ".join(
+                            f"{team_name}: {_scheme_identity(profile)}"
+                            for team_name, profile in team_profiles
+                        )
+                        st.caption(f"Offensive identity: {identity_text}")
+                        with st.expander("Show team tendency profiles", expanded=False):
+                            profile_cols = st.columns(2)
+                            for idx, (team_name, profile) in enumerate(team_profiles):
+                                with profile_cols[idx]:
+                                    st.markdown(f"##### {team_name}")
+                                    a, b, c = st.columns(3)
+                                    a.metric("Identity", _scheme_identity(profile))
+                                    b.metric("Early-Down Pass", _scheme_pct(profile.get("early_down_pass_rate")))
+                                    c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
+
+                                    tendency_rows = [
+                                        {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
+                                        {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
+                                        {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
+                                        {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
+                                        {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
+                                        {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
+                                        {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
+                                        {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
+                                        {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
+                                        {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
+                                        {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
+                                        {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
+                                        {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
+                                        {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
+                                    ]
                                     st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
-                                season_label = profile.get("season") or "—"
-                                week_label = profile.get("through_week") or "—"
-                                updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
-                                st.caption(f"Season {season_label} · Through week {week_label} · Updated {updated_label}")
+                                    season_label = profile.get("season") or "—"
+                                    week_label = profile.get("through_week") or "—"
+                                    updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
+                                    st.caption(f"Season {season_label} · Through week {week_label} · Updated {updated_label}")
 
                         st.markdown("##### Overall Scheme Matchup Conclusion")
                         sc1, sc2, sc3 = st.columns(3)
@@ -4861,31 +4891,32 @@ with tabs[1]:
                             (str(nfl_result.get("away_team", "Away")), los_context.get("away") or {}),
                             (str(nfl_result.get("home_team", "Home")), los_context.get("home") or {}),
                         ]
-                        los_cols = st.columns(2)
-                        for idx, (team_name, profile) in enumerate(los_profiles):
-                            with los_cols[idx]:
-                                st.markdown(f"##### {team_name}")
-                                x1, x2, x3, x4 = st.columns(4)
-                                x1.metric("Pass Protection", _los_num(profile.get("pass_protection_grade"), 1))
-                                x2.metric("Pass Rush", _los_num(profile.get("pass_rush_grade"), 1))
-                                x3.metric("Run Blocking", _los_num(profile.get("run_block_grade"), 1))
-                                x4.metric("Run Front", _los_num(profile.get("run_front_grade"), 1))
-                                rows = [
-                                    {"Area": "Pass protection", "Metric": "Sack rate allowed", "Rate": _los_pct(profile.get("sack_rate_allowed"))},
-                                    {"Area": "Pass protection", "Metric": "QB-hit rate allowed", "Rate": _los_pct(profile.get("qb_hit_rate_allowed"))},
-                                    {"Area": "Pass protection", "Metric": "Disruption allowed", "Rate": _los_pct(profile.get("disruption_rate_allowed"))},
-                                    {"Area": "QB response", "Metric": "EPA/dropback when disrupted", "Rate": _los_num(profile.get("qb_epa_when_disrupted"), 3)},
-                                    {"Area": "Pass rush", "Metric": "Sack rate generated", "Rate": _los_pct(profile.get("sack_rate_generated"))},
-                                    {"Area": "Pass rush", "Metric": "QB-hit rate generated", "Rate": _los_pct(profile.get("qb_hit_rate_generated"))},
-                                    {"Area": "Pass rush", "Metric": "Disruption generated", "Rate": _los_pct(profile.get("disruption_rate_generated"))},
-                                    {"Area": "Run blocking", "Metric": "Stuff rate allowed", "Rate": _los_pct(profile.get("run_stuff_rate_allowed"))},
-                                    {"Area": "Run blocking", "Metric": "Rush success rate", "Rate": _los_pct(profile.get("rush_success"))},
-                                    {"Area": "Run defense", "Metric": "Stuff rate forced", "Rate": _los_pct(profile.get("run_stuff_rate_forced"))},
-                                    {"Area": "Run defense", "Metric": "Rush success allowed", "Rate": _los_pct(profile.get("rush_success_allowed"))},
-                                ]
-                                with st.expander("Show detailed line-of-scrimmage rates", expanded=False):
+                        with st.expander("Show detailed LOS grades and rates", expanded=False):
+                            st.caption("Composite grades are league-relative 0–100 model inputs. Higher is better. Raw rates below show the underlying on-field evidence.")
+                            los_cols = st.columns(2)
+                            for idx, (team_name, profile) in enumerate(los_profiles):
+                                with los_cols[idx]:
+                                    st.markdown(f"##### {team_name}")
+                                    x1, x2, x3, x4 = st.columns(4)
+                                    x1.metric("Pass Protection", _los_num(profile.get("pass_protection_grade"), 1))
+                                    x2.metric("Pass Rush", _los_num(profile.get("pass_rush_grade"), 1))
+                                    x3.metric("Run Blocking", _los_num(profile.get("run_block_grade"), 1))
+                                    x4.metric("Run Front", _los_num(profile.get("run_front_grade"), 1))
+                                    rows = [
+                                        {"Area": "Pass protection", "Metric": "Sack rate allowed", "Rate": _los_pct(profile.get("sack_rate_allowed"))},
+                                        {"Area": "Pass protection", "Metric": "QB-hit rate allowed", "Rate": _los_pct(profile.get("qb_hit_rate_allowed"))},
+                                        {"Area": "Pass protection", "Metric": "Disruption allowed", "Rate": _los_pct(profile.get("disruption_rate_allowed"))},
+                                        {"Area": "QB response", "Metric": "EPA/dropback when disrupted", "Rate": _los_num(profile.get("qb_epa_when_disrupted"), 3)},
+                                        {"Area": "Pass rush", "Metric": "Sack rate generated", "Rate": _los_pct(profile.get("sack_rate_generated"))},
+                                        {"Area": "Pass rush", "Metric": "QB-hit rate generated", "Rate": _los_pct(profile.get("qb_hit_rate_generated"))},
+                                        {"Area": "Pass rush", "Metric": "Disruption generated", "Rate": _los_pct(profile.get("disruption_rate_generated"))},
+                                        {"Area": "Run blocking", "Metric": "Stuff rate allowed", "Rate": _los_pct(profile.get("run_stuff_rate_allowed"))},
+                                        {"Area": "Run blocking", "Metric": "Rush success rate", "Rate": _los_pct(profile.get("rush_success"))},
+                                        {"Area": "Run defense", "Metric": "Stuff rate forced", "Rate": _los_pct(profile.get("run_stuff_rate_forced"))},
+                                        {"Area": "Run defense", "Metric": "Rush success allowed", "Rate": _los_pct(profile.get("rush_success_allowed"))},
+                                    ]
                                     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-                                st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
+                                    st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
 
                         st.markdown("##### Overall Real-Performance LOS Conclusion")
                         lc1, lc2, lc3 = st.columns(3)
@@ -4920,7 +4951,12 @@ with tabs[1]:
                             with driver_cols[idx]:
                                 st.markdown(f"**{driver.get('leader', 'Even')}**")
                                 st.write(driver.get("factor", "Matchup factor"))
-                                st.caption(f"Raw gap: {float(driver.get('raw_gap', 0.0)):.1f}")
+                        with st.expander("Audit driver scoring", expanded=False):
+                            for driver in drivers[:3]:
+                                st.caption(
+                                    f"{driver.get('factor', 'Matchup factor')}: raw gap "
+                                    f"{float(driver.get('raw_gap', 0.0)):.1f}"
+                                )
 
                     with st.expander("Show unified matchup grades and sources", expanded=False):
                         if not unified_rows.empty:
