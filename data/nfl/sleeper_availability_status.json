@@ -1,11 +1,11 @@
 {
-  "definitively_unavailable": 18,
+  "definitively_unavailable": 17,
   "file": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/sleeper_availability.csv",
   "players": 3220,
   "schema_version": "1.0",
   "source": "Sleeper",
   "source_url": "https://api.sleeper.app/v1/players/nfl",
   "teams": 33,
-  "uncertain": 210,
-  "updated_at_utc": "2026-08-13T21:34:44+00:00"
+  "uncertain": 219,
+  "updated_at_utc": "2026-08-14T12:31:44+00:00"
 }
