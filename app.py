@@ -5006,6 +5006,50 @@ with tabs[1]:
                             st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
                             st.caption(situational_context.get("guardrail", ""))
 
+                    opponent_context = nfl_result.get("opponent_adjusted_context") or {}
+                    st.markdown("#### Opponent-Adjusted Performance")
+                    if not opponent_context.get("available"):
+                        st.warning(opponent_context.get("summary", "Opponent-adjusted NFL performance data is not available yet."))
+                    else:
+                        opp_adv = str(opponent_context.get("overall_advantage", "Even"))
+                        opp_strength = str(opponent_context.get("overall_strength", "Even"))
+                        opp_adj = float(opponent_context.get("home_margin_adjustment", 0.0) or 0.0)
+                        if abs(opp_adj) < 0.005:
+                            opp_adj_label = "0.00 pts"
+                        else:
+                            opp_adj_team = nfl_result.get("home_team") if opp_adj > 0 else nfl_result.get("away_team")
+                            opp_adj_label = f"{abs(opp_adj):.2f} pts toward {opp_adj_team}"
+                        oc1, oc2, oc3 = st.columns(3)
+                        oc1.metric("Opponent-Adjusted Edge", opp_adv)
+                        oc2.metric("Strength", opp_strength)
+                        oc3.metric("Projection Impact", opp_adj_label)
+                        st.info(opponent_context.get("summary", ""))
+
+                        with st.expander("Audit opponent-adjustment data", expanded=False):
+                            st.caption("Macabets compares the quality of offenses and defenses already faced. Future schedule difficulty never receives betting credit.")
+                            profiles = [
+                                (str(nfl_result.get("away_team", "Away")), opponent_context.get("away") or {}),
+                                (str(nfl_result.get("home_team", "Home")), opponent_context.get("home") or {}),
+                            ]
+                            for team_name, profile in profiles:
+                                st.markdown(f"**{team_name}**")
+                                try:
+                                    oq = float(profile.get("opponent_quality_epa"))
+                                    raw = float(profile.get("raw_net_epa"))
+                                    adj_net = float(profile.get("opponent_adjusted_net_epa"))
+                                    st.caption(f"Opponent-quality EPA: {oq:+.3f} · Raw net EPA/play: {raw:+.3f} · Opponent-adjusted net EPA/play: {adj_net:+.3f}")
+                                except (TypeError, ValueError):
+                                    st.caption("Detailed opponent-quality values unavailable.")
+                                st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
+                            ew = opponent_context.get("evidence_weight")
+                            if ew is not None:
+                                try:
+                                    st.caption(f"Evidence weight: {float(ew):.0%}")
+                                except (TypeError, ValueError):
+                                    pass
+                            st.caption(f"Source: {opponent_context.get('source', 'nflverse regular-season play-by-play')}")
+                            st.caption(opponent_context.get("guardrail", ""))
+
                     drivers = matchup_intelligence.get("top_drivers", []) or []
                     if drivers:
                         st.markdown("**Most important matchup drivers**")
