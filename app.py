@@ -4028,7 +4028,7 @@ with tabs[1]:
                     "\n**Quarterback:** team passing EPA/dropback, passing success rate and CPOE.  "
                     "\n**Strength of schedule:** average opponent net EPA faced.  "
                     "\n**Special teams:** special-teams EPA.  "
-                    "\n**Coaching:** remains a transparent manual prior until a defensible coaching model is added."
+                    "\n**Coaching:** 2026 head-coach prior from the sourced league-wide coaching file; experience and available 2025 head-coach record are used conservatively, with new coaches held near neutral until current-season evidence develops."
                 )
 
         if NFL_QUALITY_RATINGS:
