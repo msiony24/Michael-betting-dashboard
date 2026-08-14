@@ -218,6 +218,7 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     plays["_rush"] = rush_flag.astype(float)
     plays["_sack"] = _numeric(plays, "sack", 0.0)
     plays["_qb_hit"] = _numeric(plays, "qb_hit", 0.0)
+    plays["_disrupted"] = pd.concat([plays["_sack"], plays["_qb_hit"]], axis=1).max(axis=1).clip(0, 1)
 
     offense = plays.groupby("posteam", as_index=False).agg(
         plays=("epa", "size"),
@@ -240,6 +241,14 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
         qb_success_rate=("_success", "mean"),
         offense_sack_rate=("_sack", "mean"),
         offense_qb_hit_rate=("_qb_hit", "mean"),
+        offense_disruption_rate=("_disrupted", "mean"),
+    ).rename(columns={"posteam": "team_abbr"})
+    disrupted = pass_plays[pass_plays["_disrupted"].gt(0)].groupby("posteam", as_index=False).agg(
+        qb_epa_when_disrupted=("epa", "mean"),
+        qb_success_when_disrupted=("_success", "mean"),
+    ).rename(columns={"posteam": "team_abbr"})
+    clean = pass_plays[pass_plays["_disrupted"].eq(0)].groupby("posteam", as_index=False).agg(
+        qb_epa_when_clean=("epa", "mean"),
     ).rename(columns={"posteam": "team_abbr"})
     qb["qb_cpoe"] = (
         pass_plays.groupby("posteam")["cpoe"].mean().reindex(qb["team_abbr"]).to_numpy()
@@ -247,15 +256,16 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     )
 
     rush_plays = plays[rush_flag].copy()
+    rush_plays["_stuffed"] = _numeric(rush_plays, "yards_gained", 0.0).le(0).astype(float)
     rush_offense = rush_plays.groupby("posteam", as_index=False).agg(
-        rush_epa=("epa", "mean"), rush_success=("_success", "mean")
+        rush_epa=("epa", "mean"), rush_success=("_success", "mean"), offense_run_stuff_rate=("_stuffed", "mean")
     ).rename(columns={"posteam": "team_abbr"})
 
-    front = plays.groupby("defteam", as_index=False).agg(
-        defense_sack_rate=("_sack", "mean"), defense_qb_hit_rate=("_qb_hit", "mean")
+    front = pass_plays.groupby("defteam", as_index=False).agg(
+        defense_sack_rate=("_sack", "mean"), defense_qb_hit_rate=("_qb_hit", "mean"), defense_disruption_rate=("_disrupted", "mean")
     ).rename(columns={"defteam": "team_abbr"})
     rush_defense = rush_plays.groupby("defteam", as_index=False).agg(
-        rush_epa_allowed=("epa", "mean"), rush_success_allowed=("_success", "mean")
+        rush_epa_allowed=("epa", "mean"), rush_success_allowed=("_success", "mean"), defense_run_stuff_rate=("_stuffed", "mean")
     ).rename(columns={"defteam": "team_abbr"})
     pass_defense = pass_plays.groupby("defteam", as_index=False).agg(
         pass_epa_allowed=("epa", "mean"),
@@ -273,7 +283,7 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
         special = pd.DataFrame(columns=["team_abbr", "special_teams_epa"])
 
     stats = offense.merge(defense, on="team_abbr", how="outer")
-    for table in (qb, rush_offense, front, rush_defense, pass_defense, special):
+    for table in (qb, disrupted, clean, rush_offense, front, rush_defense, pass_defense, special):
         stats = stats.merge(table, on="team_abbr", how="left")
 
     net = stats.set_index("team_abbr")["offense_epa_per_play"].sub(
