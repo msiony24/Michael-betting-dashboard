@@ -273,6 +273,98 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
         pass_explosive_allowed=("_explosive", "mean"),
     ).rename(columns={"defteam": "team_abbr"})
 
+    # High-leverage / situational splits. These are kept as raw rates in the
+    # team snapshot and receive only a tightly capped matchup adjustment later.
+    # They are intentionally not folded into the core offense/defense ratings.
+    down = _numeric(plays, "down", 0.0)
+    third = plays[down.eq(3.0)].copy()
+    third["_converted"] = 0.0
+    if "third_down_converted" in third.columns:
+        third["_converted"] = _numeric(third, "third_down_converted", 0.0).clip(0, 1)
+    elif "first_down" in third.columns:
+        third["_converted"] = _numeric(third, "first_down", 0.0).clip(0, 1)
+    third_offense = (
+        third.groupby("posteam", as_index=False)["_converted"].mean()
+        .rename(columns={"posteam": "team_abbr", "_converted": "third_down_conversion_rate"})
+        if not third.empty else pd.DataFrame(columns=["team_abbr", "third_down_conversion_rate"])
+    )
+    third_defense = (
+        third.groupby("defteam", as_index=False)["_converted"].mean()
+        .rename(columns={"defteam": "team_abbr", "_converted": "third_down_conversion_allowed"})
+        if not third.empty else pd.DataFrame(columns=["team_abbr", "third_down_conversion_allowed"])
+    )
+
+    # Standard red-zone TD rate: percentage of drives that reach the opponent
+    # 20 and end in an offensive touchdown. Use the unfiltered regular-season
+    # play frame so scoring plays that are not tagged pass/run are not lost.
+    red_zone_offense = pd.DataFrame(columns=["team_abbr", "red_zone_td_rate"])
+    red_zone_defense = pd.DataFrame(columns=["team_abbr", "red_zone_td_rate_allowed"])
+    if {"game_id", "drive", "yardline_100", "posteam", "defteam"}.issubset(original.columns):
+        rz = original[_numeric(original, "yardline_100", 999.0).le(20.0)].copy()
+        if not rz.empty and "touchdown" in original.columns:
+            rz_keys = ["game_id", "drive", "posteam", "defteam"]
+            trips = rz[rz_keys].drop_duplicates()
+            touchdowns = original.copy()
+            if "td_team" in touchdowns.columns:
+                scored = _numeric(touchdowns, "touchdown", 0.0).clip(0, 1)
+                touchdowns["_touchdown"] = (
+                    scored.gt(0)
+                    & touchdowns["td_team"].astype(str).eq(touchdowns["posteam"].astype(str))
+                ).astype(float)
+            elif {"pass_touchdown", "rush_touchdown"}.intersection(touchdowns.columns):
+                touchdowns["_touchdown"] = pd.concat(
+                    [
+                        _numeric(touchdowns, "pass_touchdown", 0.0),
+                        _numeric(touchdowns, "rush_touchdown", 0.0),
+                    ],
+                    axis=1,
+                ).max(axis=1).clip(0, 1)
+            else:
+                touchdowns["_touchdown"] = _numeric(touchdowns, "touchdown", 0.0).clip(0, 1)
+            drive_results = (
+                touchdowns.groupby(rz_keys, as_index=False)["_touchdown"].max()
+                .merge(trips, on=rz_keys, how="inner")
+            )
+            if not drive_results.empty:
+                red_zone_offense = (
+                    drive_results.groupby("posteam", as_index=False)["_touchdown"].mean()
+                    .rename(columns={"posteam": "team_abbr", "_touchdown": "red_zone_td_rate"})
+                )
+                red_zone_defense = (
+                    drive_results.groupby("defteam", as_index=False)["_touchdown"].mean()
+                    .rename(columns={"defteam": "team_abbr", "_touchdown": "red_zone_td_rate_allowed"})
+                )
+
+    # Close-game execution: fourth-quarter offensive EPA while the score is
+    # within eight points. This avoids treating garbage-time production as
+    # high leverage. If the score-differential field is absent, leave it NA.
+    leverage = pd.DataFrame()
+    if "qtr" in plays.columns:
+        qtr = _numeric(plays, "qtr", 0.0)
+        score_diff = None
+        if "score_differential" in plays.columns:
+            score_diff = pd.to_numeric(plays["score_differential"], errors="coerce")
+        elif {"posteam_score", "defteam_score"}.issubset(plays.columns):
+            score_diff = _numeric(plays, "posteam_score", 0.0) - _numeric(plays, "defteam_score", 0.0)
+        if score_diff is not None:
+            mask = qtr.eq(4.0) & score_diff.abs().le(8.0)
+            leverage = plays[mask].copy()
+    high_leverage_offense = (
+        leverage.groupby("posteam", as_index=False).agg(
+            high_leverage_epa=("epa", "mean"),
+            high_leverage_success=("_success", "mean"),
+            high_leverage_plays=("epa", "size"),
+        ).rename(columns={"posteam": "team_abbr"})
+        if not leverage.empty else pd.DataFrame(columns=["team_abbr", "high_leverage_epa", "high_leverage_success", "high_leverage_plays"])
+    )
+    high_leverage_defense = (
+        leverage.groupby("defteam", as_index=False).agg(
+            high_leverage_epa_allowed=("epa", "mean"),
+            high_leverage_success_allowed=("_success", "mean"),
+        ).rename(columns={"defteam": "team_abbr"})
+        if not leverage.empty else pd.DataFrame(columns=["team_abbr", "high_leverage_epa_allowed", "high_leverage_success_allowed"])
+    )
+
     if "special_teams_play" in original.columns:
         st_mask = pd.to_numeric(original["special_teams_play"], errors="coerce").fillna(0).astype(bool)
         st_plays = original[st_mask & original["posteam"].notna()].copy()
@@ -283,7 +375,11 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
         special = pd.DataFrame(columns=["team_abbr", "special_teams_epa"])
 
     stats = offense.merge(defense, on="team_abbr", how="outer")
-    for table in (qb, disrupted, clean, rush_offense, front, rush_defense, pass_defense, special):
+    for table in (
+        qb, disrupted, clean, rush_offense, front, rush_defense, pass_defense,
+        third_offense, third_defense, red_zone_offense, red_zone_defense,
+        high_leverage_offense, high_leverage_defense, special,
+    ):
         stats = stats.merge(table, on="team_abbr", how="left")
 
     net = stats.set_index("team_abbr")["offense_epa_per_play"].sub(

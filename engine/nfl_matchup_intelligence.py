@@ -288,6 +288,7 @@ def build_matchup_intelligence(
     game_quality_home_adjustment: float = 0.0,
     scheme_home_adjustment: float = 0.0,
     los_home_adjustment: float = 0.0,
+    situational_home_adjustment: float = 0.0,
     personnel_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     personnel = dict(personnel_context or {})
@@ -296,7 +297,15 @@ def build_matchup_intelligence(
     # One coherent football edge. Base power already contains team-level performance;
     # only the opponent-specific personnel mismatch adjustment is added on top.
     base_team_edge = float(home_power) - float(away_power)
-    context_edge = float(home_field_points) + float(weather_home_adjustment) + float(schedule_home_adjustment) + float(game_quality_home_adjustment) + float(scheme_home_adjustment) + float(los_home_adjustment)
+    context_edge = (
+        float(home_field_points)
+        + float(weather_home_adjustment)
+        + float(schedule_home_adjustment)
+        + float(game_quality_home_adjustment)
+        + float(scheme_home_adjustment)
+        + float(los_home_adjustment)
+        + float(situational_home_adjustment)
+    )
     football_home_edge = base_team_edge + context_edge + matchup_adjustment
 
     if abs(football_home_edge) < 0.5:
