@@ -23,6 +23,64 @@ DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "nfl"
 MANIFEST_NAME = "foundation_status.json"
 
 
+PERFORMANCE_REQUIRED_COLUMNS = {
+    # Core situational-execution fields added to the compact team snapshot.
+    "third_down_conversion_rate",
+    "third_down_conversion_allowed",
+    "red_zone_td_rate",
+    "red_zone_td_rate_allowed",
+    "high_leverage_epa",
+    "high_leverage_epa_allowed",
+    # Real-performance LOS fields that should travel with the same snapshot.
+    "qb_epa_when_disrupted",
+    "defense_disruption_rate",
+    "offense_run_stuff_rate",
+    "defense_run_stuff_rate",
+}
+
+
+def _performance_snapshot_has_current_schema(path: Path) -> tuple[bool, list[str]]:
+    if not path.exists():
+        return False, sorted(PERFORMANCE_REQUIRED_COLUMNS)
+    try:
+        columns = set(pd.read_csv(path, nrows=1).columns)
+    except Exception:
+        return False, sorted(PERFORMANCE_REQUIRED_COLUMNS)
+    missing = sorted(PERFORMANCE_REQUIRED_COLUMNS.difference(columns))
+    return not missing, missing
+
+
+def _ensure_current_performance_schema(performance: FetchResult, output_path: Path) -> FetchResult:
+    """Force one rebuild when an old cached team snapshot predates new metrics.
+
+    A network fallback is allowed to keep Macabets online, but a successful
+    refresh must not silently preserve an older CSV schema after new model
+    fields are introduced. This mirrors the scheme-snapshot schema guard.
+    """
+    current, missing = _performance_snapshot_has_current_schema(output_path)
+    if current:
+        return performance
+    print(
+        "NFL team snapshot: rebuilding stale schema; missing current columns: "
+        + ", ".join(missing)
+    )
+    try:
+        rebuilt = fetch_and_build(int(performance.season), output_path)
+    except Exception as exc:
+        print(
+            "NFL team snapshot: forced schema rebuild could not complete; "
+            f"keeping last-good snapshot for core analysis: {exc}"
+        )
+        return performance
+    current, missing = _performance_snapshot_has_current_schema(output_path)
+    if not current:
+        print(
+            "NFL team snapshot: rebuild completed but required columns are still missing: "
+            + ", ".join(missing)
+        )
+    return rebuilt
+
+
 @dataclass(frozen=True)
 class DatasetStatus:
     name: str
@@ -268,9 +326,11 @@ def refresh_nfl_foundation(
     root.mkdir(parents=True, exist_ok=True)
     updated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
+    team_snapshot_path = root / "team_snapshot.csv"
     performance = _fetch_performance_with_fallback(
-        int(requested_season), root / "team_snapshot.csv"
+        int(requested_season), team_snapshot_path
     )
+    performance = _ensure_current_performance_schema(performance, team_snapshot_path)
     scheme_path = root / "scheme_tendencies.csv"
     scheme_rows, scheme_error = _ensure_scheme_snapshot(
         source_season=int(performance.season),
