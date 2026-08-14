@@ -289,6 +289,7 @@ def build_matchup_intelligence(
     scheme_home_adjustment: float = 0.0,
     los_home_adjustment: float = 0.0,
     situational_home_adjustment: float = 0.0,
+    opponent_adjusted_home_adjustment: float = 0.0,
     personnel_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     personnel = dict(personnel_context or {})
@@ -305,6 +306,7 @@ def build_matchup_intelligence(
         + float(scheme_home_adjustment)
         + float(los_home_adjustment)
         + float(situational_home_adjustment)
+        + float(opponent_adjusted_home_adjustment)
     )
     football_home_edge = base_team_edge + context_edge + matchup_adjustment
 
@@ -439,7 +441,7 @@ def build_matchup_intelligence(
         "questions": questions,
         "summary": (
             f"{overall_leader if overall_leader != 'Even' else 'Neither team'} holds the {overall_strength.lower()} overall football edge "
-            f"after baseline team strength, opponent-specific personnel matchups, scheme compatibility, real line-of-scrimmage interaction and game context are combined without category-count scoring."
+            f"after baseline team strength, opponent-specific personnel matchups, scheme compatibility, real line-of-scrimmage interaction, opponent-adjusted performance and game context are combined without category-count scoring."
         ),
-        "guardrail": "Team-level performance enters base power once. Unit mismatches, starter-trait compatibility, scheme compatibility and real line-of-scrimmage interaction are opponent-specific refinements with hard caps; the same talent or performance signal is never re-awarded at full strength.",
+        "guardrail": "Team-level performance enters base power once. Unit mismatches, starter-trait compatibility, scheme compatibility, real line-of-scrimmage interaction and opponent-quality correction are small refinements with hard caps; the same talent or performance signal is never re-awarded at full strength.",
     }

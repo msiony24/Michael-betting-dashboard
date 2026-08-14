@@ -36,6 +36,11 @@ PERFORMANCE_REQUIRED_COLUMNS = {
     "defense_disruption_rate",
     "offense_run_stuff_rate",
     "defense_run_stuff_rate",
+    # Opponent-adjusted performance fields.
+    "sos_opponent_offense_epa",
+    "sos_opponent_defense_epa_allowed",
+    "opponent_quality_epa",
+    "opponent_adjusted_net_epa",
 }
 
 

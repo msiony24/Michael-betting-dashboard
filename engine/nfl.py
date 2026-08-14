@@ -19,6 +19,7 @@ from engine.nfl_matchup_intelligence import build_matchup_intelligence
 from engine.nfl_scheme_tendencies import build_scheme_matchup_context
 from engine.nfl_los_intelligence import build_los_matchup_context
 from engine.nfl_situational_intelligence import build_situational_matchup_context
+from engine.nfl_opponent_adjustment import build_opponent_adjusted_context
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -121,6 +122,7 @@ class NFLAnalysis:
     scheme_context: dict
     los_context: dict
     situational_context: dict
+    opponent_adjusted_context: dict
     matchup_intelligence: dict
 
 
@@ -201,6 +203,10 @@ def analyze(
         away_team=away_team, home_team=home_team, season=resolved_season, week=week,
     )
     situational_side_adjustment = float(situational_context.get("home_margin_adjustment", 0.0) or 0.0)
+    opponent_adjusted_context = build_opponent_adjusted_context(
+        away_team=away_team, home_team=home_team, season=resolved_season, week=week,
+    )
+    opponent_adjusted_side_adjustment = float(opponent_adjusted_context.get("home_margin_adjustment", 0.0) or 0.0)
     matchup_intelligence = build_matchup_intelligence(
         away_team=away_team,
         home_team=home_team,
@@ -215,6 +221,7 @@ def analyze(
         scheme_home_adjustment=scheme_side_adjustment,
         los_home_adjustment=los_side_adjustment,
         situational_home_adjustment=situational_side_adjustment,
+        opponent_adjusted_home_adjustment=opponent_adjusted_side_adjustment,
         personnel_context=personnel_context,
     )
     personnel_side_adjustment = float(matchup_intelligence.get("matchup_adjustment_home", 0.0) or 0.0)
@@ -352,6 +359,7 @@ def analyze(
         scheme_context=scheme_context,
         los_context=los_context,
         situational_context=situational_context,
+        opponent_adjusted_context=opponent_adjusted_context,
         matchup_intelligence=matchup_intelligence,
     )
     return asdict(result)

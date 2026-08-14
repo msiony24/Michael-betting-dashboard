@@ -115,11 +115,11 @@ def build_schedule_context(
     week: int | None = None,
     schedule_path: Path | str = SCHEDULE_PATH,
 ) -> dict:
-    """Return dynamic SOS and schedule context for a single matchup.
+    """Return schedule/rest context for a single matchup.
 
-    `team_power` should use the same current team-strength scale as the winner
-    model.  Completed-opponent SOS may nudge the fair margin; full/remaining
-    schedule difficulty is descriptive only.
+    Opponent-quality correction now lives in the dedicated opponent-adjusted
+    performance layer so schedule strength is not counted twice. Full/remaining
+    schedule difficulty here is descriptive only.
     """
     frame = _season_frame(_load_schedule(schedule_path), int(season))
     away_abbr, home_abbr = NAME_TO_ABBR.get(away_team), NAME_TO_ABBR.get(home_team)
@@ -162,28 +162,18 @@ def build_schedule_context(
             "full_schedule_vs_league": round((full_avg - league_mean), 3) if full_avg is not None else None,
         }
 
-    away_recent = team_profiles[away_team]["recent_played_avg_opponent_power"]
-    home_recent = team_profiles[home_team]["recent_played_avg_opponent_power"]
-    away_n = int(team_profiles[away_team]["recent_played_games"])
-    home_n = int(team_profiles[home_team]["recent_played_games"])
-
+    # Opponent quality is still displayed here for schedule context, but no
+    # scoreboard credit is applied in this module. The dedicated opponent-
+    # adjusted performance layer owns that correction to prevent double count.
     sos_adjustment = 0.0
-    if away_recent is not None and home_recent is not None and away_n and home_n:
-        sample = min(away_n, home_n, 5) / 5.0
-        # Reward demonstrated performance against stronger opposition only
-        # modestly.  Hard future schedules receive no probability bonus.
-        sos_adjustment = _clip((float(home_recent) - float(away_recent)) * 0.10 * sample, -0.60, 0.60)
 
     rest_adjustment, rest_note = _rest_adjustment(game_row)
     div_game = bool(int(game_row.get("div_game", 0) or 0)) if game_row is not None and pd.notna(game_row.get("div_game")) else False
     scheduled_neutral = str(game_row.get("location") or "").strip().lower() == "neutral" if game_row is not None else False
     confidence_penalty = 1.5 if div_game else 0.0
 
-    total_adjustment = _clip(sos_adjustment + rest_adjustment, -0.90, 0.90)
+    total_adjustment = _clip(rest_adjustment, -0.90, 0.90)
     notes = []
-    if abs(sos_adjustment) >= 0.05:
-        leader = home_team if sos_adjustment > 0 else away_team
-        notes.append(f"{leader} gets a small opponent-quality correction from the teams faced recently.")
     notes.append(rest_note)
     if div_game:
         notes.append("Division familiarity modestly reduces confidence; it does not automatically force a closer spread.")

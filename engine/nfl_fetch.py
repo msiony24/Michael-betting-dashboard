@@ -382,15 +382,48 @@ def build_team_snapshot(pbp: pd.DataFrame, season: int) -> pd.DataFrame:
     ):
         stats = stats.merge(table, on="team_abbr", how="left")
 
-    net = stats.set_index("team_abbr")["offense_epa_per_play"].sub(
-        stats.set_index("team_abbr")["defense_epa_allowed"]
-    )
+    # Opponent-quality baselines. Keep offense and defense separate so Macabets
+    # can distinguish a team that faced strong offenses from one that faced
+    # strong defenses. These are schedule-strength inputs, not new team grades.
+    indexed = stats.set_index("team_abbr")
+    offense_map = indexed["offense_epa_per_play"]
+    defense_map = indexed["defense_epa_allowed"]
+    net = offense_map.sub(defense_map)
+
     opp_rows = []
+    opp_offense_rows = []
+    opp_defense_rows = []
     for team, group in plays.groupby("posteam"):
         opp_rows.append((team, group["defteam"].map(net).mean()))
+        opp_defense_rows.append((team, group["defteam"].map(defense_map).mean()))
+    for team, group in plays.groupby("defteam"):
+        opp_offense_rows.append((team, group["posteam"].map(offense_map).mean()))
+
     stats = stats.merge(
         pd.DataFrame(opp_rows, columns=["team_abbr", "sos_opponent_net_epa"]),
         on="team_abbr", how="left",
+    )
+    stats = stats.merge(
+        pd.DataFrame(opp_offense_rows, columns=["team_abbr", "sos_opponent_offense_epa"]),
+        on="team_abbr", how="left",
+    )
+    stats = stats.merge(
+        pd.DataFrame(opp_defense_rows, columns=["team_abbr", "sos_opponent_defense_epa_allowed"]),
+        on="team_abbr", how="left",
+    )
+    # Higher opponent_quality_epa means the team faced a tougher combined slate:
+    # stronger offenses (higher EPA) and/or stronger defenses (lower EPA allowed).
+    stats["opponent_quality_epa"] = (
+        stats["sos_opponent_offense_epa"] - stats["sos_opponent_defense_epa_allowed"]
+    )
+    stats["opponent_adjusted_offense_epa"] = (
+        stats["offense_epa_per_play"] - stats["sos_opponent_defense_epa_allowed"]
+    )
+    stats["opponent_adjusted_defense_epa"] = (
+        stats["sos_opponent_offense_epa"] - stats["defense_epa_allowed"]
+    )
+    stats["opponent_adjusted_net_epa"] = (
+        stats["opponent_adjusted_offense_epa"] + stats["opponent_adjusted_defense_epa"]
     )
 
     stats["offense"] = _weighted_rating(pd.DataFrame({
