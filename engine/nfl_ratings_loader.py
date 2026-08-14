@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from engine.nfl_coaching import load_coaching_priors
 from engine.nfl_team_quality import (
     TeamQualityInputs,
     TeamQualityResult,
@@ -170,6 +171,7 @@ def merge_team_ratings(
     continuity, and manual injury/rookie adjustments remain controlled there.
     """
     merged: Dict[str, dict] = {}
+    coaching_priors = load_coaching_priors()
 
     for team_name, manual_team in manual_ratings.items():
         if not isinstance(manual_team, dict):
@@ -202,7 +204,19 @@ def merge_team_ratings(
                 madden_weight,
             )
 
-        combined["coaching"] = _number(manual_team.get("coaching"))
+        coach = coaching_priors.get(team_name, {})
+        if coach:
+            combined["coaching"] = _number(coach.get("rating"), 70.0)
+            combined["head_coach"] = str(coach.get("head_coach") or "")
+            combined["coaching_experience_years"] = _number(coach.get("experience_years"), 0.0)
+            combined["coaching_2025_record"] = str(coach.get("record_2025") or "--")
+            combined["coaching_status"] = str(coach.get("status") or "2026 coaching prior")
+            combined["coaching_source"] = str(coach.get("source_url") or "ESPN NFL Coaches")
+        else:
+            combined["coaching"] = 70.0
+            combined["head_coach"] = "Unknown"
+            combined["coaching_status"] = "Neutral fallback — current coach data unavailable"
+            combined["coaching_source"] = "Neutral fallback"
         combined["continuity"] = _number(manual_team.get("continuity"))
         # Automatic Sleeper availability is already reflected by starter replacement
         # inside the audited unit grades. Do not stack the legacy manual team-level

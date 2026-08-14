@@ -335,7 +335,7 @@ def build_matchup_intelligence(
     categories.append(_category_row(
         "Coaching", away_team, home_team,
         _num(away_components.get("coaching")), _num(home_components.get("coaching")),
-        "Macabets coaching prior"
+        "2026 sourced head-coach model"
     ))
     categories.append(_category_row(
         "Special Teams", away_team, home_team,
