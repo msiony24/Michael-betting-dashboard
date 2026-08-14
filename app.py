@@ -4943,6 +4943,69 @@ with tabs[1]:
                             st.caption(f"Source: {los_context.get('source', 'nflverse regular-season play-by-play')}")
                             st.caption(los_context.get("guardrail", ""))
 
+                    situational_context = nfl_result.get("situational_context") or {}
+                    st.markdown("#### Situational Execution")
+                    if not situational_context.get("available"):
+                        st.warning(situational_context.get("summary", "Situational NFL performance data is not available yet."))
+                    else:
+                        sit_adv = str(situational_context.get("overall_advantage", "Even"))
+                        sit_strength = str(situational_context.get("overall_strength", "Even"))
+                        sit_adj = float(situational_context.get("home_margin_adjustment", 0.0) or 0.0)
+                        if abs(sit_adj) < 0.005:
+                            sit_adj_label = "0.00 pts"
+                        else:
+                            sit_adj_team = nfl_result.get("home_team") if sit_adj > 0 else nfl_result.get("away_team")
+                            sit_adj_label = f"{abs(sit_adj):.2f} pts toward {sit_adj_team}"
+                        sc1, sc2, sc3 = st.columns(3)
+                        sc1.metric("Situational Edge", sit_adv)
+                        sc2.metric("Strength", sit_strength)
+                        sc3.metric("Projection Impact", sit_adj_label)
+                        st.info(situational_context.get("summary", ""))
+
+                        def _sit_pct(value):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.1%}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        def _sit_num(value, digits=3):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.{digits}f}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        with st.expander("Show situational performance details", expanded=False):
+                            st.caption("These are supporting rates, not headline grades. Macabets uses them as a small high-leverage refinement only.")
+                            sit_profiles = [
+                                (str(nfl_result.get("away_team", "Away")), situational_context.get("away") or {}),
+                                (str(nfl_result.get("home_team", "Home")), situational_context.get("home") or {}),
+                            ]
+                            sit_cols = st.columns(2)
+                            for idx, (team_name, profile) in enumerate(sit_profiles):
+                                with sit_cols[idx]:
+                                    st.markdown(f"##### {team_name}")
+                                    sit_rows = [
+                                        {"Situation": "Third down", "Team": _sit_pct(profile.get("third_down_conversion_rate")), "Defense": _sit_pct(profile.get("third_down_conversion_allowed"))},
+                                        {"Situation": "Red-zone TD", "Team": _sit_pct(profile.get("red_zone_td_rate")), "Defense": _sit_pct(profile.get("red_zone_td_rate_allowed"))},
+                                        {"Situation": "Turnovers / takeaways", "Team": _sit_pct(profile.get("offense_turnover_rate")), "Defense": _sit_pct(profile.get("defense_takeaway_rate"))},
+                                        {"Situation": "Explosive plays", "Team": _sit_pct(profile.get("offense_explosive_rate")), "Defense": _sit_pct(profile.get("defense_explosive_allowed"))},
+                                        {"Situation": "Close 4Q EPA/play", "Team": _sit_num(profile.get("high_leverage_epa")), "Defense": _sit_num(profile.get("high_leverage_epa_allowed"))},
+                                    ]
+                                    st.dataframe(pd.DataFrame(sit_rows), use_container_width=True, hide_index=True)
+                                    st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
+                            ew = situational_context.get("evidence_weight")
+                            if ew is not None:
+                                try:
+                                    st.caption(f"Evidence weight: {float(ew):.0%}")
+                                except (TypeError, ValueError):
+                                    pass
+                            st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
+                            st.caption(situational_context.get("guardrail", ""))
+
                     drivers = matchup_intelligence.get("top_drivers", []) or []
                     if drivers:
                         st.markdown("**Most important matchup drivers**")
