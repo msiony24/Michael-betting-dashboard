@@ -4834,6 +4834,84 @@ with tabs[1]:
                             st.caption(f"Source: {source}")
                             st.caption(scheme_context.get("guardrail", ""))
 
+                    los_context = nfl_result.get("los_context") or {}
+                    st.markdown("#### Real NFL Line-of-Scrimmage Intelligence")
+                    if not los_context.get("available"):
+                        st.warning(los_context.get("summary", "Real NFL line-of-scrimmage data is not available yet."))
+                    else:
+                        st.caption("Current regular-season trench performance. Madden remains the talent/trait layer; this section shows what the lines have actually produced on the field.")
+
+                        def _los_pct(value):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.1%}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        def _los_num(value, digits=2):
+                            try:
+                                if value is None or pd.isna(value):
+                                    return "—"
+                                return f"{float(value):.{digits}f}"
+                            except (TypeError, ValueError):
+                                return "—"
+
+                        los_profiles = [
+                            (str(nfl_result.get("away_team", "Away")), los_context.get("away") or {}),
+                            (str(nfl_result.get("home_team", "Home")), los_context.get("home") or {}),
+                        ]
+                        los_cols = st.columns(2)
+                        for idx, (team_name, profile) in enumerate(los_profiles):
+                            with los_cols[idx]:
+                                st.markdown(f"##### {team_name}")
+                                x1, x2, x3, x4 = st.columns(4)
+                                x1.metric("Pass Protection", _los_num(profile.get("pass_protection_grade"), 1))
+                                x2.metric("Pass Rush", _los_num(profile.get("pass_rush_grade"), 1))
+                                x3.metric("Run Blocking", _los_num(profile.get("run_block_grade"), 1))
+                                x4.metric("Run Front", _los_num(profile.get("run_front_grade"), 1))
+                                rows = [
+                                    {"Area": "Pass protection", "Metric": "Sack rate allowed", "Rate": _los_pct(profile.get("sack_rate_allowed"))},
+                                    {"Area": "Pass protection", "Metric": "QB-hit rate allowed", "Rate": _los_pct(profile.get("qb_hit_rate_allowed"))},
+                                    {"Area": "Pass protection", "Metric": "Disruption allowed", "Rate": _los_pct(profile.get("disruption_rate_allowed"))},
+                                    {"Area": "QB response", "Metric": "EPA/dropback when disrupted", "Rate": _los_num(profile.get("qb_epa_when_disrupted"), 3)},
+                                    {"Area": "Pass rush", "Metric": "Sack rate generated", "Rate": _los_pct(profile.get("sack_rate_generated"))},
+                                    {"Area": "Pass rush", "Metric": "QB-hit rate generated", "Rate": _los_pct(profile.get("qb_hit_rate_generated"))},
+                                    {"Area": "Pass rush", "Metric": "Disruption generated", "Rate": _los_pct(profile.get("disruption_rate_generated"))},
+                                    {"Area": "Run blocking", "Metric": "Stuff rate allowed", "Rate": _los_pct(profile.get("run_stuff_rate_allowed"))},
+                                    {"Area": "Run blocking", "Metric": "Rush success rate", "Rate": _los_pct(profile.get("rush_success"))},
+                                    {"Area": "Run defense", "Metric": "Stuff rate forced", "Rate": _los_pct(profile.get("run_stuff_rate_forced"))},
+                                    {"Area": "Run defense", "Metric": "Rush success allowed", "Rate": _los_pct(profile.get("rush_success_allowed"))},
+                                ]
+                                with st.expander("Show detailed line-of-scrimmage rates", expanded=False):
+                                    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                                st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
+
+                        st.markdown("##### Overall Real-Performance LOS Conclusion")
+                        lc1, lc2, lc3 = st.columns(3)
+                        los_adv = str(los_context.get("overall_advantage", "Even"))
+                        los_strength = str(los_context.get("overall_strength", "Even"))
+                        los_adj = float(los_context.get("home_margin_adjustment", 0.0) or 0.0)
+                        if abs(los_adj) < 0.005:
+                            los_adj_label = "0.00 pts"
+                        else:
+                            los_adj_team = nfl_result.get("home_team") if los_adj > 0 else nfl_result.get("away_team")
+                            los_adj_label = f"{abs(los_adj):.2f} pts toward {los_adj_team}"
+                        lc1.metric("Overall LOS Edge", los_adv)
+                        lc2.metric("LOS Strength", los_strength)
+                        lc3.metric("Projection Adjustment", los_adj_label)
+                        st.info(los_context.get("summary", ""))
+                        with st.expander("Audit LOS source and model guardrails", expanded=False):
+                            ew = los_context.get("evidence_weight")
+                            if ew is not None:
+                                try:
+                                    st.write(f"Evidence weight: {float(ew):.0%}")
+                                except (TypeError, ValueError):
+                                    pass
+                            st.write("Disruption is a public play-by-play proxy based on QB hits and sacks. Stuff rate is the share of rushing attempts stopped for zero or negative yards.")
+                            st.caption(f"Source: {los_context.get('source', 'nflverse regular-season play-by-play')}")
+                            st.caption(los_context.get("guardrail", ""))
+
                     drivers = matchup_intelligence.get("top_drivers", []) or []
                     if drivers:
                         st.markdown("**Most important matchup drivers**")
