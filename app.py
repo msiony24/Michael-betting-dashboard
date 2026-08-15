@@ -41,6 +41,7 @@ except Exception as exc:
 try:
     from engine.data import load_matches
     from engine.tennis_evidence import build_tennis_evidence_packet
+    from engine.tennis_h2h import build_head_to_head_summary as build_tennis_head_to_head_summary
     from engine.tennis import (
         analyze as analyze_tennis_match,
         player_names as tennis_player_names,
@@ -71,8 +72,8 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.82 — Conclusion-First UI"
-BUILD_DATE = "August 10, 2026"
+APP_VERSION = "Macabets v0.83 — H2H Identity Fix"
+BUILD_DATE = "August 15, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -1262,91 +1263,8 @@ def _plain_factor_sentence(factor_name, player, opponent, reason):
 
 
 def build_head_to_head_summary(matches, player_a, player_b, current_surface):
-    """Summarize prior meetings using common ATP/WTA dataset column names.
-
-    The helper is deliberately defensive so the app keeps working when data
-    providers use slightly different names for winner, loser, event, or date.
-    """
-    if matches is None or matches.empty:
-        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
-                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
-
-    def first_column(options):
-        return next((name for name in options if name in matches.columns), None)
-
-    winner_col = first_column(["winner_name", "winner", "Winner", "w_name"])
-    loser_col = first_column(["loser_name", "loser", "Loser", "l_name"])
-    surface_col = first_column(["surface", "Surface"])
-    date_col = first_column(["tourney_date", "match_date", "date", "Date"])
-    event_col = first_column(["tourney_name", "tournament", "event", "Tournament"])
-    score_col = first_column(["score", "Score"])
-    round_col = first_column(["round", "Round"])
-
-    if not winner_col or not loser_col:
-        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
-                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
-
-    winner = matches[winner_col].astype(str).str.strip()
-    loser = matches[loser_col].astype(str).str.strip()
-    pair_mask = ((winner == player_a) & (loser == player_b)) | ((winner == player_b) & (loser == player_a))
-    meetings = matches.loc[pair_mask].copy()
-
-    if meetings.empty:
-        return {"meetings": 0, "wins_a": 0, "wins_b": 0, "surface_meetings": 0,
-                "surface_wins_a": 0, "surface_wins_b": 0, "last_meeting": None}
-
-    meetings["_winner"] = meetings[winner_col].astype(str).str.strip()
-    wins_a = int((meetings["_winner"] == player_a).sum())
-    wins_b = int((meetings["_winner"] == player_b).sum())
-
-    if surface_col:
-        surface_mask = meetings[surface_col].astype(str).str.casefold() == str(current_surface).casefold()
-        surface_meetings = meetings.loc[surface_mask]
-    else:
-        surface_meetings = meetings.iloc[0:0]
-
-    surface_wins_a = int((surface_meetings["_winner"] == player_a).sum())
-    surface_wins_b = int((surface_meetings["_winner"] == player_b).sum())
-
-    if date_col:
-        raw_dates = meetings[date_col]
-        numeric_dates = pd.to_numeric(raw_dates, errors="coerce")
-        parsed_numeric = pd.to_datetime(numeric_dates.astype("Int64").astype(str), format="%Y%m%d", errors="coerce")
-        parsed_general = pd.to_datetime(raw_dates, errors="coerce")
-        meetings["_parsed_date"] = parsed_numeric.fillna(parsed_general)
-        meetings = meetings.sort_values("_parsed_date", ascending=False, na_position="last")
-
-    latest = meetings.iloc[0]
-    latest_date = latest.get("_parsed_date")
-    if pd.notna(latest_date):
-        latest_date = pd.Timestamp(latest_date).date().isoformat()
-    else:
-        latest_date = "Date unavailable"
-
-    details = []
-    if event_col and str(latest.get(event_col, "")).strip() not in {"", "nan", "None"}:
-        details.append(str(latest.get(event_col)).strip())
-    if round_col and str(latest.get(round_col, "")).strip() not in {"", "nan", "None"}:
-        details.append(str(latest.get(round_col)).strip())
-
-    score = ""
-    if score_col and str(latest.get(score_col, "")).strip() not in {"", "nan", "None"}:
-        score = str(latest.get(score_col)).strip()
-
-    return {
-        "meetings": int(len(meetings)),
-        "wins_a": wins_a,
-        "wins_b": wins_b,
-        "surface_meetings": int(len(surface_meetings)),
-        "surface_wins_a": surface_wins_a,
-        "surface_wins_b": surface_wins_b,
-        "last_meeting": {
-            "date": latest_date,
-            "winner": str(latest["_winner"]),
-            "event": " — ".join(details) if details else "Event unavailable",
-            "score": score,
-        },
-    }
+    """Compatibility wrapper around the tested tennis H2H engine."""
+    return build_tennis_head_to_head_summary(matches, player_a, player_b, current_surface)
 
 
 
@@ -1449,7 +1367,22 @@ def render_head_to_head_summary(matches, player_a, player_b, current_surface):
     st.markdown("#### Head-to-Head Summary")
 
     if h2h["meetings"] == 0:
-        st.info("No previous meetings were found in the available Macabets match data.")
+        unresolved = []
+        for requested, resolution in (
+            (player_a, h2h.get("resolution_a", {})),
+            (player_b, h2h.get("resolution_b", {})),
+        ):
+            if not resolution.get("resolved"):
+                unresolved.append(str(requested))
+        if unresolved:
+            st.warning(
+                "Head-to-head lookup could not resolve "
+                + ", ".join(unresolved)
+                + " to the historical tennis database. This is an identity/data issue, "
+                  "not evidence that the players have never met."
+            )
+        else:
+            st.info("No previous meetings were found in the available Macabets match data.")
         return
 
     meetings = int(h2h.get("meetings", 0) or 0)
@@ -1478,6 +1411,15 @@ def render_head_to_head_summary(matches, player_a, player_b, current_surface):
         s1.metric(f"Meetings on {current_surface}", h2h["surface_meetings"])
         s2.metric(f"{player_a} {current_surface} wins", h2h["surface_wins_a"])
         s3.metric(f"{player_b} {current_surface} wins", h2h["surface_wins_b"])
+
+        resolved_a = h2h.get("resolved_player_a")
+        resolved_b = h2h.get("resolved_player_b")
+        if resolved_a or resolved_b:
+            st.caption(
+                "Historical identity match: "
+                f"{player_a} -> {resolved_a or 'unresolved'}; "
+                f"{player_b} -> {resolved_b or 'unresolved'}."
+            )
 
 
 def build_matchup_analysis(result, selected_player=None):
