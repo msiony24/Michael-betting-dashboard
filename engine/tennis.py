@@ -45,7 +45,6 @@ def canonical_player_key(value: str) -> str:
     text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
     tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
     # Provider feeds sometimes add or remove a one-letter middle initial.
-    tokens = [token for token in tokens if len(token) > 1]
     return " ".join(tokens)
 
 
@@ -58,9 +57,9 @@ def player_name_signature(value: str) -> tuple[str, str]:
     if not tokens:
         return "", ""
 
-    # tennis-data.co.uk commonly stores players as 'Surname F.' while APIs use 'First Surname'.
-    if len(tokens) >= 2 and len(tokens[-1]) == 1:
-        return tokens[0], tokens[-1]
+    # Historical feeds store players as Surname F. or Surname J.M.
+    if len(tokens) >= 2 and len(tokens[0]) > 1 and all(len(token) == 1 for token in tokens[1:]):
+        return tokens[0], tokens[1]
     if len(tokens) >= 2:
         return tokens[-1], tokens[0][0]
     return tokens[0], ""

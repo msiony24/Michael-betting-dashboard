@@ -20,7 +20,6 @@ def canonical_player_key(value: object) -> str:
     text = "".join(character for character in text if not unicodedata.combining(character))
     text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
     tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
-    tokens = [token for token in tokens if len(token) > 1]
     return " ".join(tokens)
 
 
