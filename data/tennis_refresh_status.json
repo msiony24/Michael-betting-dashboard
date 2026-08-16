@@ -1,26 +1,26 @@
 {
   "current_year": 2026,
-  "current_year_match_count": 2315,
-  "current_year_matches_with_serve_return_stats": 845,
+  "current_year_match_count": 2328,
+  "current_year_matches_with_serve_return_stats": 858,
   "failures": [],
-  "latest_match_date": "2026-08-14",
+  "latest_match_date": "2026-08-15",
   "live_refresh": {
-    "all_fixtures_received": 17989,
+    "all_fixtures_received": 17562,
     "chunk_days": 6,
-    "completed_atp_singles_imported": 808,
+    "completed_atp_singles_imported": 802,
     "failed_fixture_windows": [],
     "fixture_windows_attempted": 11,
     "fixture_windows_failed": 0,
     "fixture_windows_succeeded": 11,
-    "fixtures_fetched_at": "2026-08-15T11:02:18.524005+00:00",
+    "fixtures_fetched_at": "2026-08-16T11:03:39.645736+00:00",
     "fixtures_source": "chunked",
-    "matches_with_serve_return_stats": 807,
+    "matches_with_serve_return_stats": 801,
     "standings_error": "",
-    "standings_fetched_at": "2026-08-15T11:02:19.392742+00:00",
+    "standings_fetched_at": "2026-08-16T11:03:41.367746+00:00",
     "standings_source": "live",
-    "window_start": "2026-06-16",
-    "window_stop": "2026-08-15"
+    "window_start": "2026-06-17",
+    "window_stop": "2026-08-16"
   },
   "ok": true,
-  "updated_at_utc": "2026-08-15T11:02:21.085173+00:00"
+  "updated_at_utc": "2026-08-16T11:03:43.502954+00:00"
 }
