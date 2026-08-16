@@ -1,0 +1,172 @@
+name: One-time tennis name resolution hotfix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/hotfix-tennis-name-resolution.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch tennis identity handling
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          tennis = Path('engine/tennis.py')
+          text = tennis.read_text()
+
+          old_signature = '''    # tennis-data.co.uk commonly stores players as 'Surname F.' while APIs use 'First Surname'.
+    if len(tokens) >= 2 and len(tokens[-1]) == 1:
+        return tokens[0], tokens[-1]
+    if len(tokens) >= 2:
+        return tokens[-1], tokens[0][0]
+'''
+          new_signature = '''    # Historical feeds commonly store players as 'Surname F.' or 'Surname J.M.'.
+    # Detect that provider format only when the first token is a real surname and
+    # every remaining token is a one-letter initial. This keeps names like
+    # 'J. J. Wolf' in normal First/Middle/Surname order.
+    if len(tokens) >= 2 and len(tokens[0]) > 1 and all(len(token) == 1 for token in tokens[1:]):
+        return tokens[0], tokens[1]
+    if len(tokens) >= 2:
+        return tokens[-1], tokens[0][0]
+'''
+          if old_signature not in text:
+              raise SystemExit('tennis.py signature block not found; refusing unsafe patch')
+          text = text.replace(old_signature, new_signature, 1)
+
+          old_perspective = '''def perspective(matches: pd.DataFrame, player: str, event_date: date) -> pd.DataFrame:
+    key = canonical_player_key(player)
+    subset = matches[
+        (
+            matches["winner_name"].map(canonical_player_key).eq(key)
+            | matches["loser_name"].map(canonical_player_key).eq(key)
+        )
+        & (matches["tourney_date"] < pd.Timestamp(event_date))
+    ].sort_values("tourney_date")
+
+    rows = []
+    for _, match in subset.iterrows():
+        won = canonical_player_key(match["winner_name"]) == key
+'''
+          new_perspective = '''def perspective(matches: pd.DataFrame, player: str, event_date: date) -> pd.DataFrame:
+    # `player` has already been resolved to the historical provider's exact
+    # display name. Match that spelling directly instead of using the broad
+    # canonical key, which intentionally drops initials and can merge players
+    # who share a surname (for example Francisco and Juan Manuel Cerundolo).
+    key = norm(player)
+    winner_keys = matches["winner_name"].astype(str).map(norm)
+    loser_keys = matches["loser_name"].astype(str).map(norm)
+    subset = matches[
+        (winner_keys.eq(key) | loser_keys.eq(key))
+        & (matches["tourney_date"] < pd.Timestamp(event_date))
+    ].sort_values("tourney_date")
+
+    rows = []
+    for _, match in subset.iterrows():
+        won = norm(match["winner_name"]) == key
+'''
+          if old_perspective not in text:
+              raise SystemExit('tennis.py perspective block not found; refusing unsafe patch')
+          text = text.replace(old_perspective, new_perspective, 1)
+          tennis.write_text(text)
+
+          profiles = Path('engine/player_profiles.py')
+          text = profiles.read_text()
+
+          insert_after = '''def canonical_player_key(value: object) -> str:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(character for character in text if not unicodedata.combining(character))
+    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
+    tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
+    tokens = [token for token in tokens if len(token) > 1]
+    return " ".join(tokens)
+'''
+          historical_helper = '''\n\ndef historical_player_key(value: object) -> str:
+    """Normalize historical display names while preserving identifying initials."""
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(character for character in text if not unicodedata.combining(character))
+    text = re.sub(r"[^A-Za-z0-9]+", " ", text).casefold()
+    return " ".join(text.split())
+'''
+          if 'def historical_player_key(' not in text:
+              if insert_after not in text:
+                  raise SystemExit('player_profiles.py canonical helper not found; refusing unsafe patch')
+              text = text.replace(insert_after, insert_after + historical_helper, 1)
+
+          old_find = '''    requested_key = canonical_player_key(requested_name)
+    exact = names[names.map(canonical_player_key).eq(requested_key)]
+    if not exact.empty:
+        return str(exact.value_counts().index[0])
+
+    return None
+'''
+          new_find = '''    # Prefer the exact historical spelling first. A broad canonical key drops
+    # initials, so surname-only collisions must never decide identity.
+    requested_historical_key = historical_player_key(requested_name)
+    exact = names[names.map(historical_player_key).eq(requested_historical_key)]
+    if not exact.empty:
+        return str(exact.value_counts().index[0])
+
+    requested_key = canonical_player_key(requested_name)
+    canonical = names[names.map(canonical_player_key).eq(requested_key)]
+    distinct = canonical.drop_duplicates()
+    if len(distinct) == 1:
+        return str(distinct.iloc[0])
+
+    return None
+'''
+          if old_find not in text:
+              raise SystemExit('player_profiles.py historical lookup block not found; refusing unsafe patch')
+          text = text.replace(old_find, new_find, 1)
+
+          old_history = '''    key = canonical_player_key(player_name)
+    winners = matches["winner_name"].map(canonical_player_key)
+    losers = matches["loser_name"].map(canonical_player_key)
+    history = matches[(winners.eq(key) | losers.eq(key))].copy()
+'''
+          new_history = '''    key = historical_player_key(player_name)
+    winners = matches["winner_name"].map(historical_player_key)
+    losers = matches["loser_name"].map(historical_player_key)
+    history = matches[(winners.eq(key) | losers.eq(key))].copy()
+'''
+          if old_history not in text:
+              raise SystemExit('player_profiles.py history block not found; refusing unsafe patch')
+          text = text.replace(old_history, new_history, 1)
+
+          old_metrics = '''    key = canonical_player_key(player_name)
+    won = history["winner_name"].map(canonical_player_key).eq(key)
+'''
+          new_metrics = '''    key = historical_player_key(player_name)
+    won = history["winner_name"].map(historical_player_key).eq(key)
+'''
+          if old_metrics not in text:
+              raise SystemExit('player_profiles.py metrics block not found; refusing unsafe patch')
+          text = text.replace(old_metrics, new_metrics, 1)
+          profiles.write_text(text)
+
+          tests = Path('tests/test_tennis_name_resolution.py')
+          tests.parent.mkdir(exist_ok=True)
+          tests.write_text('''import pandas as pd\n\nfrom engine.tennis import player_name_signature, perspective, resolve_player_name\nfrom engine.player_profiles import _player_history\n\n\ndef sample_matches():\n    return pd.DataFrame([\n        {"tourney_date": pd.Timestamp("2026-02-10"), "winner_name": "Cerundolo J.M.", "loser_name": "Altmaier D.", "surface": "Clay", "tourney_level": "A", "round": "R128", "score": "6-2 6-2", "winner_rank": 80, "loser_rank": 51},\n        {"tourney_date": pd.Timestamp("2026-02-12"), "winner_name": "Cerundolo F.", "loser_name": "Dellien H.", "surface": "Clay", "tourney_level": "A", "round": "R64", "score": "6-0 7-6", "winner_rank": 19, "loser_rank": 167},\n    ])\n\n\ndef test_multi_initial_provider_name_uses_first_initial():\n    assert player_name_signature("Juan Manuel Cerundolo") == ("cerundolo", "j")\n    assert player_name_signature("Cerundolo J.M.") == ("cerundolo", "j")\n    assert player_name_signature("J. J. Wolf") == ("wolf", "j")\n\n\ndef test_resolve_juan_manuel_cerundolo_without_confusing_francisco():\n    resolved, meta = resolve_player_name(sample_matches(), "Juan Manuel Cerundolo")\n    assert resolved == "Cerundolo J.M."\n    assert meta["method"] == "surname_initial"\n\n\ndef test_perspective_does_not_merge_cerundolo_brothers():\n    rows = perspective(sample_matches(), "Cerundolo J.M.", pd.Timestamp("2026-03-01").date())\n    assert len(rows) == 1\n    assert bool(rows.iloc[0]["won"]) is True\n\n\ndef test_player_profile_history_does_not_merge_cerundolo_brothers():\n    history = _player_history(sample_matches(), "Cerundolo J.M.", pd.Timestamp("2026-03-01").date())\n    assert len(history) == 1\n    assert history.iloc[0]["winner_name"] == "Cerundolo J.M."\n''')
+          PY
+
+      - name: Validate syntax and focused behavior
+        run: |
+          python -m py_compile engine/tennis.py engine/player_profiles.py
+          python -m pip install -q pandas numpy pytest
+          pytest -q tests/test_tennis_name_resolution.py
+
+      - name: Commit hotfix and remove one-time workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/hotfix-tennis-name-resolution.yml
+          git add engine/tennis.py engine/player_profiles.py tests/test_tennis_name_resolution.py .github/workflows/hotfix-tennis-name-resolution.yml
+          git commit -m "Fix tennis multi-initial player identity resolution"
+          git push
