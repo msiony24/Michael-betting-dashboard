@@ -1,0 +1,57 @@
+name: Settle Macabets Results
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Link/check events without writing settlements"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macabets-result-settlement
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate settlement syntax
+        run: |
+          python -m py_compile \
+            analysis_store.py \
+            settle_results.py \
+            engine/result_settlement.py \
+            engine/settlement_providers.py
+
+      - name: Run settlement unit tests
+        run: python -m unittest discover -s tests -p "test_result_settlement.py" -v
+
+      - name: Settle pending predictions
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          API_TENNIS_KEY: ${{ secrets.API_TENNIS_KEY }}
+          THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python settle_results.py --dry-run
+          else
+            python settle_results.py
+          fi
