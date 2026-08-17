@@ -14,12 +14,13 @@ from engine.ufc_performance import (
     fighter_performance,
     matchup_performance_adjustment,
 )
+from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.2"
+MODEL_VERSION = "Macabets UFC Analysis v0.3"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -489,7 +490,17 @@ def analyze(
     baseline_probability_a = _clip(baseline_probability_a, 0.08, 0.92)
 
     performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
-    probability_a = _clip(baseline_probability_a + performance_adjustment_a, 0.08, 0.92)
+    style_matchup = build_style_matchup(
+        performance_a, performance_b, fighter_a, fighter_b, rounds=int(rounds)
+    )
+    style_adjustment_a = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
+
+    # Performance and style are correlated because both originate in UFCStats. Keep a
+    # hard combined cap so the two layers cannot collectively overwhelm the Strength baseline.
+    combined_matchup_adjustment_a = float(
+        np.clip(performance_adjustment_a + style_adjustment_a, -0.075, 0.075)
+    )
+    probability_a = _clip(baseline_probability_a + combined_matchup_adjustment_a, 0.08, 0.92)
     probability_b = 1.0 - probability_a
 
     confidence, confidence_band = _confidence(row_a, row_b, probability_a, config)
@@ -534,6 +545,26 @@ def analyze(
                 "The detailed performance layer has a limited recent sample or incomplete landed/attempted/control data, so its adjustment is heavily shrunk.",
             )
 
+    if style_matchup.get("available"):
+        style_adj = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
+        if abs(style_adj) >= 0.003:
+            style_side = fighter_a if style_adj > 0 else fighter_b
+            strongest = sorted(
+                style_matchup.get("rows", []),
+                key=lambda item: abs(float(item.get("interaction_gap", 0.0) or 0.0)),
+                reverse=True,
+            )
+            top = strongest[0] if strongest else {}
+            reasons.insert(
+                0,
+                f"{style_side} has the better opponent-specific style interaction, led by {str(top.get('category', 'the matchup profile')).lower()}; Style Matchups moves the fair probability by {abs(style_adj):.1%}.",
+            )
+        if float(style_matchup.get("reliability", 0.0) or 0.0) < 0.55:
+            risks.insert(
+                0,
+                "The style interaction layer is based on a limited or incomplete detailed-stat sample, so Macabets heavily shrinks the matchup adjustment.",
+            )
+
     reasons = reasons[:4]
     risks = risks[:4]
     market = _market_evaluation(
@@ -554,8 +585,9 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + underlying performance",
+        "model_stage": "Ranking + underlying performance + style matchup",
         "performance_version": PERFORMANCE_VERSION,
+        "style_version": STYLE_VERSION,
         "fighter_a": fighter_a,
         "fighter_b": fighter_b,
         "rounds": int(rounds),
@@ -569,6 +601,8 @@ def analyze(
         "raw_rating_probability_a": raw_probability_a,
         "ranking_baseline_probability_a": baseline_probability_a,
         "performance_adjustment_a": performance_adjustment_a,
+        "style_adjustment_a": style_adjustment_a,
+        "combined_matchup_adjustment_a": combined_matchup_adjustment_a,
         "fair_moneyline_a": fair_a,
         "fair_moneyline_b": fair_b,
         "confidence": confidence,
@@ -602,14 +636,15 @@ def analyze(
         "performance_profile_a": performance_a,
         "performance_profile_b": performance_b,
         "performance_matchup": performance_matchup,
+        "style_matchup": style_matchup,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
         "reasons_for_lean": reasons,
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.2 adds a deliberately capped underlying-performance adjustment on top of the fighter-strength baseline; it is still not the finished opponent-specific style engine.",
-            "Striking efficiency, takedown offense/defense, control, submission pressure, durability and pace now contribute through recent performance percentiles when detailed UFCStats mirror fields are available.",
-            "The performance adjustment is capped at ±5 percentage points and shrunk for small samples/incomplete detail to limit double counting with the results-based Strength v0.2 rating.",
-            "Three-round versus five-round context changes performance weighting modestly, but true round-by-round cardio decay and opponent-specific style interactions are still pending.",
+            "v0.3 combines the Strength v0.2 baseline with a capped underlying-performance layer and a separate opponent-specific style interaction layer.",
+            "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
+            "Performance is capped at ±5 percentage points, Style Matchups at ±3, and their correlated combined impact at ±7.5 percentage points.",
+            "Three-round versus five-round context changes performance/style weighting modestly; true round-by-round cardio decay, physical measurements, stance and short-notice context remain future layers.",
         ],
     }
