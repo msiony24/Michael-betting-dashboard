@@ -3,7 +3,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 7,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 73.03,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -684,8 +684,8 @@
   "Atlanta Falcons": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 2,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 76.5,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -1183,18 +1183,7 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [
-          {
-            "name": "Jessie Bates III",
-            "role": "SS",
-            "status": "Questionable"
-          },
-          {
-            "name": "Xavier Watts",
-            "role": "FS",
-            "status": "Questionable"
-          }
-        ],
+        "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 5,
@@ -1240,8 +1229,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Jessie Bates III",
             "position": "FS",
             "rating": 92.03,
@@ -1249,8 +1238,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Xavier Watts",
             "position": "SS",
             "rating": 78.86,
@@ -1337,8 +1326,8 @@
   "Baltimore Ravens": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 5,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 4,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 78.78,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -1853,11 +1842,6 @@
         "availability_source": "",
         "availability_uncertainty": [
           {
-            "name": "Nate Wiggins",
-            "role": "LCB",
-            "status": "Questionable"
-          },
-          {
             "name": "Marlon Humphrey",
             "role": "SCB",
             "status": "Questionable"
@@ -1881,8 +1865,8 @@
         "starter_grade": 83.74,
         "top_players": [
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Nate Wiggins",
             "position": "CB",
             "rating": 80.9,
@@ -2006,7 +1990,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.69,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -2656,7 +2640,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 3,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 76.01,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -3304,7 +3288,7 @@
     "availability_promotions": 1,
     "availability_source": "Sleeper",
     "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 75.98,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -3980,7 +3964,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 72.89,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -4648,8 +4632,8 @@
   "Cleveland Browns": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 5,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 79.32,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -4770,7 +4754,13 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [],
+        "availability_uncertainty": [
+          {
+            "name": "Carson Schwesinger",
+            "role": "MLB",
+            "status": "Questionable"
+          }
+        ],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 3,
@@ -4798,8 +4788,8 @@
             "starter": true
           },
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Carson Schwesinger",
             "position": "LB",
             "rating": 82.73,
@@ -5315,7 +5305,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 5,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 74.7,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -5964,7 +5954,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 82.54,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -6607,7 +6597,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 78.99,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -7275,7 +7265,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 7,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.23,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -7944,8 +7934,8 @@
   "Houston Texans": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 4,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 5,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 82.77,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -8289,6 +8279,11 @@
         "availability_source": "",
         "availability_uncertainty": [
           {
+            "name": "Jaylin Noel",
+            "role": "WR",
+            "status": "Questionable"
+          },
+          {
             "name": "Tank Dell",
             "role": "WR",
             "status": "Questionable"
@@ -8331,8 +8326,8 @@
             "starter": true
           },
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Jaylin Noel",
             "position": "WR",
             "rating": 75.16,
@@ -8605,7 +8600,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 3,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 76.5,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -9260,8 +9255,8 @@
   "Jacksonville Jaguars": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 1,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 2,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.49,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -9556,7 +9551,13 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [],
+        "availability_uncertainty": [
+          {
+            "name": "Nick Mullens",
+            "role": "QB",
+            "status": "Questionable"
+          }
+        ],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 3,
@@ -9580,8 +9581,8 @@
             "starter": true
           },
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Nick Mullens",
             "position": "QB",
             "rating": 63.99,
@@ -9914,8 +9915,8 @@
   "Kansas City Chiefs": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 8,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 7,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.3,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -10451,11 +10452,6 @@
             "status": "Questionable"
           },
           {
-            "name": "Mansoor Delane",
-            "role": "RCB",
-            "status": "Questionable"
-          },
-          {
             "name": "Kader Kohou",
             "role": "SCB",
             "status": "Questionable"
@@ -10488,8 +10484,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Mansoor Delane",
             "position": "CB",
             "rating": 79.49,
@@ -10604,7 +10600,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 75.49,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -11236,7 +11232,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 79.45,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -11873,7 +11869,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 82.02,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -12531,8 +12527,8 @@
   "Miami Dolphins": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 8,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 70.93,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -12897,7 +12893,18 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [],
+        "availability_uncertainty": [
+          {
+            "name": "Caleb Douglas",
+            "role": "WR",
+            "status": "Questionable"
+          },
+          {
+            "name": "Chris Bell",
+            "role": "WR",
+            "status": "Questionable"
+          }
+        ],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 4,
@@ -12948,8 +12955,8 @@
             "starter": true
           },
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Caleb Douglas",
             "position": "WR",
             "rating": 73.53,
@@ -12957,8 +12964,8 @@
             "starter": false
           },
           {
-            "availability": "Active",
-            "injury_status": "PUP",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Chris Bell",
             "position": "WR",
             "rating": 73.34,
@@ -13209,8 +13216,8 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 3,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
-    "defense_rating": 79.31,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
+    "defense_rating": 79.3,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
     "offense_rating": 78.85,
@@ -13321,21 +13328,21 @@
         "unmatched_depth_chart": []
       },
       "linebackers": {
-        "availability_grade_delta": 0.04,
+        "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
-        "depth_count": 1,
-        "depth_grade": 74.61,
-        "grade": 79.34,
+        "depth_count": 2,
+        "depth_grade": 73.84,
+        "grade": 79.3,
         "healthy_grade": 78.85,
         "healthy_starter_grade": 79.11,
         "performance_grade": 83.39,
         "performance_weight": 0.1,
-        "player_count": 3,
-        "roster_grade": 78.89,
+        "player_count": 4,
+        "roster_grade": 78.85,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "90% roster + 10% NFL team-defense proxy",
@@ -13367,6 +13374,15 @@
             "position": "LB",
             "rating": 74.61,
             "role": "LILB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "IR",
+            "name": "Jamal Adams",
+            "position": "LB",
+            "rating": 73.07,
+            "role": "RILB",
             "starter": false
           }
         ],
@@ -13852,7 +13868,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 2,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 79.35,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -14485,7 +14501,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 7,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.47,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -15155,7 +15171,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 76.59,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -15807,8 +15823,8 @@
   "New York Jets": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 7,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 8,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 74.74,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -15826,11 +15842,6 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [
-          {
-            "name": "T'Vondre Sweat",
-            "role": "LDT",
-            "status": "Questionable"
-          },
           {
             "name": "Kingsley Enagbare",
             "role": "RDE",
@@ -15864,8 +15875,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "T'Vondre Sweat",
             "position": "DT",
             "rating": 79.01,
@@ -16174,6 +16185,11 @@
         "availability_source": "",
         "availability_uncertainty": [
           {
+            "name": "Garrett Wilson",
+            "role": "WR",
+            "status": "Questionable"
+          },
+          {
             "name": "Kenyon Sadiq",
             "role": "TE",
             "status": "Questionable"
@@ -16193,8 +16209,8 @@
         "starter_grade": 78.15,
         "top_players": [
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Garrett Wilson",
             "position": "WR",
             "rating": 85.67,
@@ -16274,6 +16290,11 @@
         "availability_source": "",
         "availability_uncertainty": [
           {
+            "name": "Breece Hall",
+            "role": "RB",
+            "status": "Questionable"
+          },
+          {
             "name": "Isaiah Davis",
             "role": "RB",
             "status": "Questionable"
@@ -16293,8 +16314,8 @@
         "starter_grade": 87.28,
         "top_players": [
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Breece Hall",
             "position": "HB",
             "rating": 87.28,
@@ -16491,7 +16512,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 7,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 81.39,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -16932,6 +16953,11 @@
         "availability_source": "",
         "availability_uncertainty": [
           {
+            "name": "Tank Bigsby",
+            "role": "RB",
+            "status": "Questionable"
+          },
+          {
             "name": "Dameon Pierce",
             "role": "RB",
             "status": "Questionable"
@@ -16960,8 +16986,8 @@
             "starter": true
           },
           {
-            "availability": "Active",
-            "injury_status": "",
+            "availability": "Questionable",
+            "injury_status": "Questionable",
             "name": "Tank Bigsby",
             "position": "HB",
             "rating": 79.02,
@@ -16995,11 +17021,6 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [
-          {
-            "name": "Quinyon Mitchell",
-            "role": "RCB",
-            "status": "Questionable"
-          },
           {
             "name": "Cooper DeJean",
             "role": "SCB",
@@ -17043,8 +17064,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Quinyon Mitchell",
             "position": "CB",
             "rating": 88.73,
@@ -17159,7 +17180,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 5,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 79.86,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -17821,7 +17842,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 13,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 76.34,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -18526,7 +18547,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 5,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 81.51,
     "depth_chart_rows": 28,
     "depth_chart_source": "Footballguys",
@@ -19173,8 +19194,8 @@
   "Tampa Bay Buccaneers": {
     "availability_promotions": 0,
     "availability_source": "Sleeper",
-    "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_uncertain": 4,
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 77.0,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -19357,13 +19378,7 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [
-          {
-            "name": "Tristan Wirfs",
-            "role": "LT",
-            "status": "Questionable"
-          }
-        ],
+        "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 5,
@@ -19382,8 +19397,8 @@
         "starter_grade": 81.99,
         "top_players": [
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Tristan Wirfs",
             "position": "LT",
             "rating": 94.51,
@@ -19461,13 +19476,7 @@
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
-        "availability_uncertainty": [
-          {
-            "name": "Jake Browning",
-            "role": "QB",
-            "status": "Questionable"
-          }
-        ],
+        "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "https://www.footballguys.com/depth-charts",
         "depth_count": 2,
@@ -19491,8 +19500,8 @@
             "starter": true
           },
           {
-            "availability": "Questionable",
-            "injury_status": "Questionable",
+            "availability": "Active",
+            "injury_status": "",
             "name": "Jake Browning",
             "position": "QB",
             "rating": 70.97,
@@ -19833,7 +19842,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 0,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 74.39,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
@@ -20485,7 +20494,7 @@
     "availability_promotions": 0,
     "availability_source": "Sleeper",
     "availability_uncertain": 6,
-    "availability_updated_at_utc": "2026-08-17T11:05:00+00:00",
+    "availability_updated_at_utc": "2026-08-17T17:12:16+00:00",
     "defense_rating": 73.73,
     "depth_chart_rows": 27,
     "depth_chart_source": "Footballguys",
