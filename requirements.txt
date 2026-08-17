@@ -8,3 +8,5 @@ nflreadpy==0.1.5
 pyarrow>=15.0.0
 
 openai>=1.66.0,<3
+
+beautifulsoup4>=4.12.0
