@@ -96,3 +96,43 @@ def test_completed_events_parser_handles_current_ufcstats_cell_layout():
     assert events.iloc[0]["event_date"] == "2026-08-16"
     assert events.iloc[0]["location"] == "Chicago, Illinois, USA"
     assert events.iloc[0]["event_url"].startswith("https://ufcstats.com/event-details/")
+
+
+def test_catchweight_does_not_become_fighters_ranking_division():
+    rows = []
+    rows += _fight("f1", "2025-01-01", "Alpha", "Beta")
+    catch = _fight("f2", "2025-06-01", "Alpha", "Gamma")
+    for row in catch:
+        row["division"] = "Catch Weight"
+    rows += catch
+    ratings = build_fighter_ratings(pd.DataFrame(rows), as_of=date(2025, 7, 1)).set_index("fighter")
+    assert ratings.loc["Alpha", "division"] == "Men’s Lightweight"
+    assert "Catch Weight" not in set(ratings.loc[ratings["active_pool"], "division"])
+
+
+def test_new_weight_class_is_not_treated_as_fully_proven_immediately():
+    rows = []
+    # Veteran builds most of his record at lightweight.
+    for i in range(6):
+        rows += _fight(f"lw{i}", f"2024-0{min(i + 1, 9)}-01", "Veteran", f"LW Opp {i}")
+    # Only one win at welterweight.
+    move = _fight("ww1", "2025-01-01", "Veteran", "WW Opp")
+    for row in move:
+        row["division"] = "Men’s Welterweight"
+    rows += move
+
+    ratings = build_fighter_ratings(pd.DataFrame(rows), as_of=date(2025, 2, 1)).set_index("fighter")
+    assert ratings.loc["Veteran", "division"] == "Men’s Welterweight"
+    assert ratings.loc["Veteran", "division_fights"] == 1
+    assert ratings.loc["Veteran", "division_elo"] < ratings.loc["Veteran", "global_elo"]
+
+
+def test_one_fight_newcomer_is_shrunk_toward_neutral():
+    rows = []
+    rows += _fight("f1", "2025-01-01", "Established", "Mid")
+    rows += _fight("f2", "2025-02-01", "Established", "Mid")
+    rows += _fight("f3", "2025-03-01", "Established", "Mid")
+    rows += _fight("f4", "2025-04-01", "Prospect", "Mid", method="KO/TKO")
+    ratings = build_fighter_ratings(pd.DataFrame(rows), as_of=date(2025, 5, 1)).set_index("fighter")
+    assert ratings.loc["Prospect", "ranking_confidence"] < ratings.loc["Established", "ranking_confidence"]
+    assert abs(ratings.loc["Prospect", "macabets_rating"] - 1500) < abs(ratings.loc["Prospect", "raw_elo"] - 1500)
