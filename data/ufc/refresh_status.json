@@ -1,16 +1,16 @@
 {
-  "source": "UFCStats mirror (GitHub seed)",
-  "source_url": "https://raw.githubusercontent.com/DanMcInerney/mma-ai/main/data/raw/ufcstats/competitions.csv",
-  "refreshed_at_utc": "2026-08-17T18:30:14.187178+00:00",
+  "source": "UFCStats last-good cache",
+  "source_url": "https://ufcstats.com/statistics/events/completed?page=all",
+  "refreshed_at_utc": "2026-08-17T18:38:59.098747+00:00",
   "latest_event_date": "2026-08-08",
   "fighter_fight_rows": 15102,
   "unique_fights": 7551,
   "unique_fighters": 2269,
-  "rating_model": "Macabets UFC Strength v0.1",
+  "rating_model": "Macabets UFC Strength v0.2",
   "history_start": "2010-01-01",
   "rated_fighters": 2269,
-  "active_pool_fighters": 803,
-  "data_mode": "mirror_bootstrap",
+  "active_pool_fighters": 801,
+  "data_mode": "cached_fallback",
   "live_source_error": "UFCStatsError: Unable to fetch UFCStats after 4 attempts: https://ufcstats.com/statistics/events/completed?page=all",
-  "notes": "UFCStats results + opponent-adjusted Elo backbone. Live UFCStats is preferred; last-good cache is preserved when the site refuses GitHub-hosted runners, with a public GitHub UFCStats mirror used only to bootstrap an empty repository."
+  "notes": "Macabets UFC Strength v0.2: global + division-specific opponent-adjusted Elo, sample-size shrinkage, recency/form, strength of schedule, and inactivity. Catch-weight bouts count toward global strength but never create a ranking division. Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners are refused, with the public mirror used to bootstrap an empty repository."
 }
