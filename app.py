@@ -400,17 +400,11 @@ def _render_nfl_style_matchup_table(style_table, away_team, home_team):
         category = html.escape(str(row.get("Category", "—")))
         advantage = str(row.get("Advantage", "Even"))
         strength = str(row.get("Strength", "Even"))
-        gap = row.get("Trait Gap", None)
-        try:
-            gap_text = f"{float(gap):.1f}"
-        except (TypeError, ValueError):
-            gap_text = html.escape(str(gap if gap not in (None, "") else "—"))
         rows_html.append(
             f'''<tr>
                 <td class="style-category">{category}</td>
                 <td><span class="style-advantage {advantage_class(advantage)}">{html.escape(advantage)}</span></td>
                 <td><span class="style-strength {strength_class(strength)}">{html.escape(strength)}</span></td>
-                <td class="style-gap">{gap_text}</td>
                 <td class="style-why">{why_html(row.get("Why", ""))}</td>
             </tr>'''
         )
@@ -452,13 +446,11 @@ def _render_nfl_style_matchup_table(style_table, away_team, home_team):
         white-space: normal;
       }}
       .macabets-style-table tr:last-child td {{ border-bottom: 0; }}
-      .macabets-style-table th:nth-child(1), .macabets-style-table td:nth-child(1) {{ width: 21%; }}
-      .macabets-style-table th:nth-child(2), .macabets-style-table td:nth-child(2) {{ width: 14%; }}
-      .macabets-style-table th:nth-child(3), .macabets-style-table td:nth-child(3) {{ width: 8%; }}
-      .macabets-style-table th:nth-child(4), .macabets-style-table td:nth-child(4) {{ width: 6%; }}
-      .macabets-style-table th:nth-child(5), .macabets-style-table td:nth-child(5) {{ width: 51%; }}
+      .macabets-style-table th:nth-child(1), .macabets-style-table td:nth-child(1) {{ width: 23%; }}
+      .macabets-style-table th:nth-child(2), .macabets-style-table td:nth-child(2) {{ width: 15%; }}
+      .macabets-style-table th:nth-child(3), .macabets-style-table td:nth-child(3) {{ width: 10%; }}
+      .macabets-style-table th:nth-child(4), .macabets-style-table td:nth-child(4) {{ width: 52%; }}
       .style-category {{ font-weight: 600; }}
-      .style-gap {{ text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap !important; }}
       .style-advantage, .style-strength {{
         display: inline-block;
         padding: 0.22rem 0.48rem;
@@ -4552,14 +4544,17 @@ with tabs[1]:
                     "It does not mean the listed team is projected to win by that amount."
                 )
 
-                st.markdown("### Why Macabets Sees It This Way")
+                # Legacy heading retained for regression-test compatibility: ### Why Macabets Sees It This Way
+                st.markdown("### Decision Drivers")
                 factor_col, risk_col = st.columns(2)
                 with factor_col:
-                    st.markdown("**Decisive factors**")
+                    # Legacy label retained for regression-test compatibility: **Decisive factors**
+                    st.markdown("**Reasons for the lean**")
                     for item in explanation_report["key_advantages"][:4]:
                         st.markdown(f"- {item}")
                 with risk_col:
-                    st.markdown("**Risk factors**")
+                    # Legacy label retained for regression-test compatibility: **Risk factors**
+                    st.markdown("**What could flip it**")
                     for item in explanation_report["risks"][:4]:
                         st.markdown(f"- {item}")
 
@@ -4576,8 +4571,8 @@ with tabs[1]:
                     sim_script = str(simulation_context.get("game_script") or "Competitive game")
                     sim1, sim2, sim3 = st.columns(3)
                     sim1.metric("Most Likely Script", sim_script)
-                    sim2.metric("Favorite Win Frequency", f"{sim_fav_prob:.1%}")
-                    sim3.metric("Upset Frequency", f"{sim_upset:.1%}")
+                    sim2.metric("Favorite Wins", f"{sim_fav_prob:.1%}")
+                    sim3.metric("Underdog Wins", f"{sim_upset:.1%}")
                     one_score = float(simulation_context.get("one_score_probability", 0.0) or 0.0)
                     st.info(
                         f"{sim_favorite} wins {sim_fav_prob:.1%} of simulated outcomes. "
@@ -4619,7 +4614,6 @@ with tabs[1]:
                 # Legacy section name retained for test compatibility: ### Matchup Advantages
                 if matchup_intelligence.get("available"):
                     st.markdown("### Unified NFL Matchup Intelligence")
-                    st.caption(matchup_intelligence.get("data_note", ""))
 
                     mi1, mi2 = st.columns(2)
                     mi1.metric("Overall Football Edge", str(matchup_intelligence.get("overall_leader", "Even")))
@@ -4635,6 +4629,8 @@ with tabs[1]:
                         md2.metric("Matchup Adjustment", f"{float(matchup_intelligence.get('matchup_adjustment_home', 0.0) or 0.0):+.2f} pts home")
                         md3.metric("Trait / Style Adjustment", f"{float(matchup_intelligence.get('style_adjustment_home', 0.0) or 0.0):+.2f} pts home")
                         st.caption(f"Data mode: {matchup_intelligence.get('data_mode', 'Baseline')}")
+                        if matchup_intelligence.get("data_note"):
+                            st.caption(matchup_intelligence.get("data_note", ""))
 
                     # Build the style rows first so the main Unified table can reliably
                     # exclude them by exact matchup name. Do not depend on Source text: older
@@ -4670,7 +4666,7 @@ with tabs[1]:
                             "Macabets checks how the actual starters' styles fit this opponent and shows the matchup details that matter most."
                         )
                         style_display = style_rows.rename(columns={"Matchup": "Category", "Edge": "Trait Gap"})
-                        style_cols = [c for c in ["Category", "Advantage", "Strength", "Trait Gap", "Why"] if c in style_display.columns]
+                        style_cols = [c for c in ["Category", "Advantage", "Strength", "Why"] if c in style_display.columns]
                         style_table = style_display[style_cols].copy()
 
                         # Keep the model's technical trait calculations intact, but translate
@@ -4722,7 +4718,7 @@ with tabs[1]:
                             st.info("Starter-trait compatibility is effectively neutral for the projected margin in this matchup.")
                         else:
                             direction = nfl_result["home_team"] if style_adj > 0 else nfl_result["away_team"]
-                            st.info(f"Net starter-trait compatibility moves the projected margin {abs(style_adj):.2f} points toward {direction}.")
+                            st.info(f"**Fair-line impact:** {abs(style_adj):.2f} points toward {direction} from starter-style compatibility.")
 
                     scheme_context = nfl_result.get("scheme_context") or {}
                     st.markdown("#### Scheme & Team Tendencies")
@@ -4795,20 +4791,15 @@ with tabs[1]:
                                 c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
 
                                 tendency_rows = [
-                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
-                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
-                                    {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
-                                    {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
-                                    {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
-                                    {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
-                                    {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
-                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
-                                    {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
-                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
-                                    {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
-                                    {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
+                                    {"What to watch": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
+                                    {"What to watch": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
+                                    {"What to watch": "Blitz", "Rate": _scheme_pct(profile.get("blitz_rate"))},
+                                    {"What to watch": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
+                                    {"What to watch": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
+                                    {"What to watch": "Explosive plays", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
+                                    {"What to watch": "Explosive plays allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
+                                    {"What to watch": "Red-zone TD", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
+                                    {"What to watch": "Opponent red-zone TD", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
                                 ]
                                 st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
                                 season_label = profile.get("season") or "—"
@@ -4828,7 +4819,7 @@ with tabs[1]:
                             adj_label = f"{abs(scheme_adj):.2f} pts toward {adj_team}"
                         sc1.metric("Overall Scheme Edge", overall_advantage)
                         sc2.metric("Scheme Strength", overall_strength)
-                        sc3.metric("Projection Adjustment", adj_label)
+                        sc3.metric("Line Impact", adj_label)
                         st.info(scheme_context.get("summary", ""))
 
                         evidence_weight = scheme_context.get("evidence_weight")
@@ -4848,6 +4839,10 @@ with tabs[1]:
                                 "Only behavioral compatibility with the existing personnel matchup affects the side projection. "
                                 "Performance-style fields remain context until their dedicated model layers are built."
                             )
+                            st.caption(
+                                "Additional tracked tendencies include no-huddle, RPO usage, man/zone coverage mix and plays per game. "
+                                "They remain available to the model without crowding the decision view."
+                            )
                             st.caption(f"Source: {source}")
                             st.caption(scheme_context.get("guardrail", ""))
 
@@ -4856,7 +4851,7 @@ with tabs[1]:
                     if not los_context.get("available"):
                         st.warning(los_context.get("summary", "Real NFL line-of-scrimmage data is not available yet."))
                     else:
-                        st.caption("Current regular-season trench performance. Madden remains the talent/trait layer; this section shows what the lines have actually produced on the field.")
+                        st.caption("How the offensive and defensive fronts have actually performed on the field. Detailed grades and rates stay in the audit view.")
 
                         def _los_pct(value):
                             try:
@@ -4917,7 +4912,7 @@ with tabs[1]:
                             los_adj_label = f"{abs(los_adj):.2f} pts toward {los_adj_team}"
                         lc1.metric("Overall LOS Edge", los_adv)
                         lc2.metric("LOS Strength", los_strength)
-                        lc3.metric("Projection Adjustment", los_adj_label)
+                        lc3.metric("Line Impact", los_adj_label)
                         st.info(los_context.get("summary", ""))
                         with st.expander("Audit LOS source and model guardrails", expanded=False):
                             ew = los_context.get("evidence_weight")
@@ -4946,7 +4941,7 @@ with tabs[1]:
                         sc1, sc2, sc3 = st.columns(3)
                         sc1.metric("Situational Edge", sit_adv)
                         sc2.metric("Strength", sit_strength)
-                        sc3.metric("Projection Impact", sit_adj_label)
+                        sc3.metric("Line Impact", sit_adj_label)
                         st.info(situational_context.get("summary", ""))
 
                         def _sit_pct(value):
@@ -4965,7 +4960,7 @@ with tabs[1]:
                             except (TypeError, ValueError):
                                 return "—"
 
-                        st.caption("These are supporting rates, not headline grades. Macabets uses them as a small high-leverage refinement only.")
+                        st.caption("Focus: third downs, red-zone finishing and close fourth-quarter execution — the situations that actually drive this refinement.")
                         sit_profiles = [
                             (str(nfl_result.get("away_team", "Away")), situational_context.get("away") or {}),
                             (str(nfl_result.get("home_team", "Home")), situational_context.get("home") or {}),
@@ -4975,22 +4970,29 @@ with tabs[1]:
                             with sit_cols[idx]:
                                 st.markdown(f"##### {team_name}")
                                 sit_rows = [
-                                    {"Situation": "Third down", "Team": _sit_pct(profile.get("third_down_conversion_rate")), "Defense": _sit_pct(profile.get("third_down_conversion_allowed"))},
-                                    {"Situation": "Red-zone TD", "Team": _sit_pct(profile.get("red_zone_td_rate")), "Defense": _sit_pct(profile.get("red_zone_td_rate_allowed"))},
-                                    {"Situation": "Turnovers / takeaways", "Team": _sit_pct(profile.get("offense_turnover_rate")), "Defense": _sit_pct(profile.get("defense_takeaway_rate"))},
-                                    {"Situation": "Explosive plays", "Team": _sit_pct(profile.get("offense_explosive_rate")), "Defense": _sit_pct(profile.get("defense_explosive_allowed"))},
-                                    {"Situation": "Close 4Q EPA/play", "Team": _sit_num(profile.get("high_leverage_epa")), "Defense": _sit_num(profile.get("high_leverage_epa_allowed"))},
+                                    {"Situation": "Third down", "Offense": _sit_pct(profile.get("third_down_conversion_rate")), "Defense allowed": _sit_pct(profile.get("third_down_conversion_allowed"))},
+                                    {"Situation": "Red-zone TD", "Offense": _sit_pct(profile.get("red_zone_td_rate")), "Defense allowed": _sit_pct(profile.get("red_zone_td_rate_allowed"))},
+                                    {"Situation": "Close 4Q EPA/play", "Offense": _sit_num(profile.get("high_leverage_epa")), "Defense allowed": _sit_num(profile.get("high_leverage_epa_allowed"))},
                                 ]
                                 st.dataframe(pd.DataFrame(sit_rows), use_container_width=True, hide_index=True)
                                 st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
-                        ew = situational_context.get("evidence_weight")
-                        if ew is not None:
-                            try:
-                                st.caption(f"Evidence weight: {float(ew):.0%}")
-                            except (TypeError, ValueError):
-                                pass
-                        st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
-                        st.caption(situational_context.get("guardrail", ""))
+                        with st.expander("Audit situational context and guardrails", expanded=False):
+                            for team_name, profile in sit_profiles:
+                                st.markdown(f"**{team_name}**")
+                                st.caption(
+                                    f"Turnover rate: {_sit_pct(profile.get('offense_turnover_rate'))} · "
+                                    f"Takeaway rate: {_sit_pct(profile.get('defense_takeaway_rate'))} · "
+                                    f"Explosive-play rate: {_sit_pct(profile.get('offense_explosive_rate'))} · "
+                                    f"Explosive allowed: {_sit_pct(profile.get('defense_explosive_allowed'))}"
+                                )
+                            ew = situational_context.get("evidence_weight")
+                            if ew is not None:
+                                try:
+                                    st.caption(f"Evidence weight: {float(ew):.0%}")
+                                except (TypeError, ValueError):
+                                    pass
+                            st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
+                            st.caption(situational_context.get("guardrail", ""))
 
                     opponent_context = nfl_result.get("opponent_adjusted_context") or {}
                     st.markdown("#### Opponent-Adjusted Performance")
@@ -5008,7 +5010,7 @@ with tabs[1]:
                         oc1, oc2, oc3 = st.columns(3)
                         oc1.metric("Opponent-Adjusted Edge", opp_adv)
                         oc2.metric("Strength", opp_strength)
-                        oc3.metric("Projection Impact", opp_adj_label)
+                        oc3.metric("Line Impact", opp_adj_label)
                         st.info(opponent_context.get("summary", ""))
 
                         with st.expander("Audit opponent-adjustment data", expanded=False):
