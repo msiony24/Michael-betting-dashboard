@@ -5729,6 +5729,52 @@ with tabs[1]:
                             )
                             st.caption(str(fight_context.get("guardrail", "")))
 
+                        ufc_sim = ufc_result.get("simulation", {})
+                        if ufc_sim.get("available"):
+                            st.markdown("### Fight Simulation & Method of Victory")
+                            sim1, sim2, sim3, sim4 = st.columns(4)
+                            sim1.metric("Most Likely Fight Path", str(ufc_sim.get("most_likely_path", "—")))
+                            sim2.metric("Path Probability", f"{float(ufc_sim.get('most_likely_path_probability', 0.0)):.1%}")
+                            sim3.metric("Goes the Distance", f"{float(ufc_sim.get('goes_distance_probability', 0.0)):.1%}")
+                            sim4.metric("Fight Volatility", str(ufc_sim.get("volatility", "Moderate")))
+
+                            method_rows = [
+                                {
+                                    "Fighter": fighter_a_name,
+                                    "KO/TKO": f"{float(ufc_sim.get('a_ko_tko_probability', 0.0)):.1%}",
+                                    "Submission": f"{float(ufc_sim.get('a_submission_probability', 0.0)):.1%}",
+                                    "Decision": f"{float(ufc_sim.get('a_decision_probability', 0.0)):.1%}",
+                                    "Win Probability": f"{probability_a:.1%}",
+                                },
+                                {
+                                    "Fighter": fighter_b_name,
+                                    "KO/TKO": f"{float(ufc_sim.get('b_ko_tko_probability', 0.0)):.1%}",
+                                    "Submission": f"{float(ufc_sim.get('b_submission_probability', 0.0)):.1%}",
+                                    "Decision": f"{float(ufc_sim.get('b_decision_probability', 0.0)):.1%}",
+                                    "Win Probability": f"{probability_b:.1%}",
+                                },
+                            ]
+                            st.dataframe(pd.DataFrame(method_rows), use_container_width=True, hide_index=True)
+
+                            likely_round = ufc_sim.get("likely_finish_round")
+                            if likely_round:
+                                st.caption(
+                                    f"If the fight ends inside the distance, Round {int(likely_round)} is the most likely finish window "
+                                    f"({float(ufc_sim.get('likely_finish_round_probability_given_finish', 0.0)):.1%} of modeled finishes)."
+                                )
+                            with st.expander("Show simulation detail", expanded=False):
+                                rd = ufc_sim.get("finish_round_probabilities_given_finish", {})
+                                if rd:
+                                    st.dataframe(
+                                        pd.DataFrame([{"Round": k, "Probability Given Finish": f"{float(v):.1%}"} for k, v in rd.items()]),
+                                        use_container_width=True,
+                                        hide_index=True,
+                                    )
+                                st.caption(
+                                    f"Simulation runs: {int(ufc_sim.get('simulations', 0)):,}. "
+                                    + str(ufc_sim.get("guardrail", ""))
+                                )
+
                         st.markdown("### Core Matchup Breakdown")
                         matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
                         if not matchup_rows.empty:
@@ -5771,7 +5817,7 @@ with tabs[1]:
                                 if verdict == "BET":
                                     st.success(
                                         f"{considered}: BET at the entered price on the current baseline — estimated ROI {roi_value:+.1%}. "
-                                        "Physical/context is now included, but simulation and method-of-victory layers are still pending; treat this as a developing-model price signal rather than a final UFC release."
+                                        "Fight simulation and method-of-victory probabilities are now included; totals/round-market calibration is still pending, so treat derivative-market outputs as developing until that layer is built."
                                     )
                                 elif verdict == "WATCH":
                                     st.warning(
