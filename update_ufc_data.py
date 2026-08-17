@@ -70,6 +70,66 @@ def _sum_round_stat(row: pd.Series, fighter_prefix: str, stat: str) -> int:
     return total
 
 
+def _sum_round_pair(row: pd.Series, fighter_prefix: str, stat: str) -> tuple[int, int]:
+    landed = 0
+    attempted = 0
+    for round_no in range(1, 6):
+        column = f"{fighter_prefix}_rd{round_no}_{stat}"
+        if column not in row.index:
+            continue
+        text = "" if row.get(column) is None else str(row.get(column))
+        match = re.search(r"(\d+)\s+of\s+(\d+)", text, flags=re.IGNORECASE)
+        if match:
+            landed += int(match.group(1))
+            attempted += int(match.group(2))
+        else:
+            value = _first_int(text)
+            landed += value
+            attempted += value
+    return landed, attempted
+
+
+def _sum_round_control_seconds(row: pd.Series, fighter_prefix: str) -> int:
+    total = 0
+    for round_no in range(1, 6):
+        column = f"{fighter_prefix}_rd{round_no}_Ctrl"
+        if column not in row.index:
+            continue
+        text = "" if row.get(column) is None else str(row.get(column)).strip()
+        if ":" not in text:
+            continue
+        try:
+            minute, second = text.split(":", 1)
+            total += int(minute) * 60 + int(second)
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
+def _detailed_stats(row: pd.Series, fighter_prefix: str) -> dict[str, int]:
+    sig_l, sig_a = _sum_round_pair(row, fighter_prefix, "Sig_str")
+    total_l, total_a = _sum_round_pair(row, fighter_prefix, "Total_str")
+    td_l, td_a = _sum_round_pair(row, fighter_prefix, "Td")
+    head_l, head_a = _sum_round_pair(row, fighter_prefix, "Head")
+    body_l, body_a = _sum_round_pair(row, fighter_prefix, "Body")
+    leg_l, leg_a = _sum_round_pair(row, fighter_prefix, "Leg")
+    distance_l, distance_a = _sum_round_pair(row, fighter_prefix, "Distance")
+    clinch_l, clinch_a = _sum_round_pair(row, fighter_prefix, "Clinch")
+    ground_l, ground_a = _sum_round_pair(row, fighter_prefix, "Ground")
+    return {
+        "sig_str_landed": sig_l, "sig_str_attempted": sig_a,
+        "total_str_landed": total_l, "total_str_attempted": total_a,
+        "td_landed": td_l, "td_attempted": td_a,
+        "control_seconds": _sum_round_control_seconds(row, fighter_prefix),
+        "head_landed": head_l, "head_attempted": head_a,
+        "body_landed": body_l, "body_attempted": body_a,
+        "leg_landed": leg_l, "leg_attempted": leg_a,
+        "distance_landed": distance_l, "distance_attempted": distance_a,
+        "clinch_landed": clinch_l, "clinch_attempted": clinch_a,
+        "ground_landed": ground_l, "ground_attempted": ground_a,
+    }
+
+
 def _opposite_result(result: str) -> str:
     result = result.strip().upper()
     if result == "W":
@@ -129,31 +189,36 @@ def _load_github_mirror_history() -> pd.DataFrame:
             "time": str(fight.get("time", "") or "").strip(),
         }
 
+        stats1 = _detailed_stats(fight, "p1")
+        stats2 = _detailed_stats(fight, "p2")
+
         rows.append(
             {
                 **common,
+                **stats1,
                 "fighter": player1,
                 "fighter_url": str(fight.get("player1_url", "") or "").strip(),
                 "opponent": player2,
                 "opponent_url": str(fight.get("player2_url", "") or "").strip(),
                 "result": result1,
                 "kd": _sum_round_stat(fight, "p1", "KD"),
-                "sig_str": _sum_round_stat(fight, "p1", "Sig_str"),
-                "td": _sum_round_stat(fight, "p1", "Td"),
+                "sig_str": stats1["sig_str_landed"],
+                "td": stats1["td_landed"],
                 "sub_att": _sum_round_stat(fight, "p1", "Sub_att"),
             }
         )
         rows.append(
             {
                 **common,
+                **stats2,
                 "fighter": player2,
                 "fighter_url": str(fight.get("player2_url", "") or "").strip(),
                 "opponent": player1,
                 "opponent_url": str(fight.get("player1_url", "") or "").strip(),
                 "result": result2,
                 "kd": _sum_round_stat(fight, "p2", "KD"),
-                "sig_str": _sum_round_stat(fight, "p2", "Sig_str"),
-                "td": _sum_round_stat(fight, "p2", "Td"),
+                "sig_str": stats2["sig_str_landed"],
+                "td": stats2["td_landed"],
                 "sub_att": _sum_round_stat(fight, "p2", "Sub_att"),
             }
         )
@@ -244,9 +309,10 @@ def main() -> None:
             "data_mode": data_mode,
             "live_source_error": live_error,
             "notes": (
-                "Macabets UFC Strength v0.2: global + division-specific opponent-adjusted Elo, "
+                "Macabets UFC Strength v0.2 + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, "
                 "sample-size shrinkage, recency/form, strength of schedule, and inactivity. "
                 "Catch-weight bouts count toward global strength but never create a ranking division. "
+                "The mirror bootstrap now also preserves landed/attempted striking, takedown, control, and strike-location data for the performance engine. "
                 "Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners "
                 "are refused, with the public mirror used to bootstrap an empty repository."
             ),
