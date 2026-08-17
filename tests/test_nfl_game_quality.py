@@ -36,7 +36,8 @@ def test_game_quality_prefers_repeatable_play_over_scoreboard_luck(tmp_path):
     )
     assert context["available"]
     assert context["home"]["quality_score"] > context["away"]["quality_score"]
-    assert 0 < context["home_margin_adjustment"] <= 0.75
+    assert context["home_margin_adjustment"] == 0.0
+    assert context["diagnostic_only"] is True
 
 
 def test_no_current_season_sample_means_no_adjustment(tmp_path):
