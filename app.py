@@ -85,7 +85,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.87 — UFC Physical & Context"
+APP_VERSION = "Macabets v0.89 — UFC Derivative Markets"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5450,6 +5450,59 @@ with tabs[1]:
                         ufc_market_a = None
                         ufc_market_b = None
 
+                    st.markdown("##### Derivative market price")
+                    evaluate_ufc_derivative = st.checkbox(
+                        "Evaluate a totals or method-of-victory market",
+                        value=False,
+                        key="ufc_evaluate_derivative",
+                        help="Macabets will always show fair derivative prices after analysis. Turn this on only when you want to compare a specific sportsbook prop price.",
+                    )
+                    ufc_derivative_key = None
+                    ufc_derivative_odds_primary = None
+                    ufc_derivative_odds_secondary = None
+                    ufc_derivative_total_line = None
+                    if evaluate_ufc_derivative:
+                        derivative_options = {
+                            "Total rounds": "total_rounds",
+                            "Goes the distance": "goes_distance",
+                            f"{ufc_fighter_a} by KO/TKO": "a_ko_tko",
+                            f"{ufc_fighter_a} by Submission": "a_submission",
+                            f"{ufc_fighter_a} by Decision": "a_decision",
+                            f"{ufc_fighter_b} by KO/TKO": "b_ko_tko",
+                            f"{ufc_fighter_b} by Submission": "b_submission",
+                            f"{ufc_fighter_b} by Decision": "b_decision",
+                        }
+                        derivative_label = st.selectbox(
+                            "Derivative market",
+                            list(derivative_options),
+                            key="ufc_derivative_market_label",
+                        )
+                        ufc_derivative_key = derivative_options[derivative_label]
+                        if ufc_derivative_key == "total_rounds":
+                            total_choices = [1.5, 2.5] if int(ufc_rounds) == 3 else [1.5, 2.5, 3.5, 4.5]
+                            dm1, dm2, dm3 = st.columns([1, 1, 1])
+                            ufc_derivative_total_line = float(dm1.selectbox(
+                                "Round total", total_choices, index=min(1, len(total_choices) - 1), key="ufc_derivative_total_line"
+                            ))
+                            ufc_derivative_odds_primary = int(dm2.number_input(
+                                f"Over {ufc_derivative_total_line:.1f} odds", value=-110, step=5, key="ufc_derivative_over_odds"
+                            ))
+                            ufc_derivative_odds_secondary = int(dm3.number_input(
+                                f"Under {ufc_derivative_total_line:.1f} odds", value=-110, step=5, key="ufc_derivative_under_odds"
+                            ))
+                        elif ufc_derivative_key == "goes_distance":
+                            dm1, dm2 = st.columns(2)
+                            ufc_derivative_odds_primary = int(dm1.number_input(
+                                "Goes distance — Yes odds", value=-110, step=5, key="ufc_derivative_distance_yes_odds"
+                            ))
+                            ufc_derivative_odds_secondary = int(dm2.number_input(
+                                "Goes distance — No odds", value=-110, step=5, key="ufc_derivative_distance_no_odds"
+                            ))
+                        else:
+                            ufc_derivative_odds_primary = int(st.number_input(
+                                f"Sportsbook odds — {derivative_label}", value=200, step=5, key="ufc_derivative_method_odds"
+                            ))
+
                     ufc_considering = st.radio(
                         "Who are you considering betting on?",
                         ["Just analyze", ufc_fighter_a, ufc_fighter_b],
@@ -5472,6 +5525,10 @@ with tabs[1]:
                                     rounds=int(ufc_rounds),
                                     market_odds_a=ufc_market_a,
                                     market_odds_b=ufc_market_b,
+                                    derivative_market_key=ufc_derivative_key,
+                                    derivative_odds_primary=ufc_derivative_odds_primary,
+                                    derivative_odds_secondary=ufc_derivative_odds_secondary,
+                                    derivative_total_line=ufc_derivative_total_line,
                                     ratings=ufc_ratings,
                                     fights=ufc_fights,
                                     fight_date=ufc_fight_date,
@@ -5775,6 +5832,79 @@ with tabs[1]:
                                     + str(ufc_sim.get("guardrail", ""))
                                 )
 
+                        derivative_markets = ufc_result.get("derivative_markets", {})
+                        if derivative_markets.get("available"):
+                            st.markdown("### UFC Totals & Method Fair Prices")
+                            dist = derivative_markets.get("distance_market", {})
+                            d1, d2 = st.columns(2)
+                            d1.metric(
+                                "Goes Distance — Fair",
+                                format_american(int(dist.get("yes_fair_odds", 0))),
+                                f"{float(dist.get('yes_probability', 0.0)):.1%}",
+                            )
+                            d2.metric(
+                                "Doesn't Go Distance — Fair",
+                                format_american(int(dist.get("no_fair_odds", 0))),
+                                f"{float(dist.get('no_probability', 0.0)):.1%}",
+                            )
+
+                            totals_rows = []
+                            for row in derivative_markets.get("round_totals", []):
+                                totals_rows.append({
+                                    "Total": f"{float(row.get('line', 0.0)):.1f}",
+                                    "Over Probability": f"{float(row.get('over_probability', 0.0)):.1%}",
+                                    "Over Fair": format_american(int(row.get("over_fair_odds", 0))),
+                                    "Under Probability": f"{float(row.get('under_probability', 0.0)):.1%}",
+                                    "Under Fair": format_american(int(row.get("under_fair_odds", 0))),
+                                })
+                            if totals_rows:
+                                st.markdown("**Round totals**")
+                                st.dataframe(pd.DataFrame(totals_rows), use_container_width=True, hide_index=True)
+
+                            method_fair_rows = []
+                            for row in derivative_markets.get("method_markets", []):
+                                method_fair_rows.append({
+                                    "Market": str(row.get("market", "—")),
+                                    "Probability": f"{float(row.get('probability', 0.0)):.1%}",
+                                    "Fair Odds": format_american(int(row.get("fair_odds", 0))),
+                                })
+                            if method_fair_rows:
+                                st.markdown("**Method of victory**")
+                                st.dataframe(pd.DataFrame(method_fair_rows), use_container_width=True, hide_index=True)
+
+                            derivative_eval = ufc_result.get("derivative_evaluation", {})
+                            if derivative_eval.get("available"):
+                                st.markdown("#### Sportsbook Derivative Evaluation")
+                                eval_rows = []
+                                for label_key, value_key in [("primary_label", "primary"), ("secondary_label", "secondary")]:
+                                    value = derivative_eval.get(value_key)
+                                    label = derivative_eval.get(label_key)
+                                    if not value or not label:
+                                        continue
+                                    eval_rows.append({
+                                        "Market": str(label),
+                                        "Sportsbook": format_american(int(value.get("market_odds", 0))),
+                                        "Fair": format_american(int(value.get("fair_odds", 0))),
+                                        "Model Probability": f"{float(value.get('probability', 0.0)):.1%}",
+                                        "No-Vig Edge": "—" if value.get("no_vig_edge") is None else f"{float(value.get('no_vig_edge', 0.0)):+.1%}",
+                                        "Estimated ROI": f"{float(value.get('roi', 0.0)):+.1%}",
+                                        "Verdict": str(value.get("verdict", "PASS")),
+                                    })
+                                if eval_rows:
+                                    st.dataframe(pd.DataFrame(eval_rows), use_container_width=True, hide_index=True)
+                                    best = max(eval_rows, key=lambda row: float(str(row["Estimated ROI"]).replace("%", "")))
+                                    if best["Verdict"] == "BET":
+                                        st.success(f"{best['Market']}: BET at the entered price. Estimated ROI {best['Estimated ROI']}.")
+                                    elif best["Verdict"] == "WATCH":
+                                        st.warning(f"{best['Market']}: WATCH at the entered price. Estimated ROI {best['Estimated ROI']}.")
+                                    else:
+                                        st.info("PASS on the entered derivative price(s) at the current model probabilities.")
+                                note = derivative_eval.get("note")
+                                if note:
+                                    st.caption(str(note))
+
+                            st.caption(str(derivative_markets.get("guardrail", "")))
+
                         st.markdown("### Core Matchup Breakdown")
                         matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
                         if not matchup_rows.empty:
@@ -5817,7 +5947,7 @@ with tabs[1]:
                                 if verdict == "BET":
                                     st.success(
                                         f"{considered}: BET at the entered price on the current baseline — estimated ROI {roi_value:+.1%}. "
-                                        "Fight simulation and method-of-victory probabilities are now included; totals/round-market calibration is still pending, so treat derivative-market outputs as developing until that layer is built."
+                                        "Fight simulation plus totals/round and method-of-victory fair pricing are now included. Derivative markets remain conservative and use higher ROI thresholds than the moneyline."
                                     )
                                 elif verdict == "WATCH":
                                     st.warning(
