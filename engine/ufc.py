@@ -9,6 +9,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from engine.ufc_simulation import SIMULATION_VERSION, simulate_fight
+
 from engine.ufc_performance import (
     PERFORMANCE_VERSION,
     build_performance_table,
@@ -22,7 +24,7 @@ from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighte
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.4"
+MODEL_VERSION = "Macabets UFC Analysis v0.5"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -616,6 +618,17 @@ def analyze(
         config,
     )
 
+    simulation = simulate_fight(
+        fighter_a,
+        fighter_b,
+        probability_a,
+        profile_a,
+        profile_b,
+        performance_a,
+        performance_b,
+        rounds=int(rounds),
+    )
+
     same_division = str(row_a.get("division", "")) == str(row_b.get("division", ""))
     division_note = (
         str(row_a.get("division", ""))
@@ -626,10 +639,11 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + underlying performance + style matchup + physical/context",
+        "model_stage": "Ranking + underlying performance + style matchup + physical/context + fight simulation",
         "performance_version": PERFORMANCE_VERSION,
         "style_version": STYLE_VERSION,
         "context_version": CONTEXT_VERSION,
+        "simulation_version": SIMULATION_VERSION,
         "fighter_a": fighter_a,
         "fighter_b": fighter_b,
         "rounds": int(rounds),
@@ -682,15 +696,17 @@ def analyze(
         "performance_matchup": performance_matchup,
         "style_matchup": style_matchup,
         "fight_context": fight_context,
+        "simulation": simulation,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
         "reasons_for_lean": reasons,
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.4 combines Strength v0.2, underlying performance, opponent-specific style interactions, and a separately capped physical/fight-context layer.",
+            "v0.5 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, and a Monte Carlo fight-path simulation.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, their correlated combined impact at ±7.5, Physical & Context at ±2, and the total non-rating adjustment at ±9 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
+            "The simulation consumes the already-finalized side probability and decomposes it into KO/TKO, submission, and decision paths; it does not create a second winner model.",
             "Short-notice/replacement-fighter context still requires a reliable booking/notice-date source and is not guessed from fight history.",
         ],
     }
