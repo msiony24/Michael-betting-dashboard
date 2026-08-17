@@ -85,7 +85,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.85 — UFC Performance Engine"
+APP_VERSION = "Macabets v0.86 — UFC Style Matchups"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5513,11 +5513,13 @@ with tabs[1]:
                         )
 
                         performance_adjustment = float(ufc_result.get("performance_adjustment_a", 0.0) or 0.0)
-                        performance_side = fighter_a_name if performance_adjustment >= 0 else fighter_b_name
+                        style_adjustment = float(ufc_result.get("style_adjustment_a", 0.0) or 0.0)
+                        combined_adjustment = float(ufc_result.get("combined_matchup_adjustment_a", 0.0) or 0.0)
+                        combined_side = fighter_a_name if combined_adjustment >= 0 else fighter_b_name
                         st.info(
-                            f"UFC Performance v0.1 is active. The underlying-performance layer moved the ranking baseline "
-                            f"{abs(performance_adjustment):.1%} toward {performance_side}. The adjustment is capped and sample-shrunk; "
-                            "opponent-specific style interactions are still the next layer."
+                            f"UFC Performance + Style Matchups are active. Performance moved Fighter A {performance_adjustment:+.1%}; "
+                            f"opponent-specific style moved Fighter A {style_adjustment:+.1%}. After the correlated-input guardrail, "
+                            f"the total matchup impact is {abs(combined_adjustment):.1%} toward {combined_side}."
                         )
 
                         driver_col, risk_col = st.columns(2)
@@ -5628,8 +5630,49 @@ with tabs[1]:
                             )
                             st.caption(
                                 "Composite scores are division-relative percentiles from the recent UFC sample. Five-round fights "
-                                "place a little more weight on durability and pace. This is still a general performance layer, not yet a style-vs-style interaction model."
+                                "place a little more weight on durability and pace. This is the general performance layer; the opponent-specific interaction layer is shown next."
                             )
+
+                        style_matchup = ufc_result.get("style_matchup", {})
+                        if style_matchup.get("available"):
+                            st.markdown("### Opponent-Specific Style Matchups")
+                            sa1, sa2 = st.columns(2)
+                            sa1.metric(
+                                f"{fighter_a_name} Style",
+                                str(style_matchup.get("fighter_a_archetype", "Balanced / mixed style")),
+                            )
+                            sa2.metric(
+                                f"{fighter_b_name} Style",
+                                str(style_matchup.get("fighter_b_archetype", "Balanced / mixed style")),
+                            )
+
+                            style_rows = pd.DataFrame(style_matchup.get("rows", []))
+                            if not style_rows.empty:
+                                style_display = style_rows.rename(columns={
+                                    "category": "Category",
+                                    "advantage": "Advantage",
+                                    "strength": "Strength",
+                                    "why": "Why it matters",
+                                })
+                                cols = [c for c in ["Category", "Advantage", "Strength", "Why it matters"] if c in style_display.columns]
+                                st.dataframe(style_display[cols], use_container_width=True, hide_index=True)
+
+                            sm1, sm2, sm3 = st.columns(3)
+                            sm1.metric(
+                                "Style Line Impact",
+                                f"{float(ufc_result.get('style_adjustment_a', 0.0)):+.1%}",
+                                f"to {fighter_a_name}",
+                            )
+                            sm2.metric(
+                                "Style Reliability",
+                                f"{float(style_matchup.get('reliability', 0.0)):.0%}",
+                            )
+                            sm3.metric(
+                                "Interaction Gap",
+                                f"{float(style_matchup.get('weighted_gap', 0.0)):+.1f}",
+                                "matchup points",
+                            )
+                            st.caption(str(style_matchup.get("guardrail", "")))
 
                         st.markdown("### Core Matchup Breakdown")
                         matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
