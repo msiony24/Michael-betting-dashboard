@@ -88,10 +88,10 @@ def build_game_quality_context(
 ) -> dict:
     """Compare recent underlying game quality for the two teams.
 
-    The probability input is expressed as a small home-margin adjustment.  Five
-    games are required for the full effect; one game receives only 20% weight.
-    Positive turnover luck is *not* rewarded as quality and can slightly reduce
-    confidence when scoreboard results are running ahead of underlying play.
+    This layer is diagnostic-only for the side projection because the same core
+    EPA/success/explosive information already enters current-season team power
+    and recent form. It can still reduce confidence when turnover-driven results
+    are running ahead of repeatable underlying play.
     """
     frame = _load(quality_path)
     away_abbr, home_abbr = NAME_TO_ABBR.get(away_team), NAME_TO_ABBR.get(home_team)
@@ -127,9 +127,12 @@ def build_game_quality_context(
         }
 
     sample = min(int(away["games"]), int(home["games"]), 5) / 5.0
-    # 10 quality-score points is meaningful but should still be worth well under a point.
+    # Recent underlying game quality overlaps the current-season offense/defense
+    # and recent-form signals already blended into base team power. Keep it as a
+    # diagnostic/confidence signal only so the same EPA/success/explosive profile
+    # is not awarded a second time on the scoreboard.
     quality_gap = float(home["quality_score"]) - float(away["quality_score"])
-    adjustment = _clip(quality_gap * 0.055 * sample, -0.75, 0.75)
+    adjustment = 0.0
 
     # If either team is substantially outperforming its underlying play through turnover
     # fortune, lower certainty a little instead of reversing the pick.
@@ -152,7 +155,8 @@ def build_game_quality_context(
         "home": home,
         "quality_gap_home_minus_away": round(quality_gap, 2),
         "sample_weight": round(sample, 2),
-        "home_margin_adjustment": round(adjustment, 2),
+        "home_margin_adjustment": 0.0,
+        "diagnostic_only": True,
         "confidence_penalty": round(confidence_penalty, 2),
         "summary": " ".join(notes),
     }

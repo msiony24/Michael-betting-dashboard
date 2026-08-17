@@ -7,6 +7,8 @@ from typing import Any, Mapping
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PLAYER_STATS_METADATA = PROJECT_ROOT / "data" / "nfl" / "player_weekly_stats_metadata.json"
 
+MODEL_REFINEMENT_CAP = 1.25
+
 CATEGORY_WEIGHTS = {
     "Quarterback": 0.22,
     "Passing matchup": 0.18,
@@ -298,16 +300,27 @@ def build_matchup_intelligence(
     # One coherent football edge. Base power already contains team-level performance;
     # only the opponent-specific personnel mismatch adjustment is added on top.
     base_team_edge = float(home_power) - float(away_power)
-    context_edge = (
+    # Environment/context signals are structurally distinct from team performance.
+    environment_edge = (
         float(home_field_points)
         + float(weather_home_adjustment)
         + float(schedule_home_adjustment)
-        + float(game_quality_home_adjustment)
+    )
+
+    # These football refinements all touch current-season performance from
+    # different angles. Even with individual caps, stacking them unchecked can
+    # recreate the same edge several times. Apply one aggregate cap after the
+    # layer-specific calculations. Game quality is diagnostic-only and should be
+    # zero here, but remains in the raw sum for backwards-safe transparency.
+    raw_model_refinement = (
+        float(game_quality_home_adjustment)
         + float(scheme_home_adjustment)
         + float(los_home_adjustment)
         + float(situational_home_adjustment)
         + float(opponent_adjusted_home_adjustment)
     )
+    model_refinement = max(-MODEL_REFINEMENT_CAP, min(MODEL_REFINEMENT_CAP, raw_model_refinement))
+    context_edge = environment_edge + model_refinement
     football_home_edge = base_team_edge + context_edge + matchup_adjustment
 
     if abs(football_home_edge) < 0.5:
@@ -423,6 +436,10 @@ def build_matchup_intelligence(
         "football_edge_points": round(abs(football_home_edge), 2),
         "base_team_edge_home": round(base_team_edge, 2),
         "context_edge_home": round(context_edge, 2),
+        "environment_edge_home": round(environment_edge, 2),
+        "raw_model_refinement_home": round(raw_model_refinement, 2),
+        "model_refinement_home": round(model_refinement, 2),
+        "model_refinement_cap": MODEL_REFINEMENT_CAP,
         "matchup_adjustment_home": round(matchup_adjustment, 2),
         "scheme_adjustment_home": round(float(scheme_home_adjustment), 2),
         "los_adjustment_home": round(float(los_home_adjustment), 2),
@@ -449,5 +466,5 @@ def build_matchup_intelligence(
                 "The edge comes from the combined personnel, scheme, trench, opponent-adjusted and game-context profile rather than one isolated metric."
             )
         ),
-        "guardrail": "Team-level performance enters base power once. Unit mismatches, starter-trait compatibility, scheme compatibility, real line-of-scrimmage interaction and opponent-quality correction are small refinements with hard caps; the same talent or performance signal is never re-awarded at full strength.",
+        "guardrail": "Team-level performance enters base power once. Recent game quality is diagnostic-only, situational scoring excludes turnover/explosive rates already present in team quality, and the combined scheme/LOS/situational/opponent-quality refinement is capped at ±1.25 points before personnel matchup adjustments are added.",
     }

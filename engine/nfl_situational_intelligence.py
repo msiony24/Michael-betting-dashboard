@@ -63,10 +63,10 @@ def build_situational_matchup_context(
 ) -> dict[str, Any]:
     """Evaluate high-leverage execution without allowing noisy splits to dominate.
 
-    The side adjustment is intentionally tiny and capped. Third down, red zone,
-    explosive plays, turnover avoidance/takeaways and close-fourth-quarter EPA
-    are useful tie-breakers, not substitutes for personnel, scheme or core team
-    performance.
+    The side adjustment is intentionally tiny and capped. Only third down, red
+    zone and close-fourth-quarter EPA are scored here. Turnover and explosive-play
+    rates remain visible for audit/context but are not re-awarded because they
+    already contribute to the core offense/defense ratings.
     """
     path = Path(snapshot_path)
     if not path.exists():
@@ -125,7 +125,7 @@ def build_situational_matchup_context(
         leverage = float(table.loc[offense, "leverage_offense"] - table.loc[defense, "leverage_defense"])
         turnovers = float(table.loc[offense, "turnover_offense"] - table.loc[defense, "takeaway_defense"])
         explosives = float(table.loc[offense, "explosive_offense"] - table.loc[defense, "explosive_defense"])
-        combined = third * 0.25 + red_zone * 0.25 + leverage * 0.20 + turnovers * 0.10 + explosives * 0.20
+        combined = third * 0.35 + red_zone * 0.35 + leverage * 0.30
         return {
             "third_down_edge": third,
             "red_zone_edge": red_zone,
@@ -160,8 +160,6 @@ def build_situational_matchup_context(
         "third downs": home_side["third_down_edge"] - away_side["third_down_edge"],
         "red-zone execution": home_side["red_zone_edge"] - away_side["red_zone_edge"],
         "close-game execution": home_side["high_leverage_edge"] - away_side["high_leverage_edge"],
-        "turnover profile": home_side["turnover_edge"] - away_side["turnover_edge"],
-        "explosive plays": home_side["explosive_edge"] - away_side["explosive_edge"],
     }
     top = sorted(differential.items(), key=lambda item: abs(item[1]), reverse=True)[:2]
     if leader == "Even":
@@ -204,6 +202,6 @@ def build_situational_matchup_context(
         "source": "nflverse regular-season play-by-play",
         "guardrail": (
             "Situational execution is capped at ±0.35 points and receives reduced weight in small samples. "
-            "It refines close matchups; it cannot override core personnel, team quality, scheme or line-of-scrimmage evidence."
+            "Only third down, red zone and close-fourth-quarter execution affect the side projection here; turnover and explosive-play rates are context-only because they already live in core team quality."
         ),
     }
