@@ -24,6 +24,7 @@ DATA_DIR = ROOT / "data" / "ufc"
 FIGHTS_PATH = DATA_DIR / "ufc_fight_history.csv"
 RATINGS_PATH = DATA_DIR / "fighter_ratings.csv"
 STATUS_PATH = DATA_DIR / "refresh_status.json"
+PROFILES_PATH = DATA_DIR / "fighter_profiles.csv"
 
 # A long history is important for recursive opponent quality. UFCStats has event
 # results back to the early UFC era, but starting in 2010 keeps refresh time sane
@@ -36,6 +37,10 @@ DEFAULT_SINCE = date(2010, 1, 1)
 MIRROR_COMPETITIONS_URL = (
     "https://raw.githubusercontent.com/DanMcInerney/mma-ai/"
     "main/data/raw/ufcstats/competitions.csv"
+)
+MIRROR_INDIVIDUALS_URL = (
+    "https://raw.githubusercontent.com/DanMcInerney/mma-ai/"
+    "main/data/raw/ufcstats/individuals.csv"
 )
 
 
@@ -53,6 +58,45 @@ def _load_cached_fights() -> pd.DataFrame:
     except (pd.errors.EmptyDataError, OSError, ValueError):
         return pd.DataFrame()
     return frame if not frame.empty else pd.DataFrame()
+
+
+
+
+def _load_cached_profiles() -> pd.DataFrame:
+    if not PROFILES_PATH.exists() or PROFILES_PATH.stat().st_size == 0:
+        return pd.DataFrame()
+    try:
+        frame = pd.read_csv(PROFILES_PATH, low_memory=False)
+    except (pd.errors.EmptyDataError, OSError, ValueError):
+        return pd.DataFrame()
+    return frame if not frame.empty else pd.DataFrame()
+
+
+def _get_fighter_profiles() -> tuple[pd.DataFrame, str]:
+    """Load UFCStats fighter bio/measurement profiles from the tracked public mirror.
+
+    UFCStats itself frequently refuses GitHub-hosted runners, so the same public raw
+    mirror used to bootstrap fight data is the primary automation source for profile
+    measurements. A last-good cache is preserved if that mirror is temporarily unavailable.
+    """
+    try:
+        profiles = pd.read_csv(MIRROR_INDIVIDUALS_URL, low_memory=False)
+        required = {"name", "url", "dob", "weight", "reach", "height", "stance"}
+        missing = required.difference(profiles.columns)
+        if profiles.empty or missing:
+            raise RuntimeError(
+                "UFCStats individuals mirror is empty or missing columns: "
+                + ", ".join(sorted(missing))
+            )
+        profiles = profiles.drop_duplicates(subset=["url"], keep="last").reset_index(drop=True)
+        return profiles, "mirror_fresh"
+    except Exception as exc:
+        cached = _load_cached_profiles()
+        if not cached.empty:
+            print(f"Fighter-profile mirror unavailable ({type(exc).__name__}: {exc}); using last-good profile cache.")
+            return cached, "cached_fallback"
+        print(f"Fighter-profile data unavailable ({type(exc).__name__}: {exc}); continuing without physical profiles.")
+        return pd.DataFrame(), "unavailable"
 
 
 def _first_int(value: object) -> int:
@@ -288,6 +332,7 @@ def main() -> None:
     config = FetchConfig()
 
     fights, data_mode, live_error = _get_fight_history(config)
+    profiles, profile_data_mode = _get_fighter_profiles()
 
     print("Building opponent-adjusted Macabets fighter ratings...")
     ratings = build_fighter_ratings(fights)
@@ -298,6 +343,8 @@ def main() -> None:
     # Cached fallback simply re-writes the same validated snapshot atomically.
     _write_atomic_csv(fights, FIGHTS_PATH)
     _write_atomic_csv(ratings, RATINGS_PATH)
+    if not profiles.empty:
+        _write_atomic_csv(profiles, PROFILES_PATH)
 
     status = source_status(fights)
     status.update(
@@ -308,11 +355,14 @@ def main() -> None:
             "active_pool_fighters": int(ratings["active_pool"].sum()),
             "data_mode": data_mode,
             "live_source_error": live_error,
+            "fighter_profile_data_mode": profile_data_mode,
+            "fighter_profiles": int(len(profiles)),
             "notes": (
                 "Macabets UFC Strength v0.2 + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, "
                 "sample-size shrinkage, recency/form, strength of schedule, and inactivity. "
                 "Catch-weight bouts count toward global strength but never create a ranking division. "
                 "The mirror bootstrap now also preserves landed/attempted striking, takedown, control, and strike-location data for the performance engine. "
+                "The tracked UFCStats individuals mirror supplies date of birth, height, reach, weight, and stance for the Physical & Context layer, with a last-good local cache fallback. "
                 "Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners "
                 "are refused, with the public mirror used to bootstrap an empty repository."
             ),
@@ -329,6 +379,8 @@ def main() -> None:
     print(f"Data mode: {data_mode}")
     print(f"Saved {len(fights):,} fighter-fight rows -> {FIGHTS_PATH}")
     print(f"Saved {len(ratings):,} fighter ratings -> {RATINGS_PATH}")
+    if not profiles.empty:
+        print(f"Saved {len(profiles):,} fighter profiles -> {PROFILES_PATH}")
     print("Top active fighters by Macabets rating:")
     print(
         ratings.loc[
