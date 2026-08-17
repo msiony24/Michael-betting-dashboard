@@ -1,0 +1,85 @@
+name: Update Macabets UFC Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 11 * * 0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-macabets-ufc-data
+  cancel-in-progress: false
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out Macabets
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pytest
+
+      - name: Refresh UFCStats history and ratings
+        run: python update_ufc_data.py
+
+      - name: Test UFC rating foundation
+        run: python -m pytest tests/test_ufc_foundation.py -q
+
+      - name: Show UFC refresh status
+        run: |
+          cat data/ufc/refresh_status.json
+          python - <<'PY'
+          import pandas as pd
+          ratings = pd.read_csv("data/ufc/fighter_ratings.csv")
+          print(ratings.loc[ratings["active_pool"].astype(bool), ["fighter", "division", "division_rank", "strength_score"]].head(30).to_string(index=False))
+          PY
+
+      - name: Commit UFC data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/ufc/ufc_fight_history.csv data/ufc/fighter_ratings.csv data/ufc/refresh_status.json
+          if git diff --cached --quiet; then
+            echo "UFC data is already current."
+            exit 0
+          fi
+
+          git commit -m "Update UFC data and fighter ratings"
+          branch="${GITHUB_REF_NAME:-main}"
+          max_attempts=4
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            git fetch origin "$branch"
+            if ! git rebase "origin/$branch"; then
+              git rebase --abort || true
+              git reset --hard "origin/$branch"
+              python update_ufc_data.py
+              git add data/ufc/ufc_fight_history.csv data/ufc/fighter_ratings.csv data/ufc/refresh_status.json
+              if git diff --cached --quiet; then
+                exit 0
+              fi
+              git commit -m "Update UFC data and fighter ratings"
+            fi
+
+            if git push origin "HEAD:$branch"; then
+              exit 0
+            fi
+            [ "$attempt" -lt "$max_attempts" ] && sleep $((attempt * 5))
+          done
+          exit 1
