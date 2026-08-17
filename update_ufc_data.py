@@ -237,16 +237,18 @@ def main() -> None:
     status = source_status(fights)
     status.update(
         {
-            "rating_model": "Macabets UFC Strength v0.1",
+            "rating_model": "Macabets UFC Strength v0.2",
             "history_start": DEFAULT_SINCE.isoformat(),
             "rated_fighters": int(len(ratings)),
             "active_pool_fighters": int(ratings["active_pool"].sum()),
             "data_mode": data_mode,
             "live_source_error": live_error,
             "notes": (
-                "UFCStats results + opponent-adjusted Elo backbone. Live UFCStats is preferred; "
-                "last-good cache is preserved when the site refuses GitHub-hosted runners, with a "
-                "public GitHub UFCStats mirror used only to bootstrap an empty repository."
+                "Macabets UFC Strength v0.2: global + division-specific opponent-adjusted Elo, "
+                "sample-size shrinkage, recency/form, strength of schedule, and inactivity. "
+                "Catch-weight bouts count toward global strength but never create a ranking division. "
+                "Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners "
+                "are refused, with the public mirror used to bootstrap an empty repository."
             ),
         }
     )
