@@ -10,6 +10,11 @@ import numpy as np
 import pandas as pd
 
 from engine.ufc_simulation import SIMULATION_VERSION, simulate_fight
+from engine.ufc_markets import (
+    DERIVATIVE_MARKETS_VERSION,
+    build_derivative_markets,
+    evaluate_derivative_market,
+)
 
 from engine.ufc_performance import (
     PERFORMANCE_VERSION,
@@ -24,7 +29,7 @@ from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighte
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.5"
+MODEL_VERSION = "Macabets UFC Analysis v0.6"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -447,6 +452,10 @@ def analyze(
     rounds: int = 3,
     market_odds_a: int | None = None,
     market_odds_b: int | None = None,
+    derivative_market_key: str | None = None,
+    derivative_odds_primary: int | None = None,
+    derivative_odds_secondary: int | None = None,
+    derivative_total_line: float | None = None,
     ratings: pd.DataFrame | None = None,
     fights: pd.DataFrame | None = None,
     profiles: pd.DataFrame | None = None,
@@ -628,6 +637,15 @@ def analyze(
         performance_b,
         rounds=int(rounds),
     )
+    derivative_markets = build_derivative_markets(simulation, fighter_a, fighter_b)
+    derivative_evaluation = evaluate_derivative_market(
+        derivative_markets,
+        derivative_market_key,
+        odds_primary=derivative_odds_primary,
+        odds_secondary=derivative_odds_secondary,
+        total_line=derivative_total_line,
+        confidence=confidence,
+    )
 
     same_division = str(row_a.get("division", "")) == str(row_b.get("division", ""))
     division_note = (
@@ -639,11 +657,12 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + underlying performance + style matchup + physical/context + fight simulation",
+        "model_stage": "Ranking + underlying performance + style matchup + physical/context + fight simulation + derivative markets",
         "performance_version": PERFORMANCE_VERSION,
         "style_version": STYLE_VERSION,
         "context_version": CONTEXT_VERSION,
         "simulation_version": SIMULATION_VERSION,
+        "derivative_markets_version": DERIVATIVE_MARKETS_VERSION,
         "fighter_a": fighter_a,
         "fighter_b": fighter_b,
         "rounds": int(rounds),
@@ -697,16 +716,19 @@ def analyze(
         "style_matchup": style_matchup,
         "fight_context": fight_context,
         "simulation": simulation,
+        "derivative_markets": derivative_markets,
+        "derivative_evaluation": derivative_evaluation,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
         "reasons_for_lean": reasons,
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.5 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, and a Monte Carlo fight-path simulation.",
+            "v0.6 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, a Monte Carlo fight-path simulation, and derivative-market pricing.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, their correlated combined impact at ±7.5, Physical & Context at ±2, and the total non-rating adjustment at ±9 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
             "The simulation consumes the already-finalized side probability and decomposes it into KO/TKO, submission, and decision paths; it does not create a second winner model.",
+            "Derivative markets are priced downstream of that simulation. Half-round totals use a neutral 50/50 split of finish mass inside the target round until exact finish-time calibration is added.",
             "Short-notice/replacement-fighter context still requires a reliable booking/notice-date source and is not guessed from fight history.",
         ],
     }
