@@ -20,6 +20,7 @@ from engine.nfl_scheme_tendencies import build_scheme_matchup_context
 from engine.nfl_los_intelligence import build_los_matchup_context
 from engine.nfl_situational_intelligence import build_situational_matchup_context
 from engine.nfl_opponent_adjustment import build_opponent_adjusted_context
+from engine.nfl_simulation import simulate_game
 
 
 def american_to_probability(odds: int | float) -> float:
@@ -123,6 +124,7 @@ class NFLAnalysis:
     los_context: dict
     situational_context: dict
     opponent_adjusted_context: dict
+    simulation_context: dict
     matchup_intelligence: dict
 
 
@@ -239,6 +241,16 @@ def analyze(
     fair_total = max(1.0, float(market_total) + weather_total_adjustment)
     projected_home = round(((fair_total + projected_home_margin) / 2.0) * 2.0) / 2.0
     projected_away = round((fair_total - projected_home) * 2.0) / 2.0
+
+    simulation_context = simulate_game(
+        away_team=away_team,
+        home_team=home_team,
+        projected_home_margin=projected_home_margin,
+        fair_total=fair_total,
+        market_spread_home=market_spread_home,
+        market_total=market_total,
+        seed_context=f"{resolved_season}:{week or 0}:{getattr(game_date, 'isoformat', lambda: game_date)() if game_date is not None else ''}",
+    )
 
     projected_winner = home_team if home_probability >= 0.5 else away_team
     if fair_spread_home < 0:
@@ -360,6 +372,7 @@ def analyze(
         los_context=los_context,
         situational_context=situational_context,
         opponent_adjusted_context=opponent_adjusted_context,
+        simulation_context=simulation_context,
         matchup_intelligence=matchup_intelligence,
     )
     return asdict(result)
