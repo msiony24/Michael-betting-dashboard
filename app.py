@@ -72,8 +72,21 @@ except Exception as exc:
     NFL_ENGINE_AVAILABLE = False
     NFL_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.83 — H2H Identity Fix"
-BUILD_DATE = "August 15, 2026"
+try:
+    from engine.ufc import (
+        analyze as analyze_ufc_match,
+        fighter_names as ufc_fighter_names,
+        load_ufc_fights,
+        load_ufc_ratings,
+    )
+    UFC_ENGINE_AVAILABLE = True
+    UFC_ENGINE_IMPORT_ERROR = ""
+except Exception as exc:
+    UFC_ENGINE_AVAILABLE = False
+    UFC_ENGINE_IMPORT_ERROR = str(exc)
+
+APP_VERSION = "Macabets v0.84 — UFC Analysis Foundation"
+BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -2713,7 +2726,7 @@ with tabs[0]:
             plt.close(fig)
 
 with tabs[1]:
-    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Analysis", "Outcome Simulator"])
+    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Analysis", "UFC Analysis", "Outcome Simulator"])
 
     with analysis_tabs[0]:
         st.subheader("Analysis Engine — Tennis")
@@ -5334,6 +5347,300 @@ with tabs[1]:
                         )
 
     with analysis_tabs[2]:
+        st.subheader("Analysis Engine — UFC")
+        st.caption(
+            "Compare two UFC fighters using Macabets Strength v0.2 as the ranking backbone. "
+            "This first UFC analysis layer establishes the fair moneyline and decision framework; "
+            "the dedicated striking, wrestling, grappling, durability and cardio matchup engine comes next."
+        )
+
+        if not UFC_ENGINE_AVAILABLE:
+            st.error(
+                "The UFC analysis engine could not be imported. Confirm that engine/ufc.py is in the repository. "
+                f"Import error: {UFC_ENGINE_IMPORT_ERROR}"
+            )
+        else:
+            try:
+                ufc_ratings = load_ufc_ratings()
+                ufc_fights = load_ufc_fights()
+                ufc_players = ufc_fighter_names(ufc_ratings)
+            except Exception as exc:
+                ufc_ratings = pd.DataFrame()
+                ufc_fights = pd.DataFrame()
+                ufc_players = []
+                st.error(str(exc))
+                st.info(
+                    "Run the GitHub Action named 'Update Macabets UFC Data', then reboot the Streamlit app."
+                )
+
+            if ufc_players:
+                ufc_divisions = sorted(
+                    ufc_ratings.loc[ufc_ratings["active_pool"], "division"]
+                    .dropna().astype(str).unique().tolist()
+                )
+                division_filter_options = ["All active UFC fighters"] + ufc_divisions
+                ufc_division_filter = st.selectbox(
+                    "Division filter",
+                    division_filter_options,
+                    key="ufc_division_filter",
+                )
+
+                if ufc_division_filter == "All active UFC fighters":
+                    filtered_ufc_players = ufc_players
+                else:
+                    filtered_ufc_players = sorted(
+                        ufc_ratings.loc[
+                            ufc_ratings["active_pool"]
+                            & ufc_ratings["division"].astype(str).eq(ufc_division_filter),
+                            "fighter",
+                        ].astype(str).tolist()
+                    )
+
+                if len(filtered_ufc_players) < 2:
+                    st.warning("This division does not currently have two active fighters in the UFC rating pool.")
+                else:
+                    uf1, uf2, uf3 = st.columns([2, 2, 1])
+                    ufc_fighter_a = uf1.selectbox(
+                        "Fighter A",
+                        filtered_ufc_players,
+                        index=0,
+                        key="ufc_fighter_a",
+                    )
+                    fighter_b_options = [name for name in filtered_ufc_players if name != ufc_fighter_a]
+                    ufc_fighter_b = uf2.selectbox(
+                        "Fighter B",
+                        fighter_b_options,
+                        index=0,
+                        key="ufc_fighter_b",
+                    )
+                    ufc_rounds = uf3.selectbox(
+                        "Scheduled rounds",
+                        [3, 5],
+                        index=0,
+                        key="ufc_rounds",
+                    )
+
+                    st.markdown("##### Sportsbook price")
+                    evaluate_ufc_price = st.checkbox(
+                        "Evaluate the current moneyline",
+                        value=False,
+                        key="ufc_evaluate_price",
+                    )
+                    if evaluate_ufc_price:
+                        uo1, uo2 = st.columns(2)
+                        ufc_market_a = int(uo1.number_input(
+                            f"Sportsbook odds — {ufc_fighter_a}",
+                            value=-110,
+                            step=5,
+                            key="ufc_market_a",
+                        ))
+                        ufc_market_b = int(uo2.number_input(
+                            f"Sportsbook odds — {ufc_fighter_b}",
+                            value=-110,
+                            step=5,
+                            key="ufc_market_b",
+                        ))
+                    else:
+                        ufc_market_a = None
+                        ufc_market_b = None
+
+                    ufc_considering = st.radio(
+                        "Who are you considering betting on?",
+                        ["Just analyze", ufc_fighter_a, ufc_fighter_b],
+                        horizontal=True,
+                        key="ufc_considering_bet",
+                        help="This does not influence the model. It only selects which market price Macabets evaluates.",
+                    )
+
+                    if st.button(
+                        "Analyze UFC Fight",
+                        type="primary",
+                        use_container_width=True,
+                        key="run_ufc_analysis",
+                    ):
+                        with st.spinner("Macabets is building the UFC matchup baseline..."):
+                            try:
+                                st.session_state["ufc_analysis_result"] = analyze_ufc_match(
+                                    ufc_fighter_a,
+                                    ufc_fighter_b,
+                                    rounds=int(ufc_rounds),
+                                    market_odds_a=ufc_market_a,
+                                    market_odds_b=ufc_market_b,
+                                    ratings=ufc_ratings,
+                                    fights=ufc_fights,
+                                )
+                                st.session_state["ufc_analysis_considering"] = ufc_considering
+                            except Exception as exc:
+                                st.session_state.pop("ufc_analysis_result", None)
+                                st.error(f"UFC analysis failed: {exc}")
+                                st.exception(exc)
+
+                    ufc_result = st.session_state.get("ufc_analysis_result")
+                    if ufc_result:
+                        fighter_a_name = str(ufc_result["fighter_a"])
+                        fighter_b_name = str(ufc_result["fighter_b"])
+                        probability_a = float(ufc_result["win_probability_a"])
+                        probability_b = float(ufc_result["win_probability_b"])
+                        projected_winner = str(ufc_result["projected_winner"])
+                        winner_probability = float(ufc_result["projected_winner_probability"])
+                        winner_fair = (
+                            int(ufc_result["fair_moneyline_a"])
+                            if projected_winner == fighter_a_name
+                            else int(ufc_result["fair_moneyline_b"])
+                        )
+
+                        st.markdown(f"### {fighter_a_name} vs {fighter_b_name}")
+                        st.caption(
+                            f"{ufc_result['division_context']} · {int(ufc_result['rounds'])} rounds · "
+                            f"{ufc_result['rating_version']}"
+                        )
+
+                        if not ufc_result.get("same_division", True):
+                            st.warning(
+                                "These fighters are currently assigned to different divisions. Treat the fair line as a broad "
+                                "cross-division strength comparison until a specific contracted weight is modeled."
+                            )
+
+                        st.markdown("## Macabets UFC Baseline")
+                        ub1, ub2, ub3, ub4 = st.columns(4)
+                        ub1.metric("Projected Winner", projected_winner)
+                        ub2.metric("Win Probability", f"{winner_probability:.1%}")
+                        ub3.metric("Fair Moneyline", format_american(winner_fair))
+                        ub4.metric(
+                            "Confidence",
+                            f"{int(ufc_result['confidence'])}/100",
+                            str(ufc_result["confidence_band"]),
+                        )
+
+                        st.info(
+                            "This is the UFC ranking baseline, not the finished matchup model. Macabets is intentionally "
+                            "capping confidence until the striking, wrestling, grappling, durability and cardio layers are active."
+                        )
+
+                        driver_col, risk_col = st.columns(2)
+                        with driver_col:
+                            st.markdown("#### Reasons for the lean")
+                            for item in ufc_result.get("reasons_for_lean", []):
+                                st.markdown(f"- {item}")
+                        with risk_col:
+                            st.markdown("#### What could flip it")
+                            for item in ufc_result.get("risk_factors", []):
+                                st.markdown(f"- {item}")
+
+                        st.markdown("### Fighter Strength")
+                        summary_a = ufc_result["fighter_a_summary"]
+                        summary_b = ufc_result["fighter_b_summary"]
+                        strength_rows = []
+                        for fighter_name, summary, probability, fair_ml in (
+                            (fighter_a_name, summary_a, probability_a, int(ufc_result["fair_moneyline_a"])),
+                            (fighter_b_name, summary_b, probability_b, int(ufc_result["fair_moneyline_b"])),
+                        ):
+                            rank = summary.get("division_rank")
+                            strength_rows.append({
+                                "Fighter": fighter_name,
+                                "Division": summary.get("division", "Unknown"),
+                                "Macabets Rank": f"#{rank}" if rank else "Unranked pool",
+                                "Strength": f"{float(summary.get('strength_score', 50.0)):.1f}",
+                                "UFC Record": summary.get("ufc_record", "—"),
+                                "Recent Form": f"{float(summary.get('recent_form', 50.0)):.1f}",
+                                "Ranking Confidence": f"{float(summary.get('ranking_confidence', 50.0)):.0f}/100",
+                                "Win Probability": f"{probability:.1%}",
+                                "Fair ML": format_american(fair_ml),
+                            })
+                        st.dataframe(pd.DataFrame(strength_rows), use_container_width=True, hide_index=True)
+
+                        st.markdown("### Recent UFC Performance Snapshot")
+                        profile_rows = []
+                        for fighter_name, profile in (
+                            (fighter_a_name, ufc_result.get("recent_profile_a", {})),
+                            (fighter_b_name, ufc_result.get("recent_profile_b", {})),
+                        ):
+                            sig_diff = profile.get("sig_str_diff_per_fight")
+                            td = profile.get("td_per_fight")
+                            kd = profile.get("kd_per_fight")
+                            sub_att = profile.get("sub_att_per_fight")
+                            profile_rows.append({
+                                "Fighter": fighter_name,
+                                "Recent Sample": int(profile.get("sample", 0)),
+                                "Recent Record": profile.get("record", "0-0"),
+                                "Finish Rate in Wins": f"{float(profile.get('finish_rate', 0.0)):.0%}",
+                                "Sig. Strike Diff / Fight": "—" if sig_diff is None else f"{float(sig_diff):+.1f}",
+                                "Knockdowns / Fight": "—" if kd is None else f"{float(kd):.2f}",
+                                "Takedowns / Fight": "—" if td is None else f"{float(td):.2f}",
+                                "Sub Attempts / Fight": "—" if sub_att is None else f"{float(sub_att):.2f}",
+                            })
+                        st.dataframe(pd.DataFrame(profile_rows), use_container_width=True, hide_index=True)
+                        st.caption(
+                            "Performance totals are descriptive in UFC Analysis v0.1. They do not change the fair line yet, "
+                            "which prevents the same recent results from being counted twice before the opponent-adjusted style engine is built."
+                        )
+
+                        st.markdown("### Baseline Matchup Breakdown")
+                        matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
+                        if not matchup_rows.empty:
+                            display = matchup_rows.rename(columns={
+                                "category": "Category",
+                                "advantage": "Advantage",
+                                "strength": "Edge",
+                                "why": "Why it matters",
+                            })
+                            cols = [c for c in ["Category", "Advantage", "Edge", "Why it matters"] if c in display.columns]
+                            st.dataframe(display[cols], use_container_width=True, hide_index=True)
+
+                        market = ufc_result.get("market") or {}
+                        if market.get("available"):
+                            st.markdown("### Moneyline Evaluation")
+                            considered = st.session_state.get("ufc_analysis_considering", "Just analyze")
+                            market_rows = [
+                                {
+                                    "Fighter": fighter_a_name,
+                                    "Market": format_american(int(market["market_odds_a"])),
+                                    "Fair": format_american(int(ufc_result["fair_moneyline_a"])),
+                                    "No-Vig Edge": f"{float(market['edge_a']):+.1%}",
+                                    "Estimated ROI": f"{float(market['roi_a']):+.1%}",
+                                    "Verdict": market["verdict_a"],
+                                },
+                                {
+                                    "Fighter": fighter_b_name,
+                                    "Market": format_american(int(market["market_odds_b"])),
+                                    "Fair": format_american(int(ufc_result["fair_moneyline_b"])),
+                                    "No-Vig Edge": f"{float(market['edge_b']):+.1%}",
+                                    "Estimated ROI": f"{float(market['roi_b']):+.1%}",
+                                    "Verdict": market["verdict_b"],
+                                },
+                            ]
+                            st.dataframe(pd.DataFrame(market_rows), use_container_width=True, hide_index=True)
+                            if considered in {fighter_a_name, fighter_b_name}:
+                                side = "a" if considered == fighter_a_name else "b"
+                                verdict = str(market[f"verdict_{side}"])
+                                roi_value = float(market[f"roi_{side}"])
+                                if verdict == "BET":
+                                    st.success(
+                                        f"{considered}: BET at the entered price on the current baseline — estimated ROI {roi_value:+.1%}. "
+                                        "Because the style engine is not finished, treat this as a price-screening signal rather than a final UFC release."
+                                    )
+                                elif verdict == "WATCH":
+                                    st.warning(
+                                        f"{considered}: WATCH. The baseline sees some price value ({roi_value:+.1%} estimated ROI), "
+                                        "but not enough to clear the current bet threshold cleanly."
+                                    )
+                                else:
+                                    st.info(
+                                        f"{considered}: PASS at the entered price. The baseline estimated ROI is {roi_value:+.1%}."
+                                    )
+                            else:
+                                st.caption("Select a fighter under bet consideration to receive a direct side-specific price verdict.")
+                        else:
+                            st.caption("Turn on 'Evaluate the current moneyline' to compare sportsbook prices with the UFC fair line.")
+
+                        with st.expander("UFC model audit and current limitations", expanded=False):
+                            audit_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
+                            if not audit_rows.empty:
+                                st.dataframe(audit_rows, use_container_width=True, hide_index=True)
+                            for limitation in ufc_result.get("limitations", []):
+                                st.caption(f"• {limitation}")
+
+    with analysis_tabs[3]:
         st.subheader("Outcome Simulator")
         r1, r2, r3, r4 = st.columns(4)
         sim_bankroll = r1.number_input("Simulation bankroll", min_value=100.0, value=float(current_bankroll), step=1000.0)
