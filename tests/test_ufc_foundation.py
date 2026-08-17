@@ -73,3 +73,26 @@ def test_opponent_quality_drives_rating_order():
     assert lookup.loc["Strong", "macabets_rating"] > lookup.loc["Mid", "macabets_rating"] > lookup.loc["Weak", "macabets_rating"]
     assert lookup.loc["Strong", "division_rank"] == 1
     assert lookup.loc["Strong", "strength_score"] > 50
+
+CURRENT_EVENTS_HTML = """
+<table>
+<tr class="b-statistics__table-row_type_first">
+<td class="b-statistics__table-col">
+  <i class="b-statistics__table-content">
+    <a href="http://ufcstats.com/event-details/current123">UFC Current Layout</a>
+    <span class="b-statistics__date">August 16, 2026</span>
+  </i>
+</td>
+<td class="b-statistics__table-col">Chicago, Illinois, USA</td>
+</tr>
+</table>
+"""
+
+
+def test_completed_events_parser_handles_current_ufcstats_cell_layout():
+    events = parse_completed_events(CURRENT_EVENTS_HTML)
+    assert len(events) == 1
+    assert events.iloc[0]["event_name"] == "UFC Current Layout"
+    assert events.iloc[0]["event_date"] == "2026-08-16"
+    assert events.iloc[0]["location"] == "Chicago, Illinois, USA"
+    assert events.iloc[0]["event_url"].startswith("https://ufcstats.com/event-details/")
