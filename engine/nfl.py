@@ -314,13 +314,21 @@ def analyze(
         market_edge_points=spread_edge,
         moneyline_edge_home=moneyline_edge_home,
         game_script=(
-            f"Macabets projects {projected_winner} to win. {top_reason} "
-            + (
-                f"Personnel matchups add {personnel_side_adjustment:+.1f} points to the home-side margin. "
-                if abs(personnel_side_adjustment) >= 0.25 else
-                "Personnel matchups are close enough that they make only a minor line adjustment. "
+            (
+                f"{projected_winner} is the more likely winner, but Macabets sees only a small separation between these teams. "
+                if abs(projected_home_margin) < 3.0
+                else f"{projected_winner} is the more likely winner and holds the clearer overall matchup profile. "
             )
-            + f"The model's fair home line is {home_team} {fair_spread_home:+.1f}."
+            + (
+                "The edge comes from the full matchup picture rather than one overwhelming mismatch. "
+                if abs(projected_home_margin) < 6.0
+                else "Several parts of the matchup point in the same direction, creating a more meaningful overall edge. "
+            )
+            + (
+                f"Macabets makes the fair line {home_team} {fair_spread_home:+.1f}, pointing to a competitive game where execution, turnovers and late-game variance could decide it."
+                if abs(fair_spread_home) < 3.0
+                else f"Macabets makes the fair line {home_team} {fair_spread_home:+.1f}."
+            )
         ),
         decisive_factors=decisive,
         why_home_can_win=[

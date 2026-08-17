@@ -62,12 +62,12 @@ def _data_mode(personnel_context: Mapping[str, Any]) -> tuple[str, str]:
     if fallback:
         return (
             "Preseason — Madden-heavy",
-            f"Madden 27 is the primary personnel prior; {active or 'prior-season'} NFL performance is capped at {cap:.0%} while {requested or 'current-season'} data is unavailable.",
+            f"Preseason mode: Madden 27 provides the personnel baseline, with {active or 'prior-season'} NFL performance used only as a limited supporting prior until {requested or 'current-season'} data is available.",
         )
     if cap > 0:
         return (
             "Current-season blend",
-            f"Current NFL performance is active and can supply up to {cap:.0%} of player-level evaluation where the sample is available.",
+            f"Current-season NFL performance is active and increasingly drives player evaluation as the sample grows. Madden remains a supporting talent baseline where needed.",
         )
     return (
         str(personnel_context.get("data_mode") or "Madden-heavy personnel baseline"),
@@ -440,8 +440,14 @@ def build_matchup_intelligence(
         "top_drivers": top_drivers,
         "questions": questions,
         "summary": (
-            f"{overall_leader if overall_leader != 'Even' else 'Neither team'} holds the {overall_strength.lower()} overall football edge "
-            f"after baseline team strength, opponent-specific personnel matchups, scheme compatibility, real line-of-scrimmage interaction, opponent-adjusted performance and game context are combined without category-count scoring."
+            (
+                "Neither team has a meaningful overall matchup advantage. The major personnel, scheme, trench, opponent-adjusted and game-context signals largely offset each other."
+            )
+            if overall_leader == "Even"
+            else (
+                f"{overall_leader} has a {overall_strength.lower()} overall matchup advantage. "
+                "The edge comes from the combined personnel, scheme, trench, opponent-adjusted and game-context profile rather than one isolated metric."
+            )
         ),
         "guardrail": "Team-level performance enters base power once. Unit mismatches, starter-trait compatibility, scheme compatibility, real line-of-scrimmage interaction and opponent-quality correction are small refinements with hard caps; the same talent or performance signal is never re-awarded at full strength.",
     }
