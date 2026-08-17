@@ -1635,7 +1635,7 @@ def build_nfl_category_verdicts(away_team, home_team, team_ratings):
             grade(home, "special_teams"),
         ),
         (
-            "Depth / Continuity",
+            "Roster Continuity",
             grade(away, "continuity"),
             grade(home, "continuity"),
         ),
@@ -1710,7 +1710,7 @@ def build_nfl_explanation_report(nfl_result, projected_winner, category_verdicts
             "Overall Defense": f"{team} carries the more dependable overall defensive profile.",
             "Coaching": f"{team} has the coaching edge in adjustments, clock management and late-game decisions.",
             "Special Teams": f"{team} has the special-teams advantage and the better chance to win hidden-yardage situations.",
-            "Depth / Continuity": f"{team} has the stronger depth and continuity profile.",
+            "Roster Continuity": f"{team} returns more of its current starting core from last season.",
         }
         return templates.get(category, f"{team} has a {strength} advantage in {category.lower()}.")
 
@@ -4006,7 +4006,7 @@ with tabs[1]:
                 profile2.metric("Offense", f"{selected_profile['offense']:.1f}")
                 profile3.metric("Defense", f"{selected_profile['defense']:.1f}")
                 profile4.metric("Coaching", f"{selected_profile['coaching']:.1f}")
-                profile5.metric("Continuity", f"{selected_profile['continuity']:.1f}")
+                profile5.metric("Roster Continuity", f"{selected_profile['continuity']:.1f}")
 
                 unit_labels = {
                     "quarterback": "Quarterback",
