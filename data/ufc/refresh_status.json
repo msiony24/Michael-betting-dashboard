@@ -1,7 +1,7 @@
 {
   "source": "UFCStats last-good cache",
   "source_url": "https://ufcstats.com/statistics/events/completed?page=all",
-  "refreshed_at_utc": "2026-08-17T18:38:59.098747+00:00",
+  "refreshed_at_utc": "2026-08-17T19:56:35.405984+00:00",
   "latest_event_date": "2026-08-08",
   "fighter_fight_rows": 15102,
   "unique_fights": 7551,
@@ -12,5 +12,7 @@
   "active_pool_fighters": 801,
   "data_mode": "cached_fallback",
   "live_source_error": "UFCStatsError: Unable to fetch UFCStats after 4 attempts: https://ufcstats.com/statistics/events/completed?page=all",
-  "notes": "Macabets UFC Strength v0.2: global + division-specific opponent-adjusted Elo, sample-size shrinkage, recency/form, strength of schedule, and inactivity. Catch-weight bouts count toward global strength but never create a ranking division. Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners are refused, with the public mirror used to bootstrap an empty repository."
+  "fighter_profile_data_mode": "mirror_fresh",
+  "fighter_profiles": 4587,
+  "notes": "Macabets UFC Strength v0.2 + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, sample-size shrinkage, recency/form, strength of schedule, and inactivity. Catch-weight bouts count toward global strength but never create a ranking division. The mirror bootstrap now also preserves landed/attempted striking, takedown, control, and strike-location data for the performance engine. The tracked UFCStats individuals mirror supplies date of birth, height, reach, weight, and stance for the Physical & Context layer, with a last-good local cache fallback. Live UFCStats is preferred; last-good cache is preserved when GitHub-hosted runners are refused, with the public mirror used to bootstrap an empty repository."
 }
