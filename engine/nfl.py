@@ -56,6 +56,131 @@ def spread_to_home_probability(home_margin: float) -> float:
     return 1.0 / (1.0 + math.exp(-float(home_margin) / 8.25))
 
 
+
+
+def _safe_num(value, default=0.0) -> float:
+    try:
+        if value is None:
+            return float(default)
+        return float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def _build_expected_game_script(
+    *,
+    away_team: str,
+    home_team: str,
+    projected_winner: str,
+    projected_home_margin: float,
+    fair_total: float,
+    projected_away_score: float,
+    projected_home_score: float,
+    matchup_intelligence: dict,
+    scheme_context: dict,
+    los_context: dict,
+    situational_context: dict,
+    opponent_context: dict,
+    simulation_context: dict,
+) -> str:
+    """Turn the model's existing matchup evidence into an actual game-flow forecast.
+
+    This is presentation only: it does not create a new adjustment or feed back
+    into the projection. Every statement is derived from signals that have
+    already been scored elsewhere in the NFL engine.
+    """
+    favorite = projected_winner
+    underdog = away_team if favorite == home_team else home_team
+    margin = abs(float(projected_home_margin))
+    one_score = _safe_num(simulation_context.get("one_score_probability"), 0.0)
+    upset = _safe_num(simulation_context.get("upset_probability"), 0.0)
+    volatility = str(simulation_context.get("volatility") or "Moderate").lower()
+
+    if fair_total <= 41.5:
+        scoring_shape = "a lower-scoring game where possessions carry extra weight"
+    elif fair_total >= 50.0:
+        scoring_shape = "a higher-scoring game with more room for explosive swings"
+    else:
+        scoring_shape = "a balanced scoring environment"
+
+    if margin < 3.0 or one_score >= 0.55:
+        closeness = "a one-score game deep into the fourth quarter"
+    elif margin < 6.0 or one_score >= 0.42:
+        closeness = "a competitive game that is likely to stay within reach into the second half"
+    elif margin >= 7.0:
+        closeness = f"{favorite} creating separation if its early advantages hold"
+    else:
+        closeness = "a competitive game with a modest chance of late separation"
+
+    # Offensive identity / pace comes from the scheme layer when available.
+    pace_bits = []
+    if scheme_context.get("available"):
+        for team_name, profile in ((away_team, scheme_context.get("away") or {}), (home_team, scheme_context.get("home") or {})):
+            edp = profile.get("early_down_pass_rate")
+            spp = profile.get("seconds_per_play")
+            identity = None
+            try:
+                edp = float(edp)
+                identity = "pass-leaning" if edp >= 0.62 else "run-leaning" if edp <= 0.50 else "balanced"
+            except (TypeError, ValueError):
+                pass
+            pace = None
+            try:
+                spp = float(spp)
+                pace = "faster tempo" if spp < 27.0 else "slower tempo" if spp > 31.0 else "average tempo"
+            except (TypeError, ValueError):
+                pass
+            if identity and pace:
+                pace_bits.append(f"{team_name} projects as {identity} at {pace}")
+            elif identity:
+                pace_bits.append(f"{team_name} projects as {identity}")
+    opening = (
+        f"Macabets expects {scoring_shape}, with {closeness}. "
+        + (("; ".join(pace_bits[:2]) + ". ") if pace_bits else "")
+    )
+
+    # Pull the strongest already-scored football drivers for each side.
+    top_drivers = list(matchup_intelligence.get("top_drivers") or [])
+    fav_drivers = [str(d.get("factor")) for d in top_drivers if str(d.get("leader")) == favorite][:2]
+    dog_drivers = [str(d.get("factor")) for d in top_drivers if str(d.get("leader")) == underdog][:2]
+
+    extra_contexts = [
+        ("player-style matchup", matchup_intelligence.get("overall_style_advantage")),
+        ("scheme fit", scheme_context.get("overall_advantage") if scheme_context.get("available") else None),
+        ("line-of-scrimmage matchup", los_context.get("overall_advantage") if los_context.get("available") else None),
+        ("situational execution", situational_context.get("overall_advantage") if situational_context.get("available") else None),
+        ("opponent-adjusted performance", opponent_context.get("overall_advantage") if opponent_context.get("available") else None),
+    ]
+    fav_context = [label for label, leader in extra_contexts if leader == favorite]
+    dog_context = [label for label, leader in extra_contexts if leader == underdog]
+
+    fav_reasons = fav_drivers + [x for x in fav_context if x not in fav_drivers]
+    dog_reasons = dog_drivers + [x for x in dog_context if x not in dog_drivers]
+    fav_reason_text = ", ".join(fav_reasons[:3]) if fav_reasons else "the stronger overall matchup profile"
+    dog_reason_text = ", ".join(dog_reasons[:2]) if dog_reasons else "creating turnovers or explosive plays"
+
+    favorite_path = (
+        f"**Most likely winning path — {favorite}:** control the areas where Macabets sees the clearest edge — "
+        f"{fav_reason_text} — stay on schedule, and avoid giving the underdog short fields."
+    )
+    upset_path = (
+        f"**Upset path — {underdog}:** lean into {dog_reason_text}, create an early swing play, and force {favorite} "
+        f"out of its preferred script. The simulation still gives the underdog roughly {upset:.0%} of outcomes."
+    )
+
+    if margin < 3.0 or one_score >= 0.50:
+        finish = (
+            f"**Most likely finish:** Macabets sees this as close late, with {favorite} holding the better chance to execute the final decisive possessions. "
+            f"The center of the projection is {away_team} {projected_away_score:.1f} – {home_team} {projected_home_score:.1f}, with {volatility} simulation volatility."
+        )
+    else:
+        finish = (
+            f"**Most likely finish:** if {favorite} gets ahead and keeps its matchup advantages intact, it has the better path to create separation in the second half. "
+            f"The center of the projection is {away_team} {projected_away_score:.1f} – {home_team} {projected_home_score:.1f}, with {volatility} simulation volatility."
+        )
+
+    return opening + "\n\n" + favorite_path + "\n\n" + upset_path + "\n\n" + finish
+
 def _market_no_vig_home_probability(away_odds: int, home_odds: int) -> float:
     away = american_to_probability(away_odds)
     home = american_to_probability(home_odds)
@@ -313,22 +438,20 @@ def analyze(
         recommendation=recommendation,
         market_edge_points=spread_edge,
         moneyline_edge_home=moneyline_edge_home,
-        game_script=(
-            (
-                f"{projected_winner} is the more likely winner, but Macabets sees only a small separation between these teams. "
-                if abs(projected_home_margin) < 3.0
-                else f"{projected_winner} is the more likely winner and holds the clearer overall matchup profile. "
-            )
-            + (
-                "The edge comes from the full matchup picture rather than one overwhelming mismatch. "
-                if abs(projected_home_margin) < 6.0
-                else "Several parts of the matchup point in the same direction, creating a more meaningful overall edge. "
-            )
-            + (
-                f"Macabets makes the fair line {home_team} {fair_spread_home:+.1f}, pointing to a competitive game where execution, turnovers and late-game variance could decide it."
-                if abs(fair_spread_home) < 3.0
-                else f"Macabets makes the fair line {home_team} {fair_spread_home:+.1f}."
-            )
+        game_script=_build_expected_game_script(
+            away_team=away_team,
+            home_team=home_team,
+            projected_winner=projected_winner,
+            projected_home_margin=projected_home_margin,
+            fair_total=fair_total,
+            projected_away_score=projected_away,
+            projected_home_score=projected_home,
+            matchup_intelligence=matchup_intelligence,
+            scheme_context=scheme_context,
+            los_context=los_context,
+            situational_context=situational_context,
+            opponent_context=opponent_adjusted_context,
+            simulation_context=simulation_context,
         ),
         decisive_factors=decisive,
         why_home_can_win=[
