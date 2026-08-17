@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 import math
 from typing import Any
@@ -15,12 +16,13 @@ from engine.ufc_performance import (
     matchup_performance_adjustment,
 )
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
+from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighter_profiles
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.3"
+MODEL_VERSION = "Macabets UFC Analysis v0.4"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -445,14 +447,16 @@ def analyze(
     market_odds_b: int | None = None,
     ratings: pd.DataFrame | None = None,
     fights: pd.DataFrame | None = None,
+    profiles: pd.DataFrame | None = None,
+    fight_date: date | datetime | str | None = None,
     config: UFCAnalysisConfig | None = None,
 ) -> dict[str, Any]:
     """Build the first Macabets UFC matchup report.
 
-    v0.1 deliberately uses Strength v0.2 as the only probability-driving football-equivalent
-    baseline. Recent form and strength of schedule are shown as supporting evidence because they
-    already influence the rating architecture; awarding them again would double count them.
-    Detailed striking/wrestling/grappling/style adjustments belong to the next engine layer.
+    Strength v0.2 remains the baseline. Underlying performance, opponent-specific style,
+    and physical/fight-context layers can move the fair probability only inside explicit caps.
+    Recency, schedule strength, and long-layoff inactivity are not re-awarded because they already
+    influence the rating backbone.
     """
     config = config or UFCAnalysisConfig()
     if str(fighter_a).strip().casefold() == str(fighter_b).strip().casefold():
@@ -495,12 +499,28 @@ def analyze(
     )
     style_adjustment_a = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
 
+    context_profiles = load_fighter_profiles() if profiles is None else profiles.copy()
+    fight_context = build_fight_context(
+        fighter_a,
+        fighter_b,
+        ratings,
+        fights,
+        profiles=context_profiles,
+        rounds=int(rounds),
+        fight_date=fight_date,
+    )
+    context_adjustment_a = float(fight_context.get("adjustment_a", 0.0) or 0.0)
+
     # Performance and style are correlated because both originate in UFCStats. Keep a
-    # hard combined cap so the two layers cannot collectively overwhelm the Strength baseline.
+    # hard correlated cap, then add the independent physical/context layer under a
+    # global cap so no collection of small modifiers can overwhelm fighter strength.
     combined_matchup_adjustment_a = float(
         np.clip(performance_adjustment_a + style_adjustment_a, -0.075, 0.075)
     )
-    probability_a = _clip(baseline_probability_a + combined_matchup_adjustment_a, 0.08, 0.92)
+    total_adjustment_a = float(
+        np.clip(combined_matchup_adjustment_a + context_adjustment_a, -0.09, 0.09)
+    )
+    probability_a = _clip(baseline_probability_a + total_adjustment_a, 0.08, 0.92)
     probability_b = 1.0 - probability_a
 
     confidence, confidence_band = _confidence(row_a, row_b, probability_a, config)
@@ -510,12 +530,14 @@ def analyze(
             confidence = min(config.max_confidence + 4, confidence + 3)
         elif perf_reliability >= 0.50:
             confidence = min(config.max_confidence + 2, confidence + 1)
-        if confidence >= 72:
-            confidence_band = "High developing-model confidence"
-        elif confidence >= 60:
-            confidence_band = "Moderate developing-model confidence"
-        else:
-            confidence_band = "Limited developing-model confidence"
+    confidence += int(fight_context.get("confidence_modifier", 0) or 0)
+    confidence = int(_clip(confidence, config.min_confidence, config.max_confidence + 4))
+    if confidence >= 72:
+        confidence_band = "High developing-model confidence"
+    elif confidence >= 60:
+        confidence_band = "Moderate developing-model confidence"
+    else:
+        confidence_band = "Limited developing-model confidence"
     fair_a = _probability_to_american(probability_a)
     fair_b = _probability_to_american(probability_b)
 
@@ -565,6 +587,25 @@ def analyze(
                 "The style interaction layer is based on a limited or incomplete detailed-stat sample, so Macabets heavily shrinks the matchup adjustment.",
             )
 
+    if fight_context.get("available"):
+        context_adj = float(fight_context.get("adjustment_a", 0.0) or 0.0)
+        if abs(context_adj) >= 0.002:
+            context_side = fighter_a if context_adj > 0 else fighter_b
+            reasons.insert(
+                0,
+                f"{context_side} owns a modest physical/fight-context edge; the capped context layer moves the fair probability by {abs(context_adj):.1%}.",
+            )
+        if fight_context.get("fighter_a_weight_class_transition") or fight_context.get("fighter_b_weight_class_transition"):
+            risks.insert(
+                0,
+                "Recent weight-class movement adds matchup uncertainty, so Macabets reduces confidence instead of assigning an automatic advantage to moving up or down.",
+            )
+        if float(fight_context.get("reliability", 0.0) or 0.0) < 0.65:
+            risks.insert(
+                0,
+                "Physical profile coverage is incomplete for one or both fighters, so reach/height/age context is heavily shrunk.",
+            )
+
     reasons = reasons[:4]
     risks = risks[:4]
     market = _market_evaluation(
@@ -585,9 +626,10 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + underlying performance + style matchup",
+        "model_stage": "Ranking + underlying performance + style matchup + physical/context",
         "performance_version": PERFORMANCE_VERSION,
         "style_version": STYLE_VERSION,
+        "context_version": CONTEXT_VERSION,
         "fighter_a": fighter_a,
         "fighter_b": fighter_b,
         "rounds": int(rounds),
@@ -602,7 +644,9 @@ def analyze(
         "ranking_baseline_probability_a": baseline_probability_a,
         "performance_adjustment_a": performance_adjustment_a,
         "style_adjustment_a": style_adjustment_a,
+        "context_adjustment_a": context_adjustment_a,
         "combined_matchup_adjustment_a": combined_matchup_adjustment_a,
+        "total_adjustment_a": total_adjustment_a,
         "fair_moneyline_a": fair_a,
         "fair_moneyline_b": fair_b,
         "confidence": confidence,
@@ -637,14 +681,16 @@ def analyze(
         "performance_profile_b": performance_b,
         "performance_matchup": performance_matchup,
         "style_matchup": style_matchup,
+        "fight_context": fight_context,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
         "reasons_for_lean": reasons,
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.3 combines the Strength v0.2 baseline with a capped underlying-performance layer and a separate opponent-specific style interaction layer.",
+            "v0.4 combines Strength v0.2, underlying performance, opponent-specific style interactions, and a separately capped physical/fight-context layer.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
-            "Performance is capped at ±5 percentage points, Style Matchups at ±3, and their correlated combined impact at ±7.5 percentage points.",
-            "Three-round versus five-round context changes performance/style weighting modestly; true round-by-round cardio decay, physical measurements, stance and short-notice context remain future layers.",
+            "Performance is capped at ±5 percentage points, Style Matchups at ±3, their correlated combined impact at ±7.5, Physical & Context at ±2, and the total non-rating adjustment at ±9 percentage points.",
+            "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
+            "Short-notice/replacement-fighter context still requires a reliable booking/notice-date source and is not guessed from fight history.",
         ],
     }
