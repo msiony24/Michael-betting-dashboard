@@ -86,7 +86,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.91 — UFC Archive Integration"
+APP_VERSION = "Macabets v0.92 — UFC Settlement Tracking"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -2142,6 +2142,50 @@ def _analysis_price_assessment(row):
 def _analysis_verdict(row):
     """Show the new verdict language and replace legacy recommendation strings."""
     return _analysis_pricing_report(row)["verdict"]
+
+
+def _ufc_derivative_performance(row):
+    """Read the evaluated UFC derivative market and its automatic settlement result.
+
+    UFC derivative grades deliberately live inside the frozen analysis snapshot so the
+    existing Analysis Log schema remains the source of truth and does not need a parallel
+    UFC table.
+    """
+    if str(row.get("sport", "")) != "UFC":
+        return {}
+
+    snapshot = row.get("analysis_snapshot") or {}
+    if isinstance(snapshot, str):
+        try:
+            snapshot = json.loads(snapshot)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            snapshot = {}
+    if not isinstance(snapshot, dict):
+        return {}
+
+    evaluation = snapshot.get("derivative_evaluation") or {}
+    settlement = snapshot.get("settlement") or {}
+    derivative = settlement.get("derivative") or {} if isinstance(settlement, dict) else {}
+    if not isinstance(evaluation, dict) or not evaluation.get("available"):
+        return {}
+
+    primary = evaluation.get("primary") or {}
+    secondary = evaluation.get("secondary") or {}
+    return {
+        "market_key": str(evaluation.get("market_key") or ""),
+        "market_type": str(evaluation.get("market_type") or ""),
+        "primary_label": str(evaluation.get("primary_label") or ""),
+        "primary_odds": primary.get("market_odds") if isinstance(primary, dict) else None,
+        "primary_verdict": str(primary.get("verdict") or "") if isinstance(primary, dict) else "",
+        "primary_result": str(derivative.get("primary_status") or "Pending") if isinstance(derivative, dict) else "Pending",
+        "secondary_label": str(evaluation.get("secondary_label") or ""),
+        "secondary_odds": secondary.get("market_odds") if isinstance(secondary, dict) else None,
+        "secondary_verdict": str(secondary.get("verdict") or "") if isinstance(secondary, dict) else "",
+        "secondary_result": str(derivative.get("secondary_status") or "Pending") if isinstance(derivative, dict) and secondary else "",
+        "actual_method": str(derivative.get("actual_method") or "") if isinstance(derivative, dict) else "",
+        "actual_round": derivative.get("actual_round") if isinstance(derivative, dict) else None,
+        "actual_time": str(derivative.get("actual_time") or "") if isinstance(derivative, dict) else "",
+    }
 
 
 def _analysis_price_verdict_explanation(row):
@@ -6934,6 +6978,7 @@ with tabs[4]:
                 except (TypeError, ValueError):
                     confidence = float("nan")
                 event_date = pd.to_datetime(row.get("event_date") or row.get("created_at"), errors="coerce")
+                ufc_derivative = _ufc_derivative_performance(row)
                 pc_records.append({
                     "ID": row.get("id", ""),
                     "Date": event_date,
@@ -6954,6 +6999,16 @@ with tabs[4]:
                     "Prediction Result": result,
                     "Flat Units": _pc_flat_units(result, odds),
                     "Model Version": str(row.get("model_version", "")),
+                    "Derivative Market": ufc_derivative.get("primary_label", ""),
+                    "Derivative Result": ufc_derivative.get("primary_result", ""),
+                    "Derivative Odds": ufc_derivative.get("primary_odds"),
+                    "Derivative Verdict": ufc_derivative.get("primary_verdict", ""),
+                    "Derivative Secondary": ufc_derivative.get("secondary_label", ""),
+                    "Derivative Secondary Result": ufc_derivative.get("secondary_result", ""),
+                    "Derivative Secondary Odds": ufc_derivative.get("secondary_odds"),
+                    "UFC Actual Method": ufc_derivative.get("actual_method", ""),
+                    "UFC Actual Round": ufc_derivative.get("actual_round"),
+                    "UFC Actual Time": ufc_derivative.get("actual_time", ""),
                 })
 
             pc_all = pd.DataFrame(pc_records)
@@ -7076,6 +7131,65 @@ with tabs[4]:
                 c6.metric("Flat ROI", f"{core_roi:+.1%}" if core_roi is not None else "—")
                 st.caption(f"Core Zone graded sample: {len(core_graded)}. Flat-unit ROI assumes a 1-unit stake on every graded prediction at the saved Actual Line.")
 
+                ufc_derivative_rows = []
+                for _, ufc_row in pc_filtered.loc[pc_filtered["Sport"] == "UFC"].iterrows():
+                    for prefix in ("", "Secondary"):
+                        if prefix:
+                            label = str(ufc_row.get("Derivative Secondary", "") or "").strip()
+                            status = str(ufc_row.get("Derivative Secondary Result", "") or "").strip()
+                            odds_value = ufc_row.get("Derivative Secondary Odds")
+                            verdict_value = ""
+                        else:
+                            label = str(ufc_row.get("Derivative Market", "") or "").strip()
+                            status = str(ufc_row.get("Derivative Result", "") or "").strip()
+                            odds_value = ufc_row.get("Derivative Odds")
+                            verdict_value = str(ufc_row.get("Derivative Verdict", "") or "").strip()
+                        if not label:
+                            continue
+                        derivative_result = "Correct" if status == "Won" else ("Incorrect" if status == "Lost" else status or "Pending")
+                        try:
+                            derivative_odds = int(float(odds_value)) if odds_value not in (None, "", 0) else None
+                        except (TypeError, ValueError):
+                            derivative_odds = None
+                        ufc_derivative_rows.append({
+                            "Date": ufc_row.get("Date"),
+                            "Event": ufc_row.get("Event"),
+                            "Market": label,
+                            "Odds": derivative_odds,
+                            "Verdict": verdict_value,
+                            "Result": derivative_result,
+                            "Flat Units": _pc_flat_units(derivative_result, derivative_odds),
+                            "Actual Method": ufc_row.get("UFC Actual Method", ""),
+                            "Actual Round": ufc_row.get("UFC Actual Round", ""),
+                            "Actual Time": ufc_row.get("UFC Actual Time", ""),
+                        })
+
+                if ufc_derivative_rows:
+                    ufc_derivative_frame = pd.DataFrame(ufc_derivative_rows)
+                    ufc_derivative_graded = ufc_derivative_frame[ufc_derivative_frame["Result"].isin(["Correct", "Incorrect"])].copy()
+                    derivative_wins = int((ufc_derivative_graded["Result"] == "Correct").sum())
+                    derivative_losses = int((ufc_derivative_graded["Result"] == "Incorrect").sum())
+                    derivative_accuracy = derivative_wins / len(ufc_derivative_graded) if len(ufc_derivative_graded) else None
+                    derivative_units = float(ufc_derivative_graded["Flat Units"].dropna().sum()) if not ufc_derivative_graded.empty else 0.0
+                    derivative_roi = derivative_units / len(ufc_derivative_graded) if len(ufc_derivative_graded) else None
+                    st.markdown("### UFC Derivative Performance")
+                    d1, d2, d3, d4 = st.columns(4)
+                    d1.metric("Record", f"{derivative_wins}-{derivative_losses}")
+                    d2.metric("Win %", f"{derivative_accuracy:.1%}" if derivative_accuracy is not None else "—")
+                    d3.metric("Flat Units", f"{derivative_units:+.2f}u")
+                    d4.metric("Flat ROI", f"{derivative_roi:+.1%}" if derivative_roi is not None else "—")
+                    st.caption(
+                        "UFC method, distance and round-total results are graded automatically from the same settled fight result. "
+                        "This table is downstream of the existing Analysis Log; it is not a separate prediction database."
+                    )
+                    derivative_display = ufc_derivative_frame.copy().sort_values("Date", ascending=False)
+                    derivative_display["Date"] = pd.to_datetime(derivative_display["Date"], errors="coerce").dt.strftime("%B %d, %Y").str.replace(" 0", " ", regex=False)
+                    st.dataframe(
+                        derivative_display[["Date", "Event", "Market", "Odds", "Verdict", "Result", "Actual Method", "Actual Round", "Actual Time"]],
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
                 def _pc_group_table(frame, group_col, order=None):
                     rows = []
                     groups = order or [x for x in frame[group_col].dropna().unique().tolist() if x]
@@ -7146,6 +7260,7 @@ with tabs[4]:
                 display_cols = [
                     "Date", "Sport", "Event", "Prediction", "Market", "Actual Line", "Core Zone",
                     "Fair Line", "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
+                    "Derivative Market", "Derivative Result",
                 ]
                 display_frame = prediction_view[display_cols].copy().sort_values("Date", ascending=False)
                 display_frame["Date"] = display_frame["Date"].dt.strftime("%B %d, %Y").str.replace(" 0", " ", regex=False)
@@ -7155,7 +7270,9 @@ with tabs[4]:
                     "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction", "Market",
                     "Actual Line", "Core Zone", "Market Implied %", "Fair Line",
                     "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
-                    "Model Version",
+                    "Derivative Market", "Derivative Odds", "Derivative Verdict", "Derivative Result",
+                    "Derivative Secondary", "Derivative Secondary Odds", "Derivative Secondary Result",
+                    "UFC Actual Method", "UFC Actual Round", "UFC Actual Time", "Model Version",
                 ]
                 export_all = pc_all[export_cols].copy()
                 export_filtered = prediction_view[export_cols].copy()
