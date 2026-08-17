@@ -8,11 +8,18 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from engine.ufc_performance import (
+    PERFORMANCE_VERSION,
+    build_performance_table,
+    fighter_performance,
+    matchup_performance_adjustment,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.1"
+MODEL_VERSION = "Macabets UFC Analysis v0.2"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -456,6 +463,12 @@ def analyze(
     fights = load_ufc_fights() if fights is None else fights.copy()
     if "event_date" in fights:
         fights["event_date"] = pd.to_datetime(fights["event_date"], errors="coerce")
+    performance_table = build_performance_table(fights, ratings)
+    performance_a = fighter_performance(performance_table, fighter_a)
+    performance_b = fighter_performance(performance_table, fighter_b)
+    performance_matchup = matchup_performance_adjustment(
+        performance_a, performance_b, rounds=int(rounds)
+    )
     fights = _attach_opponent_stats(fights)
 
     row_a = _fighter_row(ratings, fighter_a)
@@ -472,11 +485,26 @@ def analyze(
         _safe_float(row_b.get("ranking_confidence"), 50.0),
     ) / 100.0
     reliability_multiplier = 0.80 + 0.20 * _clip(reliability, 0.0, 1.0)
-    probability_a = 0.5 + (raw_probability_a - 0.5) * reliability_multiplier
-    probability_a = _clip(probability_a, 0.08, 0.92)
+    baseline_probability_a = 0.5 + (raw_probability_a - 0.5) * reliability_multiplier
+    baseline_probability_a = _clip(baseline_probability_a, 0.08, 0.92)
+
+    performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
+    probability_a = _clip(baseline_probability_a + performance_adjustment_a, 0.08, 0.92)
     probability_b = 1.0 - probability_a
 
     confidence, confidence_band = _confidence(row_a, row_b, probability_a, config)
+    if performance_matchup.get("available"):
+        perf_reliability = float(performance_matchup.get("reliability", 0.0) or 0.0)
+        if perf_reliability >= 0.75:
+            confidence = min(config.max_confidence + 4, confidence + 3)
+        elif perf_reliability >= 0.50:
+            confidence = min(config.max_confidence + 2, confidence + 1)
+        if confidence >= 72:
+            confidence_band = "High developing-model confidence"
+        elif confidence >= 60:
+            confidence_band = "Moderate developing-model confidence"
+        else:
+            confidence_band = "Limited developing-model confidence"
     fair_a = _probability_to_american(probability_a)
     fair_b = _probability_to_american(probability_b)
 
@@ -491,6 +519,23 @@ def analyze(
     reasons, risks = _reason_lines(
         row_a, row_b, winner, loser, winner_row, loser_row, winner_probability
     )
+
+    if performance_matchup.get("available"):
+        perf_adj = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
+        if abs(perf_adj) >= 0.005:
+            perf_side = fighter_a if perf_adj > 0 else fighter_b
+            reasons.insert(
+                0,
+                f"{perf_side} owns the stronger recent underlying performance profile; the performance layer moves the fair win probability by {abs(perf_adj):.1%}.",
+            )
+        if float(performance_matchup.get("reliability", 0.0) or 0.0) < 0.55:
+            risks.insert(
+                0,
+                "The detailed performance layer has a limited recent sample or incomplete landed/attempted/control data, so its adjustment is heavily shrunk.",
+            )
+
+    reasons = reasons[:4]
+    risks = risks[:4]
     market = _market_evaluation(
         probability_a,
         market_odds_a,
@@ -509,7 +554,8 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking baseline",
+        "model_stage": "Ranking + underlying performance",
+        "performance_version": PERFORMANCE_VERSION,
         "fighter_a": fighter_a,
         "fighter_b": fighter_b,
         "rounds": int(rounds),
@@ -521,6 +567,8 @@ def analyze(
         "win_probability_b": probability_b,
         "projected_winner_probability": winner_probability,
         "raw_rating_probability_a": raw_probability_a,
+        "ranking_baseline_probability_a": baseline_probability_a,
+        "performance_adjustment_a": performance_adjustment_a,
         "fair_moneyline_a": fair_a,
         "fair_moneyline_b": fair_b,
         "confidence": confidence,
@@ -551,14 +599,17 @@ def analyze(
         },
         "recent_profile_a": profile_a,
         "recent_profile_b": profile_b,
+        "performance_profile_a": performance_a,
+        "performance_profile_b": performance_b,
+        "performance_matchup": performance_matchup,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
         "reasons_for_lean": reasons,
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.1 is a fighter-strength baseline, not the finished UFC matchup model.",
-            "Striking efficiency, takedown defense, control, submission defense, reach/stance interaction, cardio and durability are not yet separate probability adjustments.",
-            "Recent form and strength of schedule are displayed as evidence only because Strength v0.2 already incorporates them; they are not awarded twice.",
-            "Three-round versus five-round context is recorded but does not change the probability until the cardio/pace layer is built.",
+            "v0.2 adds a deliberately capped underlying-performance adjustment on top of the fighter-strength baseline; it is still not the finished opponent-specific style engine.",
+            "Striking efficiency, takedown offense/defense, control, submission pressure, durability and pace now contribute through recent performance percentiles when detailed UFCStats mirror fields are available.",
+            "The performance adjustment is capped at ±5 percentage points and shrunk for small samples/incomplete detail to limit double counting with the results-based Strength v0.2 rating.",
+            "Three-round versus five-round context changes performance weighting modestly, but true round-by-round cardio decay and opponent-specific style interactions are still pending.",
         ],
     }
