@@ -85,7 +85,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.84 — UFC Analysis Foundation"
+APP_VERSION = "Macabets v0.85 — UFC Performance Engine"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5349,9 +5349,9 @@ with tabs[1]:
     with analysis_tabs[2]:
         st.subheader("Analysis Engine — UFC")
         st.caption(
-            "Compare two UFC fighters using Macabets Strength v0.2 as the ranking backbone. "
-            "This first UFC analysis layer establishes the fair moneyline and decision framework; "
-            "the dedicated striking, wrestling, grappling, durability and cardio matchup engine comes next."
+            "Compare two UFC fighters using Macabets Strength v0.2 plus the new underlying-performance layer. "
+            "Striking, wrestling, grappling, durability and pace now influence the fair moneyline conservatively; "
+            "the opponent-specific style interaction engine is the next UFC layer."
         )
 
         if not UFC_ENGINE_AVAILABLE:
@@ -5458,7 +5458,7 @@ with tabs[1]:
                         use_container_width=True,
                         key="run_ufc_analysis",
                     ):
-                        with st.spinner("Macabets is building the UFC matchup baseline..."):
+                        with st.spinner("Macabets is building the UFC matchup analysis..."):
                             try:
                                 st.session_state["ufc_analysis_result"] = analyze_ufc_match(
                                     ufc_fighter_a,
@@ -5501,7 +5501,7 @@ with tabs[1]:
                                 "cross-division strength comparison until a specific contracted weight is modeled."
                             )
 
-                        st.markdown("## Macabets UFC Baseline")
+                        st.markdown("## Macabets UFC Analysis")
                         ub1, ub2, ub3, ub4 = st.columns(4)
                         ub1.metric("Projected Winner", projected_winner)
                         ub2.metric("Win Probability", f"{winner_probability:.1%}")
@@ -5512,9 +5512,12 @@ with tabs[1]:
                             str(ufc_result["confidence_band"]),
                         )
 
+                        performance_adjustment = float(ufc_result.get("performance_adjustment_a", 0.0) or 0.0)
+                        performance_side = fighter_a_name if performance_adjustment >= 0 else fighter_b_name
                         st.info(
-                            "This is the UFC ranking baseline, not the finished matchup model. Macabets is intentionally "
-                            "capping confidence until the striking, wrestling, grappling, durability and cardio layers are active."
+                            f"UFC Performance v0.1 is active. The underlying-performance layer moved the ranking baseline "
+                            f"{abs(performance_adjustment):.1%} toward {performance_side}. The adjustment is capped and sample-shrunk; "
+                            "opponent-specific style interactions are still the next layer."
                         )
 
                         driver_col, risk_col = st.columns(2)
@@ -5571,11 +5574,64 @@ with tabs[1]:
                             })
                         st.dataframe(pd.DataFrame(profile_rows), use_container_width=True, hide_index=True)
                         st.caption(
-                            "Performance totals are descriptive in UFC Analysis v0.1. They do not change the fair line yet, "
-                            "which prevents the same recent results from being counted twice before the opponent-adjusted style engine is built."
+                            "Raw recent totals remain descriptive. The probability-driving performance layer uses landed/attempted rates, "
+                            "opponent rates, takedown defense, control, durability and pace with a strict ±5 percentage-point cap."
                         )
 
-                        st.markdown("### Baseline Matchup Breakdown")
+                        perf_a = ufc_result.get("performance_profile_a", {})
+                        perf_b = ufc_result.get("performance_profile_b", {})
+                        perf_matchup = ufc_result.get("performance_matchup", {})
+                        if perf_matchup.get("available"):
+                            st.markdown("### Underlying Performance Engine")
+                            perf_rows = []
+                            for fighter_name, profile in ((fighter_a_name, perf_a), (fighter_b_name, perf_b)):
+                                def _score(name):
+                                    value = profile.get(name)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0f}/100"
+                                def _pct(name):
+                                    value = profile.get(name)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.1%}"
+                                def _num(name, digits=2):
+                                    value = profile.get(name)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.{digits}f}"
+                                perf_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Striking": _score("striking_score"),
+                                    "Wrestling": _score("wrestling_score"),
+                                    "Grappling": _score("grappling_score"),
+                                    "Durability": _score("durability_score"),
+                                    "Pace": _score("pace_score"),
+                                    "Sig. Str. Diff / Min": _num("sig_diff_per_min"),
+                                    "Sig. Str. Accuracy": _pct("sig_accuracy"),
+                                    "Sig. Str. Defense": _pct("sig_defense"),
+                                    "TD / 15": _num("td_per15"),
+                                    "TD Defense": _pct("td_defense"),
+                                    "Control Share": _pct("control_share"),
+                                    "Sample": int(profile.get("sample", 0) or 0),
+                                })
+                            st.dataframe(pd.DataFrame(perf_rows), use_container_width=True, hide_index=True)
+
+                            pa1, pa2, pa3 = st.columns(3)
+                            pa1.metric(
+                                "Performance Line Impact",
+                                f"{float(ufc_result.get('performance_adjustment_a', 0.0)):+.1%}",
+                                f"to {fighter_a_name}",
+                            )
+                            pa2.metric(
+                                "Performance Reliability",
+                                f"{float(perf_matchup.get('reliability', 0.0)):.0%}",
+                            )
+                            pa3.metric(
+                                "Performance Gap",
+                                f"{float(perf_matchup.get('weighted_gap', 0.0)):+.1f}",
+                                "percentile points",
+                            )
+                            st.caption(
+                                "Composite scores are division-relative percentiles from the recent UFC sample. Five-round fights "
+                                "place a little more weight on durability and pace. This is still a general performance layer, not yet a style-vs-style interaction model."
+                            )
+
+                        st.markdown("### Core Matchup Breakdown")
                         matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
                         if not matchup_rows.empty:
                             display = matchup_rows.rename(columns={
