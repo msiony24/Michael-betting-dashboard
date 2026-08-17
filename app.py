@@ -86,7 +86,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.90 — UFC Historical Validation"
+APP_VERSION = "Macabets v0.91 — UFC Archive Integration"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5626,7 +5626,7 @@ with tabs[1]:
                     ):
                         with st.spinner("Macabets is building the UFC matchup analysis..."):
                             try:
-                                st.session_state["ufc_analysis_result"] = analyze_ufc_match(
+                                ufc_analysis = analyze_ufc_match(
                                     ufc_fighter_a,
                                     ufc_fighter_b,
                                     rounds=int(ufc_rounds),
@@ -5640,7 +5640,82 @@ with tabs[1]:
                                     fights=ufc_fights,
                                     fight_date=ufc_fight_date,
                                 )
+                                st.session_state["ufc_analysis_result"] = ufc_analysis
                                 st.session_state["ufc_analysis_considering"] = ufc_considering
+
+                                # UFC uses the same permanent Analysis Log as Tennis and NFL.
+                                # Save exactly once per explicit Analyze click, with the full
+                                # model output frozen inside analysis_snapshot for later audit.
+                                fighter_a_log = str(ufc_analysis["fighter_a"])
+                                fighter_b_log = str(ufc_analysis["fighter_b"])
+                                projected_winner_log = str(ufc_analysis["projected_winner"])
+                                projected_probability_log = float(ufc_analysis["projected_winner_probability"])
+                                winner_fair_log = (
+                                    int(ufc_analysis["fair_moneyline_a"])
+                                    if projected_winner_log == fighter_a_log
+                                    else int(ufc_analysis["fair_moneyline_b"])
+                                )
+                                market_log = ufc_analysis.get("market") or {}
+                                if market_log.get("available"):
+                                    winner_side_log = "a" if projected_winner_log == fighter_a_log else "b"
+                                    winner_market_log = int(market_log[f"market_odds_{winner_side_log}"])
+                                    winner_verdict_log = str(market_log.get(f"verdict_{winner_side_log}") or "PASS")
+                                    winner_roi_log = float(market_log.get(f"roi_{winner_side_log}") or 0.0)
+                                    winner_edge_log = float(market_log.get(f"edge_{winner_side_log}") or 0.0)
+                                else:
+                                    winner_market_log = None
+                                    winner_verdict_log = "Analysis"
+                                    winner_roi_log = None
+                                    winner_edge_log = None
+
+                                ufc_inputs_log = {
+                                    "fighter_a": fighter_a_log,
+                                    "fighter_b": fighter_b_log,
+                                    "fight_date": ufc_fight_date.isoformat(),
+                                    "rounds": int(ufc_rounds),
+                                    "considered_side": ufc_considering,
+                                    "market_odds_a": ufc_market_a,
+                                    "market_odds_b": ufc_market_b,
+                                    "derivative_market_key": ufc_derivative_key,
+                                    "derivative_total_line": ufc_derivative_total_line,
+                                    "derivative_odds_primary": ufc_derivative_odds_primary,
+                                    "derivative_odds_secondary": ufc_derivative_odds_secondary,
+                                }
+                                ufc_snapshot_log = {
+                                    "engine_result": ufc_analysis,
+                                    "projected_winner": projected_winner_log,
+                                    "projected_winner_probability": projected_probability_log,
+                                    "winner_market_moneyline": winner_market_log,
+                                    "winner_fair_moneyline": winner_fair_log,
+                                    "moneyline_edge": winner_edge_log,
+                                    "moneyline_estimated_roi": winner_roi_log,
+                                    "verdict": winner_verdict_log,
+                                    "price_assessment": "—",
+                                    "derivative_markets": ufc_analysis.get("derivative_markets") or {},
+                                    "derivative_evaluation": ufc_analysis.get("derivative_evaluation") or {},
+                                    "simulation": ufc_analysis.get("simulation") or {},
+                                    "validation": ufc_analysis.get("historical_validation") or {},
+                                }
+                                _save_universal_analysis({
+                                    "client_event_id": _analysis_event_token("UFC", ufc_inputs_log),
+                                    "event_date": ufc_fight_date.isoformat(),
+                                    "sport": "UFC",
+                                    "model_version": str(ufc_analysis.get("model_version") or "Macabets UFC"),
+                                    "event_name": f"{fighter_a_log} vs {fighter_b_log}",
+                                    "participant_a": fighter_a_log,
+                                    "participant_b": fighter_b_log,
+                                    "market_type": "Moneyline" if market_log.get("available") else "Analysis",
+                                    "market_odds_a": ufc_market_a,
+                                    "market_odds_b": ufc_market_b,
+                                    "prediction": projected_winner_log,
+                                    "predicted_probability": projected_probability_log,
+                                    "fair_line": format_american(winner_fair_log),
+                                    "confidence": float(ufc_analysis["confidence"]),
+                                    "recommendation": winner_verdict_log,
+                                    "status": "Pending",
+                                    "input_snapshot": ufc_inputs_log,
+                                    "analysis_snapshot": ufc_snapshot_log,
+                                })
                             except Exception as exc:
                                 st.session_state.pop("ufc_analysis_result", None)
                                 st.error(f"UFC analysis failed: {exc}")
@@ -6867,6 +6942,7 @@ with tabs[4]:
                     "Participant A": str(row.get("participant_a", "")),
                     "Participant B": str(row.get("participant_b", "")),
                     "Prediction": str(row.get("prediction", "")),
+                    "Market": str(row.get("market_type", "")),
                     "Actual Line": odds,
                     "Line Bucket": _pc_line_bucket(odds),
                     "Core Zone": bool(odds is not None and -380 <= odds <= -200),
@@ -6955,7 +7031,7 @@ with tabs[4]:
                     pc_filtered = pc_filtered[
                         (pc_filtered["Date"].dt.date >= start_date) & (pc_filtered["Date"].dt.date <= end_date)
                     ]
-                if not line_values.empty:
+                if not line_values.empty and chosen_line_range != (line_min, line_max):
                     pc_filtered = pc_filtered[
                         pc_filtered["Actual Line"].between(chosen_line_range[0], chosen_line_range[1], inclusive="both")
                     ]
@@ -7068,7 +7144,7 @@ with tabs[4]:
                     prediction_view = prediction_view[prediction_view["Date"].dt.date == selected_date_value]
 
                 display_cols = [
-                    "Date", "Sport", "Event", "Prediction", "Actual Line", "Core Zone",
+                    "Date", "Sport", "Event", "Prediction", "Market", "Actual Line", "Core Zone",
                     "Fair Line", "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
                 ]
                 display_frame = prediction_view[display_cols].copy().sort_values("Date", ascending=False)
@@ -7076,7 +7152,7 @@ with tabs[4]:
                 st.dataframe(display_frame, use_container_width=True, hide_index=True, height=520)
 
                 export_cols = [
-                    "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction",
+                    "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction", "Market",
                     "Actual Line", "Core Zone", "Market Implied %", "Fair Line",
                     "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
                     "Model Version",
@@ -7084,10 +7160,11 @@ with tabs[4]:
                 export_all = pc_all[export_cols].copy()
                 export_filtered = prediction_view[export_cols].copy()
                 export_tennis = pc_all[pc_all["Sport"] == "Tennis"][export_cols].copy()
-                for export_df in (export_all, export_filtered, export_tennis):
+                export_ufc = pc_all[pc_all["Sport"] == "UFC"][export_cols].copy()
+                for export_df in (export_all, export_filtered, export_tennis, export_ufc):
                     export_df["Date"] = pd.to_datetime(export_df["Date"], errors="coerce").dt.date
 
-                e1, e2, e3 = st.columns(3)
+                e1, e2, e3, e4 = st.columns(4)
                 e1.download_button(
                     "Export All Predictions", export_all.to_csv(index=False).encode("utf-8"),
                     f"macabets_all_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
@@ -7103,10 +7180,15 @@ with tabs[4]:
                     f"macabets_tennis_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
                     use_container_width=True, key="pc_export_tennis",
                 )
+                e4.download_button(
+                    "Export All UFC Predictions", export_ufc.to_csv(index=False).encode("utf-8"),
+                    f"macabets_ufc_predictions_{datetime.now().strftime('%Y%m%d_%H%M')}.csv", "text/csv",
+                    use_container_width=True, key="pc_export_ufc",
+                )
 
     with archive_tabs[1]:
         st.subheader("Universal Analysis Log")
-        st.caption("Every Tennis and NFL analysis is saved automatically as a frozen snapshot.")
+        st.caption("Every Tennis, NFL and UFC analysis is saved automatically as a frozen snapshot.")
         render_price_verdict_guide()
 
         warning = st.session_state.pop("analysis_log_warning", None)
@@ -7182,15 +7264,15 @@ with tabs[4]:
             )
 
             sport_cards = []
-            for report_sport in ("Tennis", "NFL"):
+            for report_sport in ("Tennis", "NFL", "UFC"):
                 sport_completed = [row for row in completed_rows if str(row.get("sport", "")) == report_sport]
                 sport_correct = sum(_prediction_result(row) == "Correct" for row in sport_completed)
                 sport_accuracy = sport_correct / len(sport_completed) if sport_completed else None
                 sport_cards.append((report_sport, sport_correct, len(sport_completed) - sport_correct, sport_accuracy))
 
-            tennis_card, nfl_card = st.columns(2)
+            tennis_card, nfl_card, ufc_card = st.columns(3)
             for card, (report_sport, sport_correct, sport_incorrect, sport_accuracy) in zip(
-                (tennis_card, nfl_card), sport_cards
+                (tennis_card, nfl_card, ufc_card), sport_cards
             ):
                 record = f"{sport_correct}-{sport_incorrect}" if sport_correct + sport_incorrect else "0-0"
                 card.metric(
@@ -7267,7 +7349,7 @@ with tabs[4]:
 
             st.divider()
             filter1, filter2, filter3 = st.columns([1, 1, 2])
-            sport_filter = filter1.selectbox("Sport", ["All", "Tennis", "NFL"], key="analysis_log_sport_filter")
+            sport_filter = filter1.selectbox("Sport", ["All", "Tennis", "NFL", "UFC"], key="analysis_log_sport_filter")
             result_filter = filter2.selectbox(
                 "Prediction Result", ["All", "Pending", "Correct", "Incorrect", "Push", "Void"],
                 key="analysis_log_status_filter",
