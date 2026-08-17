@@ -46,11 +46,11 @@ def test_refresh_writes_foundation_files_and_manifest(tmp_path, monkeypatch):
     monkeypatch.setattr(foundation, "_fetch_performance_with_fallback", fake_performance)
     result = foundation.refresh_nfl_foundation(2026, data_dir=tmp_path, nfl_module=FakeNFL())
 
-    assert result.available_count == 9
+    assert result.available_count == 10
     assert (tmp_path / "team_snapshot.csv").exists()
     assert (tmp_path / "player_weekly_stats.csv").exists()
     manifest = json.loads((tmp_path / "foundation_status.json").read_text())
-    assert manifest["available_datasets"] == 9
+    assert manifest["available_datasets"] == 10
     weekly = pd.read_csv(tmp_path / "weekly_rosters.csv")
     assert weekly["week"].tolist() == [2]
 
@@ -69,4 +69,4 @@ def test_optional_dataset_failure_is_recorded(tmp_path, monkeypatch):
     injuries = next(item for item in result.datasets if item.name == "injuries")
     assert not injuries.available
     assert "not published yet" in injuries.error
-    assert result.available_count == 8
+    assert result.available_count == 9
