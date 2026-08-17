@@ -85,7 +85,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.86 — UFC Style Matchups"
+APP_VERSION = "Macabets v0.87 — UFC Physical & Context"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5399,7 +5399,7 @@ with tabs[1]:
                 if len(filtered_ufc_players) < 2:
                     st.warning("This division does not currently have two active fighters in the UFC rating pool.")
                 else:
-                    uf1, uf2, uf3 = st.columns([2, 2, 1])
+                    uf1, uf2, uf3, uf4 = st.columns([2, 2, 1, 1.35])
                     ufc_fighter_a = uf1.selectbox(
                         "Fighter A",
                         filtered_ufc_players,
@@ -5418,6 +5418,12 @@ with tabs[1]:
                         [3, 5],
                         index=0,
                         key="ufc_rounds",
+                    )
+                    ufc_fight_date = uf4.date_input(
+                        "Fight date",
+                        value=date.today(),
+                        key="ufc_fight_date",
+                        help="Used for age, activity/turnaround, and weight-class context. It does not affect the underlying historical ratings snapshot.",
                     )
 
                     st.markdown("##### Sportsbook price")
@@ -5468,6 +5474,7 @@ with tabs[1]:
                                     market_odds_b=ufc_market_b,
                                     ratings=ufc_ratings,
                                     fights=ufc_fights,
+                                    fight_date=ufc_fight_date,
                                 )
                                 st.session_state["ufc_analysis_considering"] = ufc_considering
                             except Exception as exc:
@@ -5514,7 +5521,8 @@ with tabs[1]:
 
                         performance_adjustment = float(ufc_result.get("performance_adjustment_a", 0.0) or 0.0)
                         style_adjustment = float(ufc_result.get("style_adjustment_a", 0.0) or 0.0)
-                        combined_adjustment = float(ufc_result.get("combined_matchup_adjustment_a", 0.0) or 0.0)
+                        context_adjustment = float(ufc_result.get("context_adjustment_a", 0.0) or 0.0)
+                        combined_adjustment = float(ufc_result.get("total_adjustment_a", ufc_result.get("combined_matchup_adjustment_a", 0.0)) or 0.0)
                         combined_side = fighter_a_name if combined_adjustment >= 0 else fighter_b_name
                         st.info(
                             f"UFC Performance + Style Matchups are active. Performance moved Fighter A {performance_adjustment:+.1%}; "
@@ -5674,6 +5682,53 @@ with tabs[1]:
                             )
                             st.caption(str(style_matchup.get("guardrail", "")))
 
+                        fight_context = ufc_result.get("fight_context", {})
+                        if fight_context.get("available"):
+                            st.markdown("### Physical & Fight Context")
+                            profile_a = fight_context.get("fighter_a_profile", {})
+                            profile_b = fight_context.get("fighter_b_profile", {})
+                            context_rows = []
+                            for fighter_name, profile in [(fighter_a_name, profile_a), (fighter_b_name, profile_b)]:
+                                age_value = profile.get("age")
+                                reach_value = profile.get("reach_inches")
+                                height_value = profile.get("height_inches")
+                                context_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Age": "—" if age_value is None else f"{float(age_value):.1f}",
+                                    "Height": "—" if height_value is None else f"{float(height_value):.0f} in",
+                                    "Reach": "—" if reach_value is None else f"{float(reach_value):.0f} in",
+                                    "Stance": profile.get("stance") or "Unknown",
+                                    "Profile Weight": "—" if profile.get("weight_lbs") is None else f"{float(profile.get('weight_lbs')):.0f} lb",
+                                })
+                            st.dataframe(pd.DataFrame(context_rows), use_container_width=True, hide_index=True)
+
+                            context_breakdown = pd.DataFrame(fight_context.get("rows", []))
+                            if not context_breakdown.empty:
+                                context_display = context_breakdown.rename(columns={
+                                    "category": "Category",
+                                    "advantage": "Advantage",
+                                    "strength": "Strength",
+                                    "why": "Why it matters",
+                                })
+                                ctx_cols = [c for c in ["Category", "Advantage", "Strength", "Why it matters"] if c in context_display.columns]
+                                st.dataframe(context_display[ctx_cols], use_container_width=True, hide_index=True)
+
+                            cx1, cx2, cx3 = st.columns(3)
+                            cx1.metric(
+                                "Context Line Impact",
+                                f"{float(ufc_result.get('context_adjustment_a', 0.0)):+.1%}",
+                                f"to {fighter_a_name}",
+                            )
+                            cx2.metric(
+                                "Context Reliability",
+                                f"{float(fight_context.get('reliability', 0.0)):.0%}",
+                            )
+                            cx3.metric(
+                                "Fight Date",
+                                str(fight_context.get("fight_date", "—")),
+                            )
+                            st.caption(str(fight_context.get("guardrail", "")))
+
                         st.markdown("### Core Matchup Breakdown")
                         matchup_rows = pd.DataFrame(ufc_result.get("matchup_breakdown", []))
                         if not matchup_rows.empty:
@@ -5716,7 +5771,7 @@ with tabs[1]:
                                 if verdict == "BET":
                                     st.success(
                                         f"{considered}: BET at the entered price on the current baseline — estimated ROI {roi_value:+.1%}. "
-                                        "Because the style engine is not finished, treat this as a price-screening signal rather than a final UFC release."
+                                        "Physical/context is now included, but simulation and method-of-victory layers are still pending; treat this as a developing-model price signal rather than a final UFC release."
                                     )
                                 elif verdict == "WATCH":
                                     st.warning(
