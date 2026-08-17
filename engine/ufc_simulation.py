@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 
-SIMULATION_VERSION = "Macabets UFC Simulation v0.1"
+SIMULATION_VERSION = "Macabets UFC Simulation v0.2 — Historically Calibrated"
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,7 @@ class UFCSimulationConfig:
     min_finish_probability: float = 0.12
     max_finish_probability_3r: float = 0.82
     max_finish_probability_5r: float = 0.88
+    finish_calibration: float = 0.05
 
 
 def _clip(value: float, low: float, high: float) -> float:
@@ -64,6 +65,10 @@ def _finish_profile(
         + 0.07 * (1.0 - opp_durability)
         + 0.05 * pace
     )
+    # Historical Validation v0.1 found the original simulator was about five percentage
+    # points too decision-heavy on a large leakage-safe retrospective sample. Apply a
+    # modest global finish calibration before the existing 5-round exposure adjustment.
+    finish_probability += config.finish_calibration
     if int(rounds) == 5:
         finish_probability += 0.07
     max_finish = config.max_finish_probability_5r if int(rounds) == 5 else config.max_finish_probability_3r

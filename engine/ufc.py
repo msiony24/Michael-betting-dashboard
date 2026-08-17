@@ -29,7 +29,7 @@ from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighte
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.6"
+MODEL_VERSION = "Macabets UFC Analysis v0.7 — Historical Calibration"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -723,7 +723,7 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.6 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, a Monte Carlo fight-path simulation, and derivative-market pricing.",
+            "v0.7 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, a historically calibrated Monte Carlo fight-path simulation, and derivative-market pricing.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, their correlated combined impact at ±7.5, Physical & Context at ±2, and the total non-rating adjustment at ±9 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
