@@ -363,6 +363,7 @@ def refresh_nfl_foundation(
     specs = [
         ("schedules", "schedules.csv", lambda: nfl_module.load_schedules([season]), lambda f: _season_filter(f, season)),
         ("rosters", "rosters.csv", lambda: nfl_module.load_rosters([season]), lambda f: _season_filter(f, season)),
+        ("prior_rosters", "prior_rosters.csv", lambda: nfl_module.load_rosters([season - 1]), lambda f: _season_filter(f, season - 1)),
         ("weekly_rosters", "weekly_rosters.csv", lambda: nfl_module.load_rosters_weekly([season]), lambda f: _latest_week_rows(_season_filter(f, season))),
         ("player_weekly_stats", "player_weekly_stats.csv", lambda: nfl_module.load_player_stats([season], summary_level="week"), lambda f: _season_filter(f, season)),
         ("team_weekly_stats", "team_weekly_stats.csv", lambda: nfl_module.load_team_stats([season], summary_level="week"), lambda f: _season_filter(f, season)),

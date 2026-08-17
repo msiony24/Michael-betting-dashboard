@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict
 
 from engine.nfl_coaching import load_coaching_priors
+from engine.nfl_continuity import load_continuity_priors
 from engine.nfl_team_quality import (
     TeamQualityInputs,
     TeamQualityResult,
@@ -172,6 +173,7 @@ def merge_team_ratings(
     """
     merged: Dict[str, dict] = {}
     coaching_priors = load_coaching_priors()
+    continuity_priors = load_continuity_priors()
 
     for team_name, manual_team in manual_ratings.items():
         if not isinstance(manual_team, dict):
@@ -217,7 +219,22 @@ def merge_team_ratings(
             combined["head_coach"] = "Unknown"
             combined["coaching_status"] = "Neutral fallback — current coach data unavailable"
             combined["coaching_source"] = "Neutral fallback"
-        combined["continuity"] = _number(manual_team.get("continuity"))
+        continuity = continuity_priors.get(team_name, {})
+        if continuity:
+            combined["continuity"] = _number(continuity.get("rating"), 67.5)
+            combined["continuity_retained_starters"] = int(_number(continuity.get("retained_starters"), 0))
+            combined["continuity_starter_count"] = int(_number(continuity.get("starter_count"), 0))
+            combined["continuity_retained_rate"] = _number(continuity.get("retained_rate"), 0.0)
+            combined["continuity_status"] = str(continuity.get("status") or "Automated roster continuity")
+            combined["continuity_source"] = str(continuity.get("source") or "Automated roster continuity")
+        else:
+            # Neutral fallback: do not revive the legacy subjective continuity grade.
+            combined["continuity"] = 67.5
+            combined["continuity_retained_starters"] = 0
+            combined["continuity_starter_count"] = 0
+            combined["continuity_retained_rate"] = 0.0
+            combined["continuity_status"] = "Neutral fallback — automated continuity data unavailable"
+            combined["continuity_source"] = "Neutral fallback"
         # Automatic Sleeper availability is already reflected by starter replacement
         # inside the audited unit grades. Do not stack the legacy manual team-level
         # injury adjustment on top of the same personnel loss.

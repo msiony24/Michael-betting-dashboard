@@ -15,7 +15,7 @@ CATEGORY_WEIGHTS = {
     "Overall defense": 0.10,
     "Coaching": 0.08,
     "Special teams": 0.06,
-    "Depth / continuity": 0.10,
+    "Roster continuity": 0.04,
 }
 
 
@@ -343,9 +343,9 @@ def build_matchup_intelligence(
         "NFL team-state / special-teams baseline"
     ))
     categories.append(_category_row(
-        "Depth / Continuity", away_team, home_team,
+        "Roster Continuity", away_team, home_team,
         _num(away_components.get("continuity")), _num(home_components.get("continuity")),
-        "Roster continuity prior"
+        "Automated prior-season starter retention"
     ))
 
     # Opponent-specific conflicts from the personnel engine. These replace the old
@@ -396,7 +396,7 @@ def build_matchup_intelligence(
         ("defense", "Overall defense", CATEGORY_WEIGHTS["Overall defense"]),
         ("coaching", "Coaching", CATEGORY_WEIGHTS["Coaching"]),
         ("special_teams", "Special teams", CATEGORY_WEIGHTS["Special teams"]),
-        ("continuity", "Depth / continuity", CATEGORY_WEIGHTS["Depth / continuity"]),
+        ("continuity", "Roster continuity", CATEGORY_WEIGHTS["Roster continuity"]),
     ):
         gap = _num(home_components.get(key)) - _num(away_components.get(key))
         if abs(gap) >= 4.0:
