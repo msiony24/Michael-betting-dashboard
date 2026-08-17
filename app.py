@@ -4566,6 +4566,55 @@ with tabs[1]:
                 st.markdown("### Expected Game Script")
                 st.write(explanation_report["game_script"])
 
+                simulation_context = nfl_result.get("simulation_context") or {}
+                if simulation_context.get("available"):
+                    st.markdown("### Game Simulation")
+                    sim_favorite = str(simulation_context.get("favorite") or projected_nfl_winner)
+                    sim_fav_prob = float(simulation_context.get("favorite_win_probability", projected_nfl_probability) or projected_nfl_probability)
+                    sim_upset = float(simulation_context.get("upset_probability", 1.0 - sim_fav_prob) or 0.0)
+                    sim_volatility = str(simulation_context.get("volatility") or "Moderate")
+                    sim_script = str(simulation_context.get("game_script") or "Competitive game")
+                    sim1, sim2, sim3 = st.columns(3)
+                    sim1.metric("Most Likely Script", sim_script)
+                    sim2.metric("Favorite Win Frequency", f"{sim_fav_prob:.1%}")
+                    sim3.metric("Upset Frequency", f"{sim_upset:.1%}")
+                    one_score = float(simulation_context.get("one_score_probability", 0.0) or 0.0)
+                    st.info(
+                        f"{sim_favorite} wins {sim_fav_prob:.1%} of simulated outcomes. "
+                        f"About {one_score:.1%} finish within one score. Simulation volatility: {sim_volatility.lower()}."
+                    )
+
+                    with st.expander("Show simulation ranges and market probabilities", expanded=False):
+                        sr1, sr2, sr3 = st.columns(3)
+                        margin_50 = simulation_context.get("margin_range_50") or [0.0, 0.0]
+                        total_50 = simulation_context.get("total_range_50") or [0.0, 0.0]
+                        sr1.metric("Middle 50% Home Margin", f"{float(margin_50[0]):+.1f} to {float(margin_50[1]):+.1f}")
+                        sr2.metric("Middle 50% Game Total", f"{float(total_50[0]):.1f} to {float(total_50[1]):.1f}")
+                        sr3.metric("Simulation Runs", f"{int(simulation_context.get('simulations', 0) or 0):,}")
+
+                        home_cover = simulation_context.get("home_cover_probability")
+                        over_prob = simulation_context.get("over_probability")
+                        mp1, mp2 = st.columns(2)
+                        if home_cover is not None:
+                            away_cover = 1.0 - float(home_cover)
+                            mp1.write(
+                                f"**Spread at entered line:** {nfl_result['home_team']} {float(home_cover):.1%} cover / "
+                                f"{nfl_result['away_team']} {away_cover:.1%} cover"
+                            )
+                        if over_prob is not None:
+                            mp2.write(
+                                f"**Total at entered line:** Over {float(over_prob):.1%} / Under {1.0 - float(over_prob):.1%}"
+                            )
+
+                        away_80 = simulation_context.get("away_score_range_80") or [0.0, 0.0]
+                        home_80 = simulation_context.get("home_score_range_80") or [0.0, 0.0]
+                        st.caption(
+                            f"80% simulated score range — {nfl_result['away_team']}: "
+                            f"{float(away_80[0]):.0f}-{float(away_80[1]):.0f}; "
+                            f"{nfl_result['home_team']}: {float(home_80[0]):.0f}-{float(home_80[1]):.0f}. "
+                            + str(simulation_context.get("method_note") or "")
+                        )
+
                 matchup_intelligence = nfl_result.get("matchup_intelligence") or {}
                 # Legacy section name retained for test compatibility: ### Matchup Advantages
                 if matchup_intelligence.get("available"):
