@@ -4564,7 +4564,7 @@ with tabs[1]:
                         st.markdown(f"- {item}")
 
                 st.markdown("### Expected Game Script")
-                st.write(explanation_report["game_script"])
+                st.markdown(explanation_report["game_script"])
 
                 simulation_context = nfl_result.get("simulation_context") or {}
                 if simulation_context.get("available"):
@@ -4661,13 +4661,13 @@ with tabs[1]:
 
                         if not core_rows.empty:
                             visible_cols = [c for c in ["Category", "Advantage", "Strength"] if c in core_rows.columns]
-                            with st.expander("Show core matchup breakdown", expanded=False):
-                                st.dataframe(core_rows[visible_cols], use_container_width=True, hide_index=True)
+                            st.markdown("#### Core Matchup Breakdown")
+                            st.dataframe(core_rows[visible_cols], use_container_width=True, hide_index=True)
 
                     if not style_rows.empty:
                         st.markdown("#### Player-Style & Line-of-Scrimmage Matchups")
                         st.caption(
-                            "Macabets checks how the actual starters' styles fit this opponent. The conclusion stays visible; the trait-by-trait detail is optional."
+                            "Macabets checks how the actual starters' styles fit this opponent and shows the matchup details that matter most."
                         )
                         style_display = style_rows.rename(columns={"Matchup": "Category", "Edge": "Trait Gap"})
                         style_cols = [c for c in ["Category", "Advantage", "Strength", "Trait Gap", "Why"] if c in style_display.columns]
@@ -4689,14 +4689,11 @@ with tabs[1]:
                                 axis=1,
                             )
 
-                        # Keep the detailed starter-by-starter trait table available, but
-                        # make the overall football conclusion the default experience.
-                        with st.expander("Show player-style matchup details", expanded=False):
-                            _render_nfl_style_matchup_table(
-                                style_table,
-                                nfl_result.get("away_team"),
-                                nfl_result.get("home_team"),
-                            )
+                        _render_nfl_style_matchup_table(
+                            style_table,
+                            nfl_result.get("away_team"),
+                            nfl_result.get("home_team"),
+                        )
 
                         # One overall conclusion after all eight style/LOS matchups are
                         # weighted together. This summarizes the existing style signal only;
@@ -4788,37 +4785,36 @@ with tabs[1]:
                             for team_name, profile in team_profiles
                         )
                         st.caption(f"Offensive identity: {identity_text}")
-                        with st.expander("Show team tendency profiles", expanded=False):
-                            profile_cols = st.columns(2)
-                            for idx, (team_name, profile) in enumerate(team_profiles):
-                                with profile_cols[idx]:
-                                    st.markdown(f"##### {team_name}")
-                                    a, b, c = st.columns(3)
-                                    a.metric("Identity", _scheme_identity(profile))
-                                    b.metric("Early-Down Pass", _scheme_pct(profile.get("early_down_pass_rate")))
-                                    c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
+                        profile_cols = st.columns(2)
+                        for idx, (team_name, profile) in enumerate(team_profiles):
+                            with profile_cols[idx]:
+                                st.markdown(f"##### {team_name}")
+                                a, b, c = st.columns(3)
+                                a.metric("Identity", _scheme_identity(profile))
+                                b.metric("Early-Down Pass", _scheme_pct(profile.get("early_down_pass_rate")))
+                                c.metric("Pace", _scheme_num(profile.get("seconds_per_play"), 1, " sec/play"))
 
-                                    tendency_rows = [
-                                        {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
-                                        {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
-                                        {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
-                                        {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
-                                        {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
-                                        {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
-                                        {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
-                                        {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
-                                        {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
-                                        {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
-                                        {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
-                                        {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
-                                        {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
-                                        {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
-                                    ]
-                                    st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
-                                    season_label = profile.get("season") or "—"
-                                    week_label = profile.get("through_week") or "—"
-                                    updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
-                                    st.caption(f"Season {season_label} · Through week {week_label} · Updated {updated_label}")
+                                tendency_rows = [
+                                    {"Area": "Volume / tempo", "Metric": "Plays per game", "Rate": _scheme_num(profile.get("plays_per_game"), 1)},
+                                    {"Area": "Volume / tempo", "Metric": "No-huddle", "Rate": _scheme_pct(profile.get("no_huddle_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Motion", "Rate": _scheme_pct(profile.get("motion_rate"))},
+                                    {"Area": "Offensive design", "Metric": "Play action", "Rate": _scheme_pct(profile.get("play_action_rate"))},
+                                    {"Area": "Offensive design", "Metric": "RPO", "Rate": _scheme_pct(profile.get("rpo_rate"))},
+                                    {"Area": "Defense", "Metric": "Blitz rate", "Rate": _scheme_pct(profile.get("blitz_rate"))},
+                                    {"Area": "Defense", "Metric": "Man coverage", "Rate": _scheme_pct(profile.get("man_rate"))},
+                                    {"Area": "Defense", "Metric": "Zone coverage", "Rate": _scheme_pct(profile.get("zone_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure generated", "Rate": _scheme_pct(profile.get("pressure_rate"))},
+                                    {"Area": "Pressure", "Metric": "Pressure allowed", "Rate": _scheme_pct(profile.get("pressure_rate_allowed"))},
+                                    {"Area": "Explosives", "Metric": "Explosive offense", "Rate": _scheme_pct(profile.get("offense_explosive_rate"))},
+                                    {"Area": "Explosives", "Metric": "Explosive allowed", "Rate": _scheme_pct(profile.get("defense_explosive_allowed"))},
+                                    {"Area": "Red zone", "Metric": "Red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate"))},
+                                    {"Area": "Red zone", "Metric": "Opponent red-zone TD rate", "Rate": _scheme_pct(profile.get("red_zone_td_rate_allowed"))},
+                                ]
+                                st.dataframe(pd.DataFrame(tendency_rows), use_container_width=True, hide_index=True)
+                                season_label = profile.get("season") or "—"
+                                week_label = profile.get("through_week") or "—"
+                                updated_label = str(profile.get("updated_at_utc") or "").strip() or "—"
+                                st.caption(f"Season {season_label} · Through week {week_label} · Updated {updated_label}")
 
                         st.markdown("##### Overall Scheme Matchup Conclusion")
                         sc1, sc2, sc3 = st.columns(3)
@@ -4969,33 +4965,32 @@ with tabs[1]:
                             except (TypeError, ValueError):
                                 return "—"
 
-                        with st.expander("Show situational performance details", expanded=False):
-                            st.caption("These are supporting rates, not headline grades. Macabets uses them as a small high-leverage refinement only.")
-                            sit_profiles = [
-                                (str(nfl_result.get("away_team", "Away")), situational_context.get("away") or {}),
-                                (str(nfl_result.get("home_team", "Home")), situational_context.get("home") or {}),
-                            ]
-                            sit_cols = st.columns(2)
-                            for idx, (team_name, profile) in enumerate(sit_profiles):
-                                with sit_cols[idx]:
-                                    st.markdown(f"##### {team_name}")
-                                    sit_rows = [
-                                        {"Situation": "Third down", "Team": _sit_pct(profile.get("third_down_conversion_rate")), "Defense": _sit_pct(profile.get("third_down_conversion_allowed"))},
-                                        {"Situation": "Red-zone TD", "Team": _sit_pct(profile.get("red_zone_td_rate")), "Defense": _sit_pct(profile.get("red_zone_td_rate_allowed"))},
-                                        {"Situation": "Turnovers / takeaways", "Team": _sit_pct(profile.get("offense_turnover_rate")), "Defense": _sit_pct(profile.get("defense_takeaway_rate"))},
-                                        {"Situation": "Explosive plays", "Team": _sit_pct(profile.get("offense_explosive_rate")), "Defense": _sit_pct(profile.get("defense_explosive_allowed"))},
-                                        {"Situation": "Close 4Q EPA/play", "Team": _sit_num(profile.get("high_leverage_epa")), "Defense": _sit_num(profile.get("high_leverage_epa_allowed"))},
-                                    ]
-                                    st.dataframe(pd.DataFrame(sit_rows), use_container_width=True, hide_index=True)
-                                    st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
-                            ew = situational_context.get("evidence_weight")
-                            if ew is not None:
-                                try:
-                                    st.caption(f"Evidence weight: {float(ew):.0%}")
-                                except (TypeError, ValueError):
-                                    pass
-                            st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
-                            st.caption(situational_context.get("guardrail", ""))
+                        st.caption("These are supporting rates, not headline grades. Macabets uses them as a small high-leverage refinement only.")
+                        sit_profiles = [
+                            (str(nfl_result.get("away_team", "Away")), situational_context.get("away") or {}),
+                            (str(nfl_result.get("home_team", "Home")), situational_context.get("home") or {}),
+                        ]
+                        sit_cols = st.columns(2)
+                        for idx, (team_name, profile) in enumerate(sit_profiles):
+                            with sit_cols[idx]:
+                                st.markdown(f"##### {team_name}")
+                                sit_rows = [
+                                    {"Situation": "Third down", "Team": _sit_pct(profile.get("third_down_conversion_rate")), "Defense": _sit_pct(profile.get("third_down_conversion_allowed"))},
+                                    {"Situation": "Red-zone TD", "Team": _sit_pct(profile.get("red_zone_td_rate")), "Defense": _sit_pct(profile.get("red_zone_td_rate_allowed"))},
+                                    {"Situation": "Turnovers / takeaways", "Team": _sit_pct(profile.get("offense_turnover_rate")), "Defense": _sit_pct(profile.get("defense_takeaway_rate"))},
+                                    {"Situation": "Explosive plays", "Team": _sit_pct(profile.get("offense_explosive_rate")), "Defense": _sit_pct(profile.get("defense_explosive_allowed"))},
+                                    {"Situation": "Close 4Q EPA/play", "Team": _sit_num(profile.get("high_leverage_epa")), "Defense": _sit_num(profile.get("high_leverage_epa_allowed"))},
+                                ]
+                                st.dataframe(pd.DataFrame(sit_rows), use_container_width=True, hide_index=True)
+                                st.caption(f"Season {profile.get('season') or '—'} · Through week {profile.get('through_week') or '—'}")
+                        ew = situational_context.get("evidence_weight")
+                        if ew is not None:
+                            try:
+                                st.caption(f"Evidence weight: {float(ew):.0%}")
+                            except (TypeError, ValueError):
+                                pass
+                        st.caption(f"Source: {situational_context.get('source', 'nflverse regular-season play-by-play')}")
+                        st.caption(situational_context.get("guardrail", ""))
 
                     opponent_context = nfl_result.get("opponent_adjusted_context") or {}
                     st.markdown("#### Opponent-Adjusted Performance")
