@@ -20,17 +20,17 @@
     {
       "team": "Arizona Cardinals",
       "unit": "defensive_front",
-      "grade": 73.2,
-      "roster_grade": 77.65,
-      "performance_grade": 55.41,
+      "grade": 72.37,
+      "roster_grade": 76.49,
+      "performance_grade": 55.9,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Arizona Cardinals",
       "unit": "linebackers",
-      "grade": 71.75,
-      "roster_grade": 73.81,
+      "grade": 73.44,
+      "roster_grade": 75.69,
       "performance_grade": 53.23,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -38,8 +38,8 @@
     {
       "team": "Arizona Cardinals",
       "unit": "offensive_line",
-      "grade": 74.63,
-      "roster_grade": 79.1,
+      "grade": 74.24,
+      "roster_grade": 78.61,
       "performance_grade": 56.74,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -56,8 +56,8 @@
     {
       "team": "Arizona Cardinals",
       "unit": "receiving_weapons",
-      "grade": 83.07,
-      "roster_grade": 83.07,
+      "grade": 83.71,
+      "roster_grade": 83.71,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -65,8 +65,8 @@
     {
       "team": "Arizona Cardinals",
       "unit": "running_backs",
-      "grade": 82.3,
-      "roster_grade": 82.3,
+      "grade": 83.24,
+      "roster_grade": 83.24,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -74,8 +74,8 @@
     {
       "team": "Arizona Cardinals",
       "unit": "secondary",
-      "grade": 73.99,
-      "roster_grade": 79.3,
+      "grade": 73.39,
+      "roster_grade": 78.55,
       "performance_grade": 52.73,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -83,8 +83,8 @@
     {
       "team": "Arizona Cardinals",
       "unit": "special_teams",
-      "grade": 71.12,
-      "roster_grade": 76.24,
+      "grade": 72.12,
+      "roster_grade": 77.5,
       "performance_grade": 50.62,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -92,17 +92,17 @@
     {
       "team": "Atlanta Falcons",
       "unit": "defensive_front",
-      "grade": 75.13,
-      "roster_grade": 76.6,
-      "performance_grade": 69.26,
+      "grade": 73.66,
+      "roster_grade": 74.72,
+      "performance_grade": 69.4,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Atlanta Falcons",
       "unit": "linebackers",
-      "grade": 73.83,
-      "roster_grade": 74.37,
+      "grade": 75.78,
+      "roster_grade": 76.54,
       "performance_grade": 68.98,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -110,8 +110,8 @@
     {
       "team": "Atlanta Falcons",
       "unit": "offensive_line",
-      "grade": 80.44,
-      "roster_grade": 81.76,
+      "grade": 81.02,
+      "roster_grade": 82.49,
       "performance_grade": 75.16,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -128,8 +128,8 @@
     {
       "team": "Atlanta Falcons",
       "unit": "receiving_weapons",
-      "grade": 79.65,
-      "roster_grade": 79.65,
+      "grade": 80.15,
+      "roster_grade": 80.15,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -137,8 +137,8 @@
     {
       "team": "Atlanta Falcons",
       "unit": "running_backs",
-      "grade": 84.44,
-      "roster_grade": 84.44,
+      "grade": 93.59,
+      "roster_grade": 93.59,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -146,8 +146,8 @@
     {
       "team": "Atlanta Falcons",
       "unit": "secondary",
-      "grade": 79.4,
-      "roster_grade": 81.43,
+      "grade": 79.5,
+      "roster_grade": 81.55,
       "performance_grade": 71.3,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -155,8 +155,8 @@
     {
       "team": "Atlanta Falcons",
       "unit": "special_teams",
-      "grade": 79.15,
-      "roster_grade": 83.12,
+      "grade": 80.26,
+      "roster_grade": 84.5,
       "performance_grade": 63.28,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -164,26 +164,26 @@
     {
       "team": "Baltimore Ravens",
       "unit": "defensive_front",
-      "grade": 79.96,
-      "roster_grade": 83.59,
-      "performance_grade": 65.46,
+      "grade": 77.49,
+      "roster_grade": 80.9,
+      "performance_grade": 63.84,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Baltimore Ravens",
       "unit": "linebackers",
-      "grade": 77.97,
-      "roster_grade": 79.39,
-      "performance_grade": 65.18,
+      "grade": 80.85,
+      "roster_grade": 82.66,
+      "performance_grade": 64.55,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
     },
     {
       "team": "Baltimore Ravens",
       "unit": "offensive_line",
-      "grade": 75.58,
-      "roster_grade": 78.66,
+      "grade": 76.04,
+      "roster_grade": 79.23,
       "performance_grade": 63.28,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -200,8 +200,8 @@
     {
       "team": "Baltimore Ravens",
       "unit": "receiving_weapons",
-      "grade": 80.97,
-      "roster_grade": 80.97,
+      "grade": 81.32,
+      "roster_grade": 81.32,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -209,8 +209,8 @@
     {
       "team": "Baltimore Ravens",
       "unit": "running_backs",
-      "grade": 83.07,
-      "roster_grade": 83.07,
+      "grade": 90.78,
+      "roster_grade": 90.78,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -218,8 +218,8 @@
     {
       "team": "Baltimore Ravens",
       "unit": "secondary",
-      "grade": 78.27,
-      "roster_grade": 82.58,
+      "grade": 78.69,
+      "roster_grade": 83.1,
       "performance_grade": 61.03,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -227,8 +227,8 @@
     {
       "team": "Baltimore Ravens",
       "unit": "special_teams",
-      "grade": 77.73,
-      "roster_grade": 77.12,
+      "grade": 78.83,
+      "roster_grade": 78.5,
       "performance_grade": 80.16,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -236,17 +236,17 @@
     {
       "team": "Buffalo Bills",
       "unit": "defensive_front",
-      "grade": 76.79,
-      "roster_grade": 80.7,
-      "performance_grade": 61.17,
+      "grade": 75.79,
+      "roster_grade": 78.83,
+      "performance_grade": 63.63,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Buffalo Bills",
       "unit": "linebackers",
-      "grade": 74.74,
-      "roster_grade": 75.11,
+      "grade": 77.45,
+      "roster_grade": 78.13,
       "performance_grade": 71.37,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -254,8 +254,8 @@
     {
       "team": "Buffalo Bills",
       "unit": "offensive_line",
-      "grade": 79.41,
-      "roster_grade": 80.53,
+      "grade": 78.47,
+      "roster_grade": 79.35,
       "performance_grade": 74.95,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -272,8 +272,8 @@
     {
       "team": "Buffalo Bills",
       "unit": "receiving_weapons",
-      "grade": 80.8,
-      "roster_grade": 80.8,
+      "grade": 81.04,
+      "roster_grade": 81.04,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -281,8 +281,8 @@
     {
       "team": "Buffalo Bills",
       "unit": "running_backs",
-      "grade": 83.62,
-      "roster_grade": 83.62,
+      "grade": 92.64,
+      "roster_grade": 92.64,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -299,8 +299,8 @@
     {
       "team": "Buffalo Bills",
       "unit": "special_teams",
-      "grade": 76.55,
-      "roster_grade": 77.76,
+      "grade": 76.74,
+      "roster_grade": 78.0,
       "performance_grade": 71.72,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -308,17 +308,17 @@
     {
       "team": "Carolina Panthers",
       "unit": "defensive_front",
-      "grade": 75.67,
-      "roster_grade": 80.32,
-      "performance_grade": 57.09,
+      "grade": 74.68,
+      "roster_grade": 78.88,
+      "performance_grade": 57.87,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Carolina Panthers",
       "unit": "linebackers",
-      "grade": 74.63,
-      "roster_grade": 75.65,
+      "grade": 78.5,
+      "roster_grade": 79.95,
       "performance_grade": 65.46,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -326,8 +326,8 @@
     {
       "team": "Carolina Panthers",
       "unit": "offensive_line",
-      "grade": 78.68,
-      "roster_grade": 81.61,
+      "grade": 77.9,
+      "roster_grade": 80.64,
       "performance_grade": 66.94,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -344,8 +344,8 @@
     {
       "team": "Carolina Panthers",
       "unit": "receiving_weapons",
-      "grade": 78.01,
-      "roster_grade": 78.01,
+      "grade": 77.75,
+      "roster_grade": 77.75,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -353,8 +353,8 @@
     {
       "team": "Carolina Panthers",
       "unit": "running_backs",
-      "grade": 79.67,
-      "roster_grade": 79.67,
+      "grade": 82.48,
+      "roster_grade": 82.48,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -362,8 +362,8 @@
     {
       "team": "Carolina Panthers",
       "unit": "secondary",
-      "grade": 75.4,
-      "roster_grade": 78.61,
+      "grade": 75.71,
+      "roster_grade": 78.99,
       "performance_grade": 62.58,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -371,8 +371,8 @@
     {
       "team": "Carolina Panthers",
       "unit": "special_teams",
-      "grade": 76.27,
-      "roster_grade": 77.06,
+      "grade": 76.94,
+      "roster_grade": 77.89,
       "performance_grade": 73.12,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -380,17 +380,17 @@
     {
       "team": "Chicago Bears",
       "unit": "defensive_front",
-      "grade": 74.53,
-      "roster_grade": 78.26,
-      "performance_grade": 59.62,
+      "grade": 75.02,
+      "roster_grade": 78.74,
+      "performance_grade": 60.12,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Chicago Bears",
       "unit": "linebackers",
-      "grade": 76.88,
-      "roster_grade": 78.47,
+      "grade": 77.47,
+      "roster_grade": 79.12,
       "performance_grade": 62.58,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -398,8 +398,8 @@
     {
       "team": "Chicago Bears",
       "unit": "offensive_line",
-      "grade": 82.65,
-      "roster_grade": 81.73,
+      "grade": 82.84,
+      "roster_grade": 81.96,
       "performance_grade": 86.34,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -416,8 +416,8 @@
     {
       "team": "Chicago Bears",
       "unit": "receiving_weapons",
-      "grade": 80.07,
-      "roster_grade": 80.07,
+      "grade": 80.2,
+      "roster_grade": 80.2,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -425,8 +425,8 @@
     {
       "team": "Chicago Bears",
       "unit": "running_backs",
-      "grade": 81.97,
-      "roster_grade": 81.97,
+      "grade": 86.44,
+      "roster_grade": 86.44,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -434,8 +434,8 @@
     {
       "team": "Chicago Bears",
       "unit": "secondary",
-      "grade": 75.99,
-      "roster_grade": 79.98,
+      "grade": 75.95,
+      "roster_grade": 79.93,
       "performance_grade": 60.05,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -443,8 +443,8 @@
     {
       "team": "Chicago Bears",
       "unit": "special_teams",
-      "grade": 74.39,
-      "roster_grade": 77.52,
+      "grade": 75.97,
+      "roster_grade": 79.5,
       "performance_grade": 61.88,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -452,17 +452,17 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "defensive_front",
-      "grade": 76.5,
-      "roster_grade": 82.39,
-      "performance_grade": 52.95,
+      "grade": 76.76,
+      "roster_grade": 82.27,
+      "performance_grade": 54.7,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Cincinnati Bengals",
       "unit": "linebackers",
-      "grade": 68.94,
-      "roster_grade": 70.66,
+      "grade": 69.3,
+      "roster_grade": 71.06,
       "performance_grade": 53.51,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -470,8 +470,8 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "offensive_line",
-      "grade": 75.67,
-      "roster_grade": 75.24,
+      "grade": 75.92,
+      "roster_grade": 75.55,
       "performance_grade": 77.41,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -488,8 +488,8 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "receiving_weapons",
-      "grade": 82.64,
-      "roster_grade": 82.64,
+      "grade": 83.38,
+      "roster_grade": 83.38,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -497,8 +497,8 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "running_backs",
-      "grade": 79.58,
-      "roster_grade": 79.58,
+      "grade": 84.45,
+      "roster_grade": 84.45,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -506,8 +506,8 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "secondary",
-      "grade": 72.57,
-      "roster_grade": 77.95,
+      "grade": 71.56,
+      "roster_grade": 76.69,
       "performance_grade": 51.05,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -515,8 +515,8 @@
     {
       "team": "Cincinnati Bengals",
       "unit": "special_teams",
-      "grade": 78.25,
-      "roster_grade": 78.48,
+      "grade": 80.27,
+      "roster_grade": 81.0,
       "performance_grade": 77.34,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -524,8 +524,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "defensive_front",
-      "grade": 80.3,
-      "roster_grade": 78.68,
+      "grade": 80.64,
+      "roster_grade": 79.11,
       "performance_grade": 86.77,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -533,8 +533,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "linebackers",
-      "grade": 80.12,
-      "roster_grade": 80.05,
+      "grade": 76.63,
+      "roster_grade": 76.18,
       "performance_grade": 80.72,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -542,8 +542,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "offensive_line",
-      "grade": 73.93,
-      "roster_grade": 79.09,
+      "grade": 74.36,
+      "roster_grade": 79.62,
       "performance_grade": 53.3,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -551,8 +551,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "quarterback",
-      "grade": 72.21,
-      "roster_grade": 72.21,
+      "grade": 71.71,
+      "roster_grade": 71.71,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -560,8 +560,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "receiving_weapons",
-      "grade": 78.2,
-      "roster_grade": 78.2,
+      "grade": 78.39,
+      "roster_grade": 78.39,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -569,8 +569,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "running_backs",
-      "grade": 79.11,
-      "roster_grade": 79.11,
+      "grade": 83.61,
+      "roster_grade": 83.61,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -578,8 +578,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "secondary",
-      "grade": 80.03,
-      "roster_grade": 79.75,
+      "grade": 79.74,
+      "roster_grade": 79.39,
       "performance_grade": 81.14,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -587,8 +587,8 @@
     {
       "team": "Cleveland Browns",
       "unit": "special_teams",
-      "grade": 69.83,
-      "roster_grade": 75.68,
+      "grade": 72.08,
+      "roster_grade": 78.5,
       "performance_grade": 46.41,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -596,17 +596,17 @@
     {
       "team": "Dallas Cowboys",
       "unit": "defensive_front",
-      "grade": 77.12,
-      "roster_grade": 81.81,
-      "performance_grade": 58.36,
+      "grade": 75.02,
+      "roster_grade": 79.26,
+      "performance_grade": 58.08,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Dallas Cowboys",
       "unit": "linebackers",
-      "grade": 72.16,
-      "roster_grade": 74.97,
+      "grade": 74.27,
+      "roster_grade": 77.31,
       "performance_grade": 46.9,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -614,8 +614,8 @@
     {
       "team": "Dallas Cowboys",
       "unit": "offensive_line",
-      "grade": 78.09,
-      "roster_grade": 78.31,
+      "grade": 78.59,
+      "roster_grade": 78.94,
       "performance_grade": 77.2,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -632,8 +632,8 @@
     {
       "team": "Dallas Cowboys",
       "unit": "receiving_weapons",
-      "grade": 84.29,
-      "roster_grade": 84.29,
+      "grade": 84.85,
+      "roster_grade": 84.85,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -641,8 +641,8 @@
     {
       "team": "Dallas Cowboys",
       "unit": "running_backs",
-      "grade": 80.5,
-      "roster_grade": 80.5,
+      "grade": 86.98,
+      "roster_grade": 86.98,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -650,8 +650,8 @@
     {
       "team": "Dallas Cowboys",
       "unit": "secondary",
-      "grade": 74.38,
-      "roster_grade": 80.7,
+      "grade": 74.67,
+      "roster_grade": 81.07,
       "performance_grade": 49.08,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -659,8 +659,8 @@
     {
       "team": "Dallas Cowboys",
       "unit": "special_teams",
-      "grade": 83.49,
-      "roster_grade": 84.68,
+      "grade": 84.55,
+      "roster_grade": 86.0,
       "performance_grade": 78.75,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -668,8 +668,8 @@
     {
       "team": "Denver Broncos",
       "unit": "defensive_front",
-      "grade": 83.61,
-      "roster_grade": 82.94,
+      "grade": 82.48,
+      "roster_grade": 81.53,
       "performance_grade": 86.27,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -677,8 +677,8 @@
     {
       "team": "Denver Broncos",
       "unit": "linebackers",
-      "grade": 75.01,
-      "roster_grade": 74.1,
+      "grade": 79.59,
+      "roster_grade": 79.19,
       "performance_grade": 83.18,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -686,8 +686,8 @@
     {
       "team": "Denver Broncos",
       "unit": "offensive_line",
-      "grade": 83.55,
-      "roster_grade": 83.73,
+      "grade": 84.26,
+      "roster_grade": 84.62,
       "performance_grade": 82.83,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -704,8 +704,8 @@
     {
       "team": "Denver Broncos",
       "unit": "receiving_weapons",
-      "grade": 82.48,
-      "roster_grade": 82.48,
+      "grade": 82.68,
+      "roster_grade": 82.68,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -713,8 +713,8 @@
     {
       "team": "Denver Broncos",
       "unit": "running_backs",
-      "grade": 81.52,
-      "roster_grade": 81.52,
+      "grade": 82.62,
+      "roster_grade": 82.62,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -722,8 +722,8 @@
     {
       "team": "Denver Broncos",
       "unit": "secondary",
-      "grade": 83.78,
-      "roster_grade": 83.11,
+      "grade": 84.36,
+      "roster_grade": 83.83,
       "performance_grade": 86.48,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -731,8 +731,8 @@
     {
       "team": "Denver Broncos",
       "unit": "special_teams",
-      "grade": 75.71,
-      "roster_grade": 79.52,
+      "grade": 77.29,
+      "roster_grade": 81.5,
       "performance_grade": 60.47,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -740,17 +740,17 @@
     {
       "team": "Detroit Lions",
       "unit": "defensive_front",
-      "grade": 80.11,
-      "roster_grade": 81.27,
-      "performance_grade": 75.45,
+      "grade": 79.76,
+      "roster_grade": 81.12,
+      "performance_grade": 74.32,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Detroit Lions",
       "unit": "linebackers",
-      "grade": 76.95,
-      "roster_grade": 77.5,
+      "grade": 77.33,
+      "roster_grade": 77.92,
       "performance_grade": 72.0,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -758,8 +758,8 @@
     {
       "team": "Detroit Lions",
       "unit": "offensive_line",
-      "grade": 75.96,
-      "roster_grade": 78.86,
+      "grade": 74.86,
+      "roster_grade": 77.49,
       "performance_grade": 64.34,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -776,8 +776,8 @@
     {
       "team": "Detroit Lions",
       "unit": "receiving_weapons",
-      "grade": 83.54,
-      "roster_grade": 83.54,
+      "grade": 84.25,
+      "roster_grade": 84.25,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -785,8 +785,8 @@
     {
       "team": "Detroit Lions",
       "unit": "running_backs",
-      "grade": 84.83,
-      "roster_grade": 84.83,
+      "grade": 95.39,
+      "roster_grade": 95.39,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -794,8 +794,8 @@
     {
       "team": "Detroit Lions",
       "unit": "secondary",
-      "grade": 80.03,
-      "roster_grade": 82.32,
+      "grade": 79.3,
+      "roster_grade": 81.41,
       "performance_grade": 70.88,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -803,8 +803,8 @@
     {
       "team": "Detroit Lions",
       "unit": "special_teams",
-      "grade": 81.51,
-      "roster_grade": 79.74,
+      "grade": 82.02,
+      "roster_grade": 80.38,
       "performance_grade": 88.59,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -812,17 +812,17 @@
     {
       "team": "Green Bay Packers",
       "unit": "defensive_front",
-      "grade": 77.81,
-      "roster_grade": 81.53,
-      "performance_grade": 62.93,
+      "grade": 77.03,
+      "roster_grade": 79.98,
+      "performance_grade": 65.25,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Green Bay Packers",
       "unit": "linebackers",
-      "grade": 76.4,
-      "roster_grade": 77.68,
+      "grade": 77.72,
+      "roster_grade": 79.14,
       "performance_grade": 64.9,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -830,8 +830,8 @@
     {
       "team": "Green Bay Packers",
       "unit": "offensive_line",
-      "grade": 74.53,
-      "roster_grade": 75.14,
+      "grade": 71.63,
+      "roster_grade": 71.52,
       "performance_grade": 72.07,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -848,8 +848,8 @@
     {
       "team": "Green Bay Packers",
       "unit": "receiving_weapons",
-      "grade": 79.7,
-      "roster_grade": 79.7,
+      "grade": 80.15,
+      "roster_grade": 80.15,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -857,8 +857,8 @@
     {
       "team": "Green Bay Packers",
       "unit": "running_backs",
-      "grade": 81.29,
-      "roster_grade": 81.29,
+      "grade": 90.31,
+      "roster_grade": 90.31,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -866,17 +866,17 @@
     {
       "team": "Green Bay Packers",
       "unit": "secondary",
-      "grade": 77.13,
-      "roster_grade": 79.29,
-      "performance_grade": 68.48,
+      "grade": 77.12,
+      "roster_grade": 79.45,
+      "performance_grade": 67.78,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Green Bay Packers",
       "unit": "special_teams",
-      "grade": 75.03,
-      "roster_grade": 75.16,
+      "grade": 76.91,
+      "roster_grade": 77.5,
       "performance_grade": 74.53,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -884,17 +884,17 @@
     {
       "team": "Houston Texans",
       "unit": "defensive_front",
-      "grade": 84.05,
-      "roster_grade": 85.0,
-      "performance_grade": 80.23,
+      "grade": 83.29,
+      "roster_grade": 84.71,
+      "performance_grade": 77.62,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Houston Texans",
       "unit": "linebackers",
-      "grade": 78.29,
-      "roster_grade": 77.21,
+      "grade": 78.66,
+      "roster_grade": 77.62,
       "performance_grade": 88.03,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -902,8 +902,8 @@
     {
       "team": "Houston Texans",
       "unit": "offensive_line",
-      "grade": 76.51,
-      "roster_grade": 78.38,
+      "grade": 75.75,
+      "roster_grade": 77.42,
       "performance_grade": 69.05,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -920,8 +920,8 @@
     {
       "team": "Houston Texans",
       "unit": "receiving_weapons",
-      "grade": 82.38,
-      "roster_grade": 82.38,
+      "grade": 81.67,
+      "roster_grade": 81.67,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -929,8 +929,8 @@
     {
       "team": "Houston Texans",
       "unit": "running_backs",
-      "grade": 81.87,
-      "roster_grade": 81.87,
+      "grade": 84.29,
+      "roster_grade": 84.29,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -938,8 +938,8 @@
     {
       "team": "Houston Texans",
       "unit": "secondary",
-      "grade": 84.14,
-      "roster_grade": 83.7,
+      "grade": 84.77,
+      "roster_grade": 84.48,
       "performance_grade": 85.92,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -947,8 +947,8 @@
     {
       "team": "Houston Texans",
       "unit": "special_teams",
-      "grade": 72.4,
-      "roster_grade": 76.08,
+      "grade": 73.93,
+      "roster_grade": 78.0,
       "performance_grade": 57.66,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -956,17 +956,17 @@
     {
       "team": "Indianapolis Colts",
       "unit": "defensive_front",
-      "grade": 78.42,
-      "roster_grade": 81.43,
-      "performance_grade": 66.38,
+      "grade": 78.2,
+      "roster_grade": 81.98,
+      "performance_grade": 63.07,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Indianapolis Colts",
       "unit": "linebackers",
-      "grade": 71.6,
-      "roster_grade": 72.17,
+      "grade": 71.9,
+      "roster_grade": 72.51,
       "performance_grade": 66.45,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -974,8 +974,8 @@
     {
       "team": "Indianapolis Colts",
       "unit": "offensive_line",
-      "grade": 81.17,
-      "roster_grade": 81.2,
+      "grade": 81.47,
+      "roster_grade": 81.57,
       "performance_grade": 81.07,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -992,8 +992,8 @@
     {
       "team": "Indianapolis Colts",
       "unit": "receiving_weapons",
-      "grade": 80.2,
-      "roster_grade": 80.2,
+      "grade": 80.75,
+      "roster_grade": 80.75,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1001,8 +1001,8 @@
     {
       "team": "Indianapolis Colts",
       "unit": "running_backs",
-      "grade": 81.76,
-      "roster_grade": 81.76,
+      "grade": 94.51,
+      "roster_grade": 94.51,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1010,8 +1010,8 @@
     {
       "team": "Indianapolis Colts",
       "unit": "secondary",
-      "grade": 78.89,
-      "roster_grade": 82.69,
+      "grade": 77.73,
+      "roster_grade": 81.24,
       "performance_grade": 63.7,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1019,8 +1019,8 @@
     {
       "team": "Indianapolis Colts",
       "unit": "special_teams",
-      "grade": 79.86,
-      "roster_grade": 80.84,
+      "grade": 79.99,
+      "roster_grade": 81.0,
       "performance_grade": 75.94,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1028,17 +1028,17 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "defensive_front",
-      "grade": 76.44,
-      "roster_grade": 78.85,
-      "performance_grade": 66.8,
+      "grade": 76.01,
+      "roster_grade": 79.24,
+      "performance_grade": 63.07,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Jacksonville Jaguars",
       "unit": "linebackers",
-      "grade": 76.55,
-      "roster_grade": 75.52,
+      "grade": 75.52,
+      "roster_grade": 74.37,
       "performance_grade": 85.85,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1046,9 +1046,9 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "offensive_line",
-      "grade": 74.86,
-      "roster_grade": 76.88,
-      "performance_grade": 66.8,
+      "grade": 74.33,
+      "roster_grade": 76.14,
+      "performance_grade": 67.08,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
@@ -1064,8 +1064,8 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "receiving_weapons",
-      "grade": 79.97,
-      "roster_grade": 79.97,
+      "grade": 80.92,
+      "roster_grade": 80.92,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1073,8 +1073,8 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "running_backs",
-      "grade": 76.34,
-      "roster_grade": 76.34,
+      "grade": 78.27,
+      "roster_grade": 78.27,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1082,8 +1082,8 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "secondary",
-      "grade": 80.28,
-      "roster_grade": 79.5,
+      "grade": 80.01,
+      "roster_grade": 79.16,
       "performance_grade": 83.39,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1091,8 +1091,8 @@
     {
       "team": "Jacksonville Jaguars",
       "unit": "special_teams",
-      "grade": 81.09,
-      "roster_grade": 79.56,
+      "grade": 82.24,
+      "roster_grade": 81.0,
       "performance_grade": 87.19,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1100,17 +1100,17 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "defensive_front",
-      "grade": 79.11,
-      "roster_grade": 80.94,
-      "performance_grade": 71.79,
+      "grade": 78.66,
+      "roster_grade": 80.18,
+      "performance_grade": 72.56,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Kansas City Chiefs",
       "unit": "linebackers",
-      "grade": 77.09,
-      "roster_grade": 77.66,
+      "grade": 76.64,
+      "roster_grade": 77.16,
       "performance_grade": 71.93,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1118,8 +1118,8 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "offensive_line",
-      "grade": 78.27,
-      "roster_grade": 81.08,
+      "grade": 77.87,
+      "roster_grade": 80.59,
       "performance_grade": 67.01,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1136,8 +1136,8 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "receiving_weapons",
-      "grade": 81.59,
-      "roster_grade": 81.59,
+      "grade": 82.27,
+      "roster_grade": 82.27,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1145,8 +1145,8 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "running_backs",
-      "grade": 81.51,
-      "roster_grade": 81.51,
+      "grade": 89.24,
+      "roster_grade": 89.24,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1154,8 +1154,8 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "secondary",
-      "grade": 76.63,
-      "roster_grade": 78.38,
+      "grade": 76.47,
+      "roster_grade": 78.18,
       "performance_grade": 69.61,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1163,8 +1163,8 @@
     {
       "team": "Kansas City Chiefs",
       "unit": "special_teams",
-      "grade": 77.15,
-      "roster_grade": 79.92,
+      "grade": 78.02,
+      "roster_grade": 81.0,
       "performance_grade": 66.09,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1172,26 +1172,26 @@
     {
       "team": "Las Vegas Raiders",
       "unit": "defensive_front",
-      "grade": 76.72,
-      "roster_grade": 79.87,
-      "performance_grade": 64.12,
+      "grade": 74.68,
+      "roster_grade": 76.62,
+      "performance_grade": 66.94,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Las Vegas Raiders",
       "unit": "linebackers",
-      "grade": 73.89,
-      "roster_grade": 74.91,
-      "performance_grade": 64.76,
+      "grade": 77.14,
+      "roster_grade": 78.44,
+      "performance_grade": 65.39,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
     },
     {
       "team": "Las Vegas Raiders",
       "unit": "offensive_line",
-      "grade": 73.35,
-      "roster_grade": 79.81,
+      "grade": 73.16,
+      "roster_grade": 79.57,
       "performance_grade": 47.53,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1199,8 +1199,8 @@
     {
       "team": "Las Vegas Raiders",
       "unit": "quarterback",
-      "grade": 76.56,
-      "roster_grade": 76.56,
+      "grade": 75.37,
+      "roster_grade": 75.37,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1208,8 +1208,8 @@
     {
       "team": "Las Vegas Raiders",
       "unit": "receiving_weapons",
-      "grade": 79.81,
-      "roster_grade": 79.81,
+      "grade": 80.35,
+      "roster_grade": 80.35,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1217,8 +1217,8 @@
     {
       "team": "Las Vegas Raiders",
       "unit": "running_backs",
-      "grade": 78.77,
-      "roster_grade": 78.77,
+      "grade": 86.68,
+      "roster_grade": 86.68,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1226,17 +1226,17 @@
     {
       "team": "Las Vegas Raiders",
       "unit": "secondary",
-      "grade": 75.39,
-      "roster_grade": 77.96,
-      "performance_grade": 65.11,
+      "grade": 75.23,
+      "roster_grade": 77.59,
+      "performance_grade": 65.81,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Las Vegas Raiders",
       "unit": "special_teams",
-      "grade": 72.95,
-      "roster_grade": 77.48,
+      "grade": 74.97,
+      "roster_grade": 80.0,
       "performance_grade": 54.84,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1244,17 +1244,17 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "defensive_front",
-      "grade": 79.71,
-      "roster_grade": 79.63,
-      "performance_grade": 80.02,
+      "grade": 78.11,
+      "roster_grade": 77.71,
+      "performance_grade": 79.73,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Los Angeles Chargers",
       "unit": "linebackers",
-      "grade": 76.14,
-      "roster_grade": 75.76,
+      "grade": 78.84,
+      "roster_grade": 78.76,
       "performance_grade": 79.52,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1262,8 +1262,8 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "offensive_line",
-      "grade": 75.73,
-      "roster_grade": 80.02,
+      "grade": 76.27,
+      "roster_grade": 80.7,
       "performance_grade": 58.57,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1280,8 +1280,8 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "receiving_weapons",
-      "grade": 79.3,
-      "roster_grade": 79.3,
+      "grade": 78.88,
+      "roster_grade": 78.88,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1289,8 +1289,8 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "running_backs",
-      "grade": 80.26,
-      "roster_grade": 80.26,
+      "grade": 82.38,
+      "roster_grade": 82.38,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1298,8 +1298,8 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "secondary",
-      "grade": 81.35,
-      "roster_grade": 81.44,
+      "grade": 81.02,
+      "roster_grade": 81.02,
       "performance_grade": 81.0,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1307,8 +1307,8 @@
     {
       "team": "Los Angeles Chargers",
       "unit": "special_teams",
-      "grade": 77.07,
-      "roster_grade": 82.98,
+      "grade": 77.62,
+      "roster_grade": 83.66,
       "performance_grade": 53.44,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1316,17 +1316,17 @@
     {
       "team": "Los Angeles Rams",
       "unit": "defensive_front",
-      "grade": 84.73,
-      "roster_grade": 85.79,
-      "performance_grade": 80.51,
+      "grade": 83.96,
+      "roster_grade": 85.09,
+      "performance_grade": 79.45,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Los Angeles Rams",
       "unit": "linebackers",
-      "grade": 76.67,
-      "roster_grade": 76.46,
+      "grade": 80.95,
+      "roster_grade": 81.21,
       "performance_grade": 78.61,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1334,8 +1334,8 @@
     {
       "team": "Los Angeles Rams",
       "unit": "offensive_line",
-      "grade": 81.55,
-      "roster_grade": 80.44,
+      "grade": 82.04,
+      "roster_grade": 81.05,
       "performance_grade": 85.99,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1352,8 +1352,8 @@
     {
       "team": "Los Angeles Rams",
       "unit": "receiving_weapons",
-      "grade": 82.53,
-      "roster_grade": 82.53,
+      "grade": 83.07,
+      "roster_grade": 83.07,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1361,8 +1361,8 @@
     {
       "team": "Los Angeles Rams",
       "unit": "running_backs",
-      "grade": 83.08,
-      "roster_grade": 83.08,
+      "grade": 89.34,
+      "roster_grade": 89.34,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1370,8 +1370,8 @@
     {
       "team": "Los Angeles Rams",
       "unit": "secondary",
-      "grade": 80.37,
-      "roster_grade": 82.04,
+      "grade": 80.92,
+      "roster_grade": 82.73,
       "performance_grade": 73.69,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1379,8 +1379,8 @@
     {
       "team": "Los Angeles Rams",
       "unit": "special_teams",
-      "grade": 75.43,
-      "roster_grade": 78.12,
+      "grade": 77.74,
+      "roster_grade": 81.0,
       "performance_grade": 64.69,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1388,17 +1388,17 @@
     {
       "team": "Miami Dolphins",
       "unit": "defensive_front",
-      "grade": 73.09,
-      "roster_grade": 76.39,
-      "performance_grade": 59.91,
+      "grade": 72.92,
+      "roster_grade": 76.3,
+      "performance_grade": 59.41,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Miami Dolphins",
       "unit": "linebackers",
-      "grade": 75.73,
-      "roster_grade": 78.11,
+      "grade": 75.21,
+      "roster_grade": 77.53,
       "performance_grade": 54.35,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1406,8 +1406,8 @@
     {
       "team": "Miami Dolphins",
       "unit": "offensive_line",
-      "grade": 75.21,
-      "roster_grade": 77.52,
+      "grade": 75.47,
+      "roster_grade": 77.85,
       "performance_grade": 65.95,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1424,8 +1424,8 @@
     {
       "team": "Miami Dolphins",
       "unit": "receiving_weapons",
-      "grade": 74.8,
-      "roster_grade": 74.8,
+      "grade": 74.0,
+      "roster_grade": 74.0,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1433,8 +1433,8 @@
     {
       "team": "Miami Dolphins",
       "unit": "running_backs",
-      "grade": 81.38,
-      "roster_grade": 81.38,
+      "grade": 89.09,
+      "roster_grade": 89.09,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1442,8 +1442,8 @@
     {
       "team": "Miami Dolphins",
       "unit": "secondary",
-      "grade": 69.84,
-      "roster_grade": 73.9,
+      "grade": 66.57,
+      "roster_grade": 69.82,
       "performance_grade": 53.58,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1451,8 +1451,8 @@
     {
       "team": "Miami Dolphins",
       "unit": "special_teams",
-      "grade": 79.39,
-      "roster_grade": 77.79,
+      "grade": 78.89,
+      "roster_grade": 77.17,
       "performance_grade": 85.78,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1460,17 +1460,17 @@
     {
       "team": "Minnesota Vikings",
       "unit": "defensive_front",
-      "grade": 78.26,
-      "roster_grade": 77.89,
-      "performance_grade": 79.73,
+      "grade": 78.03,
+      "roster_grade": 76.79,
+      "performance_grade": 82.97,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Minnesota Vikings",
       "unit": "linebackers",
-      "grade": 77.92,
-      "roster_grade": 77.31,
+      "grade": 79.3,
+      "roster_grade": 78.85,
       "performance_grade": 83.39,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1478,8 +1478,8 @@
     {
       "team": "Minnesota Vikings",
       "unit": "offensive_line",
-      "grade": 74.77,
-      "roster_grade": 79.65,
+      "grade": 75.3,
+      "roster_grade": 80.31,
       "performance_grade": 55.27,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1496,8 +1496,8 @@
     {
       "team": "Minnesota Vikings",
       "unit": "receiving_weapons",
-      "grade": 83.82,
-      "roster_grade": 83.82,
+      "grade": 84.61,
+      "roster_grade": 84.61,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1505,8 +1505,8 @@
     {
       "team": "Minnesota Vikings",
       "unit": "running_backs",
-      "grade": 80.68,
-      "roster_grade": 80.68,
+      "grade": 81.69,
+      "roster_grade": 81.69,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1514,8 +1514,8 @@
     {
       "team": "Minnesota Vikings",
       "unit": "secondary",
-      "grade": 80.46,
-      "roster_grade": 78.53,
+      "grade": 80.44,
+      "roster_grade": 78.51,
       "performance_grade": 88.17,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1523,8 +1523,8 @@
     {
       "team": "Minnesota Vikings",
       "unit": "special_teams",
-      "grade": 75.88,
-      "roster_grade": 81.84,
+      "grade": 76.41,
+      "roster_grade": 82.5,
       "performance_grade": 52.03,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1532,17 +1532,17 @@
     {
       "team": "New England Patriots",
       "unit": "defensive_front",
-      "grade": 77.07,
-      "roster_grade": 79.88,
-      "performance_grade": 65.81,
+      "grade": 75.88,
+      "roster_grade": 78.38,
+      "performance_grade": 65.88,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "New England Patriots",
       "unit": "linebackers",
-      "grade": 75.34,
-      "roster_grade": 75.67,
+      "grade": 78.16,
+      "roster_grade": 78.8,
       "performance_grade": 72.35,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1550,8 +1550,8 @@
     {
       "team": "New England Patriots",
       "unit": "offensive_line",
-      "grade": 76.67,
-      "roster_grade": 80.65,
+      "grade": 76.62,
+      "roster_grade": 80.59,
       "performance_grade": 60.75,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1568,8 +1568,8 @@
     {
       "team": "New England Patriots",
       "unit": "receiving_weapons",
-      "grade": 83.27,
-      "roster_grade": 83.27,
+      "grade": 83.46,
+      "roster_grade": 83.46,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1577,8 +1577,8 @@
     {
       "team": "New England Patriots",
       "unit": "running_backs",
-      "grade": 81.78,
-      "roster_grade": 81.78,
+      "grade": 81.23,
+      "roster_grade": 81.23,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1586,8 +1586,8 @@
     {
       "team": "New England Patriots",
       "unit": "secondary",
-      "grade": 82.46,
-      "roster_grade": 84.37,
+      "grade": 83.19,
+      "roster_grade": 85.28,
       "performance_grade": 74.81,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1595,8 +1595,8 @@
     {
       "team": "New England Patriots",
       "unit": "special_teams",
-      "grade": 75.63,
-      "roster_grade": 76.96,
+      "grade": 77.26,
+      "roster_grade": 79.0,
       "performance_grade": 70.31,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1604,17 +1604,17 @@
     {
       "team": "New Orleans Saints",
       "unit": "defensive_front",
-      "grade": 78.25,
-      "roster_grade": 78.9,
-      "performance_grade": 75.66,
+      "grade": 77.4,
+      "roster_grade": 76.73,
+      "performance_grade": 80.09,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "New Orleans Saints",
       "unit": "linebackers",
-      "grade": 75.32,
-      "roster_grade": 75.31,
+      "grade": 78.54,
+      "roster_grade": 78.88,
       "performance_grade": 75.45,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1622,8 +1622,8 @@
     {
       "team": "New Orleans Saints",
       "unit": "offensive_line",
-      "grade": 75.01,
-      "roster_grade": 78.94,
+      "grade": 75.32,
+      "roster_grade": 79.33,
       "performance_grade": 59.27,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1640,8 +1640,8 @@
     {
       "team": "New Orleans Saints",
       "unit": "receiving_weapons",
-      "grade": 79.37,
-      "roster_grade": 79.37,
+      "grade": 79.78,
+      "roster_grade": 79.78,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1649,8 +1649,8 @@
     {
       "team": "New Orleans Saints",
       "unit": "running_backs",
-      "grade": 83.31,
-      "roster_grade": 83.31,
+      "grade": 88.07,
+      "roster_grade": 88.07,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1658,8 +1658,8 @@
     {
       "team": "New Orleans Saints",
       "unit": "secondary",
-      "grade": 76.96,
-      "roster_grade": 77.81,
+      "grade": 76.89,
+      "roster_grade": 77.73,
       "performance_grade": 73.55,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1667,8 +1667,8 @@
     {
       "team": "New Orleans Saints",
       "unit": "special_teams",
-      "grade": 72.47,
-      "roster_grade": 78.64,
+      "grade": 72.76,
+      "roster_grade": 79.0,
       "performance_grade": 47.81,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1676,17 +1676,17 @@
     {
       "team": "New York Giants",
       "unit": "defensive_front",
-      "grade": 76.83,
-      "roster_grade": 81.47,
-      "performance_grade": 58.29,
+      "grade": 75.73,
+      "roster_grade": 80.02,
+      "performance_grade": 58.57,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "New York Giants",
       "unit": "linebackers",
-      "grade": 75.63,
-      "roster_grade": 77.98,
+      "grade": 77.65,
+      "roster_grade": 80.22,
       "performance_grade": 54.49,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1694,8 +1694,8 @@
     {
       "team": "New York Giants",
       "unit": "offensive_line",
-      "grade": 76.66,
-      "roster_grade": 79.76,
+      "grade": 76.85,
+      "roster_grade": 79.99,
       "performance_grade": 64.27,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1712,8 +1712,8 @@
     {
       "team": "New York Giants",
       "unit": "receiving_weapons",
-      "grade": 79.58,
-      "roster_grade": 79.58,
+      "grade": 79.07,
+      "roster_grade": 79.07,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1721,8 +1721,8 @@
     {
       "team": "New York Giants",
       "unit": "running_backs",
-      "grade": 81.36,
-      "roster_grade": 81.36,
+      "grade": 82.2,
+      "roster_grade": 82.2,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1730,8 +1730,8 @@
     {
       "team": "New York Giants",
       "unit": "secondary",
-      "grade": 76.65,
-      "roster_grade": 79.01,
+      "grade": 76.73,
+      "roster_grade": 79.11,
       "performance_grade": 67.22,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1739,8 +1739,8 @@
     {
       "team": "New York Giants",
       "unit": "special_teams",
-      "grade": 70.71,
-      "roster_grade": 74.32,
+      "grade": 72.05,
+      "roster_grade": 76.0,
       "performance_grade": 56.25,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1748,17 +1748,17 @@
     {
       "team": "New York Jets",
       "unit": "defensive_front",
-      "grade": 73.46,
-      "roster_grade": 78.52,
-      "performance_grade": 53.23,
+      "grade": 73.76,
+      "roster_grade": 78.58,
+      "performance_grade": 54.49,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "New York Jets",
       "unit": "linebackers",
-      "grade": 74.92,
-      "roster_grade": 77.55,
+      "grade": 79.11,
+      "roster_grade": 82.21,
       "performance_grade": 51.26,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1766,8 +1766,8 @@
     {
       "team": "New York Jets",
       "unit": "offensive_line",
-      "grade": 72.08,
-      "roster_grade": 76.92,
+      "grade": 72.59,
+      "roster_grade": 77.56,
       "performance_grade": 52.73,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1784,8 +1784,8 @@
     {
       "team": "New York Jets",
       "unit": "receiving_weapons",
-      "grade": 78.48,
-      "roster_grade": 78.48,
+      "grade": 77.88,
+      "roster_grade": 77.88,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1793,8 +1793,8 @@
     {
       "team": "New York Jets",
       "unit": "running_backs",
-      "grade": 79.89,
-      "roster_grade": 79.89,
+      "grade": 87.28,
+      "roster_grade": 87.28,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1802,8 +1802,8 @@
     {
       "team": "New York Jets",
       "unit": "secondary",
-      "grade": 72.94,
-      "roster_grade": 78.66,
+      "grade": 73.01,
+      "roster_grade": 78.75,
       "performance_grade": 50.06,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1811,8 +1811,8 @@
     {
       "team": "New York Jets",
       "unit": "special_teams",
-      "grade": 79.92,
-      "roster_grade": 77.4,
+      "grade": 80.4,
+      "roster_grade": 78.0,
       "performance_grade": 90.0,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1820,17 +1820,17 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "defensive_front",
-      "grade": 80.56,
-      "roster_grade": 82.82,
-      "performance_grade": 71.51,
+      "grade": 79.78,
+      "roster_grade": 81.78,
+      "performance_grade": 71.79,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Philadelphia Eagles",
       "unit": "linebackers",
-      "grade": 78.3,
-      "roster_grade": 78.5,
+      "grade": 83.42,
+      "roster_grade": 84.19,
       "performance_grade": 76.5,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1838,8 +1838,8 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "offensive_line",
-      "grade": 81.39,
-      "roster_grade": 83.54,
+      "grade": 82.03,
+      "roster_grade": 84.35,
       "performance_grade": 72.77,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1856,8 +1856,8 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "receiving_weapons",
-      "grade": 82.68,
-      "roster_grade": 82.68,
+      "grade": 82.57,
+      "roster_grade": 82.57,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1865,8 +1865,8 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "running_backs",
-      "grade": 83.95,
-      "roster_grade": 83.95,
+      "grade": 91.12,
+      "roster_grade": 91.12,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1874,8 +1874,8 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "secondary",
-      "grade": 81.33,
-      "roster_grade": 81.06,
+      "grade": 81.63,
+      "roster_grade": 81.44,
       "performance_grade": 82.41,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1883,8 +1883,8 @@
     {
       "team": "Philadelphia Eagles",
       "unit": "special_teams",
-      "grade": 75.48,
-      "roster_grade": 79.58,
+      "grade": 77.39,
+      "roster_grade": 81.97,
       "performance_grade": 59.06,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1892,17 +1892,17 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "defensive_front",
-      "grade": 83.94,
-      "roster_grade": 86.24,
-      "performance_grade": 74.74,
+      "grade": 81.32,
+      "roster_grade": 83.31,
+      "performance_grade": 73.34,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Pittsburgh Steelers",
       "unit": "linebackers",
-      "grade": 75.65,
-      "roster_grade": 76.18,
+      "grade": 76.79,
+      "roster_grade": 77.45,
       "performance_grade": 70.88,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1910,9 +1910,9 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "offensive_line",
-      "grade": 77.68,
-      "roster_grade": 77.38,
-      "performance_grade": 78.89,
+      "grade": 75.6,
+      "roster_grade": 74.94,
+      "performance_grade": 78.26,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
@@ -1928,8 +1928,8 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "receiving_weapons",
-      "grade": 80.36,
-      "roster_grade": 80.36,
+      "grade": 80.19,
+      "roster_grade": 80.19,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1937,8 +1937,8 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "running_backs",
-      "grade": 84.05,
-      "roster_grade": 84.05,
+      "grade": 85.06,
+      "roster_grade": 85.06,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -1946,8 +1946,8 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "secondary",
-      "grade": 80.01,
-      "roster_grade": 83.0,
+      "grade": 80.39,
+      "roster_grade": 83.47,
       "performance_grade": 68.06,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1955,8 +1955,8 @@
     {
       "team": "Pittsburgh Steelers",
       "unit": "special_teams",
-      "grade": 77.12,
-      "roster_grade": 79.17,
+      "grade": 79.32,
+      "roster_grade": 81.92,
       "performance_grade": 68.91,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -1964,17 +1964,17 @@
     {
       "team": "San Francisco 49ers",
       "unit": "defensive_front",
-      "grade": 74.38,
-      "roster_grade": 80.28,
-      "performance_grade": 50.77,
+      "grade": 72.54,
+      "roster_grade": 78.13,
+      "performance_grade": 50.2,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "San Francisco 49ers",
       "unit": "linebackers",
-      "grade": 80.35,
-      "roster_grade": 82.68,
+      "grade": 86.73,
+      "roster_grade": 89.76,
       "performance_grade": 59.41,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -1982,9 +1982,9 @@
     {
       "team": "San Francisco 49ers",
       "unit": "offensive_line",
-      "grade": 79.3,
-      "roster_grade": 80.12,
-      "performance_grade": 76.01,
+      "grade": 79.89,
+      "roster_grade": 80.93,
+      "performance_grade": 75.73,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
@@ -2000,8 +2000,8 @@
     {
       "team": "San Francisco 49ers",
       "unit": "receiving_weapons",
-      "grade": 84.59,
-      "roster_grade": 84.59,
+      "grade": 84.49,
+      "roster_grade": 84.49,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2009,8 +2009,8 @@
     {
       "team": "San Francisco 49ers",
       "unit": "running_backs",
-      "grade": 88.6,
-      "roster_grade": 88.6,
+      "grade": 95.44,
+      "roster_grade": 95.44,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2018,8 +2018,8 @@
     {
       "team": "San Francisco 49ers",
       "unit": "secondary",
-      "grade": 74.09,
-      "roster_grade": 77.35,
+      "grade": 73.53,
+      "roster_grade": 76.65,
       "performance_grade": 61.03,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2027,8 +2027,8 @@
     {
       "team": "San Francisco 49ers",
       "unit": "special_teams",
-      "grade": 78.9,
-      "roster_grade": 77.88,
+      "grade": 80.19,
+      "roster_grade": 79.5,
       "performance_grade": 82.97,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2036,17 +2036,17 @@
     {
       "team": "Seattle Seahawks",
       "unit": "defensive_front",
-      "grade": 83.56,
-      "roster_grade": 83.02,
-      "performance_grade": 85.71,
+      "grade": 82.07,
+      "roster_grade": 82.07,
+      "performance_grade": 82.05,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Seattle Seahawks",
       "unit": "linebackers",
-      "grade": 77.79,
-      "roster_grade": 76.7,
+      "grade": 80.0,
+      "roster_grade": 79.15,
       "performance_grade": 87.61,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -2054,9 +2054,9 @@
     {
       "team": "Seattle Seahawks",
       "unit": "offensive_line",
-      "grade": 75.65,
-      "roster_grade": 77.02,
-      "performance_grade": 70.17,
+      "grade": 75.72,
+      "roster_grade": 76.95,
+      "performance_grade": 70.8,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
@@ -2072,8 +2072,8 @@
     {
       "team": "Seattle Seahawks",
       "unit": "receiving_weapons",
-      "grade": 83.18,
-      "roster_grade": 83.18,
+      "grade": 83.83,
+      "roster_grade": 83.83,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2081,8 +2081,8 @@
     {
       "team": "Seattle Seahawks",
       "unit": "running_backs",
-      "grade": 79.78,
-      "roster_grade": 79.78,
+      "grade": 83.84,
+      "roster_grade": 83.84,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2090,8 +2090,8 @@
     {
       "team": "Seattle Seahawks",
       "unit": "secondary",
-      "grade": 81.46,
-      "roster_grade": 81.36,
+      "grade": 81.9,
+      "roster_grade": 81.91,
       "performance_grade": 81.84,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2099,8 +2099,8 @@
     {
       "team": "Seattle Seahawks",
       "unit": "special_teams",
-      "grade": 84.14,
-      "roster_grade": 84.08,
+      "grade": 86.88,
+      "roster_grade": 87.5,
       "performance_grade": 84.38,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2108,17 +2108,17 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "defensive_front",
-      "grade": 80.12,
-      "roster_grade": 81.47,
-      "performance_grade": 74.74,
+      "grade": 78.04,
+      "roster_grade": 79.81,
+      "performance_grade": 70.95,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "linebackers",
-      "grade": 75.0,
-      "roster_grade": 75.87,
+      "grade": 76.52,
+      "roster_grade": 77.55,
       "performance_grade": 67.22,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -2126,8 +2126,8 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "offensive_line",
-      "grade": 79.43,
-      "roster_grade": 80.62,
+      "grade": 79.91,
+      "roster_grade": 81.22,
       "performance_grade": 74.67,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2144,8 +2144,8 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "receiving_weapons",
-      "grade": 78.8,
-      "roster_grade": 78.8,
+      "grade": 79.05,
+      "roster_grade": 79.05,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2153,8 +2153,8 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "running_backs",
-      "grade": 82.18,
-      "roster_grade": 82.18,
+      "grade": 85.83,
+      "roster_grade": 85.83,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2162,8 +2162,8 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "secondary",
-      "grade": 75.99,
-      "roster_grade": 80.36,
+      "grade": 76.36,
+      "roster_grade": 80.82,
       "performance_grade": 58.5,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2171,8 +2171,8 @@
     {
       "team": "Tampa Bay Buccaneers",
       "unit": "special_teams",
-      "grade": 71.64,
-      "roster_grade": 77.24,
+      "grade": 73.84,
+      "roster_grade": 80.0,
       "performance_grade": 49.22,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2180,17 +2180,17 @@
     {
       "team": "Tennessee Titans",
       "unit": "defensive_front",
-      "grade": 79.3,
-      "roster_grade": 81.18,
-      "performance_grade": 71.79,
+      "grade": 78.64,
+      "roster_grade": 80.06,
+      "performance_grade": 72.98,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Tennessee Titans",
       "unit": "linebackers",
-      "grade": 73.48,
-      "roster_grade": 75.48,
+      "grade": 72.9,
+      "roster_grade": 74.84,
       "performance_grade": 55.48,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -2198,8 +2198,8 @@
     {
       "team": "Tennessee Titans",
       "unit": "offensive_line",
-      "grade": 71.58,
-      "roster_grade": 75.76,
+      "grade": 71.66,
+      "roster_grade": 75.86,
       "performance_grade": 54.84,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2216,8 +2216,8 @@
     {
       "team": "Tennessee Titans",
       "unit": "receiving_weapons",
-      "grade": 79.63,
-      "roster_grade": 79.63,
+      "grade": 78.38,
+      "roster_grade": 78.38,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2225,8 +2225,8 @@
     {
       "team": "Tennessee Titans",
       "unit": "running_backs",
-      "grade": 80.76,
-      "roster_grade": 80.76,
+      "grade": 84.31,
+      "roster_grade": 84.31,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2234,8 +2234,8 @@
     {
       "team": "Tennessee Titans",
       "unit": "secondary",
-      "grade": 72.19,
-      "roster_grade": 77.37,
+      "grade": 71.47,
+      "roster_grade": 76.47,
       "performance_grade": 51.47,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2243,8 +2243,8 @@
     {
       "team": "Tennessee Titans",
       "unit": "special_teams",
-      "grade": 75.87,
-      "roster_grade": 77.96,
+      "grade": 77.5,
+      "roster_grade": 80.0,
       "performance_grade": 67.5,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2252,17 +2252,17 @@
     {
       "team": "Washington Commanders",
       "unit": "defensive_front",
-      "grade": 75.51,
-      "roster_grade": 79.38,
-      "performance_grade": 60.05,
+      "grade": 73.86,
+      "roster_grade": 77.03,
+      "performance_grade": 61.17,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
     },
     {
       "team": "Washington Commanders",
       "unit": "linebackers",
-      "grade": 75.84,
-      "roster_grade": 78.6,
+      "grade": 75.73,
+      "roster_grade": 78.48,
       "performance_grade": 50.98,
       "performance_weight": 0.1,
       "source": "90% roster + 10% NFL team-defense proxy"
@@ -2270,8 +2270,8 @@
     {
       "team": "Washington Commanders",
       "unit": "offensive_line",
-      "grade": 77.73,
-      "roster_grade": 79.59,
+      "grade": 74.57,
+      "roster_grade": 75.64,
       "performance_grade": 70.31,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2288,8 +2288,8 @@
     {
       "team": "Washington Commanders",
       "unit": "receiving_weapons",
-      "grade": 78.71,
-      "roster_grade": 78.71,
+      "grade": 79.23,
+      "roster_grade": 79.23,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2297,8 +2297,8 @@
     {
       "team": "Washington Commanders",
       "unit": "running_backs",
-      "grade": 80.07,
-      "roster_grade": 80.07,
+      "grade": 80.97,
+      "roster_grade": 80.97,
       "performance_grade": NaN,
       "performance_weight": 0.0,
       "source": ""
@@ -2306,8 +2306,8 @@
     {
       "team": "Washington Commanders",
       "unit": "secondary",
-      "grade": 73.17,
-      "roster_grade": 78.32,
+      "grade": 72.42,
+      "roster_grade": 77.38,
       "performance_grade": 52.59,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
@@ -2315,8 +2315,8 @@
     {
       "team": "Washington Commanders",
       "unit": "special_teams",
-      "grade": 77.54,
-      "roster_grade": 76.54,
+      "grade": 79.39,
+      "roster_grade": 78.85,
       "performance_grade": 81.56,
       "performance_weight": 0.2,
       "source": "80% roster + 20% NFL performance"
