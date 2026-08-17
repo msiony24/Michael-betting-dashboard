@@ -79,13 +79,14 @@ try:
         load_ufc_fights,
         load_ufc_ratings,
     )
+    from engine.ufc_validation import run_historical_validation, UFCValidationConfig
     UFC_ENGINE_AVAILABLE = True
     UFC_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.89 — UFC Derivative Markets"
+APP_VERSION = "Macabets v0.90 — UFC Historical Validation"
 BUILD_DATE = "August 17, 2026"
 
 st.set_page_config(
@@ -5349,9 +5350,8 @@ with tabs[1]:
     with analysis_tabs[2]:
         st.subheader("Analysis Engine — UFC")
         st.caption(
-            "Compare two UFC fighters using Macabets Strength v0.2 plus the new underlying-performance layer. "
-            "Striking, wrestling, grappling, durability and pace now influence the fair moneyline conservatively; "
-            "the opponent-specific style interaction engine is the next UFC layer."
+            "Compare two UFC fighters using Strength v0.2, performance, style, physical/context, simulation and derivative-market pricing. "
+            "Historical Validation v0.1 now backtests the leakage-safe side baseline and fight-path calibration on prior UFC results."
         )
 
         if not UFC_ENGINE_AVAILABLE:
@@ -5374,6 +5374,113 @@ with tabs[1]:
                 )
 
             if ufc_players:
+                with st.expander("UFC Model Validation", expanded=False):
+                    st.caption(
+                        "Run a leakage-safe retrospective backtest using only information available before each historical bout. "
+                        "Because the repository does not store historical snapshots of every current Performance/Style/Context percentile, "
+                        "v0.1 is a validation proxy for the side baseline and simulation/derivative calibration — not a claim that today's full model was reconstructed exactly."
+                    )
+                    vc1, vc2 = st.columns([1, 2])
+                    validation_bouts = int(vc1.selectbox(
+                        "Historical sample",
+                        [600, 1200, 1800],
+                        index=2,
+                        key="ufc_validation_bouts",
+                        format_func=lambda value: f"Last {value:,} eligible bouts",
+                    ))
+                    vc2.caption(
+                        "Minimum two prior UFC fights per fighter. The report measures moneyline calibration, finish/distance bias, "
+                        "method-of-victory calibration, round-total calibration and division-level performance."
+                    )
+                    if st.button("Run UFC Historical Validation", use_container_width=True, key="run_ufc_validation"):
+                        with st.spinner("Replaying historical UFC fights without future information..."):
+                            try:
+                                st.session_state["ufc_validation_report"] = run_historical_validation(
+                                    ufc_fights,
+                                    config=UFCValidationConfig(max_bouts=validation_bouts),
+                                )
+                            except Exception as exc:
+                                st.session_state.pop("ufc_validation_report", None)
+                                st.error(f"UFC historical validation failed: {exc}")
+
+                    validation = st.session_state.get("ufc_validation_report")
+                    if validation and validation.get("available"):
+                        ml = validation.get("moneyline", {})
+                        fd = validation.get("finish_distance", {})
+                        vm1, vm2, vm3, vm4 = st.columns(4)
+                        vm1.metric("Validated Bouts", f"{int(validation.get('sample', 0)):,}")
+                        vm2.metric("Winner Accuracy", f"{float(ml.get('winner_accuracy', 0.0)):.1%}")
+                        vm3.metric("Moneyline Brier", f"{float(ml.get('brier', 0.0)):.3f}")
+                        vm4.metric("Finish Brier", f"{float(fd.get('finish_brier', 0.0)):.3f}")
+
+                        predicted_finish = float(fd.get("predicted_finish_rate", 0.0))
+                        actual_finish = float(fd.get("actual_finish_rate", 0.0))
+                        finish_gap = float(fd.get("finish_gap", 0.0))
+                        if abs(finish_gap) >= 0.035:
+                            st.warning(
+                                f"Simulation finish-rate bias: {fd.get('bias_label', 'Needs calibration')}. "
+                                f"Predicted {predicted_finish:.1%} vs actual {actual_finish:.1%} ({finish_gap:+.1%} actual minus predicted)."
+                            )
+                        else:
+                            st.success(
+                                f"Simulation finish rate is reasonably centered: predicted {predicted_finish:.1%} vs actual {actual_finish:.1%}."
+                            )
+
+                        method_rows = []
+                        for label, key in [("KO/TKO", "ko_tko"), ("Submission", "submission"), ("Decision", "decision")]:
+                            item = validation.get("methods", {}).get(key, {})
+                            method_rows.append({
+                                "Outcome": label,
+                                "Predicted": f"{float(item.get('predicted', 0.0)):.1%}",
+                                "Actual": f"{float(item.get('actual', 0.0)):.1%}",
+                                "Calibration Gap": f"{float(item.get('gap', 0.0)):+.1%}",
+                            })
+                        st.markdown("**Method-of-victory calibration**")
+                        st.dataframe(pd.DataFrame(method_rows), use_container_width=True, hide_index=True)
+
+                        total_rows = []
+                        for line, item in validation.get("round_totals", {}).items():
+                            total_rows.append({
+                                "Total": line,
+                                "Sample": int(item.get("sample", 0)),
+                                "Predicted Over": f"{float(item.get('mean_predicted_over', 0.0)):.1%}",
+                                "Actual Over": f"{float(item.get('actual_over_rate', 0.0)):.1%}",
+                                "Gap": f"{float(item.get('calibration_gap', 0.0)):+.1%}",
+                                "Brier": f"{float(item.get('brier', 0.0)):.3f}",
+                            })
+                        if total_rows:
+                            st.markdown("**Round-total calibration**")
+                            st.dataframe(pd.DataFrame(total_rows), use_container_width=True, hide_index=True)
+
+                        division_rows = validation.get("divisions", [])
+                        if division_rows:
+                            st.markdown("**Largest division samples**")
+                            division_display = pd.DataFrame(division_rows).rename(columns={
+                                "division": "Division",
+                                "sample": "Sample",
+                                "winner_accuracy": "Winner Accuracy",
+                                "moneyline_brier": "Moneyline Brier",
+                                "predicted_finish_rate": "Predicted Finish",
+                                "actual_finish_rate": "Actual Finish",
+                                "finish_gap": "Finish Gap",
+                            })
+                            for col in ["Winner Accuracy", "Predicted Finish", "Actual Finish", "Finish Gap"]:
+                                if col in division_display:
+                                    division_display[col] = division_display[col].map(lambda value: f"{float(value):+.1%}" if col == "Finish Gap" else f"{float(value):.1%}")
+                            if "Moneyline Brier" in division_display:
+                                division_display["Moneyline Brier"] = division_display["Moneyline Brier"].map(lambda value: f"{float(value):.3f}")
+                            st.dataframe(division_display, use_container_width=True, hide_index=True)
+
+                        with st.expander("Validation methodology and limitations", expanded=False):
+                            st.caption(
+                                f"Validation window: {validation.get('date_start', '—')} through {validation.get('date_end', '—')} · "
+                                f"{validation.get('version', 'Historical Validation')}"
+                            )
+                            for limitation in validation.get("limitations", []):
+                                st.caption(f"• {limitation}")
+                    elif validation:
+                        st.warning(str(validation.get("reason", "No eligible historical validation sample was produced.")))
+
                 ufc_divisions = sorted(
                     ufc_ratings.loc[ufc_ratings["active_pool"], "division"]
                     .dropna().astype(str).unique().tolist()
