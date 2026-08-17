@@ -13,9 +13,9 @@ import requests
 from bs4 import BeautifulSoup
 
 
-UFCSTATS_BASE = "http://ufcstats.com"
+UFCSTATS_BASE = "https://ufcstats.com"
 COMPLETED_EVENTS_URL = f"{UFCSTATS_BASE}/statistics/events/completed?page=all"
-USER_AGENT = "Macabets UFC analytics (personal research)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
 DIVISION_LIMITS = {
     "Strawweight": 115,
@@ -45,6 +45,15 @@ def _clean_text(value: object) -> str:
     return " ".join(str(value or "").split())
 
 
+
+
+def _normalize_ufcstats_url(value: object) -> str:
+    text = _clean_text(value)
+    if not text:
+        return ""
+    text = re.sub(r"^http://ufcstats\.com", UFCSTATS_BASE, text, flags=re.IGNORECASE)
+    return urljoin(UFCSTATS_BASE, text)
+
 def _to_int(value: object) -> int | None:
     text = _clean_text(value)
     match = re.search(r"-?\d+", text)
@@ -70,7 +79,12 @@ def _get(session: requests.Session, url: str, config: FetchConfig) -> str:
             response = session.get(
                 url,
                 timeout=config.timeout_seconds,
-                headers={"User-Agent": USER_AGENT},
+                headers={
+                    "User-Agent": USER_AGENT,
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Cache-Control": "no-cache",
+                },
             )
             response.raise_for_status()
             if len(response.text) < 100:
@@ -84,30 +98,67 @@ def _get(session: requests.Session, url: str, config: FetchConfig) -> str:
 
 
 def parse_completed_events(html: str) -> pd.DataFrame:
+    """Parse UFCStats completed-event listings across both known table layouts.
+
+    UFCStats has served the event cells without a stable row class. The old
+    parser only looked for ``tr.b-statistics__table-row``, which can return an
+    empty dataframe even when the page contains all completed events.
+    """
     soup = BeautifulSoup(html, "html.parser")
     rows: list[dict[str, object]] = []
 
-    for row in soup.select("tr.b-statistics__table-row"):
-        link = row.select_one("a.b-link")
-        if not link:
-            continue
-        event_name = _clean_text(link.get_text(" ", strip=True))
-        event_url = _clean_text(link.get("href"))
-        if not event_name or not event_url:
-            continue
+    # Current UFCStats markup exposes each event inside the first statistics
+    # table cell. Keep a row-based fallback for older/simplified fixtures.
+    event_cells = []
+    for cell in soup.select("td.b-statistics__table-col"):
+        link = cell.select_one("i.b-statistics__table-content a[href*='event-details'], a.b-link[href*='event-details']")
+        if link is not None:
+            event_cells.append(cell)
 
-        date_node = row.select_one("span.b-statistics__date")
-        cells = row.select("td.b-statistics__table-col")
-        location = _clean_text(cells[-1].get_text(" ", strip=True)) if cells else ""
-        event_date = _parse_date(date_node.get_text(" ", strip=True) if date_node else "")
-        rows.append(
-            {
-                "event_name": event_name,
-                "event_date": event_date,
-                "location": location,
-                "event_url": urljoin(UFCSTATS_BASE, event_url),
-            }
-        )
+    if event_cells:
+        for cell in event_cells:
+            link = cell.select_one("i.b-statistics__table-content a[href*='event-details'], a.b-link[href*='event-details']")
+            if link is None:
+                continue
+            event_name = _clean_text(link.get_text(" ", strip=True))
+            event_url = _clean_text(link.get("href"))
+            if not event_name or not event_url:
+                continue
+
+            date_node = cell.select_one("span.b-statistics__date")
+            row = cell.find_parent("tr")
+            cells = row.select("td.b-statistics__table-col") if row else []
+            location = _clean_text(cells[-1].get_text(" ", strip=True)) if len(cells) > 1 else ""
+            event_date = _parse_date(date_node.get_text(" ", strip=True) if date_node else "")
+            rows.append(
+                {
+                    "event_name": event_name,
+                    "event_date": event_date,
+                    "location": location,
+                    "event_url": _normalize_ufcstats_url(event_url),
+                }
+            )
+    else:
+        for row in soup.select("tr.b-statistics__table-row"):
+            link = row.select_one("a.b-link[href*='event-details'], a[href*='event-details']")
+            if not link:
+                continue
+            event_name = _clean_text(link.get_text(" ", strip=True))
+            event_url = _clean_text(link.get("href"))
+            if not event_name or not event_url:
+                continue
+            date_node = row.select_one("span.b-statistics__date")
+            cells = row.select("td.b-statistics__table-col")
+            location = _clean_text(cells[-1].get_text(" ", strip=True)) if cells else ""
+            event_date = _parse_date(date_node.get_text(" ", strip=True) if date_node else "")
+            rows.append(
+                {
+                    "event_name": event_name,
+                    "event_date": event_date,
+                    "location": location,
+                    "event_url": _normalize_ufcstats_url(event_url),
+                }
+            )
 
     frame = pd.DataFrame(rows)
     if frame.empty:
@@ -132,7 +183,7 @@ def parse_event_fights(html: str, event: dict[str, object]) -> pd.DataFrame:
 
         wl = [_clean_text(p.get_text(" ", strip=True)) for p in cells[0].select("p")]
         fighters = [_clean_text(p.get_text(" ", strip=True)) for p in cells[1].select("p")]
-        fighter_links = [urljoin(UFCSTATS_BASE, _clean_text(a.get("href"))) for a in cells[1].select("a")]
+        fighter_links = [_normalize_ufcstats_url(a.get("href")) for a in cells[1].select("a")]
         kd = [_to_int(p.get_text(" ", strip=True)) for p in cells[2].select("p")]
         sig_str = [_to_int(p.get_text(" ", strip=True)) for p in cells[3].select("p")]
         td = [_to_int(p.get_text(" ", strip=True)) for p in cells[4].select("p")]
@@ -156,7 +207,7 @@ def parse_event_fights(html: str, event: dict[str, object]) -> pd.DataFrame:
                     "event_name": _clean_text(event.get("event_name")),
                     "event_date": _clean_text(event.get("event_date")),
                     "location": _clean_text(event.get("location")),
-                    "fight_url": urljoin(UFCSTATS_BASE, fight_url),
+                    "fight_url": _normalize_ufcstats_url(fight_url),
                     "fighter": fighters[idx],
                     "fighter_url": fighter_links[idx] if idx < len(fighter_links) else "",
                     "opponent": fighters[opponent_idx],
