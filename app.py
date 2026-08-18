@@ -96,8 +96,8 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.92 — UFC Settlement Tracking"
-BUILD_DATE = "August 17, 2026"
+APP_VERSION = "Macabets v0.93 — UFC Opponent-Adjusted Skills"
+BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
     page_title="Macabets",
@@ -5948,6 +5948,59 @@ with tabs[1]:
                             "Raw recent totals remain descriptive. The probability-driving performance layer uses landed/attempted rates, "
                             "opponent rates, takedown defense, control, durability and pace with a strict ±5 percentage-point cap."
                         )
+
+                        opponent_adjustment = ufc_result.get("opponent_adjustment", {})
+                        if opponent_adjustment.get("available"):
+                            st.markdown("### Opponent-Adjusted Skills")
+                            st.caption(
+                                "These are the same performance/style inputs after adjusting for the specific quality of recent opponents faced. "
+                                "This layer transforms the inputs rather than adding a separate probability bonus, which avoids double-counting opponent quality."
+                            )
+                            oa_rows = []
+                            report_a = opponent_adjustment.get("fighter_a_report", {})
+                            report_b = opponent_adjustment.get("fighter_b_report", {})
+                            skill_map_a = {row.get("skill"): row for row in report_a.get("skills", [])}
+                            skill_map_b = {row.get("skill"): row for row in report_b.get("skills", [])}
+                            ordered_skills = [
+                                "Striking Offense", "Striking Defense", "Power", "Durability",
+                                "Wrestling Offense", "Wrestling Defense",
+                                "Grappling Offense", "Grappling Defense", "Pace",
+                            ]
+                            for skill in ordered_skills:
+                                arow = skill_map_a.get(skill, {})
+                                brow = skill_map_b.get(skill, {})
+                                def _fmt_score(row, key):
+                                    value = row.get(key)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0f}"
+                                def _fmt_move(row):
+                                    value = row.get("adjustment")
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):+.1f}"
+                                oa_rows.append({
+                                    "Skill": skill,
+                                    f"{fighter_a_name} Base": _fmt_score(arow, "base_score"),
+                                    f"{fighter_a_name} Adj.": _fmt_score(arow, "adjusted_score"),
+                                    f"{fighter_a_name} SOS": str(arow.get("opponent_quality_label", "Unknown")),
+                                    f"{fighter_a_name} Move": _fmt_move(arow),
+                                    f"{fighter_b_name} Base": _fmt_score(brow, "base_score"),
+                                    f"{fighter_b_name} Adj.": _fmt_score(brow, "adjusted_score"),
+                                    f"{fighter_b_name} SOS": str(brow.get("opponent_quality_label", "Unknown")),
+                                    f"{fighter_b_name} Move": _fmt_move(brow),
+                                })
+                            st.dataframe(pd.DataFrame(oa_rows), use_container_width=True, hide_index=True)
+                            os1, os2, os3 = st.columns(3)
+                            os1.metric(
+                                f"{fighter_a_name} Opponent Sample",
+                                int(report_a.get("opponent_sample", 0) or 0),
+                            )
+                            os2.metric(
+                                f"{fighter_b_name} Opponent Sample",
+                                int(report_b.get("opponent_sample", 0) or 0),
+                            )
+                            os3.metric(
+                                "Opponent-Adjustment Reliability",
+                                f"{float(opponent_adjustment.get('reliability', 0.0) or 0.0):.0%}",
+                            )
+                            st.caption(str(opponent_adjustment.get("guardrail", "")))
 
                         perf_a = ufc_result.get("performance_profile_a", {})
                         perf_b = ufc_result.get("performance_profile_b", {})
