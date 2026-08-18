@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.95 — UFC Damage & Durability Risk"
+APP_VERSION = "Macabets v0.96 — UFC Advanced Grappling"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -6054,6 +6054,52 @@ with tabs[1]:
                                 "Composite scores are division-relative percentiles from the recent UFC sample. Five-round fights "
                                 "place a little more weight on durability and pace. This is the general performance layer; the opponent-specific interaction layer is shown next."
                             )
+
+                        advanced_grappling = ufc_result.get("advanced_grappling_matchup", {})
+                        if advanced_grappling.get("available"):
+                            st.markdown("### Advanced Wrestling & Grappling Matchups")
+                            grappling_rows = pd.DataFrame(advanced_grappling.get("rows", []))
+                            if not grappling_rows.empty:
+                                grappling_display = grappling_rows.rename(columns={
+                                    "category": "Category",
+                                    "advantage": "Advantage",
+                                    "strength": "Strength",
+                                    "why": "Why it matters",
+                                })
+                                gcols = [c for c in ["Category", "Advantage", "Strength", "Why it matters"] if c in grappling_display.columns]
+                                st.dataframe(grappling_display[gcols], use_container_width=True, hide_index=True)
+
+                            gp_rows = []
+                            for fighter_name, profile in (
+                                (fighter_a_name, advanced_grappling.get("fighter_a_profile", {})),
+                                (fighter_b_name, advanced_grappling.get("fighter_b_profile", {})),
+                            ):
+                                def _gscore(key):
+                                    value = profile.get(key)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0f}/100"
+                                gp_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Chain Wrestling": _gscore("chain_wrestling_score"),
+                                    "Control Retention": _gscore("control_retention_score"),
+                                    "TD Resistance": _gscore("takedown_resistance_score"),
+                                    "Bottom Escape Proxy": _gscore("bottom_escape_score"),
+                                    "Submission Pressure": _gscore("submission_pressure_score"),
+                                    "Submission Resistance": _gscore("submission_resistance_score"),
+                                    "Sample": int(profile.get("sample", 0) or 0),
+                                })
+                            st.dataframe(pd.DataFrame(gp_rows), use_container_width=True, hide_index=True)
+                            gg1, gg2 = st.columns(2)
+                            gg1.metric(
+                                "Advanced Grappling Reliability",
+                                f"{float(advanced_grappling.get('reliability', 0.0)):.0%}",
+                            )
+                            gg2.metric(
+                                "Advanced Grappling Gap",
+                                f"{float(advanced_grappling.get('weighted_gap', 0.0)):+.1f}",
+                                "interaction points",
+                            )
+                            st.caption(str(advanced_grappling.get("guardrail", "")))
+                            st.caption("Line impact is integrated into the existing Style Matchups adjustment; Macabets does not add a second grappling probability modifier.")
 
                         style_matchup = ufc_result.get("style_matchup", {})
                         if style_matchup.get("available"):
