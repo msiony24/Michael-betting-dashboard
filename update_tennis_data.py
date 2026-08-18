@@ -23,6 +23,7 @@ LIVE_LOOKBACK_DAYS = 60
 FIXTURE_CHUNK_DAYS = 6
 FIXTURE_CHUNK_PAUSE_SECONDS = 0.35
 REFRESH_STATUS_PATH = DATA_DIR / "tennis_refresh_status.json"
+PLAYER_IDENTITY_PATH = DATA_DIR / "tennis_player_ids.csv"
 MATCH_COLUMNS = [
     "tourney_date", "tourney_name", "surface", "tourney_level", "round",
     "winner_name", "loser_name", "winner_rank", "loser_rank", "score",
@@ -30,6 +31,7 @@ MATCH_COLUMNS = [
     "w_svpt", "l_svpt", "w_1stIn", "l_1stIn", "w_1stWon", "l_1stWon",
     "w_2ndWon", "l_2ndWon", "w_SvGms", "l_SvGms", "w_bpSaved",
     "l_bpSaved", "w_bpFaced", "l_bpFaced",
+    "winner_player_key", "loser_player_key",
 ]
 
 
@@ -38,6 +40,7 @@ STAT_COLUMNS = [
     "w_1stIn", "l_1stIn", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon",
     "w_SvGms", "l_SvGms", "w_bpSaved", "l_bpSaved", "w_bpFaced", "l_bpFaced",
 ]
+PERSISTENT_API_COLUMNS = STAT_COLUMNS + ["winner_player_key", "loser_player_key"]
 
 
 def normalize_round(value: object) -> str:
@@ -198,6 +201,98 @@ def resolve_display_name(value: object, existing_names: dict[tuple[str, str], st
     if not text:
         return ""
     return existing_names.get(player_signature(text), text)
+
+
+def _normalized_player_key(value: object) -> str:
+    text = str(value or "").strip()
+    if text.casefold() in {"", "nan", "none", "<na>"}:
+        return ""
+    if re.fullmatch(r"\d+\.0", text):
+        text = text[:-2]
+    return text
+
+
+def _read_player_identity_registry() -> pd.DataFrame:
+    if not PLAYER_IDENTITY_PATH.exists():
+        return pd.DataFrame(columns=["player_key", "alias", "canonical_name"])
+    try:
+        frame = pd.read_csv(PLAYER_IDENTITY_PATH, dtype={"player_key": str})
+    except Exception:
+        return pd.DataFrame(columns=["player_key", "alias", "canonical_name"])
+    for column in ("player_key", "alias", "canonical_name"):
+        if column not in frame:
+            frame[column] = ""
+    return frame[["player_key", "alias", "canonical_name"]]
+
+
+def build_player_identity_registry(
+    fixtures: list[dict],
+    standings: list[dict],
+    *,
+    existing_names: dict[tuple[str, str], str],
+    existing_registry: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build a durable API player-key to alias/canonical-name registry."""
+    aliases_by_key: dict[str, set[str]] = {}
+    previous_canonical: dict[str, str] = {}
+
+    prior = existing_registry if existing_registry is not None else _read_player_identity_registry()
+    if prior is not None and not prior.empty:
+        for _, row in prior.iterrows():
+            player_key = _normalized_player_key(row.get("player_key"))
+            if not player_key:
+                continue
+            alias = str(row.get("alias") or "").strip()
+            canonical = str(row.get("canonical_name") or "").strip()
+            if alias:
+                aliases_by_key.setdefault(player_key, set()).add(alias)
+            if canonical:
+                aliases_by_key.setdefault(player_key, set()).add(canonical)
+                previous_canonical.setdefault(player_key, canonical)
+
+    def add(player_key: object, name: object) -> None:
+        key = _normalized_player_key(player_key)
+        alias = str(name or "").strip()
+        if not key or not alias:
+            return
+        aliases_by_key.setdefault(key, set()).add(alias)
+
+    for row in standings:
+        add(row.get("player_key"), row.get("player"))
+    for event in fixtures:
+        add(event.get("first_player_key"), event.get("event_first_player"))
+        add(event.get("second_player_key"), event.get("event_second_player"))
+
+    records: list[dict] = []
+    for player_key, aliases in aliases_by_key.items():
+        historical_candidates: list[str] = []
+        for alias in aliases:
+            historical = existing_names.get(player_signature(alias))
+            if historical:
+                historical_candidates.append(historical)
+
+        if historical_candidates:
+            canonical = max(set(historical_candidates), key=historical_candidates.count)
+        elif previous_canonical.get(player_key):
+            canonical = previous_canonical[player_key]
+        else:
+            canonical = max(aliases, key=lambda value: (len(_name_tokens(value)), len(value)))
+
+        aliases = set(aliases)
+        aliases.add(canonical)
+        for alias in sorted(aliases):
+            records.append({
+                "player_key": player_key,
+                "alias": alias,
+                "canonical_name": canonical,
+            })
+
+    if not records:
+        return pd.DataFrame(columns=["player_key", "alias", "canonical_name"])
+    out = pd.DataFrame(records)
+    out["_alias_norm"] = out["alias"].map(lambda value: " ".join(_name_tokens(value)))
+    out = out.drop_duplicates(["player_key", "_alias_norm"], keep="last")
+    return out.drop(columns=["_alias_norm"]).sort_values(["canonical_name", "player_key", "alias"]).reset_index(drop=True)
 
 
 def _normalize_tournament(value: object) -> str:
@@ -393,6 +488,8 @@ def convert_api_fixtures(
             "winner_rank": ranks_by_key.get(winner_key, pd.NA),
             "loser_rank": ranks_by_key.get(loser_key, pd.NA),
             "score": _score_from_api(event, "first" if first_won else "second"),
+            "winner_player_key": winner_key or pd.NA,
+            "loser_player_key": loser_key or pd.NA,
             "w_ace": _stat_value(event, winner_key, "Aces"),
             "l_ace": _stat_value(event, loser_key, "Aces"),
             "w_df": _stat_value(event, winner_key, "Double Faults"),
@@ -467,7 +564,7 @@ def preserve_existing_statistics(baseline: pd.DataFrame, existing: pd.DataFrame)
     old["_match_key"] = old.apply(_match_key, axis=1)
     old = old.drop_duplicates("_match_key", keep="last").set_index("_match_key")
 
-    for column in STAT_COLUMNS:
+    for column in PERSISTENT_API_COLUMNS:
         if column not in out:
             out[column] = pd.NA
         if column not in old:
@@ -559,6 +656,14 @@ def fetch_live_atp_matches(
     names = _existing_name_map(current_year_frames)
     surfaces = _surface_lookup(current_year_frames)
     ranks = _rank_map(standings_rows)
+    identity_registry = build_player_identity_registry(
+        fixture_rows,
+        standings_rows,
+        existing_names=names,
+        existing_registry=_read_player_identity_registry(),
+    )
+    if not identity_registry.empty:
+        identity_registry.to_csv(PLAYER_IDENTITY_PATH, index=False)
     live = convert_api_fixtures(
         fixture_rows,
         existing_names=names,
@@ -584,6 +689,8 @@ def fetch_live_atp_matches(
         "standings_source": standings_source,
         "standings_fetched_at": standings_fetched_at,
         "standings_error": standings_error,
+        "player_identity_count": int(identity_registry["player_key"].nunique()) if not identity_registry.empty else 0,
+        "player_identity_alias_count": int(len(identity_registry)),
     }
     return live, metadata
 
