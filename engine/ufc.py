@@ -22,6 +22,10 @@ from engine.ufc_performance import (
     fighter_performance,
     matchup_performance_adjustment,
 )
+from engine.ufc_opponent_adjustment import (
+    OPPONENT_ADJUSTMENT_VERSION,
+    build_opponent_adjusted_matchup,
+)
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
 from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighter_profiles
 
@@ -29,7 +33,7 @@ from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighte
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.7 — Historical Calibration"
+MODEL_VERSION = "Macabets UFC Analysis v0.8 — Opponent-Adjusted Skills"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -480,8 +484,13 @@ def analyze(
     if "event_date" in fights:
         fights["event_date"] = pd.to_datetime(fights["event_date"], errors="coerce")
     performance_table = build_performance_table(fights, ratings)
-    performance_a = fighter_performance(performance_table, fighter_a)
-    performance_b = fighter_performance(performance_table, fighter_b)
+    raw_performance_a = fighter_performance(performance_table, fighter_a)
+    raw_performance_b = fighter_performance(performance_table, fighter_b)
+    opponent_adjustment = build_opponent_adjusted_matchup(
+        fighter_a, fighter_b, raw_performance_a, raw_performance_b, fights, ratings
+    )
+    performance_a = opponent_adjustment.get("fighter_a_profile", raw_performance_a)
+    performance_b = opponent_adjustment.get("fighter_b_profile", raw_performance_b)
     performance_matchup = matchup_performance_adjustment(
         performance_a, performance_b, rounds=int(rounds)
     )
@@ -657,8 +666,9 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + underlying performance + style matchup + physical/context + fight simulation + derivative markets",
+        "model_stage": "Ranking + opponent-adjusted performance + style matchup + physical/context + fight simulation + derivative markets",
         "performance_version": PERFORMANCE_VERSION,
+        "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
         "style_version": STYLE_VERSION,
         "context_version": CONTEXT_VERSION,
         "simulation_version": SIMULATION_VERSION,
@@ -710,6 +720,9 @@ def analyze(
         },
         "recent_profile_a": profile_a,
         "recent_profile_b": profile_b,
+        "raw_performance_profile_a": raw_performance_a,
+        "raw_performance_profile_b": raw_performance_b,
+        "opponent_adjustment": opponent_adjustment,
         "performance_profile_a": performance_a,
         "performance_profile_b": performance_b,
         "performance_matchup": performance_matchup,
@@ -723,7 +736,7 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.7 combines Strength v0.2, underlying performance, opponent-specific style interactions, physical/fight context, a historically calibrated Monte Carlo fight-path simulation, and derivative-market pricing.",
+            "v0.8 adds skill-specific opponent adjustment to the existing Performance and Style inputs, then combines Strength v0.2, opponent-specific style interactions, physical/fight context, a historically calibrated Monte Carlo fight-path simulation, and derivative-market pricing.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, their correlated combined impact at ±7.5, Physical & Context at ±2, and the total non-rating adjustment at ±9 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",

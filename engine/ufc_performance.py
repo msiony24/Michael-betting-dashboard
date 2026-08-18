@@ -187,6 +187,7 @@ def build_performance_table(
     ratings: pd.DataFrame,
     *,
     config: UFCPerformanceConfig | None = None,
+    active_only: bool = True,
 ) -> pd.DataFrame:
     config = config or UFCPerformanceConfig()
     frame = fights.copy()
@@ -195,7 +196,7 @@ def build_performance_table(
     frame = _attach_opponent_fields(frame)
 
     active = ratings.copy()
-    if "active_pool" in active.columns:
+    if active_only and "active_pool" in active.columns:
         mask = active["active_pool"]
         if mask.dtype != bool:
             mask = mask.astype(str).str.lower().isin({"true", "1", "yes"})
