@@ -15,12 +15,7 @@ except ImportError:
     from api_tennis import APITennisClient, APITennisError
 
 
-def canonical_player_key(value: object) -> str:
-    text = unicodedata.normalize("NFKD", str(value or ""))
-    text = "".join(character for character in text if not unicodedata.combining(character))
-    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
-    tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
-    return " ".join(tokens)
+from .tennis_identity import canonical_player_key
 
 
 def _safe_int(value: Any, default: int | None = None) -> int | None:

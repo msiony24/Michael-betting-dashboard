@@ -13,6 +13,7 @@ import pandas as pd
 import requests
 
 from engine.api_tennis import APITennisClient, APITennisError
+from engine.tennis_identity import player_name_signature
 
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -166,20 +167,8 @@ def _name_tokens(value: object) -> list[str]:
 
 
 def player_signature(value: object) -> tuple[str, str]:
-    """Return a provider-tolerant (surname, first-initial) signature."""
-    tokens = [t for t in _name_tokens(value) if t not in {"jr", "sr", "ii", "iii", "iv"}]
-    if not tokens:
-        return "", ""
-
-    # tennis-data.co.uk: "Tirante T.A." or "Fritz T."
-    if len(tokens) >= 2 and len(tokens[0]) > 1 and all(len(t) == 1 for t in tokens[1:]):
-        return tokens[0], tokens[1]
-
-    # API-Tennis may use "T. A. Tirante" or a full name such as
-    # "Thiago Agustin Tirante".
-    if len(tokens) >= 2:
-        return tokens[-1], tokens[0][0]
-    return tokens[0], ""
+    """Return the shared Macabets tennis identity signature."""
+    return player_name_signature(value)
 
 
 def _existing_name_map(frames: list[pd.DataFrame]) -> dict[tuple[str, str], str]:

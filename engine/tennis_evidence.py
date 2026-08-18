@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from .tennis import canonical_player_key, resolve_player_name
+from .tennis_identity import canonical_player_key, resolve_player_name
 from .tennis_handedness import handedness_record_splits, player_hand
 from .tennis_serve_return import serve_return_profile
 

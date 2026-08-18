@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from .tennis import resolve_player_name
+from .tennis_identity import canonical_player_key, resolve_player_name
 
 
 def _empty_summary(
@@ -85,12 +85,14 @@ def build_head_to_head_summary(
 
     lookup_a = str(resolved_a or player_a).strip()
     lookup_b = str(resolved_b or player_b).strip()
+    key_a = canonical_player_key(lookup_a)
+    key_b = canonical_player_key(lookup_b)
 
-    winner = matches[winner_col].astype(str).str.strip()
-    loser = matches[loser_col].astype(str).str.strip()
+    winner_keys = matches[winner_col].map(canonical_player_key)
+    loser_keys = matches[loser_col].map(canonical_player_key)
     pair_mask = (
-        ((winner == lookup_a) & (loser == lookup_b))
-        | ((winner == lookup_b) & (loser == lookup_a))
+        ((winner_keys == key_a) & (loser_keys == key_b))
+        | ((winner_keys == key_b) & (loser_keys == key_a))
     )
     meetings = matches.loc[pair_mask].copy()
 
@@ -105,8 +107,9 @@ def build_head_to_head_summary(
         )
 
     meetings["_winner"] = meetings[winner_col].astype(str).str.strip()
-    wins_a = int((meetings["_winner"] == lookup_a).sum())
-    wins_b = int((meetings["_winner"] == lookup_b).sum())
+    meetings["_winner_key"] = meetings[winner_col].map(canonical_player_key)
+    wins_a = int((meetings["_winner_key"] == key_a).sum())
+    wins_b = int((meetings["_winner_key"] == key_b).sum())
 
     if surface_col:
         surface_values = meetings[surface_col].astype(str).str.strip().str.casefold()
@@ -115,8 +118,8 @@ def build_head_to_head_summary(
     else:
         surface_meetings = meetings.iloc[0:0].copy()
 
-    surface_wins_a = int((surface_meetings["_winner"] == lookup_a).sum())
-    surface_wins_b = int((surface_meetings["_winner"] == lookup_b).sum())
+    surface_wins_a = int((surface_meetings["_winner_key"] == key_a).sum())
+    surface_wins_b = int((surface_meetings["_winner_key"] == key_b).sum())
 
     if date_col:
         raw_dates = meetings[date_col]
@@ -144,9 +147,10 @@ def build_head_to_head_summary(
         score = str(latest.get(score_col)).strip()
 
     latest_winner_raw = str(latest["_winner"])
-    if latest_winner_raw == lookup_a:
+    latest_winner_key = canonical_player_key(latest_winner_raw)
+    if latest_winner_key == key_a:
         latest_winner_display = str(player_a)
-    elif latest_winner_raw == lookup_b:
+    elif latest_winner_key == key_b:
         latest_winner_display = str(player_b)
     else:
         latest_winner_display = latest_winner_raw

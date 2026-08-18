@@ -38,71 +38,11 @@ def norm(value: str) -> str:
     return re.sub(r"\s+", " ", str(value).strip()).casefold()
 
 
-def canonical_player_key(value: str) -> str:
-    """Normalize provider-specific player-name variants into a stable lookup key."""
-    text = unicodedata.normalize("NFKD", str(value or ""))
-    text = "".join(ch for ch in text if not unicodedata.combining(ch))
-    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
-    tokens = [token for token in text.split() if token not in {"jr", "sr", "ii", "iii", "iv"}]
-    # Provider feeds sometimes add or remove a one-letter middle initial.
-    return " ".join(tokens)
-
-
-def player_name_signature(value: str) -> tuple[str, str]:
-    """Return (surname, first initial) for full names and provider forms like 'Fritz T.'."""
-    text = unicodedata.normalize("NFKD", str(value or ""))
-    text = "".join(ch for ch in text if not unicodedata.combining(ch))
-    tokens = re.findall(r"[A-Za-z]+", text.casefold())
-    tokens = [t for t in tokens if t not in {"jr", "sr", "ii", "iii", "iv"}]
-    if not tokens:
-        return "", ""
-
-    # Historical feeds store players as Surname F. or Surname J.M.
-    if len(tokens) >= 2 and len(tokens[0]) > 1 and all(len(token) == 1 for token in tokens[1:]):
-        return tokens[0], tokens[1]
-    if len(tokens) >= 2:
-        return tokens[-1], tokens[0][0]
-    return tokens[0], ""
-
-
-def resolve_player_name(matches: pd.DataFrame, requested_name: str) -> tuple[str | None, dict]:
-    """Resolve API/full names to the historical provider's exact display name."""
-    names = pd.concat([matches["winner_name"], matches["loser_name"]]).dropna().astype(str)
-    counts = names.value_counts()
-    unique_names = counts.index.to_series()
-
-    exact_key = norm(requested_name)
-    exact_matches = unique_names[unique_names.map(norm).eq(exact_key)]
-    if not exact_matches.empty:
-        resolved = exact_matches.iloc[0]
-        return resolved, {"requested": requested_name, "resolved": resolved, "method": "exact"}
-
-    canonical_key = canonical_player_key(requested_name)
-    canonical_matches = unique_names[unique_names.map(canonical_player_key).eq(canonical_key)]
-    if not canonical_matches.empty:
-        resolved = canonical_matches.iloc[0]
-        return resolved, {"requested": requested_name, "resolved": resolved, "method": "canonical"}
-
-    requested_signature = player_name_signature(requested_name)
-    signature_matches = unique_names[unique_names.map(lambda value: player_name_signature(value) == requested_signature)]
-    if len(signature_matches) == 1:
-        resolved = signature_matches.iloc[0]
-        return resolved, {"requested": requested_name, "resolved": resolved, "method": "surname_initial"}
-    if len(signature_matches) > 1:
-        # Use the most frequently occurring database spelling only when it clearly dominates.
-        ranked = [(name, int(counts.get(name, 0))) for name in signature_matches.tolist()]
-        ranked.sort(key=lambda item: item[1], reverse=True)
-        if len(ranked) == 1 or ranked[0][1] >= ranked[1][1] * 2:
-            resolved = ranked[0][0]
-            return resolved, {"requested": requested_name, "resolved": resolved, "method": "surname_initial_frequency"}
-        return None, {
-            "requested": requested_name,
-            "resolved": None,
-            "method": "ambiguous_surname_initial",
-            "candidates": [name for name, _ in ranked[:5]],
-        }
-
-    return None, {"requested": requested_name, "resolved": None, "method": "not_found"}
+from .tennis_identity import (
+    canonical_player_key,
+    player_name_signature,
+    resolve_player_name,
+)
 
 
 def safe_int(value, default: int = 0) -> int:
