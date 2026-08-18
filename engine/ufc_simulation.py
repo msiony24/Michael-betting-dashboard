@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 
-SIMULATION_VERSION = "Macabets UFC Simulation v0.2 — Historically Calibrated"
+SIMULATION_VERSION = "Macabets UFC Simulation v0.3 — Cardio-Aware"
 
 
 @dataclass(frozen=True)
@@ -93,16 +93,40 @@ def _finish_profile(
     }
 
 
-def _round_weights(rounds: int, pace_a: float, pace_b: float) -> np.ndarray:
+def _round_weights(
+    rounds: int,
+    pace_a: float,
+    pace_b: float,
+    cardio_a: dict[str, Any] | None = None,
+    cardio_b: dict[str, Any] | None = None,
+) -> np.ndarray:
     if int(rounds) == 5:
         base = np.array([0.31, 0.24, 0.19, 0.15, 0.11], dtype=float)
     else:
         base = np.array([0.44, 0.33, 0.23], dtype=float)
     avg_pace = (_pct01(pace_a, 0.5) + _pct01(pace_b, 0.5)) / 2.0
-    # High pace modestly pulls finishes earlier; low pace shifts mass later.
-    tilt = (avg_pace - 0.5) * 0.18
+    pace_tilt = (avg_pace - 0.5) * 0.18
     indices = np.linspace(1.0, -1.0, len(base))
-    adjusted = np.maximum(0.01, base * (1.0 + tilt * indices))
+    adjusted = base * (1.0 + pace_tilt * indices)
+
+    # Round Cardio changes *when* finishes occur, not who wins. Poor retention
+    # shifts some conditional finish mass toward later rounds, where fatigue-related
+    # breakdowns are more plausible. Missing/low-reliability cardio remains neutral.
+    profiles = [p for p in (cardio_a, cardio_b) if isinstance(p, dict) and p.get("available")]
+    if profiles:
+        weighted = []
+        for profile in profiles:
+            retention = _clip(float(profile.get("retention", 1.0) or 1.0), 0.5, 1.35)
+            reliability = _clip(float(profile.get("reliability", 0.0) or 0.0), 0.0, 1.0)
+            weighted.append((retention, reliability))
+        denom = sum(w for _, w in weighted)
+        if denom > 0:
+            avg_retention = sum(r * w for r, w in weighted) / denom
+            fatigue = _clip(1.0 - avg_retention, -0.20, 0.35) * min(1.0, denom / len(weighted))
+            late_axis = np.linspace(-1.0, 1.0, len(base))
+            adjusted = adjusted * (1.0 + fatigue * (0.34 if int(rounds) == 5 else 0.22) * late_axis)
+
+    adjusted = np.maximum(0.01, adjusted)
     return adjusted / adjusted.sum()
 
 
@@ -115,6 +139,8 @@ def simulate_fight(
     performance_a: dict[str, Any],
     performance_b: dict[str, Any],
     *,
+    cardio_a: dict[str, Any] | None = None,
+    cardio_b: dict[str, Any] | None = None,
     rounds: int = 3,
     config: UFCSimulationConfig | None = None,
 ) -> dict[str, Any]:
@@ -159,11 +185,13 @@ def simulate_fight(
             rounds,
             _num(performance_a, "pace_score", 50.0) or 50.0,
             _num(performance_b, "pace_score", 50.0) or 50.0,
+            cardio_a,
+            cardio_b,
         )
         sampled_rounds = rng.choice(np.arange(1, rounds + 1), size=finish_count, p=round_probs)
         round_counts = np.bincount(sampled_rounds, minlength=rounds + 1)[1:]
     else:
-        round_probs = _round_weights(rounds, 50.0, 50.0)
+        round_probs = _round_weights(rounds, 50.0, 50.0, cardio_a, cardio_b)
 
     a_win_emp = empirical["a_ko_tko"] + empirical["a_submission"] + empirical["a_decision"]
     b_win_emp = 1.0 - a_win_emp
@@ -223,8 +251,10 @@ def simulate_fight(
         "volatility": volatility,
         "fighter_a_finish_profile": path_a,
         "fighter_b_finish_profile": path_b,
+        "cardio_timing_used": bool((cardio_a or {}).get("available") or (cardio_b or {}).get("available")),
         "guardrail": (
             "Simulation consumes Macabets' final win probability; it does not re-predict the winner. "
-            "Method probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, pace and scheduled rounds."
+            "Method probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, pace and scheduled rounds. "
+            "Round Cardio only changes the timing distribution of finishes; it does not re-predict the winner."
         ),
     }
