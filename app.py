@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.93 — UFC Opponent-Adjusted Skills"
+APP_VERSION = "Macabets v0.94 — UFC Round Cardio"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5472,7 +5472,7 @@ with tabs[1]:
     with analysis_tabs[2]:
         st.subheader("Analysis Engine — UFC")
         st.caption(
-            "Compare two UFC fighters using Strength v0.2, performance, style, physical/context, simulation and derivative-market pricing. "
+            "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, physical/context, simulation and derivative-market pricing. "
             "Historical Validation v0.1 now backtests the leakage-safe side baseline and fight-path calibration on prior UFC results."
         )
 
@@ -6095,6 +6095,52 @@ with tabs[1]:
                                 "matchup points",
                             )
                             st.caption(str(style_matchup.get("guardrail", "")))
+
+                        cardio_matchup = ufc_result.get("cardio_matchup", {})
+                        if cardio_matchup.get("available"):
+                            st.markdown("### Round-by-Round Cardio & Degradation")
+                            cardio_rows = []
+                            for fighter_name, profile in (
+                                (fighter_a_name, cardio_matchup.get("fighter_a_profile", {})),
+                                (fighter_b_name, cardio_matchup.get("fighter_b_profile", {})),
+                            ):
+                                def _ret(key):
+                                    value = profile.get(key)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0%}"
+                                cardio_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Cardio Score": f"{float(profile.get('cardio_score', 50.0)):.0f}/100",
+                                    "Trend": str(profile.get("trend", "Unknown")),
+                                    "R2+ Output Retention": _ret("output_retention"),
+                                    "Accuracy Retention": _ret("accuracy_retention"),
+                                    "Defense Retention": _ret("defense_retention"),
+                                    "Wrestling Retention": _ret("wrestling_retention"),
+                                    "Late-Round Exposures": int(profile.get("late_round_exposures", 0) or 0),
+                                    "R4/R5 Exposures": int(profile.get("championship_round_exposures", 0) or 0),
+                                })
+                            st.dataframe(pd.DataFrame(cardio_rows), use_container_width=True, hide_index=True)
+                            cd1, cd2, cd3 = st.columns(3)
+                            cd1.metric(
+                                "Cardio Line Impact",
+                                f"{float(ufc_result.get('cardio_adjustment_a', 0.0)):+.1%}",
+                                f"to {fighter_a_name}",
+                            )
+                            cd2.metric(
+                                "Cardio Reliability",
+                                f"{float(cardio_matchup.get('reliability', 0.0)):.0%}",
+                            )
+                            cd3.metric(
+                                "Cardio Gap",
+                                f"{float(cardio_matchup.get('cardio_gap', 0.0)):+.1f}",
+                                "retention score points",
+                            )
+                            st.caption(str(cardio_matchup.get("guardrail", "")))
+                        else:
+                            cardio_a_status = cardio_matchup.get("fighter_a_profile", {})
+                            cardio_b_status = cardio_matchup.get("fighter_b_profile", {})
+                            cardio_reason = cardio_a_status.get("reason") or cardio_b_status.get("reason")
+                            if cardio_reason:
+                                st.caption(f"Round Cardio unavailable: {cardio_reason}")
 
                         fight_context = ufc_result.get("fight_context", {})
                         if fight_context.get("available"):
