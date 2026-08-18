@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.94 — UFC Round Cardio"
+APP_VERSION = "Macabets v0.95 — UFC Damage & Durability Risk"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5472,7 +5472,7 @@ with tabs[1]:
     with analysis_tabs[2]:
         st.subheader("Analysis Engine — UFC")
         st.caption(
-            "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, physical/context, simulation and derivative-market pricing. "
+            "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, damage/durability risk, physical/context, simulation and derivative-market pricing. "
             "Historical Validation v0.1 now backtests the leakage-safe side baseline and fight-path calibration on prior UFC results."
         )
 
@@ -6141,6 +6141,51 @@ with tabs[1]:
                             cardio_reason = cardio_a_status.get("reason") or cardio_b_status.get("reason")
                             if cardio_reason:
                                 st.caption(f"Round Cardio unavailable: {cardio_reason}")
+
+                        damage_matchup = ufc_result.get("damage_matchup", {})
+                        if damage_matchup.get("available"):
+                            st.markdown("### Damage & Durability Risk")
+                            damage_rows = []
+                            for fighter_name, profile in (
+                                (fighter_a_name, damage_matchup.get("fighter_a_profile", {})),
+                                (fighter_b_name, damage_matchup.get("fighter_b_profile", {})),
+                            ):
+                                def _dval(key, suffix=""):
+                                    value = profile.get(key)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0f}{suffix}"
+                                damage_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Damage Risk": f"{float(profile.get('risk_score', 0.0)):.0f}/100",
+                                    "Risk Level": str(profile.get("risk_label", "Unknown")),
+                                    "KD Absorbed (Last 3)": _dval("knockdowns_absorbed_last3"),
+                                    "Head Strikes Absorbed (Last 3)": _dval("head_strikes_absorbed_last3"),
+                                    "KO/TKO Losses (365d)": int(profile.get("ko_tko_losses_last365", 0) or 0),
+                                    "Days Since KO/TKO Loss": _dval("days_since_last_ko_tko_loss"),
+                                    "UFC Cage Minutes": _dval("career_ufc_minutes"),
+                                })
+                            st.dataframe(pd.DataFrame(damage_rows), use_container_width=True, hide_index=True)
+                            dm1, dm2, dm3 = st.columns(3)
+                            dm1.metric(
+                                "Damage Line Impact",
+                                f"{float(ufc_result.get('damage_adjustment_a', 0.0)):+.1%}",
+                                f"to {fighter_a_name}",
+                            )
+                            dm2.metric(
+                                "Damage Reliability",
+                                f"{float(damage_matchup.get('reliability', 0.0)):.0%}",
+                            )
+                            dm3.metric(
+                                "Risk Gap",
+                                f"{float(damage_matchup.get('risk_gap', 0.0)):+.1f}",
+                                "positive favors Fighter A",
+                            )
+                            st.caption(str(damage_matchup.get("guardrail", "")))
+                        else:
+                            damage_a_status = damage_matchup.get("fighter_a_profile", {})
+                            damage_b_status = damage_matchup.get("fighter_b_profile", {})
+                            damage_reason = damage_a_status.get("reason") or damage_b_status.get("reason")
+                            if damage_reason:
+                                st.caption(f"Damage Risk unavailable: {damage_reason}")
 
                         fight_context = ufc_result.get("fight_context", {})
                         if fight_context.get("available"):
