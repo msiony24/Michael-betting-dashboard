@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-STYLE_VERSION = "Macabets UFC Style Matchups v0.1"
+STYLE_VERSION = "Macabets UFC Style Matchups v0.2 — Advanced Grappling"
 
 
 @dataclass(frozen=True)
@@ -94,6 +94,7 @@ def build_style_matchup(
     fighter_b: str,
     *,
     rounds: int = 3,
+    advanced_grappling: dict[str, Any] | None = None,
     config: UFCStyleConfig | None = None,
 ) -> dict[str, Any]:
     """Build opponent-specific style interactions from underlying UFC performance traits.
@@ -104,48 +105,72 @@ def build_style_matchup(
     """
     config = config or UFCStyleConfig()
 
-    specs = [
-        {
-            "category": "Striking offense vs defense",
-            "weight": 0.36 if int(rounds) == 3 else 0.32,
-            "a_attack": ["sig_accuracy_pct", "kd_per15_pct"],
-            "b_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
-            "b_attack": ["sig_accuracy_pct", "kd_per15_pct"],
-            "a_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
-            "why_a": f"{fighter_a}'s striking efficiency and knockdown pressure line up favorably with {fighter_b}'s strike defense/durability profile.",
-            "why_b": f"{fighter_b}'s striking efficiency and knockdown pressure line up favorably with {fighter_a}'s strike defense/durability profile.",
-        },
-        {
-            "category": "Wrestling pressure vs takedown defense",
-            "weight": 0.30 if int(rounds) == 3 else 0.28,
-            "a_attack": ["td_per15_pct", "td_accuracy_pct", "control_share_pct"],
-            "b_defense": ["td_defense_pct"],
-            "b_attack": ["td_per15_pct", "td_accuracy_pct", "control_share_pct"],
-            "a_defense": ["td_defense_pct"],
-            "why_a": f"{fighter_a}'s takedown and control pressure is better matched to {fighter_b}'s takedown defense than the reverse interaction.",
-            "why_b": f"{fighter_b}'s takedown and control pressure is better matched to {fighter_a}'s takedown defense than the reverse interaction.",
-        },
-        {
-            "category": "Grappling threat vs defensive resistance",
-            "weight": 0.18,
-            "a_attack": ["sub_attempts_per15_pct", "control_share_pct"],
-            "b_defense": ["td_defense_pct", "durability_score"],
-            "b_attack": ["sub_attempts_per15_pct", "control_share_pct"],
-            "a_defense": ["td_defense_pct", "durability_score"],
-            "why_a": f"{fighter_a}'s submission/control pressure presents the more difficult grappling problem for {fighter_b}.",
-            "why_b": f"{fighter_b}'s submission/control pressure presents the more difficult grappling problem for {fighter_a}.",
-        },
-        {
-            "category": "Pace and attrition compatibility",
-            "weight": 0.16 if int(rounds) == 3 else 0.22,
-            "a_attack": ["pace_score"],
-            "b_defense": ["durability_score", "pace_score"],
-            "b_attack": ["pace_score"],
-            "a_defense": ["durability_score", "pace_score"],
-            "why_a": f"{fighter_a}'s pace is more likely to create an attritional advantage against {fighter_b}'s durability/pace profile.",
-            "why_b": f"{fighter_b}'s pace is more likely to create an attritional advantage against {fighter_a}'s durability/pace profile.",
-        },
-    ]
+    if advanced_grappling and advanced_grappling.get("available"):
+        specs = [
+            {
+                "category": "Striking offense vs defense",
+                "weight": 0.38 if int(rounds) == 3 else 0.34,
+                "a_attack": ["sig_accuracy_pct", "kd_per15_pct"],
+                "b_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
+                "b_attack": ["sig_accuracy_pct", "kd_per15_pct"],
+                "a_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
+                "why_a": f"{fighter_a}'s striking efficiency and knockdown pressure line up favorably with {fighter_b}'s strike defense/durability profile.",
+                "why_b": f"{fighter_b}'s striking efficiency and knockdown pressure line up favorably with {fighter_a}'s strike defense/durability profile.",
+            },
+            {
+                "category": "Pace and attrition compatibility",
+                "weight": 0.14 if int(rounds) == 3 else 0.18,
+                "a_attack": ["pace_score"],
+                "b_defense": ["durability_score", "pace_score"],
+                "b_attack": ["pace_score"],
+                "a_defense": ["durability_score", "pace_score"],
+                "why_a": f"{fighter_a}'s pace is more likely to create an attritional advantage against {fighter_b}'s durability/pace profile.",
+                "why_b": f"{fighter_b}'s pace is more likely to create an attritional advantage against {fighter_a}'s durability/pace profile.",
+            },
+        ]
+    else:
+        specs = [
+            {
+                "category": "Striking offense vs defense",
+                "weight": 0.36 if int(rounds) == 3 else 0.32,
+                "a_attack": ["sig_accuracy_pct", "kd_per15_pct"],
+                "b_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
+                "b_attack": ["sig_accuracy_pct", "kd_per15_pct"],
+                "a_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
+                "why_a": f"{fighter_a}'s striking efficiency and knockdown pressure line up favorably with {fighter_b}'s strike defense/durability profile.",
+                "why_b": f"{fighter_b}'s striking efficiency and knockdown pressure line up favorably with {fighter_a}'s strike defense/durability profile.",
+            },
+            {
+                "category": "Wrestling pressure vs takedown defense",
+                "weight": 0.30 if int(rounds) == 3 else 0.28,
+                "a_attack": ["td_per15_pct", "td_accuracy_pct", "control_share_pct"],
+                "b_defense": ["td_defense_pct"],
+                "b_attack": ["td_per15_pct", "td_accuracy_pct", "control_share_pct"],
+                "a_defense": ["td_defense_pct"],
+                "why_a": f"{fighter_a}'s takedown and control pressure is better matched to {fighter_b}'s takedown defense than the reverse interaction.",
+                "why_b": f"{fighter_b}'s takedown and control pressure is better matched to {fighter_a}'s takedown defense than the reverse interaction.",
+            },
+            {
+                "category": "Grappling threat vs defensive resistance",
+                "weight": 0.18,
+                "a_attack": ["sub_attempts_per15_pct", "control_share_pct"],
+                "b_defense": ["td_defense_pct", "durability_score"],
+                "b_attack": ["sub_attempts_per15_pct", "control_share_pct"],
+                "a_defense": ["td_defense_pct", "durability_score"],
+                "why_a": f"{fighter_a}'s submission/control pressure presents the more difficult grappling problem for {fighter_b}.",
+                "why_b": f"{fighter_b}'s submission/control pressure presents the more difficult grappling problem for {fighter_a}.",
+            },
+            {
+                "category": "Pace and attrition compatibility",
+                "weight": 0.16 if int(rounds) == 3 else 0.22,
+                "a_attack": ["pace_score"],
+                "b_defense": ["durability_score", "pace_score"],
+                "b_attack": ["pace_score"],
+                "a_defense": ["durability_score", "pace_score"],
+                "why_a": f"{fighter_a}'s pace is more likely to create an attritional advantage against {fighter_b}'s durability/pace profile.",
+                "why_b": f"{fighter_b}'s pace is more likely to create an attritional advantage against {fighter_a}'s durability/pace profile.",
+            },
+        ]
 
     rows: list[dict[str, Any]] = []
     weighted_gap = 0.0
@@ -186,6 +211,26 @@ def build_style_matchup(
             }
         )
 
+    if advanced_grappling and advanced_grappling.get("available"):
+        advanced_weight_total = 0.48 if int(rounds) == 3 else 0.48
+        advanced_rows = list(advanced_grappling.get("rows", []))
+        for advanced in advanced_rows:
+            gap = float(advanced.get("interaction_gap", 0.0) or 0.0)
+            local_weight = float(advanced.get("weight", 0.0) or 0.0) * advanced_weight_total
+            if local_weight <= 0:
+                continue
+            weighted_gap += gap * local_weight
+            used_weight += local_weight
+            available_interactions += 1
+            rows.append({
+                "category": advanced.get("category", "Advanced grappling"),
+                "advantage": advanced.get("advantage", "Even"),
+                "strength": advanced.get("strength", _edge_label(gap)),
+                "interaction_gap": gap,
+                "why": advanced.get("why", "Advanced wrestling/grappling interaction."),
+                "advanced_grappling": True,
+            })
+
     if used_weight <= 0 or available_interactions == 0:
         return {
             "available": False,
@@ -207,7 +252,8 @@ def build_style_matchup(
         float(profile_a.get("data_completeness", 0.0) or 0.0),
         float(profile_b.get("data_completeness", 0.0) or 0.0),
     )
-    interaction_coverage = available_interactions / float(len(specs))
+    expected_interactions = len(specs) + (len(advanced_grappling.get("rows", [])) if advanced_grappling and advanced_grappling.get("available") else 0)
+    interaction_coverage = available_interactions / float(max(expected_interactions, 1))
     reliability = sample_reliability * (0.40 + 0.60 * completeness) * interaction_coverage
 
     raw_adjustment = (weighted_gap / 55.0) * config.max_probability_adjustment
@@ -230,6 +276,6 @@ def build_style_matchup(
         "five_round_weighting": int(rounds) == 5,
         "guardrail": (
             "Style Matchups uses opponent-specific attack-vs-defense residuals, is capped at ±3 percentage points, "
-            "and is reliability-shrunk so it cannot simply re-award standalone performance strength."
+            "and is reliability-shrunk so it cannot simply re-award standalone performance strength. When available, advanced chain-wrestling, control/escape and submission interactions replace the older generic wrestling/grappling rows inside this same cap."
         ),
     }

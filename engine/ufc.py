@@ -27,6 +27,11 @@ from engine.ufc_opponent_adjustment import (
     build_opponent_adjusted_matchup,
 )
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
+from engine.ufc_grappling_matchups import (
+    GRAPPLING_VERSION,
+    build_grappling_table,
+    build_advanced_grappling_matchup,
+)
 from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighter_profiles
 from engine.ufc_cardio import CARDIO_VERSION, build_cardio_matchup
 from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
@@ -35,7 +40,7 @@ from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.10 — Damage Risk"
+MODEL_VERSION = "Macabets UFC Analysis v0.11 — Advanced Grappling"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -516,8 +521,18 @@ def analyze(
     baseline_probability_a = _clip(baseline_probability_a, 0.08, 0.92)
 
     performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
+
+    grappling_table = build_grappling_table(fights, ratings)
+    advanced_grappling = build_advanced_grappling_matchup(
+        grappling_table, fighter_a, fighter_b
+    )
     style_matchup = build_style_matchup(
-        performance_a, performance_b, fighter_a, fighter_b, rounds=int(rounds)
+        performance_a,
+        performance_b,
+        fighter_a,
+        fighter_b,
+        rounds=int(rounds),
+        advanced_grappling=advanced_grappling,
     )
     style_adjustment_a = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
 
@@ -625,6 +640,27 @@ def analyze(
                 "The style interaction layer is based on a limited or incomplete detailed-stat sample, so Macabets heavily shrinks the matchup adjustment.",
             )
 
+    if advanced_grappling.get("available"):
+        grappling_rows = sorted(
+            advanced_grappling.get("rows", []),
+            key=lambda item: abs(float(item.get("interaction_gap", 0.0) or 0.0)),
+            reverse=True,
+        )
+        if grappling_rows:
+            top_grappling = grappling_rows[0]
+            gap = float(top_grappling.get("interaction_gap", 0.0) or 0.0)
+            if abs(gap) >= 6.0:
+                grappling_side = fighter_a if gap > 0 else fighter_b
+                reasons.insert(
+                    0,
+                    f"{grappling_side} owns the stronger advanced wrestling/grappling interaction, led by {str(top_grappling.get('category', 'grappling')).lower()}. This is integrated inside Style Matchups rather than added as a second adjustment.",
+                )
+        if float(advanced_grappling.get("reliability", 0.0) or 0.0) < 0.50:
+            risks.insert(
+                0,
+                "Advanced wrestling/grappling evidence is limited, so chain-wrestling, control/escape and submission matchup signals are heavily reliability-shrunk inside the Style layer.",
+            )
+
     if fight_context.get("available"):
         context_adj = float(fight_context.get("adjustment_a", 0.0) or 0.0)
         if abs(context_adj) >= 0.002:
@@ -716,10 +752,11 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + opponent-adjusted performance + style matchup + round cardio + damage risk + physical/context + fight simulation + derivative markets",
+        "model_stage": "Ranking + opponent-adjusted performance + advanced style/grappling matchup + round cardio + damage risk + physical/context + fight simulation + derivative markets",
         "performance_version": PERFORMANCE_VERSION,
         "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
         "style_version": STYLE_VERSION,
+        "grappling_version": GRAPPLING_VERSION,
         "context_version": CONTEXT_VERSION,
         "cardio_version": CARDIO_VERSION,
         "damage_version": DAMAGE_VERSION,
@@ -781,6 +818,7 @@ def analyze(
         "performance_profile_b": performance_b,
         "performance_matchup": performance_matchup,
         "style_matchup": style_matchup,
+        "advanced_grappling_matchup": advanced_grappling,
         "fight_context": fight_context,
         "cardio_matchup": cardio_matchup,
         "damage_matchup": damage_matchup,
@@ -792,7 +830,7 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.10 adds recent Damage & Durability Risk to the opponent-adjusted Performance, Style and Round Cardio stack, then combines Strength v0.2, physical/fight context, historically calibrated simulation, and derivative-market pricing.",
+            "v0.11 upgrades Style Matchups with advanced chain-wrestling pressure, control retention vs bottom escape, and submission pressure vs resistance. These interactions replace the older generic wrestling/grappling rows inside the same capped Style adjustment rather than adding a second probability layer.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
