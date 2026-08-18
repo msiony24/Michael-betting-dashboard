@@ -60,7 +60,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/atp_matches_*.csv data/tennis_refresh_status.json
+          git add data/atp_matches_*.csv data/tennis_refresh_status.json data/tennis_player_ids.csv
           if git diff --cached --quiet; then
             echo "ATP data is already current."
             exit 0
@@ -82,7 +82,7 @@ jobs:
               git rebase --abort || true
               git reset --hard "origin/$branch"
               API_TENNIS_KEY="${API_TENNIS_KEY:-}" python update_tennis_data.py
-              git add data/atp_matches_*.csv data/tennis_refresh_status.json
+              git add data/atp_matches_*.csv data/tennis_refresh_status.json data/tennis_player_ids.csv
               if git diff --cached --quiet; then
                 echo "Latest $branch already contains current ATP data."
                 exit 0
