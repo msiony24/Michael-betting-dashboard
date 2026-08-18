@@ -14,14 +14,11 @@ POINT_SHRINKAGE = 350.0
 MAX_PROBABILITY_ADJUSTMENT = 0.032
 
 
+from .tennis_identity import canonical_player_key
+
+
 def _key(value: Any) -> str:
-    import re, unicodedata
-    text = unicodedata.normalize("NFKD", str(value or ""))
-    text = "".join(ch for ch in text if not unicodedata.combining(ch))
-    text = re.sub(r"[^A-Za-z0-9 ]+", " ", text).casefold()
-    tokens = [t for t in text.split() if t not in {"jr", "sr", "ii", "iii", "iv"}]
-    tokens = [t for t in tokens if len(t) > 1]
-    return " ".join(tokens)
+    return canonical_player_key(value)
 
 
 def _perspective(matches: pd.DataFrame, player: str, event_date: date | pd.Timestamp) -> pd.DataFrame:

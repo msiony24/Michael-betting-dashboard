@@ -20,7 +20,8 @@ import unicodedata
 import numpy as np
 import pandas as pd
 
-from .tennis import norm, player_name_signature, resolve_player_name
+from .tennis import norm
+from .tennis_identity import player_name_signature, resolve_player_name
 
 
 DEFAULT_HANDEDNESS_FILE = Path(__file__).resolve().parent.parent / "data" / "atp_player_handedness.csv"

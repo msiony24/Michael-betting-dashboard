@@ -24,6 +24,10 @@ def test_player_signature_handles_provider_name_formats():
     assert player_signature("Thiago Agustin Tirante") == ("tirante", "t")
     assert player_signature("Fritz T.") == ("fritz", "t")
     assert player_signature("Taylor Fritz") == ("fritz", "t")
+    assert player_signature("Felix Auger-Aliassime") == ("aliassime", "f")
+    assert player_signature("Auger-Aliassime F.") == ("aliassime", "f")
+    assert player_signature("Juan Manuel Cerundolo") == ("cerundolo", "j")
+    assert player_signature("Cerundolo J.M.") == ("cerundolo", "j")
 
 
 def test_convert_api_fixture_maps_winner_score_and_existing_names():
