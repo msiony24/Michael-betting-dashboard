@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 
-SIMULATION_VERSION = "Macabets UFC Simulation v0.3 — Cardio-Aware"
+SIMULATION_VERSION = "Macabets UFC Simulation v0.4 — Cardio + Damage Aware"
 
 
 @dataclass(frozen=True)
@@ -45,6 +45,7 @@ def _finish_profile(
     opponent_recent: dict[str, Any],
     opponent_performance: dict[str, Any],
     *,
+    opponent_damage: dict[str, Any] | None = None,
     rounds: int,
     config: UFCSimulationConfig,
 ) -> dict[str, float]:
@@ -54,6 +55,8 @@ def _finish_profile(
     sub_pressure = _pct01(_num(performance, "sub_attempts_per15_pct"), 0.50)
     opp_durability = _pct01(_num(opponent_performance, "durability_score"), 0.50)
     pace = _pct01(_num(performance, "pace_score"), 0.50)
+    damage_risk = _pct01(_num(opponent_damage or {}, "risk_score"), 0.0)
+    damage_reliability = _clip(_num(opponent_damage or {}, "reliability", 0.0) or 0.0, 0.0, 1.0)
 
     # Historical finish tendency remains dominant. Percentile traits only refine the
     # conditional method distribution; they do not create a second winner model.
@@ -65,6 +68,9 @@ def _finish_profile(
         + 0.07 * (1.0 - opp_durability)
         + 0.05 * pace
     )
+    # Damage Risk is trajectory/recovery context. It can modestly redistribute method
+    # probabilities, but never changes the winner probability inside the simulator.
+    finish_probability += 0.06 * damage_risk * damage_reliability
     # Historical Validation v0.1 found the original simulator was about five percentage
     # points too decision-heavy on a large leakage-safe retrospective sample. Apply a
     # modest global finish calibration before the existing 5-round exposure adjustment.
@@ -82,7 +88,7 @@ def _finish_profile(
     else:
         ko_base = 0.62
     trait_ko = kd_pressure / max(kd_pressure + sub_pressure, 1e-9)
-    ko_share = _clip(0.72 * ko_base + 0.28 * trait_ko, 0.15, 0.92)
+    ko_share = _clip(0.72 * ko_base + 0.28 * trait_ko + 0.10 * damage_risk * damage_reliability, 0.15, 0.92)
     sub_share = 1.0 - ko_share
 
     return {
@@ -141,6 +147,8 @@ def simulate_fight(
     *,
     cardio_a: dict[str, Any] | None = None,
     cardio_b: dict[str, Any] | None = None,
+    damage_a: dict[str, Any] | None = None,
+    damage_b: dict[str, Any] | None = None,
     rounds: int = 3,
     config: UFCSimulationConfig | None = None,
 ) -> dict[str, Any]:
@@ -157,8 +165,8 @@ def simulate_fight(
     p_a = _clip(float(probability_a), 0.01, 0.99)
     p_b = 1.0 - p_a
 
-    path_a = _finish_profile(recent_a, performance_a, recent_b, performance_b, rounds=rounds, config=config)
-    path_b = _finish_profile(recent_b, performance_b, recent_a, performance_a, rounds=rounds, config=config)
+    path_a = _finish_profile(recent_a, performance_a, recent_b, performance_b, opponent_damage=damage_b, rounds=rounds, config=config)
+    path_b = _finish_profile(recent_b, performance_b, recent_a, performance_a, opponent_damage=damage_a, rounds=rounds, config=config)
 
     theoretical = {
         "a_ko_tko": p_a * path_a["finish_probability"] * path_a["ko_share_of_finishes"],
@@ -252,9 +260,10 @@ def simulate_fight(
         "fighter_a_finish_profile": path_a,
         "fighter_b_finish_profile": path_b,
         "cardio_timing_used": bool((cardio_a or {}).get("available") or (cardio_b or {}).get("available")),
+        "damage_method_context_used": bool((damage_a or {}).get("available") or (damage_b or {}).get("available")),
         "guardrail": (
             "Simulation consumes Macabets' final win probability; it does not re-predict the winner. "
-            "Method probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, pace and scheduled rounds. "
-            "Round Cardio only changes the timing distribution of finishes; it does not re-predict the winner."
+            "Method probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, pace, damage/recovery context and scheduled rounds. "
+            "Round Cardio only changes the timing distribution of finishes, and Damage Risk only redistributes finish/method paths; neither re-predicts the winner."
         ),
     }

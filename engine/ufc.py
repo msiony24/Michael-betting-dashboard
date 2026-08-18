@@ -29,12 +29,13 @@ from engine.ufc_opponent_adjustment import (
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
 from engine.ufc_context import CONTEXT_VERSION, build_fight_context, load_fighter_profiles
 from engine.ufc_cardio import CARDIO_VERSION, build_cardio_matchup
+from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.9 — Round Cardio"
+MODEL_VERSION = "Macabets UFC Analysis v0.10 — Damage Risk"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -537,11 +538,16 @@ def analyze(
     )
     cardio_adjustment_a = float(cardio_matchup.get("adjustment_a", 0.0) or 0.0)
 
-    # Performance, style and round-cardio all originate in UFCStats and are partially
+    damage_matchup = build_damage_matchup(
+        fights, fighter_a, fighter_b, fight_date=fight_date
+    )
+    damage_adjustment_a = float(damage_matchup.get("adjustment_a", 0.0) or 0.0)
+
+    # Performance, style, round-cardio and damage trajectory all originate in UFCStats and are partially
     # correlated. Keep them under one hard cap, then add the more independent physical
     # context layer. This prevents a stack of descriptive stats from overpowering Strength.
     combined_matchup_adjustment_a = float(
-        np.clip(performance_adjustment_a + style_adjustment_a + cardio_adjustment_a, -0.085, 0.085)
+        np.clip(performance_adjustment_a + style_adjustment_a + cardio_adjustment_a + damage_adjustment_a, -0.085, 0.085)
     )
     total_adjustment_a = float(
         np.clip(combined_matchup_adjustment_a + context_adjustment_a, -0.10, 0.10)
@@ -652,6 +658,20 @@ def analyze(
                 "Round-cardio evidence is limited, so the degradation adjustment is heavily sample-shrunk.",
             )
 
+    if damage_matchup.get("available"):
+        damage_adj = float(damage_matchup.get("adjustment_a", 0.0) or 0.0)
+        if abs(damage_adj) >= 0.0015:
+            damage_side = fighter_a if damage_adj > 0 else fighter_b
+            reasons.insert(
+                0,
+                f"{damage_side} has the cleaner recent damage/recovery profile; Damage Risk moves the fair probability by {abs(damage_adj):.1%}.",
+            )
+        a_risk = float((damage_matchup.get("fighter_a_profile") or {}).get("risk_score", 0.0) or 0.0)
+        b_risk = float((damage_matchup.get("fighter_b_profile") or {}).get("risk_score", 0.0) or 0.0)
+        if max(a_risk, b_risk) >= 55:
+            risk_fighter = fighter_a if a_risk >= b_risk else fighter_b
+            risks.insert(0, f"{risk_fighter} carries elevated recent damage/KO-recovery risk, increasing finish-path volatility.")
+
     reasons = reasons[:4]
     risks = risks[:4]
     market = _market_evaluation(
@@ -672,6 +692,8 @@ def analyze(
         performance_b,
         cardio_a=cardio_matchup.get("fighter_a_profile"),
         cardio_b=cardio_matchup.get("fighter_b_profile"),
+        damage_a=damage_matchup.get("fighter_a_profile"),
+        damage_b=damage_matchup.get("fighter_b_profile"),
         rounds=int(rounds),
     )
     derivative_markets = build_derivative_markets(simulation, fighter_a, fighter_b)
@@ -694,12 +716,13 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + opponent-adjusted performance + style matchup + round cardio + physical/context + fight simulation + derivative markets",
+        "model_stage": "Ranking + opponent-adjusted performance + style matchup + round cardio + damage risk + physical/context + fight simulation + derivative markets",
         "performance_version": PERFORMANCE_VERSION,
         "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
         "style_version": STYLE_VERSION,
         "context_version": CONTEXT_VERSION,
         "cardio_version": CARDIO_VERSION,
+        "damage_version": DAMAGE_VERSION,
         "simulation_version": SIMULATION_VERSION,
         "derivative_markets_version": DERIVATIVE_MARKETS_VERSION,
         "fighter_a": fighter_a,
@@ -718,6 +741,7 @@ def analyze(
         "style_adjustment_a": style_adjustment_a,
         "context_adjustment_a": context_adjustment_a,
         "cardio_adjustment_a": cardio_adjustment_a,
+        "damage_adjustment_a": damage_adjustment_a,
         "combined_matchup_adjustment_a": combined_matchup_adjustment_a,
         "total_adjustment_a": total_adjustment_a,
         "fair_moneyline_a": fair_a,
@@ -759,6 +783,7 @@ def analyze(
         "style_matchup": style_matchup,
         "fight_context": fight_context,
         "cardio_matchup": cardio_matchup,
+        "damage_matchup": damage_matchup,
         "simulation": simulation,
         "derivative_markets": derivative_markets,
         "derivative_evaluation": derivative_evaluation,
@@ -767,9 +792,9 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.9 adds round-by-round cardio/degradation to the opponent-adjusted Performance and Style stack, then combines Strength v0.2, physical/fight context, historically calibrated simulation, and derivative-market pricing.",
+            "v0.10 adds recent Damage & Durability Risk to the opponent-adjusted Performance, Style and Round Cardio stack, then combines Strength v0.2, physical/fight context, historically calibrated simulation, and derivative-market pricing.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
-            "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",
+            "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
             "The simulation consumes the already-finalized side probability and decomposes it into KO/TKO, submission, and decision paths; it does not create a second winner model.",
             "Derivative markets are priced downstream of that simulation. Half-round totals use a neutral 50/50 split of finish mass inside the target round until exact finish-time calibration is added.",
