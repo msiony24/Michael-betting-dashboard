@@ -174,6 +174,45 @@ def _detailed_stats(row: pd.Series, fighter_prefix: str) -> dict[str, int]:
     }
 
 
+
+def _round_detail(row: pd.Series, fighter_prefix: str, round_no: int) -> dict[str, int]:
+    def pair(stat: str) -> tuple[int, int]:
+        column = f"{fighter_prefix}_rd{round_no}_{stat}"
+        text = "" if column not in row.index or row.get(column) is None else str(row.get(column))
+        match = re.search(r"(\d+)\s+of\s+(\d+)", text, flags=re.IGNORECASE)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+        value = _first_int(text)
+        return value, value
+
+    sig_l, sig_a = pair("Sig_str")
+    td_l, td_a = pair("Td")
+    ctrl = 0
+    ctrl_col = f"{fighter_prefix}_rd{round_no}_Ctrl"
+    ctrl_text = "" if ctrl_col not in row.index or row.get(ctrl_col) is None else str(row.get(ctrl_col)).strip()
+    if ":" in ctrl_text:
+        try:
+            minute, second = ctrl_text.split(":", 1)
+            ctrl = int(minute) * 60 + int(second)
+        except (TypeError, ValueError):
+            ctrl = 0
+    return {
+        f"r{round_no}_sig_str_landed": sig_l,
+        f"r{round_no}_sig_str_attempted": sig_a,
+        f"r{round_no}_td_landed": td_l,
+        f"r{round_no}_td_attempted": td_a,
+        f"r{round_no}_kd": _first_int(row.get(f"{fighter_prefix}_rd{round_no}_KD")),
+        f"r{round_no}_sub_att": _first_int(row.get(f"{fighter_prefix}_rd{round_no}_Sub_att")),
+        f"r{round_no}_control_seconds": ctrl,
+    }
+
+
+def _all_round_details(row: pd.Series, fighter_prefix: str) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for round_no in range(1, 6):
+        result.update(_round_detail(row, fighter_prefix, round_no))
+    return result
+
 def _opposite_result(result: str) -> str:
     result = result.strip().upper()
     if result == "W":
@@ -235,11 +274,14 @@ def _load_github_mirror_history() -> pd.DataFrame:
 
         stats1 = _detailed_stats(fight, "p1")
         stats2 = _detailed_stats(fight, "p2")
+        rounds1 = _all_round_details(fight, "p1")
+        rounds2 = _all_round_details(fight, "p2")
 
         rows.append(
             {
                 **common,
                 **stats1,
+                **rounds1,
                 "fighter": player1,
                 "fighter_url": str(fight.get("player1_url", "") or "").strip(),
                 "opponent": player2,
@@ -255,6 +297,7 @@ def _load_github_mirror_history() -> pd.DataFrame:
             {
                 **common,
                 **stats2,
+                **rounds2,
                 "fighter": player2,
                 "fighter_url": str(fight.get("player2_url", "") or "").strip(),
                 "opponent": player1,
@@ -299,12 +342,20 @@ def _get_fight_history(config: FetchConfig) -> tuple[pd.DataFrame, str, str]:
         print(f"Live UFCStats refresh unavailable: {live_error}")
 
     cached = _load_cached_fights()
-    if not cached.empty:
+    required_enriched = {
+        "sig_str_landed", "sig_str_attempted", "td_landed", "td_attempted",
+        "control_seconds", "r1_sig_str_landed", "r2_sig_str_landed",
+    }
+    cached_is_enriched = not cached.empty and required_enriched.issubset(cached.columns)
+    if cached_is_enriched:
         print(
-            f"Using last-good cached UFC dataset ({len(cached):,} fighter-fight rows) "
+            f"Using last-good enriched UFC dataset ({len(cached):,} fighter-fight rows) "
             "instead of failing the workflow."
         )
         return cached, "cached_fallback", live_error
+
+    if not cached.empty:
+        print("Cached UFC data uses an older compact schema; trying the mirror to enrich detailed and round-level stats.")
 
     try:
         mirror = _load_github_mirror_history()
@@ -316,10 +367,16 @@ def _get_fight_history(config: FetchConfig) -> tuple[pd.DataFrame, str, str]:
             return mirror, "mirror_bootstrap", live_error
     except Exception as exc:
         mirror_error = f"{type(exc).__name__}: {exc}"
+        if not cached.empty:
+            print(f"Mirror enrichment failed ({mirror_error}); preserving older last-good cache.")
+            return cached, "cached_fallback", live_error
         raise RuntimeError(
             "Live UFCStats failed, no last-good cache exists, and the GitHub mirror "
             f"bootstrap also failed. Live error: {live_error}. Mirror error: {mirror_error}"
         ) from exc
+
+    if not cached.empty:
+        return cached, "cached_fallback", live_error
 
     raise RuntimeError(
         "Live UFCStats failed and neither a last-good cache nor mirror bootstrap was available. "
