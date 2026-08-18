@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.96 — UFC Advanced Grappling"
+APP_VERSION = "Macabets v0.97 — UFC Advanced Striking"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -6054,6 +6054,46 @@ with tabs[1]:
                                 "Composite scores are division-relative percentiles from the recent UFC sample. Five-round fights "
                                 "place a little more weight on durability and pace. This is the general performance layer; the opponent-specific interaction layer is shown next."
                             )
+
+                        advanced_striking = ufc_result.get("advanced_striking_matchup", {})
+                        if advanced_striking.get("available"):
+                            st.markdown("### Advanced Striking Matchups")
+                            striking_rows = pd.DataFrame(advanced_striking.get("rows", []))
+                            if not striking_rows.empty:
+                                striking_display = striking_rows.rename(columns={
+                                    "category": "Category",
+                                    "advantage": "Advantage",
+                                    "strength": "Strength",
+                                    "why": "Why it matters",
+                                })
+                                scols = [c for c in ["Category", "Advantage", "Strength", "Why it matters"] if c in striking_display.columns]
+                                st.dataframe(striking_display[scols], use_container_width=True, hide_index=True)
+
+                            sp_rows = []
+                            for fighter_name, profile in (
+                                (fighter_a_name, advanced_striking.get("fighter_a_profile", {})),
+                                (fighter_b_name, advanced_striking.get("fighter_b_profile", {})),
+                            ):
+                                def _sscore(key):
+                                    value = profile.get(key)
+                                    return "—" if value is None or pd.isna(value) else f"{float(value):.0f}/100"
+                                sp_rows.append({
+                                    "Fighter": fighter_name,
+                                    "Head Attack": _sscore("head_attack_score"),
+                                    "Body Attack": _sscore("body_attack_score"),
+                                    "Leg Attack": _sscore("leg_attack_score"),
+                                    "Distance": _sscore("distance_attack_score"),
+                                    "Power": _sscore("power_score"),
+                                    "KD Resistance": _sscore("knockdown_resistance_score"),
+                                    "Close Range": _sscore("close_attack_score"),
+                                    "Sample": int(profile.get("sample", 0) or 0),
+                                })
+                            st.dataframe(pd.DataFrame(sp_rows), use_container_width=True, hide_index=True)
+                            ss1, ss2 = st.columns(2)
+                            ss1.metric("Advanced Striking Reliability", f"{float(advanced_striking.get('reliability', 0.0)):.0%}")
+                            ss2.metric("Advanced Striking Gap", f"{float(advanced_striking.get('weighted_gap', 0.0)):+.1f}", "interaction points")
+                            st.caption(str(advanced_striking.get("guardrail", "")))
+                            st.caption("Line impact is integrated into the existing Style Matchups adjustment; Macabets does not add a second striking probability modifier.")
 
                         advanced_grappling = ufc_result.get("advanced_grappling_matchup", {})
                         if advanced_grappling.get("available"):
