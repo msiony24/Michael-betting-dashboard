@@ -4,9 +4,11 @@ import pandas as pd
 
 from update_tennis_data import (
     MATCH_COLUMNS,
+    build_player_identity_registry,
     convert_api_fixtures,
     merge_live_matches,
     player_signature,
+    preserve_existing_statistics,
 )
 
 
@@ -30,7 +32,7 @@ def test_player_signature_handles_provider_name_formats():
     assert player_signature("Cerundolo J.M.") == ("cerundolo", "j")
 
 
-def test_convert_api_fixture_maps_winner_score_and_existing_names():
+def test_convert_api_fixture_maps_winner_score_names_and_player_ids():
     fixtures = [{
         "event_date": "2026-08-05",
         "event_first_player": "T. A. Tirante",
@@ -62,11 +64,43 @@ def test_convert_api_fixture_maps_winner_score_and_existing_names():
     row = frame.iloc[0]
     assert row["winner_name"] == "Tirante T.A."
     assert row["loser_name"] == "Fritz T."
+    assert row["winner_player_key"] == "101"
+    assert row["loser_player_key"] == "202"
     assert row["score"] == "7-5 6-3"
     assert row["round"] == "R64"
     assert row["surface"] == "Hard"
     assert row["winner_rank"] == 50.0
     assert row["loser_rank"] == 4.0
+
+
+def test_identity_registry_uses_api_key_to_join_provider_aliases():
+    fixtures = [{
+        "event_first_player": "Juan Manuel Cerundolo",
+        "first_player_key": "388",
+        "event_second_player": "Felix Auger-Aliassime",
+        "second_player_key": "2073",
+    }]
+    standings = [
+        {"player": "Manuel Cerundolo Juan", "player_key": 388},
+        {"player": "Felix Auger-Aliassime", "player_key": 2073},
+    ]
+    existing_names = {
+        ("cerundolo", "j"): "Cerundolo J.M.",
+        ("aliassime", "f"): "Auger-Aliassime F.",
+    }
+    registry = build_player_identity_registry(
+        fixtures,
+        standings,
+        existing_names=existing_names,
+        existing_registry=pd.DataFrame(),
+    )
+    cerundolo = registry[registry["player_key"].astype(str).eq("388")]
+    assert set(cerundolo["alias"]) >= {
+        "Juan Manuel Cerundolo",
+        "Manuel Cerundolo Juan",
+        "Cerundolo J.M.",
+    }
+    assert set(cerundolo["canonical_name"]) == {"Cerundolo J.M."}
 
 
 def test_merge_live_matches_replaces_stale_duplicate():
@@ -88,9 +122,31 @@ def test_merge_live_matches_replaces_stale_duplicate():
         "round": "R64",
         "winner_name": "Tirante T.A.",
         "loser_name": "Fritz T.",
+        "winner_player_key": "101",
+        "loser_player_key": "202",
         "score": "7-5 6-3",
     }])
     merged = merge_live_matches(baseline, live)
     assert len(merged) == 1
     assert merged.iloc[0]["winner_name"] == "Tirante T.A."
+    assert merged.iloc[0]["winner_player_key"] == "101"
     assert merged.iloc[0]["score"] == "7-5 6-3"
+
+
+def test_refresh_preserves_api_player_ids_when_yearly_baseline_replaces_row():
+    baseline = _blank_frame([{
+        "tourney_date": "20260805",
+        "tourney_name": "Montreal",
+        "surface": "Hard",
+        "tourney_level": "M",
+        "round": "R64",
+        "winner_name": "Fritz T.",
+        "loser_name": "Tirante T.A.",
+        "score": "6-4 6-4",
+    }])
+    existing = baseline.copy()
+    existing.loc[0, "winner_player_key"] = "202"
+    existing.loc[0, "loser_player_key"] = "101"
+    preserved = preserve_existing_statistics(baseline, existing)
+    assert str(preserved.iloc[0]["winner_player_key"]) == "202"
+    assert str(preserved.iloc[0]["loser_player_key"]) == "101"
