@@ -5,8 +5,8 @@
   "fallback_prior": true,
   "performance_cap": 0.2,
   "through_week": 18,
-  "rows": 18539,
+  "rows": 18540,
   "players": 2019,
-  "updated_at_utc": "2026-08-11T14:38:50+00:00",
+  "updated_at_utc": "2026-08-18T19:55:57+00:00",
   "output_path": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/player_weekly_stats.csv"
 }
