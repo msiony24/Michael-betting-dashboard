@@ -27,6 +27,7 @@ from engine.ufc_opponent_adjustment import (
     build_opponent_adjusted_matchup,
 )
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
+from engine.ufc_striking_matchups import STRIKING_VERSION, build_striking_table, build_advanced_striking_matchup
 from engine.ufc_grappling_matchups import (
     GRAPPLING_VERSION,
     build_grappling_table,
@@ -40,7 +41,7 @@ from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.11 — Advanced Grappling"
+MODEL_VERSION = "Macabets UFC Analysis v0.12 — Advanced Striking"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -522,6 +523,10 @@ def analyze(
 
     performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
 
+    striking_table = build_striking_table(fights, ratings)
+    advanced_striking = build_advanced_striking_matchup(
+        striking_table, fighter_a, fighter_b
+    )
     grappling_table = build_grappling_table(fights, ratings)
     advanced_grappling = build_advanced_grappling_matchup(
         grappling_table, fighter_a, fighter_b
@@ -533,6 +538,7 @@ def analyze(
         fighter_b,
         rounds=int(rounds),
         advanced_grappling=advanced_grappling,
+        advanced_striking=advanced_striking,
     )
     style_adjustment_a = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
 
@@ -752,10 +758,11 @@ def analyze(
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
-        "model_stage": "Ranking + opponent-adjusted performance + advanced style/grappling matchup + round cardio + damage risk + physical/context + fight simulation + derivative markets",
+        "model_stage": "Ranking + opponent-adjusted performance + advanced striking/grappling style matchup + round cardio + damage risk + physical/context + fight simulation + derivative markets",
         "performance_version": PERFORMANCE_VERSION,
         "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
         "style_version": STYLE_VERSION,
+        "striking_version": STRIKING_VERSION,
         "grappling_version": GRAPPLING_VERSION,
         "context_version": CONTEXT_VERSION,
         "cardio_version": CARDIO_VERSION,
@@ -818,6 +825,7 @@ def analyze(
         "performance_profile_b": performance_b,
         "performance_matchup": performance_matchup,
         "style_matchup": style_matchup,
+        "advanced_striking_matchup": advanced_striking,
         "advanced_grappling_matchup": advanced_grappling,
         "fight_context": fight_context,
         "cardio_matchup": cardio_matchup,
@@ -830,7 +838,8 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.11 upgrades Style Matchups with advanced chain-wrestling pressure, control retention vs bottom escape, and submission pressure vs resistance. These interactions replace the older generic wrestling/grappling rows inside the same capped Style adjustment rather than adding a second probability layer.",
+            "v0.12 upgrades Style Matchups with advanced head/body/leg targeting, distance and close-range striking, and power-vs-knockdown-resistance interactions. These replace the older generic striking row inside the same capped Style adjustment rather than adding a second probability layer.",
+            "Advanced grappling remains integrated inside that same Style cap, so striking and grappling detail do not create extra standalone probability layers.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",
             "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",

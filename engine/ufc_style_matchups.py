@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-STYLE_VERSION = "Macabets UFC Style Matchups v0.2 — Advanced Grappling"
+STYLE_VERSION = "Macabets UFC Style Matchups v0.3 — Advanced Striking + Grappling"
 
 
 @dataclass(frozen=True)
@@ -95,6 +95,7 @@ def build_style_matchup(
     *,
     rounds: int = 3,
     advanced_grappling: dict[str, Any] | None = None,
+    advanced_striking: dict[str, Any] | None = None,
     config: UFCStyleConfig | None = None,
 ) -> dict[str, Any]:
     """Build opponent-specific style interactions from underlying UFC performance traits.
@@ -106,8 +107,9 @@ def build_style_matchup(
     config = config or UFCStyleConfig()
 
     if advanced_grappling and advanced_grappling.get("available"):
-        specs = [
-            {
+        specs = []
+        if not (advanced_striking and advanced_striking.get("available")):
+            specs.append({
                 "category": "Striking offense vs defense",
                 "weight": 0.38 if int(rounds) == 3 else 0.34,
                 "a_attack": ["sig_accuracy_pct", "kd_per15_pct"],
@@ -116,18 +118,17 @@ def build_style_matchup(
                 "a_defense": ["sig_defense_pct", "kd_absorbed_per15_pct"],
                 "why_a": f"{fighter_a}'s striking efficiency and knockdown pressure line up favorably with {fighter_b}'s strike defense/durability profile.",
                 "why_b": f"{fighter_b}'s striking efficiency and knockdown pressure line up favorably with {fighter_a}'s strike defense/durability profile.",
-            },
-            {
-                "category": "Pace and attrition compatibility",
-                "weight": 0.14 if int(rounds) == 3 else 0.18,
-                "a_attack": ["pace_score"],
-                "b_defense": ["durability_score", "pace_score"],
-                "b_attack": ["pace_score"],
-                "a_defense": ["durability_score", "pace_score"],
-                "why_a": f"{fighter_a}'s pace is more likely to create an attritional advantage against {fighter_b}'s durability/pace profile.",
-                "why_b": f"{fighter_b}'s pace is more likely to create an attritional advantage against {fighter_a}'s durability/pace profile.",
-            },
-        ]
+            })
+        specs.append({
+            "category": "Pace and attrition compatibility",
+            "weight": 0.14 if int(rounds) == 3 else 0.18,
+            "a_attack": ["pace_score"],
+            "b_defense": ["durability_score", "pace_score"],
+            "b_attack": ["pace_score"],
+            "a_defense": ["durability_score", "pace_score"],
+            "why_a": f"{fighter_a}'s pace is more likely to create an attritional advantage against {fighter_b}'s durability/pace profile.",
+            "why_b": f"{fighter_b}'s pace is more likely to create an attritional advantage against {fighter_a}'s durability/pace profile.",
+        })
     else:
         specs = [
             {
@@ -211,6 +212,25 @@ def build_style_matchup(
             }
         )
 
+    if advanced_striking and advanced_striking.get("available"):
+        advanced_weight_total = 0.38 if int(rounds) == 3 else 0.34
+        for advanced in list(advanced_striking.get("rows", [])):
+            gap = float(advanced.get("interaction_gap", 0.0) or 0.0)
+            local_weight = float(advanced.get("weight", 0.0) or 0.0) * advanced_weight_total
+            if local_weight <= 0:
+                continue
+            weighted_gap += gap * local_weight
+            used_weight += local_weight
+            available_interactions += 1
+            rows.append({
+                "category": advanced.get("category", "Advanced striking"),
+                "advantage": advanced.get("advantage", "Even"),
+                "strength": advanced.get("strength", _edge_label(gap)),
+                "interaction_gap": gap,
+                "why": advanced.get("why", "Advanced striking interaction."),
+                "advanced_striking": True,
+            })
+
     if advanced_grappling and advanced_grappling.get("available"):
         advanced_weight_total = 0.48 if int(rounds) == 3 else 0.48
         advanced_rows = list(advanced_grappling.get("rows", []))
@@ -252,7 +272,11 @@ def build_style_matchup(
         float(profile_a.get("data_completeness", 0.0) or 0.0),
         float(profile_b.get("data_completeness", 0.0) or 0.0),
     )
-    expected_interactions = len(specs) + (len(advanced_grappling.get("rows", [])) if advanced_grappling and advanced_grappling.get("available") else 0)
+    expected_interactions = len(specs)
+    if advanced_striking and advanced_striking.get("available"):
+        expected_interactions += len(advanced_striking.get("rows", []))
+    if advanced_grappling and advanced_grappling.get("available"):
+        expected_interactions += len(advanced_grappling.get("rows", []))
     interaction_coverage = available_interactions / float(max(expected_interactions, 1))
     reliability = sample_reliability * (0.40 + 0.60 * completeness) * interaction_coverage
 
@@ -276,6 +300,6 @@ def build_style_matchup(
         "five_round_weighting": int(rounds) == 5,
         "guardrail": (
             "Style Matchups uses opponent-specific attack-vs-defense residuals, is capped at ±3 percentage points, "
-            "and is reliability-shrunk so it cannot simply re-award standalone performance strength. When available, advanced chain-wrestling, control/escape and submission interactions replace the older generic wrestling/grappling rows inside this same cap."
+            "and is reliability-shrunk so it cannot simply re-award standalone performance strength. When available, advanced target/range/power striking replaces the generic striking row, and advanced chain-wrestling, control/escape and submission interactions replace the generic wrestling/grappling rows inside this same cap."
         ),
     }
