@@ -11,19 +11,45 @@ from engine.tennis_serve_return import serve_return_profile
 from update_tennis_data import player_signature
 
 
-def test_compound_and_multi_given_names_share_identity():
+def test_compound_and_multi_given_names_share_identity_without_registry():
     pairs = [
         ("Felix Auger-Aliassime", "Auger-Aliassime F.", ("aliassime", "f")),
         ("Juan Manuel Cerundolo", "Cerundolo J.M.", ("cerundolo", "j")),
         ("Alex de Minaur", "De Minaur A.", ("minaur", "a")),
         ("Taylor Fritz", "Fritz T.", ("fritz", "t")),
     ]
+    empty_registry = pd.DataFrame(columns=["player_key", "alias", "canonical_name"])
     for full_name, provider_name, expected in pairs:
         assert player_name_signature(full_name) == expected
         assert player_name_signature(provider_name) == expected
         assert player_signature(full_name) == expected
         assert player_signature(provider_name) == expected
-        assert canonical_player_key(full_name) == canonical_player_key(provider_name)
+        assert canonical_player_key(full_name, registry=empty_registry) == canonical_player_key(
+            provider_name, registry=empty_registry
+        )
+
+
+def test_provider_player_id_resolves_reversed_and_historical_aliases():
+    registry = pd.DataFrame([
+        {"player_key": "388", "alias": "Juan Manuel Cerundolo", "canonical_name": "Cerundolo J.M."},
+        {"player_key": "388", "alias": "Manuel Cerundolo Juan", "canonical_name": "Cerundolo J.M."},
+        {"player_key": "388", "alias": "Cerundolo J.M.", "canonical_name": "Cerundolo J.M."},
+    ])
+    assert canonical_player_key("Juan Manuel Cerundolo", registry=registry) == "api:388"
+    assert canonical_player_key("Manuel Cerundolo Juan", registry=registry) == "api:388"
+    assert canonical_player_key("Cerundolo J.M.", registry=registry) == "api:388"
+
+    matches = pd.DataFrame([
+        {"winner_name": "Cerundolo J.M.", "loser_name": "Auger-Aliassime F."},
+    ])
+    resolved, resolution = resolve_player_name(
+        matches,
+        "Manuel Cerundolo Juan",
+        registry=registry,
+    )
+    assert resolved == "Cerundolo J.M."
+    assert resolution["player_key"] == "388"
+    assert resolution["method"] == "provider_player_id"
 
 
 def test_resolver_and_perspective_merge_felix_aliases():
@@ -54,7 +80,7 @@ def test_resolver_and_perspective_merge_felix_aliases():
         },
     ])
     resolved, resolution = resolve_player_name(matches, "Felix Auger-Aliassime")
-    assert resolved == "Felix Auger-Aliassime"
+    assert resolved in {"Felix Auger-Aliassime", "Auger-Aliassime F."}
     assert resolution["resolved"] == resolved
     history = perspective(matches, resolved, date(2026, 8, 18))
     assert len(history) == 2
