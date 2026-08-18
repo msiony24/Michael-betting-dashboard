@@ -1,0 +1,346 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+import textwrap
+
+
+def replace_once(path_text: str, old: str, new: str) -> None:
+    path = Path(path_text)
+    text = path.read_text(encoding="utf-8")
+    count = text.count(old)
+    if count != 1:
+        raise RuntimeError(f"Expected exactly one match in {path_text}, found {count}")
+    path.write_text(text.replace(old, new), encoding="utf-8")
+
+
+def regex_once(path_text: str, pattern: str, replacement: str) -> None:
+    path = Path(path_text)
+    text = path.read_text(encoding="utf-8")
+    updated, count = re.subn(pattern, lambda _: replacement, text, count=1, flags=re.S)
+    if count != 1:
+        raise RuntimeError(f"Expected exactly one regex match in {path_text}, found {count}")
+    path.write_text(updated, encoding="utf-8")
+
+
+identity_module = textwrap.dedent('''\
+from __future__ import annotations
+
+from typing import Any
+import re
+import unicodedata
+
+import pandas as pd
+
+
+_SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
+
+
+def _tokens(value: Any) -> list[str]:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    tokens = re.findall(r"[A-Za-z]+", text.casefold())
+    return [token for token in tokens if token not in _SUFFIXES]
+
+
+def normalized_name(value: Any) -> str:
+    return " ".join(_tokens(value))
+
+
+def player_name_signature(value: Any) -> tuple[str, str]:
+    """Return a provider-tolerant surname and first-initial signature.
+
+    Historical feeds use forms such as Auger-Aliassime F. and Cerundolo J.M.,
+    while live feeds use full names. Trailing initials are peeled off before the
+    surname is selected, fixing compound provider names.
+    """
+    tokens = _tokens(value)
+    if not tokens:
+        return "", ""
+
+    first_initial_index = len(tokens)
+    while first_initial_index > 0 and len(tokens[first_initial_index - 1]) == 1:
+        first_initial_index -= 1
+
+    if 0 < first_initial_index < len(tokens):
+        surname = tokens[first_initial_index - 1]
+        first_initial = tokens[first_initial_index]
+        return surname, first_initial
+
+    if len(tokens) >= 2:
+        return tokens[-1], tokens[0][0]
+    return tokens[0], ""
+
+
+def canonical_player_key(value: Any) -> str:
+    """Return the shared identity key used by tennis-history subsystems."""
+    surname, initial = player_name_signature(value)
+    if surname and initial:
+        return f"{surname}|{initial}"
+    return normalized_name(value)
+
+
+def resolve_player_name(matches: pd.DataFrame, requested_name: str) -> tuple[str | None, dict]:
+    """Resolve a requested player to a display name in the historical database."""
+    if matches is None or matches.empty:
+        return None, {"requested": requested_name, "resolved": None, "method": "not_found"}
+
+    names = pd.concat([
+        matches.get("winner_name", pd.Series(dtype=str)),
+        matches.get("loser_name", pd.Series(dtype=str)),
+    ]).dropna().astype(str)
+    if names.empty:
+        return None, {"requested": requested_name, "resolved": None, "method": "not_found"}
+
+    counts = names.value_counts()
+    unique_names = counts.index.to_series()
+    requested_normalized = normalized_name(requested_name)
+    requested_key = canonical_player_key(requested_name)
+
+    key_matches = unique_names[unique_names.map(canonical_player_key).eq(requested_key)]
+    if key_matches.empty:
+        return None, {
+            "requested": requested_name,
+            "resolved": None,
+            "method": "not_found",
+            "identity_key": requested_key,
+        }
+
+    exact = key_matches[key_matches.map(normalized_name).eq(requested_normalized)]
+    if not exact.empty:
+        resolved = str(exact.iloc[0])
+        method = "exact"
+    else:
+        ranked = sorted(
+            ((str(name), int(counts.get(name, 0))) for name in key_matches.tolist()),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+        resolved = ranked[0][0]
+        method = "surname_initial"
+
+    return resolved, {
+        "requested": requested_name,
+        "resolved": resolved,
+        "method": method,
+        "identity_key": requested_key,
+        "aliases": [str(name) for name in key_matches.tolist()],
+    }
+''')
+Path("engine/tennis_identity.py").write_text(identity_module, encoding="utf-8")
+
+
+regex_once(
+    "engine/tennis.py",
+    r"def canonical_player_key\(value: str\) -> str:\n.*?\n\ndef safe_int\(value, default: int = 0\) -> int:",
+    "from .tennis_identity import (\n"
+    "    canonical_player_key,\n"
+    "    player_name_signature,\n"
+    "    resolve_player_name,\n"
+    ")\n\n\n"
+    "def safe_int(value, default: int = 0) -> int:",
+)
+
+regex_once(
+    "engine/player_profiles.py",
+    r"def canonical_player_key\(value: object\) -> str:\n.*?\n\ndef _safe_int\(value: Any, default: int \| None = None\) -> int \| None:",
+    "from .tennis_identity import canonical_player_key\n\n\n"
+    "def _safe_int(value: Any, default: int | None = None) -> int | None:",
+)
+
+regex_once(
+    "engine/tennis_serve_return.py",
+    r"def _key\(value: Any\) -> str:\n.*?\n\ndef _perspective\(matches: pd.DataFrame, player: str, event_date: date \| pd.Timestamp\) -> pd.DataFrame:",
+    "from .tennis_identity import canonical_player_key\n\n\n"
+    "def _key(value: Any) -> str:\n"
+    "    return canonical_player_key(value)\n\n\n"
+    "def _perspective(matches: pd.DataFrame, player: str, event_date: date | pd.Timestamp) -> pd.DataFrame:",
+)
+
+replace_once(
+    "engine/tennis_evidence.py",
+    "from .tennis import canonical_player_key, resolve_player_name\n",
+    "from .tennis_identity import canonical_player_key, resolve_player_name\n",
+)
+
+replace_once(
+    "engine/tennis_handedness.py",
+    "from .tennis import norm, player_name_signature, resolve_player_name\n",
+    "from .tennis import norm\nfrom .tennis_identity import player_name_signature, resolve_player_name\n",
+)
+
+replace_once(
+    "update_tennis_data.py",
+    "from engine.api_tennis import APITennisClient, APITennisError\n",
+    "from engine.api_tennis import APITennisClient, APITennisError\n"
+    "from engine.tennis_identity import player_name_signature\n",
+)
+regex_once(
+    "update_tennis_data.py",
+    r"def player_signature\(value: object\) -> tuple\[str, str\]:\n.*?\n\ndef _existing_name_map\(frames: list\[pd.DataFrame\]\) -> dict\[tuple\[str, str\], str\]:",
+    "def player_signature(value: object) -> tuple[str, str]:\n"
+    "    \"\"\"Return the shared Macabets tennis identity signature.\"\"\"\n"
+    "    return player_name_signature(value)\n\n\n"
+    "def _existing_name_map(frames: list[pd.DataFrame]) -> dict[tuple[str, str], str]:",
+)
+
+replace_once(
+    "engine/tennis_h2h.py",
+    "from .tennis import resolve_player_name\n",
+    "from .tennis_identity import canonical_player_key, resolve_player_name\n",
+)
+replace_once(
+    "engine/tennis_h2h.py",
+    '''    lookup_a = str(resolved_a or player_a).strip()\n    lookup_b = str(resolved_b or player_b).strip()\n\n    winner = matches[winner_col].astype(str).str.strip()\n    loser = matches[loser_col].astype(str).str.strip()\n    pair_mask = (\n        ((winner == lookup_a) & (loser == lookup_b))\n        | ((winner == lookup_b) & (loser == lookup_a))\n    )\n    meetings = matches.loc[pair_mask].copy()\n''',
+    '''    lookup_a = str(resolved_a or player_a).strip()\n    lookup_b = str(resolved_b or player_b).strip()\n    key_a = canonical_player_key(lookup_a)\n    key_b = canonical_player_key(lookup_b)\n\n    winner_keys = matches[winner_col].map(canonical_player_key)\n    loser_keys = matches[loser_col].map(canonical_player_key)\n    pair_mask = (\n        ((winner_keys == key_a) & (loser_keys == key_b))\n        | ((winner_keys == key_b) & (loser_keys == key_a))\n    )\n    meetings = matches.loc[pair_mask].copy()\n''',
+)
+replace_once(
+    "engine/tennis_h2h.py",
+    '''    meetings["_winner"] = meetings[winner_col].astype(str).str.strip()\n    wins_a = int((meetings["_winner"] == lookup_a).sum())\n    wins_b = int((meetings["_winner"] == lookup_b).sum())\n''',
+    '''    meetings["_winner"] = meetings[winner_col].astype(str).str.strip()\n    meetings["_winner_key"] = meetings[winner_col].map(canonical_player_key)\n    wins_a = int((meetings["_winner_key"] == key_a).sum())\n    wins_b = int((meetings["_winner_key"] == key_b).sum())\n''',
+)
+replace_once(
+    "engine/tennis_h2h.py",
+    '''    surface_wins_a = int((surface_meetings["_winner"] == lookup_a).sum())\n    surface_wins_b = int((surface_meetings["_winner"] == lookup_b).sum())\n''',
+    '''    surface_wins_a = int((surface_meetings["_winner_key"] == key_a).sum())\n    surface_wins_b = int((surface_meetings["_winner_key"] == key_b).sum())\n''',
+)
+replace_once(
+    "engine/tennis_h2h.py",
+    '''    latest_winner_raw = str(latest["_winner"])\n    if latest_winner_raw == lookup_a:\n        latest_winner_display = str(player_a)\n    elif latest_winner_raw == lookup_b:\n        latest_winner_display = str(player_b)\n    else:\n        latest_winner_display = latest_winner_raw\n''',
+    '''    latest_winner_raw = str(latest["_winner"])\n    latest_winner_key = canonical_player_key(latest_winner_raw)\n    if latest_winner_key == key_a:\n        latest_winner_display = str(player_a)\n    elif latest_winner_key == key_b:\n        latest_winner_display = str(player_b)\n    else:\n        latest_winner_display = latest_winner_raw\n''',
+)
+
+identity_tests = textwrap.dedent('''\
+from __future__ import annotations
+
+from datetime import date
+
+import pandas as pd
+
+from engine.tennis import perspective
+from engine.tennis_h2h import build_head_to_head_summary
+from engine.tennis_identity import canonical_player_key, player_name_signature, resolve_player_name
+from engine.tennis_serve_return import serve_return_profile
+from update_tennis_data import player_signature
+
+
+def test_compound_and_multi_given_names_share_identity():
+    pairs = [
+        ("Felix Auger-Aliassime", "Auger-Aliassime F.", ("aliassime", "f")),
+        ("Juan Manuel Cerundolo", "Cerundolo J.M.", ("cerundolo", "j")),
+        ("Alex de Minaur", "De Minaur A.", ("minaur", "a")),
+        ("Taylor Fritz", "Fritz T.", ("fritz", "t")),
+    ]
+    for full_name, provider_name, expected in pairs:
+        assert player_name_signature(full_name) == expected
+        assert player_name_signature(provider_name) == expected
+        assert player_signature(full_name) == expected
+        assert player_signature(provider_name) == expected
+        assert canonical_player_key(full_name) == canonical_player_key(provider_name)
+
+
+def test_resolver_and_perspective_merge_felix_aliases():
+    matches = pd.DataFrame([
+        {
+            "tourney_date": pd.Timestamp("2025-04-25"),
+            "tourney_name": "Mutua Madrid Open",
+            "surface": "Clay",
+            "tourney_level": "M",
+            "round": "R64",
+            "winner_name": "Cerundolo J.M.",
+            "loser_name": "Auger-Aliassime F.",
+            "winner_rank": 126,
+            "loser_rank": 19,
+            "score": "7-6 6-4",
+        },
+        {
+            "tourney_date": pd.Timestamp("2026-02-05"),
+            "tourney_name": "Open Sud de France",
+            "surface": "Hard",
+            "tourney_level": "A",
+            "round": "R64",
+            "winner_name": "Felix Auger-Aliassime",
+            "loser_name": "Wawrinka S.",
+            "winner_rank": 8,
+            "loser_rank": 113,
+            "score": "6-4 7-6",
+        },
+    ])
+    resolved, resolution = resolve_player_name(matches, "Felix Auger-Aliassime")
+    assert resolved == "Felix Auger-Aliassime"
+    assert resolution["resolved"] == resolved
+    history = perspective(matches, resolved, date(2026, 8, 18))
+    assert len(history) == 2
+
+
+def test_h2h_finds_madrid_2025_across_name_formats():
+    matches = pd.DataFrame([{
+        "tourney_date": 20250425,
+        "tourney_name": "Mutua Madrid Open",
+        "surface": "Clay",
+        "tourney_level": "M",
+        "round": "R64",
+        "winner_name": "Cerundolo J.M.",
+        "loser_name": "Auger-Aliassime F.",
+        "score": "7-6 6-4",
+    }])
+    h2h = build_head_to_head_summary(
+        matches,
+        "Felix Auger-Aliassime",
+        "Juan Manuel Cerundolo",
+        "Hard",
+    )
+    assert h2h["meetings"] == 1
+    assert h2h["wins_a"] == 0
+    assert h2h["wins_b"] == 1
+    assert h2h["surface_meetings"] == 0
+    assert h2h["last_meeting"]["date"] == "2025-04-25"
+    assert h2h["last_meeting"]["winner"] == "Juan Manuel Cerundolo"
+    assert h2h["last_meeting"]["score"] == "7-6 6-4"
+
+
+def test_serve_return_counts_abbreviated_and_full_felix_rows_together():
+    rows = []
+    for idx, name in enumerate(["Auger-Aliassime F.", "Felix Auger-Aliassime", "Auger-Aliassime F."]):
+        rows.append({
+            "tourney_date": pd.Timestamp("2026-01-10") + pd.Timedelta(days=idx),
+            "surface": "Hard",
+            "winner_name": name,
+            "loser_name": f"Opponent {idx}",
+            "w_svpt": 60,
+            "w_1stIn": 36,
+            "w_1stWon": 28,
+            "w_2ndWon": 14,
+            "w_ace": 8,
+            "w_df": 2,
+            "w_SvGms": 10,
+            "w_bpSaved": 3,
+            "w_bpFaced": 4,
+            "l_svpt": 58,
+            "l_1stIn": 34,
+            "l_1stWon": 22,
+            "l_2ndWon": 11,
+            "l_ace": 3,
+            "l_df": 3,
+            "l_SvGms": 10,
+            "l_bpSaved": 2,
+            "l_bpFaced": 5,
+        })
+    matches = pd.DataFrame(rows)
+    profile = serve_return_profile(matches, "Felix Auger-Aliassime", date(2026, 8, 18), "Hard")
+    assert profile["matches_with_stats"] == 3
+    assert profile["available"] is True
+''')
+Path("tests/test_tennis_identity.py").write_text(identity_tests, encoding="utf-8")
+
+replace_once(
+    "tests/test_tennis_daily_refresh.py",
+    '    assert player_signature("Taylor Fritz") == ("fritz", "t")\n',
+    '    assert player_signature("Taylor Fritz") == ("fritz", "t")\n'
+    '    assert player_signature("Felix Auger-Aliassime") == ("aliassime", "f")\n'
+    '    assert player_signature("Auger-Aliassime F.") == ("aliassime", "f")\n'
+    '    assert player_signature("Juan Manuel Cerundolo") == ("cerundolo", "j")\n'
+    '    assert player_signature("Cerundolo J.M.") == ("cerundolo", "j")\n',
+)
+
+print("Tennis identity patch applied.")
