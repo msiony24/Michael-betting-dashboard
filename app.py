@@ -90,13 +90,14 @@ try:
         load_ufc_ratings,
     )
     from engine.ufc_validation import run_historical_validation, UFCValidationConfig
+    from engine.ufc_strength_audit import run_strength_backbone_audit, UFCStrengthAuditConfig
     UFC_ENGINE_AVAILABLE = True
     UFC_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.01 — System Audit Phase 1"
+APP_VERSION = "Macabets v1.02 — UFC Calibration Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5472,8 +5473,8 @@ with tabs[1]:
     with analysis_tabs[2]:
         st.subheader("Analysis Engine — UFC")
         st.caption(
-            "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, damage/durability risk, physical/context, simulation and derivative-market pricing. "
-            "Historical Validation v0.1 now backtests the leakage-safe side baseline and fight-path calibration on prior UFC results."
+            "Compare two UFC fighters using Strength v0.3, opponent-adjusted performance, style, round-cardio degradation, damage/durability risk, physical/context, simulation and derivative-market pricing. "
+            "Historical validation now includes a leakage-safe Strength v0.3 backbone audit plus the existing fight-path calibration proxy."
         )
 
         if not UFC_ENGINE_AVAILABLE:
@@ -5514,16 +5515,92 @@ with tabs[1]:
                         "Minimum two prior UFC fights per fighter. The report measures moneyline calibration, finish/distance bias, "
                         "method-of-victory calibration, round-total calibration and division-level performance."
                     )
-                    if st.button("Run UFC Historical Validation", use_container_width=True, key="run_ufc_validation"):
-                        with st.spinner("Replaying historical UFC fights without future information..."):
-                            try:
-                                st.session_state["ufc_validation_report"] = run_historical_validation(
-                                    ufc_fights,
-                                    config=UFCValidationConfig(max_bouts=validation_bouts),
-                                )
-                            except Exception as exc:
-                                st.session_state.pop("ufc_validation_report", None)
-                                st.error(f"UFC historical validation failed: {exc}")
+                    vb1, vb2 = st.columns(2)
+                    with vb1:
+                        if st.button("Run Fight-Path Validation", use_container_width=True, key="run_ufc_validation"):
+                            with st.spinner("Replaying historical UFC fights without future information..."):
+                                try:
+                                    st.session_state["ufc_validation_report"] = run_historical_validation(
+                                        ufc_fights,
+                                        config=UFCValidationConfig(max_bouts=validation_bouts),
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("ufc_validation_report", None)
+                                    st.error(f"UFC historical validation failed: {exc}")
+                    with vb2:
+                        if st.button("Run Strength v0.3 Backbone Audit", use_container_width=True, key="run_ufc_strength_audit"):
+                            with st.spinner("Rebuilding pre-fight Strength v0.3 ratings chronologically..."):
+                                try:
+                                    st.session_state["ufc_strength_audit_report"] = run_strength_backbone_audit(
+                                        ufc_fights,
+                                        config=UFCStrengthAuditConfig(max_bouts=validation_bouts),
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("ufc_strength_audit_report", None)
+                                    st.error(f"UFC Strength audit failed: {exc}")
+
+                    strength_audit = st.session_state.get("ufc_strength_audit_report")
+                    if strength_audit and strength_audit.get("available"):
+                        hs = strength_audit.get("holdout_strength", {})
+                        hg = strength_audit.get("holdout_global_elo", {})
+                        hc = strength_audit.get("holdout_temperature_calibrated", {})
+                        sa1, sa2, sa3, sa4 = st.columns(4)
+                        sa1.metric("Strength Holdout", f"{int(hs.get('sample', 0)):,} bouts")
+                        sa2.metric("Strength Accuracy", f"{float(hs.get('winner_accuracy', 0.0)):.1%}")
+                        sa3.metric("Strength Brier", f"{float(hs.get('brier', 0.0)):.3f}")
+                        sa4.metric("Global Elo Brier", f"{float(hg.get('brier', 0.0)):.3f}")
+
+                        temperature = float(strength_audit.get("temperature_fit", 1.0) or 1.0)
+                        direction = str((strength_audit.get("interpretation") or {}).get("temperature_direction", "leave near current scale"))
+                        if float(hc.get("brier", 9.0)) + 0.0002 < float(hs.get("brier", 9.0)):
+                            st.info(
+                                f"Calibration diagnostic: the earlier training sample prefers temperature {temperature:.2f} ({direction}). "
+                                f"On the later holdout, Brier changes from {float(hs.get('brier', 0.0)):.3f} to {float(hc.get('brier', 0.0)):.3f}. "
+                                "This is diagnostic only; Macabets does not automatically apply the temperature to live probabilities."
+                            )
+                        else:
+                            st.success(
+                                f"Strength v0.3 is already near its preferred probability scale on this split (temperature {temperature:.2f}). "
+                                "No live calibration change is applied automatically."
+                            )
+
+                        cal_rows = strength_audit.get("favorite_calibration", [])
+                        if cal_rows:
+                            cal_df = pd.DataFrame(cal_rows).rename(columns={
+                                "bucket": "Favorite Probability", "sample": "Sample",
+                                "mean_predicted": "Predicted", "actual_win_rate": "Actual", "gap": "Gap",
+                            })
+                            for col in ["Predicted", "Actual", "Gap"]:
+                                if col in cal_df:
+                                    cal_df[col] = cal_df[col].map(lambda value, c=col: f"{float(value):+.1%}" if c == "Gap" else f"{float(value):.1%}")
+                            st.markdown("**Strength v0.3 holdout favorite calibration**")
+                            st.dataframe(cal_df, use_container_width=True, hide_index=True)
+
+                        group_rows = strength_audit.get("groups", [])
+                        if group_rows:
+                            group_df = pd.DataFrame(group_rows).rename(columns={
+                                "group": "Group", "sample": "Sample", "winner_accuracy": "Accuracy",
+                                "brier": "Brier", "log_loss": "Log Loss", "mean_favorite_probability": "Mean Favorite Probability",
+                            })
+                            for col in ["Accuracy", "Mean Favorite Probability"]:
+                                if col in group_df:
+                                    group_df[col] = group_df[col].map(lambda value: f"{float(value):.1%}")
+                            for col in ["Brier", "Log Loss"]:
+                                if col in group_df:
+                                    group_df[col] = group_df[col].map(lambda value: f"{float(value):.3f}")
+                            st.markdown("**Strength backbone stress tests**")
+                            st.dataframe(group_df, use_container_width=True, hide_index=True)
+
+                        with st.expander("Strength audit methodology", expanded=False):
+                            st.caption(
+                                f"{strength_audit.get('version', 'Strength Audit')} · "
+                                f"{strength_audit.get('date_start', '—')} through {strength_audit.get('date_end', '—')} · "
+                                f"chronological train {int(strength_audit.get('train_sample', 0)):,} / holdout {int(strength_audit.get('holdout_sample', 0)):,}."
+                            )
+                            for limitation in strength_audit.get("limitations", []):
+                                st.caption(f"• {limitation}")
+                    elif strength_audit:
+                        st.warning(str(strength_audit.get("reason", "No eligible Strength audit sample was produced.")))
 
                     validation = st.session_state.get("ufc_validation_report")
                     if validation and validation.get("available"):
