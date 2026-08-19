@@ -100,7 +100,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.07 — Tennis Audit Phase 1"
+APP_VERSION = "Macabets v1.08 — Tennis Confidence Reliability"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -1225,10 +1225,36 @@ def safe_int(value, default: int = 0) -> int:
 
 
 def tennis_confidence_meter(result):
-    """Combine model stability, data quality, sample size and context clarity."""
+    """Return Tennis prediction reliability without re-scoring win probability."""
+    reliability = result.get("confidence_reliability") or {}
+    if reliability:
+        overall = safe_int(reliability.get("overall"), 50)
+        if overall >= 85:
+            band = "High"
+        elif overall >= 70:
+            band = "Solid"
+        elif overall >= 55:
+            band = "Moderate"
+        else:
+            band = "Low"
+        return {
+            "overall": int(min(max(overall, 0), 100)),
+            "band": band,
+            "model": safe_int(reliability.get("core_agreement"), 0),
+            "data": safe_int(reliability.get("data"), 0),
+            "sample": safe_int(reliability.get("sample"), 0),
+            "surface": safe_int(reliability.get("surface"), 0),
+            "serve_return": safe_int(reliability.get("serve_return"), 0),
+            "stability": safe_int(reliability.get("stability"), 0),
+            "context": safe_int(reliability.get("context"), 0),
+            "minimum_sample": safe_int(reliability.get("minimum_sample"), 0),
+            "version": str(reliability.get("version", "Tennis Confidence Reliability")),
+        }
+
+    # Compatibility fallback for archived/older model results that predate the
+    # reliability decomposition. New analyses should use confidence_reliability.
     model_score = min(max(float(result.get("confidence", 5)) * 10, 0), 100)
     data_score = min(max(float(result.get("data_quality", 5)) * 10, 0), 100)
-
     samples = []
     for profile_key in ("profile_a", "profile_b"):
         try:
@@ -1238,46 +1264,16 @@ def tennis_confidence_meter(result):
             samples.append(0.0)
     minimum_sample = min(samples) if samples else 0.0
     sample_score = min(max(minimum_sample / 40.0 * 100.0, 0), 100)
-
-    health_penalties = {
-        "Clear": 0,
-        "Minor concern": 10,
-        "Recent medical timeout": 18,
-        "Returning from layoff": 22,
-        "Recent retirement": 28,
-        "Significant concern": 35,
-    }
-    health_a = str(result.get("injury_status_a", "Clear"))
-    health_b = str(result.get("injury_status_b", "Clear"))
-    context_penalty = min(
-        health_penalties.get(health_a, 10) + health_penalties.get(health_b, 10),
-        60,
-    )
-    context_score = 100 - context_penalty
-
-    overall = round(
-        model_score * 0.35
-        + data_score * 0.35
-        + sample_score * 0.20
-        + context_score * 0.10
-    )
-    if overall >= 85:
-        band = "High"
-    elif overall >= 70:
-        band = "Solid"
-    elif overall >= 55:
-        band = "Moderate"
-    else:
-        band = "Low"
-
+    overall = round(model_score * 0.45 + data_score * 0.35 + sample_score * 0.20)
     return {
         "overall": int(min(max(overall, 0), 100)),
-        "band": band,
+        "band": "Legacy",
         "model": round(model_score),
         "data": round(data_score),
         "sample": round(sample_score),
-        "context": round(context_score),
+        "context": 0,
         "minimum_sample": int(minimum_sample),
+        "version": "Legacy confidence fallback",
     }
 
 
@@ -3474,7 +3470,7 @@ with tabs[1]:
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
-                            "model_version": "Macabets Tennis v0.48 — Audit Transparency",
+                            "model_version": "Macabets Tennis v0.49 — Confidence Reliability",
                             "event_name": f"{analyzed_a} vs {analyzed_b}",
                             "participant_a": analyzed_a, "participant_b": analyzed_b,
                             "market_type": "Moneyline",
