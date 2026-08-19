@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.00 — UFC Speed Optimization"
+APP_VERSION = "Macabets v1.01 — System Audit Phase 1"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5890,6 +5890,47 @@ with tabs[1]:
                             f"opponent-specific style moved Fighter A {style_adjustment:+.1%}. After the correlated-input guardrail, "
                             f"the total matchup impact is {abs(combined_adjustment):.1%} toward {combined_side}."
                         )
+
+                        decomposition = ufc_result.get("probability_decomposition", {})
+                        if decomposition:
+                            with st.expander("Fair-Line Audit — Probability Decomposition", expanded=False):
+                                st.caption(
+                                    "Audit view: traces the rating backbone and every probability adjustment. "
+                                    "Strength v0.3 keeps proven global UFC ability transferable across divisions; "
+                                    "new-division uncertainty primarily reduces confidence rather than mechanically erasing talent."
+                                )
+                                audit_rows = [
+                                    {"Stage": "Strength rating baseline", "Fighter A impact": f"{float(decomposition.get('baseline_probability_a', 0.5)):.1%}", "Notes": "Probability before matchup/context layers"},
+                                    {"Stage": "Underlying Performance", "Fighter A impact": f"{float(decomposition.get('performance_adjustment_a', 0.0)):+.1%}", "Notes": "Opponent-adjusted performance residual"},
+                                    {"Stage": "Style Matchups", "Fighter A impact": f"{float(decomposition.get('style_adjustment_a', 0.0)):+.1%}", "Notes": "Advanced striking + grappling interactions"},
+                                    {"Stage": "Round Cardio", "Fighter A impact": f"{float(decomposition.get('cardio_adjustment_a', 0.0)):+.1%}", "Notes": "Round-to-round retention"},
+                                    {"Stage": "Damage Risk", "Fighter A impact": f"{float(decomposition.get('damage_adjustment_a', 0.0)):+.1%}", "Notes": "Recent damage / recovery residual"},
+                                    {"Stage": "Correlated UFCStats after cap", "Fighter A impact": f"{float(decomposition.get('correlated_matchup_after_cap_a', 0.0)):+.1%}", "Notes": "Combined cap ±8.5%"},
+                                    {"Stage": "Physical & Context", "Fighter A impact": f"{float(decomposition.get('context_adjustment_a', 0.0)):+.1%}", "Notes": "Independent context cap ±2%"},
+                                    {"Stage": "FINAL", "Fighter A impact": f"{float(decomposition.get('final_probability_a', probability_a)):.1%}", "Notes": "Final fair win probability"},
+                                ]
+                                st.dataframe(pd.DataFrame(audit_rows), use_container_width=True, hide_index=True)
+                                da, db = st.columns(2)
+                                with da:
+                                    st.markdown(f"**{fighter_a_name} rating backbone**")
+                                    st.write({
+                                        "Macabets rating": round(float(decomposition.get("rating_a", 1500.0)), 1),
+                                        "Global Elo": round(float(decomposition.get("global_elo_a", 1500.0)), 1),
+                                        "Division Elo": round(float(decomposition.get("division_elo_a", 1500.0)), 1),
+                                        "Transferred division component": round(float(decomposition.get("division_component_a", 1500.0)), 1),
+                                        "Division evidence": f"{float(decomposition.get('division_evidence_a', 0.0)):.0%}",
+                                        "Ranking confidence": f"{float(decomposition.get('ranking_confidence_a', 0.0)):.0f}/100",
+                                    })
+                                with db:
+                                    st.markdown(f"**{fighter_b_name} rating backbone**")
+                                    st.write({
+                                        "Macabets rating": round(float(decomposition.get("rating_b", 1500.0)), 1),
+                                        "Global Elo": round(float(decomposition.get("global_elo_b", 1500.0)), 1),
+                                        "Division Elo": round(float(decomposition.get("division_elo_b", 1500.0)), 1),
+                                        "Transferred division component": round(float(decomposition.get("division_component_b", 1500.0)), 1),
+                                        "Division evidence": f"{float(decomposition.get('division_evidence_b', 0.0)):.0%}",
+                                        "Ranking confidence": f"{float(decomposition.get('ranking_confidence_b', 0.0)):.0f}/100",
+                                    })
 
                         driver_col, risk_col = st.columns(2)
                         with driver_col:
