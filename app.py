@@ -93,13 +93,14 @@ try:
     from engine.ufc_strength_audit import run_strength_backbone_audit, UFCStrengthAuditConfig
     from engine.ufc_cap_audit import run_matchup_cap_audit, UFCCapAuditConfig
     from engine.ufc_component_scale_audit import run_component_scale_audit, UFCComponentScaleAuditConfig
+    from engine.ufc_style_outcome_audit import run_style_outcome_audit, UFCStyleOutcomeAuditConfig
     UFC_ENGINE_AVAILABLE = True
     UFC_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.05 — UFC Component-Scaling Audit"
+APP_VERSION = "Macabets v1.06 — UFC Style Outcome Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5517,7 +5518,7 @@ with tabs[1]:
                         "Minimum two prior UFC fights per fighter. The report measures moneyline calibration, finish/distance bias, "
                         "method-of-victory calibration, round-total calibration and division-level performance."
                     )
-                    vb1, vb2, vb3, vb4 = st.columns(4)
+                    vb1, vb2, vb3, vb4, vb5 = st.columns(5)
                     with vb1:
                         if st.button("Run Fight-Path Validation", use_container_width=True, key="run_ufc_validation"):
                             with st.spinner("Replaying historical UFC fights without future information..."):
@@ -5561,6 +5562,56 @@ with tabs[1]:
                                 except Exception as exc:
                                     st.session_state.pop("ufc_component_scale_audit_report", None)
                                     st.error(f"UFC component-scale audit failed: {exc}")
+
+                    with vb5:
+                        if st.button("Run Style Outcome Audit", use_container_width=True, key="run_ufc_style_outcome_audit"):
+                            with st.spinner("Testing leakage-safe historical Style residuals against later fight outcomes..."):
+                                try:
+                                    st.session_state["ufc_style_outcome_audit_report"] = run_style_outcome_audit(
+                                        ufc_fights,
+                                        config=UFCStyleOutcomeAuditConfig(max_bouts=validation_bouts),
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("ufc_style_outcome_audit_report", None)
+                                    st.error(f"UFC Style outcome audit failed: {exc}")
+
+                    style_outcome_audit = st.session_state.get("ufc_style_outcome_audit_report")
+                    if style_outcome_audit and style_outcome_audit.get("available"):
+                        st.markdown("**Leakage-safe Style outcome audit**")
+                        st.caption(
+                            "This tests whether pre-fight Style mismatch signals add predictive value beyond the Strength v0.3 backbone. "
+                            "It uses only prior fights and a fixed pre-2018 scaler; it does not silently retune the live model."
+                        )
+                        soa1, soa2, soa3, soa4 = st.columns(4)
+                        soa1.metric("Eligible Bouts", f"{int(style_outcome_audit.get('sample', 0)):,}")
+                        soa2.metric("Holdout Bouts", f"{int(style_outcome_audit.get('holdout_sample', 0)):,}")
+                        soa3.metric("Fitted Style Beta", f"{float(style_outcome_audit.get('fitted_beta', 0.0)):+.3f}")
+                        soa4.metric("Holdout Brier Gain", f"{float(style_outcome_audit.get('brier_gain', 0.0)):+.5f}")
+                        base = style_outcome_audit.get("holdout_baseline", {})
+                        aug = style_outcome_audit.get("holdout_style_augmented", {})
+                        soa_df = pd.DataFrame([
+                            {"Model": "Strength only", "Brier": base.get("brier"), "Log Loss": base.get("log_loss")},
+                            {"Model": "Strength + Style proxy", "Brier": aug.get("brier"), "Log Loss": aug.get("log_loss")},
+                        ])
+                        st.dataframe(soa_df, use_container_width=True, hide_index=True)
+                        magnitude_groups = style_outcome_audit.get("magnitude_groups", [])
+                        if magnitude_groups:
+                            mag_df = pd.DataFrame(magnitude_groups).rename(columns={
+                                "group": "Style Magnitude", "sample": "Sample",
+                                "style_side_win_rate": "Style Side Win Rate",
+                                "baseline_expected_win_rate": "Baseline Expected",
+                                "outperformance": "Outperformance", "mean_abs_signal": "Mean |Signal|",
+                            })
+                            for col in ["Style Side Win Rate", "Baseline Expected", "Outperformance"]:
+                                mag_df[col] = mag_df[col].map(lambda value: f"{float(value):.1%}")
+                            mag_df["Mean |Signal|"] = mag_df["Mean |Signal|"].map(lambda value: f"{float(value):.2f}")
+                            st.dataframe(mag_df, use_container_width=True, hide_index=True)
+                        st.info(str(style_outcome_audit.get("recommendation", "")))
+                        with st.expander("Style audit limitations", expanded=False):
+                            for limitation in style_outcome_audit.get("limitations", []):
+                                st.caption(f"• {limitation}")
+                    elif style_outcome_audit:
+                        st.warning(str(style_outcome_audit.get("reason", "No Style outcome audit sample was produced.")))
 
                     component_scale_audit = st.session_state.get("ufc_component_scale_audit_report")
                     if component_scale_audit and component_scale_audit.get("available"):
