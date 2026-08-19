@@ -100,7 +100,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.08 — Tennis Confidence Reliability"
+APP_VERSION = "Macabets v1.09 — Tennis Feature Overlap Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -3470,7 +3470,7 @@ with tabs[1]:
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
-                            "model_version": "Macabets Tennis v0.49 — Confidence Reliability",
+                            "model_version": "Macabets Tennis v0.50 — Feature Overlap Guard",
                             "event_name": f"{analyzed_a} vs {analyzed_b}",
                             "participant_a": analyzed_a, "participant_b": analyzed_b,
                             "market_type": "Moneyline",
@@ -3600,6 +3600,28 @@ with tabs[1]:
                             ])
                             if audit_rows:
                                 st.dataframe(pd.DataFrame(audit_rows), hide_index=True, use_container_width=True)
+                            overlap = decomposition.get("feature_overlap_audit", {})
+                            if overlap:
+                                st.markdown("##### Feature overlap / double-counting audit")
+                                if overlap.get("auto_style_suppressed"):
+                                    st.success(
+                                        "Auto Style overlap guard active: the automatic style adjustment was suppressed because "
+                                        "the Serve/Return Engine already priced the same underlying point-stat signal. "
+                                        f"Pre-guard impact: {float(overlap.get('pre_guard_auto_style_impact', 0)):+.2%}."
+                                    )
+                                else:
+                                    st.caption(
+                                        "Auto Style overlap guard did not fire for this matchup. It only suppresses automatic "
+                                        "style when verified serve/return data are already active; manual scouting overrides remain independent."
+                                    )
+                                st.caption(
+                                    "Existing correlation protection: Recent Form + Opponent Strength + Surface Win Rate are "
+                                    f"discounted to {float(overlap.get('existing_correlated_discount', .65)):.0%} of their raw impact."
+                                )
+                                with st.expander("Overlap audit notes", expanded=False):
+                                    for note in overlap.get("notes", []):
+                                        st.write(f"• {note}")
+
                             if abs(float(decomposition.get("simulation_shift", 0))) >= 0.01:
                                 st.warning(
                                     "Audit flag: the set/match simulation changed the calibrated match probability by "
