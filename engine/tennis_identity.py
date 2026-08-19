@@ -95,11 +95,32 @@ def _default_alias_map(signature: tuple[int, int] | None) -> dict[str, set[str]]
 
 
 def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str | None:
-    """Return one unambiguous API-Tennis player key for a known alias."""
+    """Return one unambiguous API-Tennis player key for a known alias.
+
+    Prefer exact normalized aliases. If a live/full name is absent from the alias
+    registry, fall back to the provider-tolerant surname/first-initial signature
+    only when that signature maps to exactly one provider player key. This bridges
+    forms such as ``Juan Manuel Cerundolo`` and ``Cerundolo J.M.`` without guessing
+    when multiple players share the same surname/initial.
+    """
     alias_map = _build_alias_map(registry) if registry is not None else _default_alias_map(_registry_signature())
     candidates = alias_map.get(normalized_name(value), set())
     if len(candidates) == 1:
         return next(iter(candidates))
+    if len(candidates) > 1:
+        return None
+
+    requested_signature = player_name_signature(value)
+    if not all(requested_signature):
+        return None
+    signature_candidates: set[str] = set()
+    for alias, keys in alias_map.items():
+        if player_name_signature(alias) == requested_signature:
+            signature_candidates.update(keys)
+            if len(signature_candidates) > 1:
+                return None
+    if len(signature_candidates) == 1:
+        return next(iter(signature_candidates))
     return None
 
 

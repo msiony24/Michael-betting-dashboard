@@ -1248,11 +1248,12 @@ def analyze(
     rank_b = pb["rank"]
     rank_p = 1 / (1 + math.exp(-((-math.log(max(rank_a, 1))) - (-math.log(max(rank_b, 1)))) * .9))
 
-    base = (
+    rating_blend_probability = (
         weights["overall_elo"] * overall_p
         + weights["surface_elo"] * surface_p
         + weights["ranking"] * rank_p
     )
+    base = float(rating_blend_probability)
 
     # Quietly correct for a stale historical baseline when an emerging player has
     # demonstrated a sustained breakout across the season. This is intentionally
@@ -1507,7 +1508,8 @@ def analyze(
 
     # Cap the combined secondary adjustment. Context should refine the core rating,
     # not overpower it when several related factors all point in the same direction.
-    total_adjustment = float(np.clip(sum(v for _, v, _ in factors), -0.12, 0.12))
+    uncapped_secondary_adjustment = float(sum(v for _, v, _ in factors))
+    total_adjustment = float(np.clip(uncapped_secondary_adjustment, -0.12, 0.12))
     raw_model = float(np.clip(base + total_adjustment, 0.05, 0.95))
 
     # Calibrate extreme outputs back toward 50%. Sparse data receives more shrinkage.
@@ -1641,6 +1643,39 @@ def analyze(
         "calibration_strength": calibration_strength,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
+        "probability_decomposition": {
+            "rating_core": {
+                "overall_elo_probability_a": float(overall_p),
+                "surface_elo_probability_a": float(surface_p),
+                "ranking_probability_a": float(rank_p),
+                "overall_elo_weight": float(weights["overall_elo"]),
+                "surface_elo_weight": float(weights["surface_elo"]),
+                "ranking_weight": float(weights["ranking"]),
+                "blended_probability_a": float(rating_blend_probability),
+            },
+            "internal_baseline_adjustments": [
+                {"name": "Breakout trajectory", "impact": float(trajectory_adjustment)},
+                {"name": "Handedness history", "impact": float(handedness_adjustment)},
+            ],
+            "baseline_after_internal_adjustments": float(base),
+            "secondary_factors": [
+                {"name": name, "impact": float(impact)} for name, impact, _ in factors
+            ],
+            "uncapped_secondary_adjustment": float(uncapped_secondary_adjustment),
+            "secondary_cap": 0.12,
+            "capped_secondary_adjustment": float(total_adjustment),
+            "raw_probability_before_calibration": float(raw_model),
+            "calibration_strength": float(calibration_strength),
+            "probability_after_calibration": float(final_model),
+            "calibration_shift": float(final_model - raw_model),
+            "simulation_probability": float(simulation["win_probability"]),
+            "simulation_shift": float(simulation["win_probability"] - final_model),
+            "simulation_note": (
+                "The engine converts the calibrated match probability to a set probability, "
+                "then reconstructs best-of-3/best-of-5 match outcomes by Monte Carlo. The audit "
+                "reports any probability shift introduced by that transformation."
+            ),
+        },
         "fair_line": american_from_probability(simulation["win_probability"]),
         "confidence": confidence,
         "data_quality": quality,
