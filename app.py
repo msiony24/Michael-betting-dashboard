@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.97 — UFC Advanced Striking"
+APP_VERSION = "Macabets v0.98 — UFC Round-State Simulation"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -6361,6 +6361,22 @@ with tabs[1]:
                                         use_container_width=True,
                                         hide_index=True,
                                     )
+                                round_states = ufc_sim.get("round_state_projection", [])
+                                if round_states:
+                                    st.markdown("**Round-State Projection**")
+                                    state_rows = []
+                                    for row in round_states:
+                                        leader = str(row.get("finish_edge", "Balanced"))
+                                        state_rows.append({
+                                            "Round": f"R{int(row.get('round', 0) or 0)}",
+                                            "Fight Ends This Round": f"{float(row.get('unconditional_finish_probability', 0.0)):.1%}",
+                                            "Share of Finishes": f"{float(row.get('probability_given_finish', 0.0)):.1%}",
+                                            "Finish Edge": leader,
+                                            "KO Share": f"{float(row.get('ko_share', 0.0)):.1%}",
+                                            "Submission Share": f"{float(row.get('submission_share', 0.0)):.1%}",
+                                            "State": str(row.get("state", "—")),
+                                        })
+                                    st.dataframe(pd.DataFrame(state_rows), use_container_width=True, hide_index=True)
                                 st.caption(
                                     f"Simulation runs: {int(ufc_sim.get('simulations', 0)):,}. "
                                     + str(ufc_sim.get("guardrail", ""))
