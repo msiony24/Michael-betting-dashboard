@@ -97,7 +97,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.02 — UFC Calibration Audit"
+APP_VERSION = "Macabets v1.03 — UFC Probability Scale Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5575,6 +5575,34 @@ with tabs[1]:
                                     cal_df[col] = cal_df[col].map(lambda value, c=col: f"{float(value):+.1%}" if c == "Gap" else f"{float(value):.1%}")
                             st.markdown("**Strength v0.3 holdout favorite calibration**")
                             st.dataframe(cal_df, use_container_width=True, hide_index=True)
+
+                        scale_stability = strength_audit.get("scale_stability") or {}
+                        scale_windows = scale_stability.get("windows", [])
+                        if scale_windows:
+                            st.markdown("**Probability-scale stability across recent windows**")
+                            scale_df = pd.DataFrame(scale_windows).rename(columns={
+                                "window": "Recent Bouts", "date_start": "Start", "date_end": "End",
+                                "best_scale": "Best Elo Scale", "best_brier": "Best Brier",
+                                "scale_400_brier": "Brier @ 400", "brier_gain_vs_400": "Brier Gain",
+                                "best_log_loss": "Best Log Loss", "scale_400_log_loss": "Log Loss @ 400",
+                                "log_loss_gain_vs_400": "Log Loss Gain",
+                            })
+                            for col in ["Best Brier", "Brier @ 400", "Brier Gain", "Best Log Loss", "Log Loss @ 400", "Log Loss Gain"]:
+                                if col in scale_df:
+                                    scale_df[col] = scale_df[col].map(lambda value: f"{float(value):.5f}")
+                            st.dataframe(scale_df, use_container_width=True, hide_index=True)
+                            spread = int(scale_stability.get("best_scale_spread", 0) or 0)
+                            recommendation = str(scale_stability.get("recommendation", ""))
+                            if spread > 100:
+                                st.warning(
+                                    f"Scale audit: recent windows disagree by {spread} Elo-scale points. "
+                                    f"Recommendation: {recommendation}. Macabets keeps the live 400 scale unchanged."
+                                )
+                            else:
+                                st.info(
+                                    f"Scale audit spread: {spread} points. Recommendation: {recommendation}. "
+                                    "No live scale change is made automatically."
+                                )
 
                         group_rows = strength_audit.get("groups", [])
                         if group_rows:
