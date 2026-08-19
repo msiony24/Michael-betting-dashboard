@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.98 — UFC Round-State Simulation"
+APP_VERSION = "Macabets v0.99 — UFC Judge-Card Simulation"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -6377,6 +6377,29 @@ with tabs[1]:
                                             "State": str(row.get("state", "—")),
                                         })
                                     st.dataframe(pd.DataFrame(state_rows), use_container_width=True, hide_index=True)
+                                judging = ufc_sim.get("judging", {})
+                                if judging.get("available"):
+                                    st.markdown("**Judge-Card Projection — If Fight Reaches Decision**")
+                                    j1, j2, j3, j4 = st.columns(4)
+                                    j1.metric(f"{fighter_a_name} Decision Share", f"{float(judging.get('judge_card_win_probability_a', 0.0)):.1%}")
+                                    j2.metric(f"{fighter_b_name} Decision Share", f"{float(judging.get('judge_card_win_probability_b', 0.0)):.1%}")
+                                    j3.metric("Split-Decision Risk", f"{float(judging.get('split_decision_probability', 0.0)):.1%}")
+                                    j4.metric("Judging Uncertainty", str(judging.get("judging_uncertainty", "—")))
+                                    round_judge_rows = []
+                                    for jr in judging.get("round_win_probabilities", []):
+                                        round_judge_rows.append({
+                                            "Round": f"R{int(jr.get('round', 0) or 0)}",
+                                            f"{fighter_a_name} Round Win": f"{float(jr.get('fighter_a_round_win_probability', 0.0)):.1%}",
+                                            f"{fighter_b_name} Round Win": f"{float(jr.get('fighter_b_round_win_probability', 0.0)):.1%}",
+                                            "Round Edge": str(jr.get("round_edge", "Close")),
+                                        })
+                                    if round_judge_rows:
+                                        st.dataframe(pd.DataFrame(round_judge_rows), use_container_width=True, hide_index=True)
+                                    st.caption(
+                                        f"Unanimous decision: {float(judging.get('unanimous_decision_probability', 0.0)):.1%} | "
+                                        f"Most common one-judge score: {str(judging.get('most_common_judge_score', '—'))}. "
+                                        + str(judging.get("guardrail", ""))
+                                    )
                                 st.caption(
                                     f"Simulation runs: {int(ufc_sim.get('simulations', 0)):,}. "
                                     + str(ufc_sim.get("guardrail", ""))
