@@ -95,71 +95,68 @@ def _panel_win_probability(round_probs_a: np.ndarray) -> float:
     return float(q ** 3 + 3.0 * q * q * (1.0 - q))
 
 def _simulate_cards(round_probs_a: np.ndarray, config: UFCJudgingConfig, rng: np.random.Generator) -> dict[str, Any]:
+    """Vectorized three-judge card simulation.
+
+    This preserves the same latent-round / judge-disagreement / 10-8 model while
+    removing tens of thousands of Python-level nested loops from every analysis.
+    """
+    probs = np.asarray(round_probs_a, dtype=float)
     sims = int(config.simulations)
-    a_card_wins = np.zeros(sims, dtype=int)
-    split_flags = np.zeros(sims, dtype=bool)
-    unanimous_flags = np.zeros(sims, dtype=bool)
-    majority_flags = np.zeros(sims, dtype=bool)
+    rounds = len(probs)
 
-    scoreline_counts: dict[str, int] = {}
-    judge_margin_abs: list[float] = []
+    latent_a = rng.random((sims, rounds)) < probs[None, :]
+    closeness = 1.0 - np.minimum(1.0, np.abs(probs - 0.5) / 0.5)
+    disagree_p = np.clip(0.035 + 0.115 * closeness, 0.03, 0.15)
+    dominance = np.abs(probs - 0.5) * 2.0
+    ten_eight_p = np.minimum(
+        float(config.max_ten_eight_probability),
+        np.maximum(0.0, dominance - 0.58) * 0.10,
+    )
 
-    for s in range(sims):
-        judge_scores = [[0, 0] for _ in range(3)]
-        # Judges observe the same underlying round, then a small disagreement layer
-        # creates realistic card dispersion. Treating all judge round calls as fully
-        # independent dramatically overstates split decisions.
-        for p in round_probs_a:
-            latent_a_round = bool(rng.random() < float(p))
-            closeness = 1.0 - min(1.0, abs(float(p) - 0.5) / 0.5)
-            disagree_p = _clip(0.035 + 0.115 * closeness, 0.03, 0.15)
-            dominance = abs(float(p) - 0.5) * 2.0
-            ten_eight_p = min(config.max_ten_eight_probability, max(0.0, dominance - 0.58) * 0.10)
-            for j in range(3):
-                judge_a_round = latent_a_round
-                if rng.random() < disagree_p:
-                    judge_a_round = not judge_a_round
-                ten_eight = bool(rng.random() < ten_eight_p)
-                if judge_a_round:
-                    judge_scores[j][0] += 10
-                    judge_scores[j][1] += 8 if ten_eight else 9
-                else:
-                    judge_scores[j][1] += 10
-                    judge_scores[j][0] += 8 if ten_eight else 9
+    flips = rng.random((sims, rounds, 3)) < disagree_p[None, :, None]
+    judge_a = np.logical_xor(latent_a[:, :, None], flips)
+    ten_eight = rng.random((sims, rounds, 3)) < ten_eight_p[None, :, None]
 
-        judge_votes = []
-        for a_points, b_points in judge_scores:
-            if a_points > b_points:
-                vote = 1
-            elif a_points < b_points:
-                vote = -1
-            else:
-                vote = 0
-            judge_votes.append(vote)
-            judge_margin_abs.append(abs(a_points - b_points))
-            label = f"{max(a_points, b_points)}-{min(a_points, b_points)}"
-            scoreline_counts[label] = scoreline_counts.get(label, 0) + 1
+    # Winner receives 10. Loser receives 9, or 8 on a modeled 10-8 round.
+    loser_points = np.where(ten_eight, 8, 9)
+    a_points = np.where(judge_a, 10, loser_points).sum(axis=1)
+    b_points = np.where(judge_a, loser_points, 10).sum(axis=1)
+    margins = a_points - b_points
+    votes = np.sign(margins).astype(int)
 
-        a_votes = sum(v == 1 for v in judge_votes)
-        b_votes = sum(v == -1 for v in judge_votes)
-        if a_votes > b_votes:
-            a_card_wins[s] = 1
-        elif b_votes > a_votes:
-            a_card_wins[s] = 0
-        else:
-            a_card_wins[s] = int(rng.random() < float(np.mean(round_probs_a)))
+    a_votes = (votes == 1).sum(axis=1)
+    b_votes = (votes == -1).sum(axis=1)
+    a_card_wins = np.where(
+        a_votes > b_votes,
+        1,
+        np.where(
+            b_votes > a_votes,
+            0,
+            (rng.random(sims) < float(np.mean(probs))).astype(int),
+        ),
+    )
 
-        unanimous_flags[s] = (a_votes == 3 or b_votes == 3)
-        split_flags[s] = sorted([a_votes, b_votes]) == [1, 2]
-        majority_flags[s] = not unanimous_flags[s] and not split_flags[s]
+    unanimous = (a_votes == 3) | (b_votes == 3)
+    split = ((a_votes == 2) & (b_votes == 1)) | ((a_votes == 1) & (b_votes == 2))
+    majority = ~(unanimous | split)
+
+    hi = np.maximum(a_points, b_points).reshape(-1)
+    lo = np.minimum(a_points, b_points).reshape(-1)
+    if hi.size:
+        score_pairs = np.stack([hi, lo], axis=1)
+        unique_pairs, counts = np.unique(score_pairs, axis=0, return_counts=True)
+        best = unique_pairs[int(np.argmax(counts))]
+        most_common = f"{int(best[0])}-{int(best[1])}"
+    else:
+        most_common = "—"
 
     return {
-        "a_card_win_probability": float(a_card_wins.mean()),
-        "unanimous_probability": float(unanimous_flags.mean()),
-        "split_probability": float(split_flags.mean()),
-        "majority_or_draw_probability": float(majority_flags.mean()),
-        "most_common_judge_score": max(scoreline_counts.items(), key=lambda item: item[1])[0] if scoreline_counts else "—",
-        "average_absolute_judge_margin": float(np.mean(judge_margin_abs)) if judge_margin_abs else 0.0,
+        "a_card_win_probability": float(np.mean(a_card_wins)),
+        "unanimous_probability": float(np.mean(unanimous)),
+        "split_probability": float(np.mean(split)),
+        "majority_or_draw_probability": float(np.mean(majority)),
+        "most_common_judge_score": most_common,
+        "average_absolute_judge_margin": float(np.mean(np.abs(margins))) if margins.size else 0.0,
     }
 
 

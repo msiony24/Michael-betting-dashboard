@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
+import json
 import math
 from typing import Any
 
@@ -25,6 +26,7 @@ from engine.ufc_performance import (
 from engine.ufc_opponent_adjustment import (
     OPPONENT_ADJUSTMENT_VERSION,
     build_opponent_adjusted_matchup,
+    build_reference_lookup,
 )
 from engine.ufc_style_matchups import STYLE_VERSION, build_style_matchup
 from engine.ufc_striking_matchups import STRIKING_VERSION, build_striking_table, build_advanced_striking_matchup
@@ -41,12 +43,113 @@ from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.14 — Judge-Card Simulation"
+DEFAULT_PERFORMANCE_CACHE_PATH = ROOT / "data" / "ufc" / "performance_active.csv"
+DEFAULT_REFERENCE_CACHE_PATH = ROOT / "data" / "ufc" / "performance_reference.csv"
+DEFAULT_STRIKING_CACHE_PATH = ROOT / "data" / "ufc" / "striking_profiles.csv"
+DEFAULT_GRAPPLING_CACHE_PATH = ROOT / "data" / "ufc" / "grappling_profiles.csv"
+DEFAULT_PRECOMPUTE_MANIFEST_PATH = ROOT / "data" / "ufc" / "precompute_manifest.json"
+MODEL_VERSION = "Macabets UFC Analysis v0.15 — Speed Optimized"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
 class UFCAnalysisError(RuntimeError):
     pass
+
+
+# In-process cache for immutable UFC source-derived tables. Streamlit reruns the app
+# on every interaction, but the Python process/module stays alive. The expensive
+# all-fighter tables therefore only rebuild when the underlying UFC data files change.
+_UFC_PRECOMPUTED_CACHE: dict[str, Any] = {}
+
+def _file_signature(path: Path) -> tuple[int, int]:
+    try:
+        stat = path.stat()
+        return int(stat.st_mtime_ns), int(stat.st_size)
+    except OSError:
+        return 0, 0
+
+def _precompute_manifest_expected() -> dict[str, str]:
+    return {
+        "performance_version": PERFORMANCE_VERSION,
+        "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
+        "striking_version": STRIKING_VERSION,
+        "grappling_version": GRAPPLING_VERSION,
+    }
+
+def _load_disk_precomputed() -> dict[str, Any] | None:
+    paths = [
+        DEFAULT_PERFORMANCE_CACHE_PATH,
+        DEFAULT_REFERENCE_CACHE_PATH,
+        DEFAULT_STRIKING_CACHE_PATH,
+        DEFAULT_GRAPPLING_CACHE_PATH,
+        DEFAULT_PRECOMPUTE_MANIFEST_PATH,
+    ]
+    if not all(path.exists() and path.stat().st_size > 0 for path in paths):
+        return None
+    try:
+        manifest = json.loads(DEFAULT_PRECOMPUTE_MANIFEST_PATH.read_text(encoding="utf-8"))
+        expected = _precompute_manifest_expected()
+        if any(str(manifest.get(k, "")) != str(v) for k, v in expected.items()):
+            return None
+        performance_table = pd.read_csv(DEFAULT_PERFORMANCE_CACHE_PATH, low_memory=False)
+        reference_table = pd.read_csv(DEFAULT_REFERENCE_CACHE_PATH, low_memory=False)
+        striking_table = pd.read_csv(DEFAULT_STRIKING_CACHE_PATH, low_memory=False)
+        grappling_table = pd.read_csv(DEFAULT_GRAPPLING_CACHE_PATH, low_memory=False)
+        reference_lookup = {
+            str(row.get("fighter", "")).strip().casefold(): row.to_dict()
+            for _, row in reference_table.iterrows()
+            if str(row.get("fighter", "")).strip()
+        }
+        return {
+            "performance_table": performance_table,
+            "reference_lookup": reference_lookup,
+            "striking_table": striking_table,
+            "grappling_table": grappling_table,
+            "precompute_source": "disk",
+        }
+    except (OSError, ValueError, json.JSONDecodeError, pd.errors.EmptyDataError):
+        return None
+
+def _default_precomputed() -> dict[str, Any]:
+    profiles_path = ROOT / "data" / "ufc" / "fighter_profiles.csv"
+    signature = (
+        _file_signature(DEFAULT_RATINGS_PATH),
+        _file_signature(DEFAULT_FIGHTS_PATH),
+        _file_signature(profiles_path),
+        _file_signature(DEFAULT_PRECOMPUTE_MANIFEST_PATH),
+    )
+    if _UFC_PRECOMPUTED_CACHE.get("signature") == signature:
+        return _UFC_PRECOMPUTED_CACHE
+
+    ratings = load_ufc_ratings()
+    fights = load_ufc_fights()
+    disk = _load_disk_precomputed()
+    if disk is None:
+        performance_table = build_performance_table(fights, ratings)
+        reference_lookup = build_reference_lookup(fights, ratings)
+        striking_table = build_striking_table(fights, ratings)
+        grappling_table = build_grappling_table(fights, ratings)
+        precompute_source = "runtime"
+    else:
+        performance_table = disk["performance_table"]
+        reference_lookup = disk["reference_lookup"]
+        striking_table = disk["striking_table"]
+        grappling_table = disk["grappling_table"]
+        precompute_source = "disk"
+    profiles = load_fighter_profiles()
+    _UFC_PRECOMPUTED_CACHE.clear()
+    _UFC_PRECOMPUTED_CACHE.update({
+        "signature": signature,
+        "ratings": ratings,
+        "fights": fights,
+        "performance_table": performance_table,
+        "reference_lookup": reference_lookup,
+        "striking_table": striking_table,
+        "grappling_table": grappling_table,
+        "profiles": profiles,
+        "precompute_source": precompute_source,
+    })
+    return _UFC_PRECOMPUTED_CACHE
 
 
 @dataclass(frozen=True)
@@ -487,15 +590,18 @@ def analyze(
     if int(rounds) not in {3, 5}:
         raise UFCAnalysisError("UFC analysis currently supports 3-round or 5-round fights.")
 
-    ratings = load_ufc_ratings() if ratings is None else ratings.copy()
-    fights = load_ufc_fights() if fights is None else fights.copy()
+    use_default_cache = ratings is None and fights is None and profiles is None
+    precomputed = _default_precomputed() if use_default_cache else None
+    ratings = precomputed["ratings"].copy() if precomputed is not None else (load_ufc_ratings() if ratings is None else ratings.copy())
+    fights = precomputed["fights"].copy() if precomputed is not None else (load_ufc_fights() if fights is None else fights.copy())
     if "event_date" in fights:
         fights["event_date"] = pd.to_datetime(fights["event_date"], errors="coerce")
-    performance_table = build_performance_table(fights, ratings)
+    performance_table = precomputed["performance_table"] if precomputed is not None else build_performance_table(fights, ratings)
     raw_performance_a = fighter_performance(performance_table, fighter_a)
     raw_performance_b = fighter_performance(performance_table, fighter_b)
     opponent_adjustment = build_opponent_adjusted_matchup(
-        fighter_a, fighter_b, raw_performance_a, raw_performance_b, fights, ratings
+        fighter_a, fighter_b, raw_performance_a, raw_performance_b, fights, ratings,
+        reference_lookup=(precomputed.get("reference_lookup") if precomputed is not None else None),
     )
     performance_a = opponent_adjustment.get("fighter_a_profile", raw_performance_a)
     performance_b = opponent_adjustment.get("fighter_b_profile", raw_performance_b)
@@ -523,11 +629,11 @@ def analyze(
 
     performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
 
-    striking_table = build_striking_table(fights, ratings)
+    striking_table = precomputed["striking_table"] if precomputed is not None else build_striking_table(fights, ratings)
     advanced_striking = build_advanced_striking_matchup(
         striking_table, fighter_a, fighter_b
     )
-    grappling_table = build_grappling_table(fights, ratings)
+    grappling_table = precomputed["grappling_table"] if precomputed is not None else build_grappling_table(fights, ratings)
     advanced_grappling = build_advanced_grappling_matchup(
         grappling_table, fighter_a, fighter_b
     )
@@ -542,7 +648,7 @@ def analyze(
     )
     style_adjustment_a = float(style_matchup.get("adjustment_a", 0.0) or 0.0)
 
-    context_profiles = load_fighter_profiles() if profiles is None else profiles.copy()
+    context_profiles = precomputed["profiles"].copy() if precomputed is not None else (load_fighter_profiles() if profiles is None else profiles.copy())
     fight_context = build_fight_context(
         fighter_a,
         fighter_b,

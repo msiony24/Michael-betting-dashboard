@@ -101,7 +101,7 @@ def _adjust_value(base: float | None, opponent_quality: float | None, reliabilit
     return float(np.clip(base + movement, 0.0, 100.0)), movement
 
 
-def _reference_lookup(fights: pd.DataFrame, ratings: pd.DataFrame) -> dict[str, dict[str, Any]]:
+def build_reference_lookup(fights: pd.DataFrame, ratings: pd.DataFrame) -> dict[str, dict[str, Any]]:
     # Historical/inactive opponents matter to strength of competition. Build a
     # reference table across the full rating universe, while the selected fighter's
     # displayed base performance table can remain restricted to the active pool.
@@ -204,9 +204,10 @@ def build_opponent_adjusted_matchup(
     ratings: pd.DataFrame,
     *,
     config: UFCOpponentAdjustmentConfig | None = None,
+    reference_lookup: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     config = config or UFCOpponentAdjustmentConfig()
-    lookup = _reference_lookup(fights, ratings)
+    lookup = reference_lookup if reference_lookup is not None else build_reference_lookup(fights, ratings)
     adjusted_a, report_a = adjust_fighter_profile(
         fighter_a, profile_a, fights, lookup, config=config
     )

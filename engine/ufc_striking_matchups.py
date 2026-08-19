@@ -141,13 +141,19 @@ def build_striking_table(fights: pd.DataFrame, ratings: pd.DataFrame, *, config:
             mask = mask.astype(str).str.lower().isin({"true", "1", "yes"})
         pool = pool.loc[mask]
 
+    frame = frame.sort_values("event_date", ascending=False)
+    frame["_fighter_key"] = frame["fighter"].astype(str).str.casefold()
+    recent_by_fighter = {
+        key: group.head(config.recent_fights)
+        for key, group in frame.groupby("_fighter_key", sort=False)
+    }
+
     records = []
     for _, rating in pool.iterrows():
         fighter = str(rating.get("fighter", "")).strip()
         if not fighter:
             continue
-        recent = frame.loc[frame["fighter"].astype(str).str.casefold() == fighter.casefold()]
-        recent = recent.sort_values("event_date", ascending=False).head(config.recent_fights)
+        recent = recent_by_fighter.get(fighter.casefold(), frame.iloc[0:0])
         records.append({"fighter": fighter, "division": str(rating.get("division", "Unknown") or "Unknown"), **_fighter_raw_profile(recent)})
     table = pd.DataFrame(records)
     if table.empty:

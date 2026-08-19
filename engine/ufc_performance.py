@@ -202,13 +202,23 @@ def build_performance_table(
             mask = mask.astype(str).str.lower().isin({"true", "1", "yes"})
         active = active.loc[mask]
 
+    # Pre-index recent fighter rows once. Re-filtering the full fight history for
+    # every fighter made UFC analysis scale roughly as fighters x history rows.
+    # A single grouped lookup preserves the same rows/order while cutting the
+    # derived-table build to near-linear work.
+    frame = frame.sort_values("event_date", ascending=False)
+    frame["_fighter_key"] = frame["fighter"].astype(str).str.casefold()
+    recent_by_fighter = {
+        key: group.head(config.recent_fights)
+        for key, group in frame.groupby("_fighter_key", sort=False)
+    }
+
     rows: list[dict[str, Any]] = []
     for _, rating in active.iterrows():
         fighter = str(rating.get("fighter", "")).strip()
         if not fighter:
             continue
-        recent = frame.loc[frame["fighter"].astype(str).str.casefold() == fighter.casefold()]
-        recent = recent.sort_values("event_date", ascending=False).head(config.recent_fights)
+        recent = recent_by_fighter.get(fighter.casefold(), frame.iloc[0:0])
         profile = _profile_for_rows(recent)
         rows.append({
             "fighter": fighter,
