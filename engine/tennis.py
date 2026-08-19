@@ -1553,24 +1553,68 @@ def analyze(
     quality = int(np.clip(round(3 + min(sample, 50) / 8), 3, 10))
     if not serve_return_available:
         quality = max(3, quality - 2)
-    uncertainty_penalty = (
-        int(injury_status_a != "Clear")
-        + int(injury_status_b != "Clear")
-        + int(style_a == "Auto")
-        + int(style_b == "Auto")
-    ) * 0.25
-    sample_reliability = min(sample / 40.0, 1.0)
-    confidence = int(np.clip(
-        round(
-            4.5
-            + abs(simulation["win_probability"] - .5) * 6
-            + (quality - 6) * .4
-            + sample_reliability
-            - uncertainty_penalty
-        ),
-        1,
-        10,
-    ))
+
+    # Prediction confidence is a reliability score, not another win-probability
+    # estimate. In particular, do not award confidence simply because the model
+    # probability is farther from 50%. Win probability/fair line already carry
+    # that information.
+    data_score = float(np.clip(quality * 10.0, 0.0, 100.0))
+    sample_score = float(np.clip(sample / 40.0 * 100.0, 0.0, 100.0))
+    min_surface_sample = min(pa.get("surface_sample", 0), pb.get("surface_sample", 0))
+    surface_score = float(np.clip(min_surface_sample / 20.0 * 100.0, 0.0, 100.0))
+    min_serve_sample = min(pa.get("serve_sample", 0), pb.get("serve_sample", 0))
+    min_return_sample = min(pa.get("return_sample", 0), pb.get("return_sample", 0))
+    serve_return_sample = min(min_serve_sample, min_return_sample)
+    serve_return_score = float(
+        np.clip(serve_return_sample / 15.0 * 100.0, 0.0, 100.0)
+        if serve_return_available else 0.0
+    )
+
+    core_probabilities = np.array([overall_p, surface_p, rank_p], dtype=float)
+    core_dispersion = float(np.std(core_probabilities))
+    core_agreement_score = float(np.clip(100.0 - (core_dispersion / 0.12) * 100.0, 0.0, 100.0))
+
+    cap_excess = max(0.0, abs(uncapped_secondary_adjustment) - abs(total_adjustment))
+    simulation_shift = abs(float(simulation["win_probability"] - final_model))
+    stability_penalty = min(100.0, cap_excess / 0.06 * 60.0 + simulation_shift / 0.06 * 40.0)
+    stability_score = float(np.clip(100.0 - stability_penalty, 0.0, 100.0))
+
+    health_penalty = (
+        int(injury_status_a != "Clear") + int(injury_status_b != "Clear")
+    ) * 18.0
+    style_penalty = (int(style_a == "Auto") + int(style_b == "Auto")) * 5.0
+    context_score = float(np.clip(100.0 - health_penalty - style_penalty, 0.0, 100.0))
+
+    confidence_overall = int(round(np.clip(
+        data_score * 0.20
+        + sample_score * 0.18
+        + surface_score * 0.14
+        + serve_return_score * 0.10
+        + core_agreement_score * 0.18
+        + stability_score * 0.12
+        + context_score * 0.08,
+        0.0,
+        100.0,
+    )))
+    confidence = int(np.clip(round(confidence_overall / 10.0), 1, 10))
+    confidence_reliability = {
+        "version": "Macabets Tennis Confidence v1.0 — Reliability",
+        "overall": confidence_overall,
+        "data": round(data_score),
+        "sample": round(sample_score),
+        "surface": round(surface_score),
+        "serve_return": round(serve_return_score),
+        "core_agreement": round(core_agreement_score),
+        "stability": round(stability_score),
+        "context": round(context_score),
+        "minimum_sample": int(sample),
+        "minimum_surface_sample": int(min_surface_sample),
+        "minimum_serve_return_sample": int(serve_return_sample),
+        "core_probability_dispersion": round(core_dispersion, 4),
+        "simulation_shift": round(simulation_shift, 4),
+        "secondary_cap_excess": round(cap_excess, 4),
+        "note": "Reliability only. Win-probability extremeness does not increase this score.",
+    }
 
     return {
         "player_a": player_a,
@@ -1678,6 +1722,7 @@ def analyze(
         },
         "fair_line": american_from_probability(simulation["win_probability"]),
         "confidence": confidence,
+        "confidence_reliability": confidence_reliability,
         "data_quality": quality,
         "overall_elo": (oa, ob),
         "surface_elo": (sa, sb),
