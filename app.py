@@ -100,7 +100,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.06 — UFC Style Outcome Audit"
+APP_VERSION = "Macabets v1.07 — Tennis Audit Phase 1"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -3474,7 +3474,7 @@ with tabs[1]:
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
-                            "model_version": "Macabets Tennis v0.47",
+                            "model_version": "Macabets Tennis v0.48 — Audit Transparency",
                             "event_name": f"{analyzed_a} vs {analyzed_b}",
                             "participant_a": analyzed_a, "participant_b": analyzed_b,
                             "market_type": "Moneyline",
@@ -3573,6 +3573,43 @@ with tabs[1]:
                             f"{original_effective_confidence}/100 confidence, "
                             f"{original_price_report['verdict']}."
                         )
+
+                    decomposition = result.get("probability_decomposition", {})
+                    if decomposition:
+                        with st.expander("Tennis Probability Audit", expanded=False):
+                            core = decomposition.get("rating_core", {})
+                            pa1, pa2, pa3, pa4 = st.columns(4)
+                            pa1.metric("Rating Blend", f"{core.get('blended_probability_a', 0.5):.1%}")
+                            pa2.metric("After Context", f"{decomposition.get('raw_probability_before_calibration', 0.5):.1%}")
+                            pa3.metric("After Calibration", f"{decomposition.get('probability_after_calibration', 0.5):.1%}")
+                            pa4.metric("After Simulation", f"{decomposition.get('simulation_probability', 0.5):.1%}")
+
+                            st.caption(
+                                f"Core weights — Overall Elo {core.get('overall_elo_weight', 0):.0%}, "
+                                f"Surface Elo {core.get('surface_elo_weight', 0):.0%}, "
+                                f"Ranking {core.get('ranking_weight', 0):.0%}. "
+                                f"Secondary factors: {decomposition.get('uncapped_secondary_adjustment', 0):+.1%} raw, "
+                                f"{decomposition.get('capped_secondary_adjustment', 0):+.1%} after ±"
+                                f"{decomposition.get('secondary_cap', 0.12):.0%} cap."
+                            )
+
+                            audit_rows = []
+                            for item in decomposition.get("internal_baseline_adjustments", []):
+                                audit_rows.append({"Layer": item.get("name"), "Impact": f"{float(item.get('impact', 0)):+.2%}"})
+                            for item in decomposition.get("secondary_factors", []):
+                                audit_rows.append({"Layer": item.get("name"), "Impact": f"{float(item.get('impact', 0)):+.2%}"})
+                            audit_rows.extend([
+                                {"Layer": "Calibration shrinkage", "Impact": f"{float(decomposition.get('calibration_shift', 0)):+.2%}"},
+                                {"Layer": "Set/match simulation transform", "Impact": f"{float(decomposition.get('simulation_shift', 0)):+.2%}"},
+                            ])
+                            if audit_rows:
+                                st.dataframe(pd.DataFrame(audit_rows), hide_index=True, use_container_width=True)
+                            if abs(float(decomposition.get("simulation_shift", 0))) >= 0.01:
+                                st.warning(
+                                    "Audit flag: the set/match simulation changed the calibrated match probability by "
+                                    f"{abs(float(decomposition.get('simulation_shift', 0))):.1%}. This transformation will be "
+                                    "validated in the historical calibration phase before its production logic is changed."
+                                )
 
                     try:
                         verified_recent_evidence = build_tennis_evidence_packet(
