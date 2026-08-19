@@ -17,6 +17,10 @@ from engine.ufc_data import (
     source_status,
 )
 from engine.ufc_ratings import build_fighter_ratings
+from engine.ufc_performance import PERFORMANCE_VERSION, build_performance_table
+from engine.ufc_opponent_adjustment import OPPONENT_ADJUSTMENT_VERSION
+from engine.ufc_striking_matchups import STRIKING_VERSION, build_striking_table
+from engine.ufc_grappling_matchups import GRAPPLING_VERSION, build_grappling_table
 
 
 ROOT = Path(__file__).resolve().parent
@@ -25,6 +29,11 @@ FIGHTS_PATH = DATA_DIR / "ufc_fight_history.csv"
 RATINGS_PATH = DATA_DIR / "fighter_ratings.csv"
 STATUS_PATH = DATA_DIR / "refresh_status.json"
 PROFILES_PATH = DATA_DIR / "fighter_profiles.csv"
+PERFORMANCE_CACHE_PATH = DATA_DIR / "performance_active.csv"
+REFERENCE_CACHE_PATH = DATA_DIR / "performance_reference.csv"
+STRIKING_CACHE_PATH = DATA_DIR / "striking_profiles.csv"
+GRAPPLING_CACHE_PATH = DATA_DIR / "grappling_profiles.csv"
+PRECOMPUTE_MANIFEST_PATH = DATA_DIR / "precompute_manifest.json"
 
 # A long history is important for recursive opponent quality. UFCStats has event
 # results back to the early UFC era, but starting in 2010 keeps refresh time sane
@@ -403,6 +412,30 @@ def main() -> None:
     if not profiles.empty:
         _write_atomic_csv(profiles, PROFILES_PATH)
 
+    print("Precomputing UFC analysis profile tables for fast matchup analysis...")
+    performance_active = build_performance_table(fights, ratings)
+    performance_reference = build_performance_table(fights, ratings, active_only=False)
+    striking_profiles = build_striking_table(fights, ratings)
+    grappling_profiles = build_grappling_table(fights, ratings)
+    _write_atomic_csv(performance_active, PERFORMANCE_CACHE_PATH)
+    _write_atomic_csv(performance_reference, REFERENCE_CACHE_PATH)
+    _write_atomic_csv(striking_profiles, STRIKING_CACHE_PATH)
+    _write_atomic_csv(grappling_profiles, GRAPPLING_CACHE_PATH)
+    PRECOMPUTE_MANIFEST_PATH.write_text(
+        json.dumps(
+            {
+                "performance_version": PERFORMANCE_VERSION,
+                "opponent_adjustment_version": OPPONENT_ADJUSTMENT_VERSION,
+                "striking_version": STRIKING_VERSION,
+                "grappling_version": GRAPPLING_VERSION,
+                "fight_rows": int(len(fights)),
+                "rating_rows": int(len(ratings)),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
     status = source_status(fights)
     status.update(
         {
@@ -414,6 +447,11 @@ def main() -> None:
             "live_source_error": live_error,
             "fighter_profile_data_mode": profile_data_mode,
             "fighter_profiles": int(len(profiles)),
+            "analysis_precompute": "ready",
+            "performance_cache_rows": int(len(performance_active)),
+            "reference_cache_rows": int(len(performance_reference)),
+            "striking_cache_rows": int(len(striking_profiles)),
+            "grappling_cache_rows": int(len(grappling_profiles)),
             "notes": (
                 "Macabets UFC Strength v0.2 + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, "
                 "sample-size shrinkage, recency/form, strength of schedule, and inactivity. "
