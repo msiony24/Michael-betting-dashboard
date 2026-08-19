@@ -41,7 +41,7 @@ from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.12 — Advanced Striking"
+MODEL_VERSION = "Macabets UFC Analysis v0.13 — Round-State Simulation"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -736,6 +736,8 @@ def analyze(
         cardio_b=cardio_matchup.get("fighter_b_profile"),
         damage_a=damage_matchup.get("fighter_a_profile"),
         damage_b=damage_matchup.get("fighter_b_profile"),
+        striking_matchup=advanced_striking,
+        grappling_matchup=advanced_grappling,
         rounds=int(rounds),
     )
     derivative_markets = build_derivative_markets(simulation, fighter_a, fighter_b)
@@ -838,7 +840,7 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.12 upgrades Style Matchups with advanced head/body/leg targeting, distance and close-range striking, and power-vs-knockdown-resistance interactions. These replace the older generic striking row inside the same capped Style adjustment rather than adding a second probability layer.",
+            "v0.13 makes fight simulation round-state aware. Advanced striking/grappling, cardio retention and damage risk now shape conditional method and finish-round paths while the simulator still preserves the already-finalized side win probability.",
             "Advanced grappling remains integrated inside that same Style cap, so striking and grappling detail do not create extra standalone probability layers.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",

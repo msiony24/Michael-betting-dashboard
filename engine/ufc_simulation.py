@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 
-SIMULATION_VERSION = "Macabets UFC Simulation v0.4 — Cardio + Damage Aware"
+SIMULATION_VERSION = "Macabets UFC Simulation v0.5 — Round-State Matchup Aware"
 
 
 @dataclass(frozen=True)
@@ -136,6 +136,88 @@ def _round_weights(
     return adjusted / adjusted.sum()
 
 
+
+
+def _matchup_signal(matchup: dict[str, Any] | None) -> tuple[float, float]:
+    if not isinstance(matchup, dict) or not matchup.get("available"):
+        return 0.0, 0.0
+    gap = _clip(float(matchup.get("weighted_gap", 0.0) or 0.0) / 50.0, -1.0, 1.0)
+    reliability = _clip(float(matchup.get("reliability", 0.0) or 0.0), 0.0, 1.0)
+    return gap, reliability
+
+
+def _conditional_method_refinement(
+    path: dict[str, float],
+    *,
+    side: int,
+    striking_matchup: dict[str, Any] | None,
+    grappling_matchup: dict[str, Any] | None,
+) -> dict[str, float]:
+    """Refine KO-vs-submission share only; never alter side win probability."""
+    strike_gap, strike_rel = _matchup_signal(striking_matchup)
+    grapple_gap, grapple_rel = _matchup_signal(grappling_matchup)
+    directional_strike = strike_gap * strike_rel * float(side)
+    directional_grapple = grapple_gap * grapple_rel * float(side)
+    ko = _clip(
+        float(path["ko_share_of_finishes"])
+        + 0.08 * directional_strike
+        - 0.05 * directional_grapple,
+        0.12,
+        0.94,
+    )
+    result = dict(path)
+    result["ko_share_of_finishes"] = ko
+    result["submission_share_of_finishes"] = 1.0 - ko
+    return result
+
+
+def _side_method_round_weights(
+    rounds: int,
+    *,
+    method: str,
+    side: int,
+    pace_a: float,
+    pace_b: float,
+    cardio: dict[str, Any] | None,
+    opponent_damage: dict[str, Any] | None,
+    striking_matchup: dict[str, Any] | None,
+    grappling_matchup: dict[str, Any] | None,
+) -> np.ndarray:
+    base = _round_weights(rounds, pace_a, pace_b, cardio if side > 0 else None, cardio if side < 0 else None)
+    axis = np.linspace(-1.0, 1.0, len(base))
+    early_axis = -axis
+
+    retention = 1.0
+    cardio_rel = 0.0
+    if isinstance(cardio, dict) and cardio.get("available"):
+        retention = _clip(float(cardio.get("retention", 1.0) or 1.0), 0.55, 1.30)
+        cardio_rel = _clip(float(cardio.get("reliability", 0.0) or 0.0), 0.0, 1.0)
+    fatigue = _clip(1.0 - retention, -0.20, 0.35) * cardio_rel
+
+    damage = 0.0
+    damage_rel = 0.0
+    if isinstance(opponent_damage, dict) and opponent_damage.get("available"):
+        damage = _pct01(_num(opponent_damage, "risk_score"), 0.0)
+        damage_rel = _clip(_num(opponent_damage, "reliability", 0.0) or 0.0, 0.0, 1.0)
+
+    strike_gap, strike_rel = _matchup_signal(striking_matchup)
+    grapple_gap, grapple_rel = _matchup_signal(grappling_matchup)
+    strike_edge = strike_gap * strike_rel * float(side)
+    grapple_edge = grapple_gap * grapple_rel * float(side)
+
+    adjusted = base.copy()
+    # A fading fighter's own finishing threat shifts earlier. Strong retention preserves
+    # more threat into later rounds. This is conditional timing, not a winner re-price.
+    adjusted *= 1.0 + fatigue * 0.30 * early_axis
+    if method == "ko":
+        adjusted *= 1.0 + (0.16 * strike_edge + 0.10 * damage * damage_rel) * early_axis
+    else:
+        # Grappling/submission advantages often compound through repeated exchanges;
+        # tilt slightly later when the fighter can sustain pace/control.
+        adjusted *= 1.0 + (0.12 * grapple_edge - 0.08 * fatigue) * axis
+    adjusted = np.maximum(0.01, adjusted)
+    return adjusted / adjusted.sum()
+
 def simulate_fight(
     fighter_a: str,
     fighter_b: str,
@@ -149,6 +231,8 @@ def simulate_fight(
     cardio_b: dict[str, Any] | None = None,
     damage_a: dict[str, Any] | None = None,
     damage_b: dict[str, Any] | None = None,
+    striking_matchup: dict[str, Any] | None = None,
+    grappling_matchup: dict[str, Any] | None = None,
     rounds: int = 3,
     config: UFCSimulationConfig | None = None,
 ) -> dict[str, Any]:
@@ -167,6 +251,8 @@ def simulate_fight(
 
     path_a = _finish_profile(recent_a, performance_a, recent_b, performance_b, opponent_damage=damage_b, rounds=rounds, config=config)
     path_b = _finish_profile(recent_b, performance_b, recent_a, performance_a, opponent_damage=damage_a, rounds=rounds, config=config)
+    path_a = _conditional_method_refinement(path_a, side=1, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup)
+    path_b = _conditional_method_refinement(path_b, side=-1, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup)
 
     theoretical = {
         "a_ko_tko": p_a * path_a["finish_probability"] * path_a["ko_share_of_finishes"],
@@ -185,21 +271,39 @@ def simulate_fight(
     counts = np.bincount(draws, minlength=len(labels))
     empirical = {label: float(counts[i] / int(config.simulations)) for i, label in enumerate(labels)}
 
-    finish_mask = np.array(["decision" not in labels[i] for i in draws], dtype=bool)
-    finish_count = int(finish_mask.sum())
-    round_counts = np.zeros(rounds, dtype=int)
-    if finish_count:
-        round_probs = _round_weights(
-            rounds,
-            _num(performance_a, "pace_score", 50.0) or 50.0,
-            _num(performance_b, "pace_score", 50.0) or 50.0,
-            cardio_a,
-            cardio_b,
-        )
-        sampled_rounds = rng.choice(np.arange(1, rounds + 1), size=finish_count, p=round_probs)
-        round_counts = np.bincount(sampled_rounds, minlength=rounds + 1)[1:]
+    pace_a = _num(performance_a, "pace_score", 50.0) or 50.0
+    pace_b = _num(performance_b, "pace_score", 50.0) or 50.0
+    round_vectors = {
+        "a_ko_tko": _side_method_round_weights(rounds, method="ko", side=1, pace_a=pace_a, pace_b=pace_b, cardio=cardio_a, opponent_damage=damage_b, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup),
+        "a_submission": _side_method_round_weights(rounds, method="sub", side=1, pace_a=pace_a, pace_b=pace_b, cardio=cardio_a, opponent_damage=damage_b, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup),
+        "b_ko_tko": _side_method_round_weights(rounds, method="ko", side=-1, pace_a=pace_a, pace_b=pace_b, cardio=cardio_b, opponent_damage=damage_a, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup),
+        "b_submission": _side_method_round_weights(rounds, method="sub", side=-1, pace_a=pace_a, pace_b=pace_b, cardio=cardio_b, opponent_damage=damage_a, striking_matchup=striking_matchup, grappling_matchup=grappling_matchup),
+    }
+    finish_mass = sum(theoretical[k] for k in round_vectors)
+    unconditional_round_finish = np.zeros(rounds, dtype=float)
+    side_a_round_finish = np.zeros(rounds, dtype=float)
+    side_b_round_finish = np.zeros(rounds, dtype=float)
+    ko_round_finish = np.zeros(rounds, dtype=float)
+    sub_round_finish = np.zeros(rounds, dtype=float)
+    for key, vec in round_vectors.items():
+        mass = float(theoretical[key])
+        contribution = mass * vec
+        unconditional_round_finish += contribution
+        if key.startswith("a_"):
+            side_a_round_finish += contribution
+        else:
+            side_b_round_finish += contribution
+        if "ko" in key:
+            ko_round_finish += contribution
+        else:
+            sub_round_finish += contribution
+    if finish_mass > 0:
+        round_probs = unconditional_round_finish / finish_mass
     else:
-        round_probs = _round_weights(rounds, 50.0, 50.0, cardio_a, cardio_b)
+        round_probs = _round_weights(rounds, pace_a, pace_b, cardio_a, cardio_b)
+
+    finish_count = int(round(int(config.simulations) * finish_mass))
+    round_counts = np.rint(round_probs * max(finish_count, 0)).astype(int) if finish_count else np.zeros(rounds, dtype=int)
 
     a_win_emp = empirical["a_ko_tko"] + empirical["a_submission"] + empirical["a_decision"]
     b_win_emp = 1.0 - a_win_emp
@@ -231,6 +335,30 @@ def simulate_fight(
     else:
         volatility = "High"
 
+    round_state_projection = []
+    for idx in range(rounds):
+        total = float(unconditional_round_finish[idx])
+        a_share = float(side_a_round_finish[idx] / total) if total > 0 else 0.5
+        ko_share = float(ko_round_finish[idx] / total) if total > 0 else 0.5
+        if a_share >= 0.57:
+            leader = fighter_a
+        elif a_share <= 0.43:
+            leader = fighter_b
+        else:
+            leader = "Balanced"
+        method_label = "KO/TKO-heavy" if ko_share >= 0.62 else ("Submission-heavy" if ko_share <= 0.38 else "Mixed finish paths")
+        round_state_projection.append({
+            "round": idx + 1,
+            "unconditional_finish_probability": total,
+            "probability_given_finish": float(round_probs[idx]),
+            "fighter_a_finish_share": a_share,
+            "fighter_b_finish_share": 1.0 - a_share,
+            "ko_share": ko_share,
+            "submission_share": 1.0 - ko_share,
+            "finish_edge": leader,
+            "state": method_label,
+        })
+
     return {
         "available": True,
         "version": SIMULATION_VERSION,
@@ -256,14 +384,17 @@ def simulate_fight(
         "finish_round_probabilities_given_finish": {
             f"Round {i + 1}": float(round_probs[i]) for i in range(rounds)
         },
+        "round_state_projection": round_state_projection,
         "volatility": volatility,
         "fighter_a_finish_profile": path_a,
         "fighter_b_finish_profile": path_b,
         "cardio_timing_used": bool((cardio_a or {}).get("available") or (cardio_b or {}).get("available")),
         "damage_method_context_used": bool((damage_a or {}).get("available") or (damage_b or {}).get("available")),
+        "advanced_striking_path_context_used": bool((striking_matchup or {}).get("available")),
+        "advanced_grappling_path_context_used": bool((grappling_matchup or {}).get("available")),
         "guardrail": (
             "Simulation consumes Macabets' final win probability; it does not re-predict the winner. "
-            "Method probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, pace, damage/recovery context and scheduled rounds. "
-            "Round Cardio only changes the timing distribution of finishes, and Damage Risk only redistributes finish/method paths; neither re-predicts the winner."
+            "Method and round-state probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, advanced striking/grappling compatibility, cardio retention, damage/recovery context and scheduled rounds. "
+            "Advanced matchup, cardio and damage signals change how and when the modeled winner paths occur; the simulator preserves Macabets' already-finalized side win probability and never creates a competing winner model."
         ),
     }
