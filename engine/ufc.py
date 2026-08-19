@@ -17,6 +17,7 @@ from engine.ufc_markets import (
     evaluate_derivative_market,
 )
 
+from engine.ufc_ratings import RATING_VERSION
 from engine.ufc_performance import (
     PERFORMANCE_VERSION,
     build_performance_table,
@@ -48,8 +49,7 @@ DEFAULT_REFERENCE_CACHE_PATH = ROOT / "data" / "ufc" / "performance_reference.cs
 DEFAULT_STRIKING_CACHE_PATH = ROOT / "data" / "ufc" / "striking_profiles.csv"
 DEFAULT_GRAPPLING_CACHE_PATH = ROOT / "data" / "ufc" / "grappling_profiles.csv"
 DEFAULT_PRECOMPUTE_MANIFEST_PATH = ROOT / "data" / "ufc" / "precompute_manifest.json"
-MODEL_VERSION = "Macabets UFC Analysis v0.15 — Speed Optimized"
-RATING_VERSION = "Macabets UFC Strength v0.2"
+MODEL_VERSION = "Macabets UFC Analysis v0.16 — Audit Phase 1"
 
 
 class UFCAnalysisError(RuntimeError):
@@ -579,7 +579,7 @@ def analyze(
 ) -> dict[str, Any]:
     """Build the first Macabets UFC matchup report.
 
-    Strength v0.2 remains the baseline. Underlying performance, opponent-specific style,
+    Strength v0.3 remains the baseline. Underlying performance, opponent-specific style,
     and physical/fight-context layers can move the fair probability only inside explicit caps.
     Recency, schedule strength, and long-layoff inactivity are not re-awarded because they already
     influence the rating backbone.
@@ -617,15 +617,15 @@ def analyze(
     rating_b = _safe_float(row_b.get("macabets_rating"), 1500.0)
     raw_probability_a = _elo_probability(rating_a, rating_b, config.elo_scale)
 
-    # Shrink slightly toward 50/50 when either fighter has limited ranking evidence.
-    # This is a confidence/reliability correction, not a new performance signal.
+    # Strength v0.3 separates uncertainty from the fair-line backbone. New-division
+    # evidence and sample size still reduce confidence, but they do not apply an
+    # additional post-rating shrink toward 50/50. Newcomer conservatism is already
+    # handled inside the rating construction itself.
     reliability = min(
         _safe_float(row_a.get("ranking_confidence"), 50.0),
         _safe_float(row_b.get("ranking_confidence"), 50.0),
     ) / 100.0
-    reliability_multiplier = 0.80 + 0.20 * _clip(reliability, 0.0, 1.0)
-    baseline_probability_a = 0.5 + (raw_probability_a - 0.5) * reliability_multiplier
-    baseline_probability_a = _clip(baseline_probability_a, 0.08, 0.92)
+    baseline_probability_a = _clip(raw_probability_a, 0.08, 0.92)
 
     performance_adjustment_a = float(performance_matchup.get("adjustment_a", 0.0) or 0.0)
 
@@ -863,6 +863,39 @@ def analyze(
         else f"Cross-division comparison: {row_a.get('division', 'Unknown')} vs {row_b.get('division', 'Unknown')}"
     )
 
+    probability_decomposition = {
+        "fighter_a": fighter_a,
+        "fighter_b": fighter_b,
+        "rating_probability_a": raw_probability_a,
+        "baseline_probability_a": baseline_probability_a,
+        "performance_adjustment_a": performance_adjustment_a,
+        "style_adjustment_a": style_adjustment_a,
+        "cardio_adjustment_a": cardio_adjustment_a,
+        "damage_adjustment_a": damage_adjustment_a,
+        "correlated_matchup_sum_before_cap_a": performance_adjustment_a + style_adjustment_a + cardio_adjustment_a + damage_adjustment_a,
+        "correlated_matchup_after_cap_a": combined_matchup_adjustment_a,
+        "context_adjustment_a": context_adjustment_a,
+        "total_adjustment_after_cap_a": total_adjustment_a,
+        "final_probability_a": probability_a,
+        "rating_a": rating_a,
+        "rating_b": rating_b,
+        "ranking_confidence_a": _safe_float(row_a.get("ranking_confidence"), 50.0),
+        "ranking_confidence_b": _safe_float(row_b.get("ranking_confidence"), 50.0),
+        "global_elo_a": _safe_float(row_a.get("global_elo"), rating_a),
+        "global_elo_b": _safe_float(row_b.get("global_elo"), rating_b),
+        "division_elo_a": _safe_float(row_a.get("division_elo"), rating_a),
+        "division_elo_b": _safe_float(row_b.get("division_elo"), rating_b),
+        "division_component_a": _safe_float(row_a.get("division_component"), rating_a),
+        "division_component_b": _safe_float(row_b.get("division_component"), rating_b),
+        "division_evidence_a": _safe_float(row_a.get("division_evidence"), 0.0),
+        "division_evidence_b": _safe_float(row_b.get("division_evidence"), 0.0),
+        "guardrails": {
+            "correlated_matchup_cap": 0.085,
+            "context_cap": 0.02,
+            "total_non_rating_cap": 0.10,
+        },
+    }
+
     return {
         "model_version": MODEL_VERSION,
         "rating_version": RATING_VERSION,
@@ -888,6 +921,7 @@ def analyze(
         "win_probability_b": probability_b,
         "projected_winner_probability": winner_probability,
         "raw_rating_probability_a": raw_probability_a,
+        "probability_decomposition": probability_decomposition,
         "ranking_baseline_probability_a": baseline_probability_a,
         "performance_adjustment_a": performance_adjustment_a,
         "style_adjustment_a": style_adjustment_a,
@@ -951,7 +985,7 @@ def analyze(
             "Advanced grappling remains integrated inside that same Style cap, so striking and grappling detail do not create extra standalone probability layers.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",
-            "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.2 already prices inactivity.",
+            "Stance is shown but not assigned a directional betting edge until Macabets calibrates stance interactions historically. Long-layoff inactivity is not re-counted because Strength v0.3 already prices inactivity.",
             "The simulation consumes the already-finalized side probability and decomposes it into KO/TKO, submission, and decision paths; it does not create a second winner model.",
             "Derivative markets are priced downstream of that simulation. Half-round totals use a neutral 50/50 split of finish mass inside the target round until exact finish-time calibration is added.",
             "Short-notice/replacement-fighter context still requires a reliable booking/notice-date source and is not guessed from fight history.",

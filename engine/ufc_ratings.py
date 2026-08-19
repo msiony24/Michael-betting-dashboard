@@ -11,6 +11,7 @@ import pandas as pd
 BASE_ELO = 1500.0
 ELO_SCALE = 400.0
 DEFAULT_K = 30.0
+RATING_VERSION = "Macabets UFC Strength v0.3 — Transferable Talent"
 NON_RANKING_DIVISIONS = {"", "Unknown", "Catch Weight"}
 
 
@@ -294,17 +295,19 @@ def build_fighter_ratings(
         schedule_rating = _schedule_score(valid_rows, history_lookup, config.base_elo)
         adjusted_schedule = _shrink(schedule_rating, config.base_elo, recent_obs, 4.0)
 
-        # Division Elo is intentionally shrunk when a fighter has only recently
-        # entered a weight class. This prevents career work at another weight from
-        # automatically making the fighter #1 in the new division.
-        division_component = _shrink(raw_division, config.base_elo, division_fights, 2.0)
+        # Strength v0.3 keeps proven global UFC ability transferable across weight
+        # classes. Division evidence is treated as a residual around global talent
+        # instead of shrinking a new-division fighter back toward 1500.  As division
+        # fights accumulate, the division-specific signal earns more influence.
+        division_evidence = division_fights / (division_fights + 3.0) if division_fights else 0.0
+        division_component = raw_global + (raw_division - raw_global) * division_evidence
         form_component = config.base_elo + (adjusted_form - 50.0) * 3.0
 
         composite = (
-            0.62 * raw_global
-            + 0.20 * division_component
-            + 0.10 * form_component
-            + 0.08 * adjusted_schedule
+            raw_global
+            + 0.18 * (division_component - raw_global)
+            + 0.10 * (form_component - config.base_elo)
+            + 0.08 * (adjusted_schedule - config.base_elo)
         )
 
         # UFC-only data is weak on newcomers from other promotions. Keep early
@@ -327,8 +330,9 @@ def build_fighter_ratings(
         recent_count = int((rows["event_date"] >= recent_cutoff).sum())
         active = bool(days_inactive <= config.active_window_days and _is_ranking_division(division))
 
-        division_evidence = division_fights / (division_fights + 2.0) if division_fights else 0.0
-        ranking_confidence = 100.0 * min(1.0, 0.65 * experience_reliability + 0.35 * division_evidence)
+        # Confidence can fall when a fighter is new to a division, but Strength
+        # v0.3 no longer erases transferable ability from the fair-line backbone.
+        ranking_confidence = 100.0 * min(1.0, 0.68 * experience_reliability + 0.32 * division_evidence)
 
         output.append(
             {
@@ -339,6 +343,8 @@ def build_fighter_ratings(
                 "raw_elo": round(raw_global, 2),
                 "global_elo": round(raw_global, 2),
                 "division_elo": round(raw_division, 2),
+                "division_component": round(division_component, 2),
+                "division_evidence": round(division_evidence, 4),
                 "division_fights": division_fights,
                 "recent_form_score": round(recent_form, 1),
                 "recent_form_adjusted": round(adjusted_form, 1),
