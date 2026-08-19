@@ -91,13 +91,14 @@ try:
     )
     from engine.ufc_validation import run_historical_validation, UFCValidationConfig
     from engine.ufc_strength_audit import run_strength_backbone_audit, UFCStrengthAuditConfig
+    from engine.ufc_cap_audit import run_matchup_cap_audit, UFCCapAuditConfig
     UFC_ENGINE_AVAILABLE = True
     UFC_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.03 — UFC Probability Scale Audit"
+APP_VERSION = "Macabets v1.04 — UFC Matchup-Cap Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5515,7 +5516,7 @@ with tabs[1]:
                         "Minimum two prior UFC fights per fighter. The report measures moneyline calibration, finish/distance bias, "
                         "method-of-victory calibration, round-total calibration and division-level performance."
                     )
-                    vb1, vb2 = st.columns(2)
+                    vb1, vb2, vb3 = st.columns(3)
                     with vb1:
                         if st.button("Run Fight-Path Validation", use_container_width=True, key="run_ufc_validation"):
                             with st.spinner("Replaying historical UFC fights without future information..."):
@@ -5538,6 +5539,80 @@ with tabs[1]:
                                 except Exception as exc:
                                     st.session_state.pop("ufc_strength_audit_report", None)
                                     st.error(f"UFC Strength audit failed: {exc}")
+                    with vb3:
+                        if st.button("Run Matchup-Cap Audit", use_container_width=True, key="run_ufc_cap_audit"):
+                            with st.spinner("Stress-testing matchup guardrails across active UFC pairings..."):
+                                try:
+                                    st.session_state["ufc_cap_audit_report"] = run_matchup_cap_audit(
+                                        UFCCapAuditConfig(max_pairs=50, rounds=3)
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("ufc_cap_audit_report", None)
+                                    st.error(f"UFC matchup-cap audit failed: {exc}")
+
+                    cap_audit = st.session_state.get("ufc_cap_audit_report")
+                    if cap_audit and cap_audit.get("available"):
+                        st.markdown("**Matchup-cap structural stress test**")
+                        st.caption(
+                            "This checks whether the current matchup guardrails are actually clipping live UFC signals. "
+                            "It does not tune caps from historical outcomes because exact historical full-stack feature snapshots are not stored yet."
+                        )
+                        summaries = cap_audit.get("component_summaries", {})
+                        cap_rows = []
+                        labels = {
+                            "performance": "Performance", "style": "Style", "cardio": "Cardio",
+                            "damage": "Damage", "context": "Context", "correlated": "Correlated UFCStats",
+                            "total_non_rating": "Total Non-Rating",
+                        }
+                        for key, label in labels.items():
+                            item = summaries.get(key) or {}
+                            if not item:
+                                continue
+                            cap_rows.append({
+                                "Layer": label,
+                                "Cap": float(item.get("cap", 0.0)),
+                                "Mean |Impact|": float(item.get("mean_abs", 0.0)),
+                                "95th |Impact|": float(item.get("p95_abs", 0.0)),
+                                "Max |Impact|": float(item.get("max_raw_abs", item.get("max_abs", 0.0))),
+                                "Cap Hits": int(item.get("cap_hits", 0)),
+                                "Hit Rate": float(item.get("cap_hit_rate", 0.0)),
+                                "95th Cap Use": float(item.get("p95_cap_utilization", 0.0)),
+                            })
+                        if cap_rows:
+                            cap_df = pd.DataFrame(cap_rows)
+                            for col in ["Cap", "Mean |Impact|", "95th |Impact|", "Max |Impact|", "Hit Rate", "95th Cap Use"]:
+                                cap_df[col] = cap_df[col].map(lambda value: f"{float(value):.1%}")
+                            st.dataframe(cap_df, use_container_width=True, hide_index=True)
+                        ca1, ca2, ca3 = st.columns(3)
+                        ca1.metric("Pairs Audited", f"{int(cap_audit.get('sample', 0))}")
+                        ca2.metric("Correlated Cap Hits", f"{int(cap_audit.get('correlated_cap_hits', 0))}")
+                        ca3.metric("Total Cap Hits", f"{int(cap_audit.get('total_cap_hits', 0))}")
+                        recommendation = str(cap_audit.get("recommendation", ""))
+                        if int(cap_audit.get("correlated_cap_hits", 0)) == 0 and int(cap_audit.get("total_cap_hits", 0)) == 0:
+                            st.success(recommendation)
+                        else:
+                            st.warning(recommendation)
+                        extremes = cap_audit.get("extreme_matchups", [])
+                        if extremes:
+                            ex_df = pd.DataFrame(extremes)[[
+                                "fighter_a", "fighter_b", "division", "performance_adjustment_a",
+                                "style_adjustment_a", "cardio_adjustment_a", "damage_adjustment_a",
+                                "context_adjustment_a", "correlated_raw_a", "total_raw_a",
+                            ]].rename(columns={
+                                "fighter_a": "Fighter A", "fighter_b": "Fighter B", "division": "Division",
+                                "performance_adjustment_a": "Performance", "style_adjustment_a": "Style",
+                                "cardio_adjustment_a": "Cardio", "damage_adjustment_a": "Damage",
+                                "context_adjustment_a": "Context", "correlated_raw_a": "Correlated Raw",
+                                "total_raw_a": "Total Raw",
+                            })
+                            for col in ["Performance", "Style", "Cardio", "Damage", "Context", "Correlated Raw", "Total Raw"]:
+                                ex_df[col] = ex_df[col].map(lambda value: f"{float(value):+.1%}")
+                            with st.expander("Most extreme audited matchup adjustments", expanded=False):
+                                st.dataframe(ex_df, use_container_width=True, hide_index=True)
+                                for limitation in cap_audit.get("limitations", []):
+                                    st.caption(f"• {limitation}")
+                    elif cap_audit:
+                        st.warning(str(cap_audit.get("reason", "No cap-audit sample was produced.")))
 
                     strength_audit = st.session_state.get("ufc_strength_audit_report")
                     if strength_audit and strength_audit.get("available"):
