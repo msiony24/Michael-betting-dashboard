@@ -96,7 +96,7 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.99 — UFC Judge-Card Simulation"
+APP_VERSION = "Macabets v1.00 — UFC Speed Optimization"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
