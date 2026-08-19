@@ -92,13 +92,14 @@ try:
     from engine.ufc_validation import run_historical_validation, UFCValidationConfig
     from engine.ufc_strength_audit import run_strength_backbone_audit, UFCStrengthAuditConfig
     from engine.ufc_cap_audit import run_matchup_cap_audit, UFCCapAuditConfig
+    from engine.ufc_component_scale_audit import run_component_scale_audit, UFCComponentScaleAuditConfig
     UFC_ENGINE_AVAILABLE = True
     UFC_ENGINE_IMPORT_ERROR = ""
 except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v1.04 — UFC Matchup-Cap Audit"
+APP_VERSION = "Macabets v1.05 — UFC Component-Scaling Audit"
 BUILD_DATE = "August 18, 2026"
 
 st.set_page_config(
@@ -5516,7 +5517,7 @@ with tabs[1]:
                         "Minimum two prior UFC fights per fighter. The report measures moneyline calibration, finish/distance bias, "
                         "method-of-victory calibration, round-total calibration and division-level performance."
                     )
-                    vb1, vb2, vb3 = st.columns(3)
+                    vb1, vb2, vb3, vb4 = st.columns(4)
                     with vb1:
                         if st.button("Run Fight-Path Validation", use_container_width=True, key="run_ufc_validation"):
                             with st.spinner("Replaying historical UFC fights without future information..."):
@@ -5549,6 +5550,98 @@ with tabs[1]:
                                 except Exception as exc:
                                     st.session_state.pop("ufc_cap_audit_report", None)
                                     st.error(f"UFC matchup-cap audit failed: {exc}")
+
+                    with vb4:
+                        if st.button("Run Component-Scale Audit", use_container_width=True, key="run_ufc_component_scale_audit"):
+                            with st.spinner("Measuring how UFC Performance and Style gaps transfer into fair probability..."):
+                                try:
+                                    st.session_state["ufc_component_scale_audit_report"] = run_component_scale_audit(
+                                        UFCComponentScaleAuditConfig(max_pairs=80, rounds=3)
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("ufc_component_scale_audit_report", None)
+                                    st.error(f"UFC component-scale audit failed: {exc}")
+
+                    component_scale_audit = st.session_state.get("ufc_component_scale_audit_report")
+                    if component_scale_audit and component_scale_audit.get("available"):
+                        st.markdown("**Component-scaling structural audit**")
+                        st.caption(
+                            "This measures how large, reliable Performance and Style gaps are converted into fair-probability movement. "
+                            "It is a structural sensitivity audit, not permission to retune production weights without outcome evidence."
+                        )
+                        cs_perf = component_scale_audit.get("performance", {})
+                        cs_style = component_scale_audit.get("style", {})
+                        cs_formula = component_scale_audit.get("formula_transfer", {})
+                        cs_rows = [
+                            {
+                                "Layer": "Performance",
+                                "Mean |Gap|": cs_perf.get("mean_abs_gap", 0.0),
+                                "95th |Gap|": cs_perf.get("p95_abs_gap", 0.0),
+                                "Mean Reliability": cs_perf.get("mean_reliability", 0.0),
+                                "Mean |Impact|": cs_perf.get("mean_abs_adjustment", 0.0),
+                                "95th |Impact|": cs_perf.get("p95_abs_adjustment", 0.0),
+                                "20+ Gap / High-Reliability": cs_perf.get("high_signal_sample", 0),
+                                "Impact in High-Signal": cs_perf.get("high_signal_mean_abs_adjustment", 0.0),
+                            },
+                            {
+                                "Layer": "Style",
+                                "Mean |Gap|": cs_style.get("mean_abs_gap", 0.0),
+                                "95th |Gap|": cs_style.get("p95_abs_gap", 0.0),
+                                "Mean Reliability": cs_style.get("mean_reliability", 0.0),
+                                "Mean |Impact|": cs_style.get("mean_abs_adjustment", 0.0),
+                                "95th |Impact|": cs_style.get("p95_abs_adjustment", 0.0),
+                                "20+ Gap / High-Reliability": cs_style.get("high_signal_sample", 0),
+                                "Impact in High-Signal": cs_style.get("high_signal_mean_abs_adjustment", 0.0),
+                            },
+                        ]
+                        cs_df = pd.DataFrame(cs_rows)
+                        for col in ["Mean Reliability", "Mean |Impact|", "95th |Impact|", "Impact in High-Signal"]:
+                            cs_df[col] = cs_df[col].map(lambda value: f"{float(value):.1%}")
+                        for col in ["Mean |Gap|", "95th |Gap|"]:
+                            cs_df[col] = cs_df[col].map(lambda value: f"{float(value):.1f}")
+                        st.dataframe(cs_df, use_container_width=True, hide_index=True)
+
+                        csa1, csa2, csa3 = st.columns(3)
+                        csa1.metric("Pairs Audited", f"{int(component_scale_audit.get('sample', 0))}")
+                        csa2.metric(
+                            "Performance / 10 Gap",
+                            f"{float(cs_formula.get('performance_probability_points_per_10_gap', 0.0)):.1%}",
+                        )
+                        csa3.metric(
+                            "Style / 10 Gap",
+                            f"{float(cs_formula.get('style_probability_points_per_10_gap', 0.0)):.1%}",
+                        )
+                        interaction = component_scale_audit.get("interaction", {})
+                        st.caption(
+                            f"Performance and Style point the same direction in {float(interaction.get('sign_agreement_rate', 0.0)):.1%} of non-zero audited matchups. "
+                            f"When both are high-signal, their directional agreement is {float(interaction.get('both_high_signal_agreement_rate', 0.0)):.1%}."
+                        )
+                        st.info(str(component_scale_audit.get("performance_assessment", "")))
+                        st.warning(str(component_scale_audit.get("style_assessment", "")))
+                        st.success(str(component_scale_audit.get("recommendation", "")))
+                        extremes = component_scale_audit.get("extreme_matchups", [])
+                        if extremes:
+                            ex_df = pd.DataFrame(extremes)[[
+                                "fighter_a", "fighter_b", "division", "performance_gap", "performance_reliability",
+                                "performance_adjustment", "style_gap", "style_reliability", "style_adjustment",
+                                "rating_probability_a", "final_probability_a",
+                            ]].rename(columns={
+                                "fighter_a": "Fighter A", "fighter_b": "Fighter B", "division": "Division",
+                                "performance_gap": "Performance Gap", "performance_reliability": "Performance Reliability",
+                                "performance_adjustment": "Performance Impact", "style_gap": "Style Gap",
+                                "style_reliability": "Style Reliability", "style_adjustment": "Style Impact",
+                                "rating_probability_a": "Rating Probability", "final_probability_a": "Final Probability",
+                            })
+                            for col in ["Performance Reliability", "Performance Impact", "Style Reliability", "Style Impact", "Rating Probability", "Final Probability"]:
+                                ex_df[col] = ex_df[col].map(lambda value: f"{float(value):.1%}")
+                            for col in ["Performance Gap", "Style Gap"]:
+                                ex_df[col] = ex_df[col].map(lambda value: f"{float(value):+.1f}")
+                            with st.expander("Largest combined Performance + Style transfers", expanded=False):
+                                st.dataframe(ex_df, use_container_width=True, hide_index=True)
+                                for limitation in component_scale_audit.get("limitations", []):
+                                    st.caption(f"• {limitation}")
+                    elif component_scale_audit:
+                        st.warning(str(component_scale_audit.get("reason", "No component-scale audit sample was produced.")))
 
                     cap_audit = st.session_state.get("ufc_cap_audit_report")
                     if cap_audit and cap_audit.get("available"):
