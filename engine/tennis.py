@@ -1375,6 +1375,24 @@ def analyze(
         handedness_b,
         surface,
     )
+    # Auto style labels are derived directly from the same serve/return point data
+    # used by the dedicated Serve/Return Engine. When that engine is available,
+    # applying an additional automatic style adjustment would count the same signal
+    # twice. Preserve manual style overrides because they can contain independent
+    # scouting information that is not encoded in the point-stat profile.
+    auto_style_suppressed = bool(
+        serve_return_available and style_a == "Auto" and style_b == "Auto"
+    )
+    if auto_style_suppressed:
+        original_auto_style_matchup = float(style_matchup)
+        style_matchup = 0.0
+        style_reason = (
+            "Automatic style adjustment suppressed because its labels are derived from "
+            "the same serve/return statistics already priced by the Serve/Return Engine. "
+            f"Pre-guard style impact would have been {original_auto_style_matchup:+.2%}."
+        )
+    else:
+        original_auto_style_matchup = float(style_matchup)
 
     injury_a = injury_risk_score(injury_status_a)
     injury_b = injury_risk_score(injury_status_b)
@@ -1705,6 +1723,25 @@ def analyze(
             "secondary_factors": [
                 {"name": name, "impact": float(impact)} for name, impact, _ in factors
             ],
+            "feature_overlap_audit": {
+                "version": "Macabets Tennis Feature Overlap Guard v0.1",
+                "auto_style_suppressed": auto_style_suppressed,
+                "pre_guard_auto_style_impact": float(original_auto_style_matchup),
+                "serve_return_available": serve_return_available,
+                "existing_correlated_discount": 0.65,
+                "discounted_group": [
+                    "Context-weighted recent form",
+                    "Opponent strength",
+                    "Surface",
+                ],
+                "notes": [
+                    "Recent form, opponent strength, and surface win rate already receive a 0.65 correlation discount because they overlap with Elo/ranking.",
+                    "Automatic style is now suppressed whenever the Serve/Return Engine is available because both are derived from the same serve/return point statistics.",
+                    "Breakout trajectory remains capped and persistence-gated because it is intended to correct stale Elo/ranking rather than duplicate a hot streak.",
+                    "Fatigue uses recent performance only to soften workload risk; it does not add recent form a second time as a standalone positive factor.",
+                    "Event-pressure and deciding-match inputs remain small/capped and should be judged with forward results before further reweighting.",
+                ],
+            },
             "uncapped_secondary_adjustment": float(uncapped_secondary_adjustment),
             "secondary_cap": 0.12,
             "capped_secondary_adjustment": float(total_adjustment),
