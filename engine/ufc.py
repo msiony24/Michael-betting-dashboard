@@ -41,7 +41,7 @@ from engine.ufc_damage import DAMAGE_VERSION, build_damage_matchup
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RATINGS_PATH = ROOT / "data" / "ufc" / "fighter_ratings.csv"
 DEFAULT_FIGHTS_PATH = ROOT / "data" / "ufc" / "ufc_fight_history.csv"
-MODEL_VERSION = "Macabets UFC Analysis v0.13 — Round-State Simulation"
+MODEL_VERSION = "Macabets UFC Analysis v0.14 — Judge-Card Simulation"
 RATING_VERSION = "Macabets UFC Strength v0.2"
 
 
@@ -833,6 +833,7 @@ def analyze(
         "cardio_matchup": cardio_matchup,
         "damage_matchup": damage_matchup,
         "simulation": simulation,
+        "judging": simulation.get("judging", {}),
         "derivative_markets": derivative_markets,
         "derivative_evaluation": derivative_evaluation,
         "matchup_breakdown": _matchup_rows(row_a, row_b, fighter_a, fighter_b),
@@ -840,7 +841,7 @@ def analyze(
         "risk_factors": risks,
         "market": market,
         "limitations": [
-            "v0.13 makes fight simulation round-state aware. Advanced striking/grappling, cardio retention and damage risk now shape conditional method and finish-round paths while the simulator still preserves the already-finalized side win probability.",
+            "v0.14 adds round-by-round judge-card simulation conditional on the fight reaching a decision. It models round-winning uncertainty and unanimous/split-decision risk while staying calibrated to the existing decision-side probability rather than creating a second moneyline model.",
             "Advanced grappling remains integrated inside that same Style cap, so striking and grappling detail do not create extra standalone probability layers.",
             "Style Matchups compares directional attack traits against the opponent's corresponding defensive traits instead of reusing standalone composite strength.",
             "Performance is capped at ±5 percentage points, Style Matchups at ±3, Round Cardio at ±0.75 for 3 rounds / ±1.5 for 5 rounds, and Damage Risk at ±0.75; those correlated UFCStats layers are capped together at ±8.5, Physical & Context at ±2, and the total non-rating adjustment at ±10 percentage points.",

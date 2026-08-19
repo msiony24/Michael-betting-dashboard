@@ -6,8 +6,10 @@ import math
 
 import numpy as np
 
+from engine.ufc_judging import JUDGING_VERSION, build_judging_projection
 
-SIMULATION_VERSION = "Macabets UFC Simulation v0.5 — Round-State Matchup Aware"
+
+SIMULATION_VERSION = "Macabets UFC Simulation v0.6 — Judge-Card Aware"
 
 
 @dataclass(frozen=True)
@@ -335,6 +337,18 @@ def simulate_fight(
     else:
         volatility = "High"
 
+    judging = build_judging_projection(
+        fighter_a,
+        fighter_b,
+        decision_probability_a=theoretical["a_decision"],
+        decision_probability_b=theoretical["b_decision"],
+        striking_matchup=striking_matchup,
+        grappling_matchup=grappling_matchup,
+        cardio_a=cardio_a,
+        cardio_b=cardio_b,
+        rounds=rounds,
+    )
+
     round_state_projection = []
     for idx in range(rounds):
         total = float(unconditional_round_finish[idx])
@@ -385,6 +399,8 @@ def simulate_fight(
             f"Round {i + 1}": float(round_probs[i]) for i in range(rounds)
         },
         "round_state_projection": round_state_projection,
+        "judging": judging,
+        "judging_version": JUDGING_VERSION,
         "volatility": volatility,
         "fighter_a_finish_profile": path_a,
         "fighter_b_finish_profile": path_b,
@@ -395,6 +411,6 @@ def simulate_fight(
         "guardrail": (
             "Simulation consumes Macabets' final win probability; it does not re-predict the winner. "
             "Method and round-state probabilities are conditional decompositions using recent finish tendencies, durability, knockdown/submission pressure, advanced striking/grappling compatibility, cardio retention, damage/recovery context and scheduled rounds. "
-            "Advanced matchup, cardio and damage signals change how and when the modeled winner paths occur; the simulator preserves Macabets' already-finalized side win probability and never creates a competing winner model."
+            "Advanced matchup, cardio and damage signals change how and when the modeled winner paths occur; judge-card simulation then models round scoring conditional on a decision and is calibrated back to the existing decision-side split. The simulator preserves Macabets' already-finalized side win probability and never creates a competing winner model."
         ),
     }
