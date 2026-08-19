@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import urllib.error
 import urllib.parse
@@ -14,6 +15,34 @@ except Exception:  # pragma: no cover - batch jobs do not require Streamlit.
 
 
 TABLE_NAME = "analysis_log"
+
+
+def _json_safe(value: Any) -> Any:
+    """Convert nested payloads into strict JSON-safe values for PostgREST.
+
+    Python's json module emits NaN/Infinity by default, but PostgREST rejects
+    those tokens as invalid JSON.  Normalize them to null at the storage
+    boundary so every sport benefits from the same protection.
+    """
+    if value is None or isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    # numpy/pandas scalar objects usually expose item(); handle them without
+    # importing either heavy dependency into this persistence module.
+    item = getattr(value, "item", None)
+    if callable(item):
+        try:
+            converted = item()
+        except Exception:
+            converted = value
+        if converted is not value:
+            return _json_safe(converted)
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v) for v in value]
+    return str(value)
 
 
 def _streamlit_secret(name: str) -> str:
@@ -85,7 +114,7 @@ def _request(
 
     payload = None
     if body is not None:
-        payload = json.dumps(body, default=str).encode("utf-8")
+        payload = json.dumps(_json_safe(body), default=str, allow_nan=False).encode("utf-8")
 
     request = urllib.request.Request(url, data=payload, headers=headers, method=method)
     try:
