@@ -195,6 +195,77 @@ def _calibration_table(frame: pd.DataFrame, p_col: str) -> list[dict[str, Any]]:
     return out
 
 
+
+
+def _scale_metrics(frame: pd.DataFrame, scale: float) -> dict[str, float]:
+    if frame.empty:
+        return {"sample": 0, "scale": float(scale), "brier": float("nan"), "log_loss": float("nan"), "winner_accuracy": float("nan"), "mean_favorite_probability": float("nan")}
+    gap = frame["rating_a"].to_numpy(float) - frame["rating_b"].to_numpy(float)
+    p = 1.0 / (1.0 + np.power(10.0, -gap / float(scale)))
+    y = frame["a_win"].to_numpy(float)
+    return {
+        "sample": int(len(frame)),
+        "scale": float(scale),
+        "brier": _brier(p, y),
+        "log_loss": _log_loss(p, y),
+        "winner_accuracy": _winner_accuracy(p, y),
+        "mean_favorite_probability": float(np.maximum(p, 1.0 - p).mean()),
+    }
+
+
+def _scale_stability(backtest: pd.DataFrame) -> dict[str, Any]:
+    """Stress-test Elo probability scale across several recent chronological windows.
+
+    This intentionally does not select a live scale. A scale is considered stable only
+    when neighboring recent windows prefer broadly similar values. Large disagreement
+    is a signal that one global sharpening/softening constant would be fragile.
+    """
+    if backtest.empty:
+        return {"available": False}
+    candidates = [280, 300, 320, 340, 360, 380, 400, 420, 450, 500]
+    requested_windows = [240, 360, 540, 780]
+    windows: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for requested in requested_windows:
+        size = min(int(requested), len(backtest))
+        if size < 120 or size in seen:
+            continue
+        seen.add(size)
+        part = backtest.tail(size)
+        rows = [_scale_metrics(part, scale) for scale in candidates]
+        best = min(rows, key=lambda row: (row["log_loss"], row["brier"]))
+        current = next(row for row in rows if int(row["scale"]) == 400)
+        windows.append({
+            "window": int(size),
+            "date_start": str(part["event_date"].min()),
+            "date_end": str(part["event_date"].max()),
+            "best_scale": int(best["scale"]),
+            "best_brier": float(best["brier"]),
+            "best_log_loss": float(best["log_loss"]),
+            "scale_400_brier": float(current["brier"]),
+            "scale_400_log_loss": float(current["log_loss"]),
+            "brier_gain_vs_400": float(current["brier"] - best["brier"]),
+            "log_loss_gain_vs_400": float(current["log_loss"] - best["log_loss"]),
+        })
+    best_scales = [row["best_scale"] for row in windows]
+    spread = (max(best_scales) - min(best_scales)) if best_scales else 0
+    if not best_scales:
+        recommendation = "insufficient sample"
+    elif spread <= 40:
+        recommendation = "stable enough to consider a live scale trial"
+    elif spread <= 100:
+        recommendation = "mixed; keep 400 live and gather more evidence"
+    else:
+        recommendation = "unstable across time; do not apply one global scale"
+    return {
+        "available": bool(windows),
+        "candidate_scales": candidates,
+        "windows": windows,
+        "best_scale_spread": int(spread),
+        "recommendation": recommendation,
+    }
+
+
 def run_strength_backbone_audit(
     fights: pd.DataFrame,
     *,
@@ -337,6 +408,8 @@ def run_strength_backbone_audit(
     holdout_global = metrics(holdout, "p_global") if len(holdout) else {}
     holdout_calibrated = metrics(holdout, "p_calibrated") if len(holdout) else {}
 
+    scale_stability = _scale_stability(backtest)
+
     return {
         "available": True,
         "version": STRENGTH_AUDIT_VERSION,
@@ -354,6 +427,7 @@ def run_strength_backbone_audit(
         "favorite_calibration": _calibration_table(holdout if len(holdout) else backtest, "p_strength"),
         "favorite_calibration_calibrated": _calibration_table(holdout if len(holdout) else backtest, "p_calibrated"),
         "groups": groups,
+        "scale_stability": scale_stability,
         "interpretation": {
             "temperature_direction": "soften" if temperature > 1.05 else ("sharpen" if temperature < 0.95 else "leave near current scale"),
             "calibration_note": "Temperature is fitted on the earlier training segment and evaluated only on the later holdout segment. It is diagnostic and is not automatically applied to live Macabets probabilities.",
@@ -363,6 +437,7 @@ def run_strength_backbone_audit(
             "Upcoming fight division is used as the target division for the pre-fight division-residual calculation; no bout result or post-fight statistic is used before prediction.",
             "The temperature fit is a one-parameter calibration diagnostic trained on the earlier chronological segment and tested on the later segment. It should not be promoted into the live model unless the holdout improvement is persistent across larger and future samples.",
             "No historical sportsbook closing odds are available here, so this measures predictive calibration rather than betting ROI or CLV.",
+            "Probability-scale stability is tested across multiple recent chronological windows. If those windows disagree materially, Macabets should not promote one global Elo scale into production.",
         ],
         "records": backtest.to_dict(orient="records"),
     }
