@@ -16,7 +16,7 @@ from engine.ufc_data import (
     normalize_division,
     source_status,
 )
-from engine.ufc_ratings import build_fighter_ratings
+from engine.ufc_ratings import RATING_VERSION, build_fighter_ratings
 from engine.ufc_performance import PERFORMANCE_VERSION, build_performance_table
 from engine.ufc_opponent_adjustment import OPPONENT_ADJUSTMENT_VERSION
 from engine.ufc_striking_matchups import STRIKING_VERSION, build_striking_table
@@ -439,7 +439,7 @@ def main() -> None:
     status = source_status(fights)
     status.update(
         {
-            "rating_model": "Macabets UFC Strength v0.2",
+            "rating_model": RATING_VERSION,
             "history_start": DEFAULT_SINCE.isoformat(),
             "rated_fighters": int(len(ratings)),
             "active_pool_fighters": int(ratings["active_pool"].sum()),
@@ -453,7 +453,7 @@ def main() -> None:
             "striking_cache_rows": int(len(striking_profiles)),
             "grappling_cache_rows": int(len(grappling_profiles)),
             "notes": (
-                "Macabets UFC Strength v0.2 + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, "
+                f"{RATING_VERSION} + UFC Performance data v0.1: global + division-specific opponent-adjusted Elo, "
                 "sample-size shrinkage, recency/form, strength of schedule, and inactivity. "
                 "Catch-weight bouts count toward global strength but never create a ranking division. "
                 "The mirror bootstrap now also preserves landed/attempted striking, takedown, control, and strike-location data for the performance engine. "
