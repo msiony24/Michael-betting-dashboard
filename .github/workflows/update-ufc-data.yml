@@ -56,6 +56,8 @@ jobs:
 
           git add data/ufc/ufc_fight_history.csv data/ufc/fighter_ratings.csv data/ufc/refresh_status.json
           [ ! -f data/ufc/fighter_profiles.csv ] || git add data/ufc/fighter_profiles.csv
+          git add data/ufc/performance_active.csv data/ufc/performance_reference.csv
+          git add data/ufc/striking_profiles.csv data/ufc/grappling_profiles.csv data/ufc/precompute_manifest.json
           if git diff --cached --quiet; then
             echo "UFC data is already current."
             exit 0
@@ -73,6 +75,8 @@ jobs:
               python update_ufc_data.py
               git add data/ufc/ufc_fight_history.csv data/ufc/fighter_ratings.csv data/ufc/refresh_status.json
               [ ! -f data/ufc/fighter_profiles.csv ] || git add data/ufc/fighter_profiles.csv
+              git add data/ufc/performance_active.csv data/ufc/performance_reference.csv
+              git add data/ufc/striking_profiles.csv data/ufc/grappling_profiles.csv data/ufc/precompute_manifest.json
               if git diff --cached --quiet; then
                 exit 0
               fi
