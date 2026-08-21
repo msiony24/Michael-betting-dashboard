@@ -568,7 +568,15 @@ def run(*, limit: int = 500, dry_run: bool = False) -> list[dict[str, Any]]:
     if odds_client is None and tennis_client is None:
         raise RuntimeError("No settlement data provider is configured")
 
-    rows = list_analyses(limit, status="Pending")
+    # Settlement needs the event-link inputs, but not the large frozen analysis output.
+    # Avoid select=* here because this job runs hourly.
+    settlement_select = (
+        "id,created_at,event_date,event_name,sport,participant_a,participant_b,prediction,"
+        "recommendation,status,input_snapshot,manual_override,manual_override_reason,"
+        "market_provider,market_provider_event_id,market_provider_sport_key,scheduled_start,"
+        "result_provider,result_provider_event_id"
+    )
+    rows = list_analyses(limit, status="Pending", select=settlement_select)
     results = []
     for row in rows:
         try:
