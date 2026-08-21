@@ -165,6 +165,30 @@ def resolve_player_name(
     key_matches = unique_names[
         unique_names.map(lambda value: canonical_player_key(value, registry=registry)).eq(requested_key)
     ]
+
+    # Some historical feeds abbreviate players to surname + initials. That can
+    # make an otherwise valid alias ambiguous in the provider registry (for
+    # example, ``Nakashima B.`` is shared by Brandon and Bryce Nakashima). If
+    # the requested live/full name resolves to one provider ID, allow historical
+    # display aliases that explicitly include that same ID among their registry
+    # candidates. This preserves the verified provider identity instead of
+    # rejecting a player merely because the old display string is abbreviated.
+    provider_alias_membership = False
+    if key_matches.empty and requested_key.startswith("api:"):
+        requested_player_key = requested_key.removeprefix("api:")
+        alias_map = (
+            _build_alias_map(registry)
+            if registry is not None
+            else _default_alias_map(_registry_signature())
+        )
+        key_matches = unique_names[
+            unique_names.map(
+                lambda value: requested_player_key
+                in alias_map.get(normalized_name(value), set())
+            )
+        ]
+        provider_alias_membership = not key_matches.empty
+
     if key_matches.empty:
         return None, {
             "requested": requested_name,
@@ -185,7 +209,10 @@ def resolve_player_name(
             reverse=True,
         )
         resolved = ranked[0][0]
-        method = "provider_player_id" if requested_key.startswith("api:") else "surname_initial"
+        if provider_alias_membership:
+            method = "provider_alias_membership"
+        else:
+            method = "provider_player_id" if requested_key.startswith("api:") else "surname_initial"
 
     return resolved, {
         "requested": requested_name,
