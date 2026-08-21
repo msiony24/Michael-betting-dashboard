@@ -75,53 +75,23 @@ def _build_alias_map(registry: pd.DataFrame | None) -> dict[str, set[str]]:
     return aliases
 
 
-@lru_cache(maxsize=1)
-def _default_alias_map() -> dict[str, set[str]]:
-    """Load the deployed identity registry once per Python process.
+def _registry_signature() -> tuple[int, int] | None:
+    try:
+        stat = IDENTITY_REGISTRY_PATH.stat()
+        return int(stat.st_mtime_ns), int(stat.st_size)
+    except OSError:
+        return None
 
-    Streamlit restarts the process when the repository deploy changes, so checking
-    the registry file with Path.stat() on every player-key lookup is unnecessary
-    and extremely expensive on hosted filesystems.
-    """
+
+@lru_cache(maxsize=4)
+def _default_alias_map(signature: tuple[int, int] | None) -> dict[str, set[str]]:
+    if signature is None:
+        return {}
     try:
         registry = pd.read_csv(IDENTITY_REGISTRY_PATH, dtype={"player_key": str})
     except Exception:
         return {}
     return _build_alias_map(registry)
-
-
-def _build_signature_map(alias_map: dict[str, set[str]]) -> dict[tuple[str, str], set[str]]:
-    """Index surname/initial signatures once instead of scanning every alias per lookup."""
-    signatures: dict[tuple[str, str], set[str]] = {}
-    for alias, keys in alias_map.items():
-        signature = player_name_signature(alias)
-        if all(signature):
-            signatures.setdefault(signature, set()).update(keys)
-    return signatures
-
-
-@lru_cache(maxsize=1)
-def _default_signature_map() -> dict[tuple[str, str], set[str]]:
-    return _build_signature_map(_default_alias_map())
-
-
-@lru_cache(maxsize=50000)
-def _provider_player_key_default(value: str) -> str | None:
-    alias_map = _default_alias_map()
-    candidates = alias_map.get(normalized_name(value), set())
-    if len(candidates) == 1:
-        return next(iter(candidates))
-    if len(candidates) > 1:
-        return None
-
-    requested_signature = player_name_signature(value)
-    if not all(requested_signature):
-        return None
-    signature_candidates = _default_signature_map().get(requested_signature, set())
-    if len(signature_candidates) == 1:
-        return next(iter(signature_candidates))
-    return None
-
 
 
 def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str | None:
@@ -133,10 +103,7 @@ def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str
     forms such as ``Juan Manuel Cerundolo`` and ``Cerundolo J.M.`` without guessing
     when multiple players share the same surname/initial.
     """
-    if registry is None:
-        return _provider_player_key_default(str(value or ""))
-
-    alias_map = _build_alias_map(registry)
+    alias_map = _build_alias_map(registry) if registry is not None else _default_alias_map(_registry_signature())
     candidates = alias_map.get(normalized_name(value), set())
     if len(candidates) == 1:
         return next(iter(candidates))
@@ -146,7 +113,12 @@ def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str
     requested_signature = player_name_signature(value)
     if not all(requested_signature):
         return None
-    signature_candidates = _build_signature_map(alias_map).get(requested_signature, set())
+    signature_candidates: set[str] = set()
+    for alias, keys in alias_map.items():
+        if player_name_signature(alias) == requested_signature:
+            signature_candidates.update(keys)
+            if len(signature_candidates) > 1:
+                return None
     if len(signature_candidates) == 1:
         return next(iter(signature_candidates))
     return None
@@ -193,30 +165,6 @@ def resolve_player_name(
     key_matches = unique_names[
         unique_names.map(lambda value: canonical_player_key(value, registry=registry)).eq(requested_key)
     ]
-
-    # Some historical feeds abbreviate players to surname + initials. That can
-    # make an otherwise valid alias ambiguous in the provider registry (for
-    # example, ``Nakashima B.`` is shared by Brandon and Bryce Nakashima). If
-    # the requested live/full name resolves to one provider ID, allow historical
-    # display aliases that explicitly include that same ID among their registry
-    # candidates. This preserves the verified provider identity instead of
-    # rejecting a player merely because the old display string is abbreviated.
-    provider_alias_membership = False
-    if key_matches.empty and requested_key.startswith("api:"):
-        requested_player_key = requested_key.removeprefix("api:")
-        alias_map = (
-            _build_alias_map(registry)
-            if registry is not None
-            else _default_alias_map()
-        )
-        key_matches = unique_names[
-            unique_names.map(
-                lambda value: requested_player_key
-                in alias_map.get(normalized_name(value), set())
-            )
-        ]
-        provider_alias_membership = not key_matches.empty
-
     if key_matches.empty:
         return None, {
             "requested": requested_name,
@@ -237,10 +185,7 @@ def resolve_player_name(
             reverse=True,
         )
         resolved = ranked[0][0]
-        if provider_alias_membership:
-            method = "provider_alias_membership"
-        else:
-            method = "provider_player_id" if requested_key.startswith("api:") else "surname_initial"
+        method = "provider_player_id" if requested_key.startswith("api:") else "surname_initial"
 
     return resolved, {
         "requested": requested_name,
