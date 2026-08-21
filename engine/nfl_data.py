@@ -7,6 +7,7 @@ from pathlib import Path
 from engine.nfl_team_state import TEAM_STATE_WEIGHTS, build_all_team_states
 from engine.nfl_foundation import load_foundation_status
 from engine.nfl_availability import load_availability_status
+from engine.nfl_ratings_loader import load_all_team_ratings
 
 NFL_TEAMS = [
     "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
@@ -34,11 +35,30 @@ else:
     _LOAD_ERROR = ""
 
 NFL_TEAM_STATES = _TEAM_STATES
-NFL_TEAM_RATINGS = {
-    team: dict(_TEAM_STATES[team]["components"])
-    for team in NFL_TEAMS
-    if team in _TEAM_STATES
-}
+
+# If the unified state build fails for any reason, keep NFL analysis usable by
+# falling back to the same audited manual priors that feed the team-state layer.
+# This preserves the existing component ratings instead of leaving the entire
+# 32-team ratings dictionary empty and causing app-level KeyErrors.
+if _TEAM_STATES:
+    NFL_TEAM_RATINGS = {
+        team: dict(_TEAM_STATES[team]["components"])
+        for team in NFL_TEAMS
+        if team in _TEAM_STATES
+    }
+else:
+    try:
+        _PRIOR_RATINGS = load_all_team_ratings()
+    except Exception:
+        _PRIOR_RATINGS = {}
+    NFL_TEAM_RATINGS = {
+        team: {
+            component: float(_PRIOR_RATINGS[team].get(component, 67.5))
+            for component in TEAM_RATING_WEIGHTS
+        }
+        for team in NFL_TEAMS
+        if team in _PRIOR_RATINGS
+    }
 
 _FOUNDATION_STATUS = load_foundation_status()
 _AVAILABILITY_STATUS = load_availability_status()
