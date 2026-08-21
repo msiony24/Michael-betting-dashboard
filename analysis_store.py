@@ -6,6 +6,8 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+import threading
+import time
 from typing import Any
 
 try:
@@ -15,6 +17,18 @@ except Exception:  # pragma: no cover - batch jobs do not require Streamlit.
 
 
 TABLE_NAME = "analysis_log"
+
+# Lightweight analysis lists are requested repeatedly by Streamlit on every rerun.
+# Keep a short in-process cache so Performance Center + Analysis Log can share one
+# small response instead of repeatedly downloading the same archive.
+_LIST_CACHE_TTL_SECONDS = 30.0
+_LIST_CACHE: dict[tuple[Any, ...], tuple[float, list[dict[str, Any]]]] = {}
+_LIST_CACHE_LOCK = threading.Lock()
+
+
+def _clear_list_cache() -> None:
+    with _LIST_CACHE_LOCK:
+        _LIST_CACHE.clear()
 
 
 def _json_safe(value: Any) -> Any:
@@ -135,6 +149,7 @@ def _request(
 
 def create_analysis(record: dict[str, Any]) -> dict[str, Any] | None:
     rows = _request("POST", TABLE_NAME, body=record)
+    _clear_list_cache()
     return rows[0] if isinstance(rows, list) and rows else None
 
 
@@ -143,18 +158,45 @@ def list_analyses(
     *,
     sport: str | None = None,
     status: str | None = None,
+    select: str = "*",
+    cache_ttl: float = 0.0,
 ) -> list[dict[str, Any]]:
+    safe_limit = max(1, min(int(limit), 5000))
+    cache_key = (safe_limit, sport or "", status or "", select)
+    ttl = max(0.0, float(cache_ttl or 0.0))
+    if ttl:
+        now = time.monotonic()
+        with _LIST_CACHE_LOCK:
+            cached = _LIST_CACHE.get(cache_key)
+            if cached and now - cached[0] < ttl:
+                # Return a shallow copy so callers cannot mutate the cached list.
+                return list(cached[1])
+
     params: dict[str, Any] = {
-        "select": "*",
+        "select": select,
         "order": "event_date.desc,created_at.desc",
-        "limit": max(1, min(int(limit), 5000)),
+        "limit": safe_limit,
     }
     if sport:
         params["sport"] = f"eq.{sport}"
     if status:
         params["status"] = f"eq.{status}"
     rows = _request("GET", TABLE_NAME, params=params)
-    return rows if isinstance(rows, list) else []
+    result = rows if isinstance(rows, list) else []
+    if ttl:
+        with _LIST_CACHE_LOCK:
+            _LIST_CACHE[cache_key] = (time.monotonic(), list(result))
+    return result
+
+
+def get_analysis(analysis_id: str) -> dict[str, Any] | None:
+    """Fetch one full analysis only when its frozen snapshots are actually needed."""
+    rows = _request(
+        "GET",
+        TABLE_NAME,
+        params={"id": f"eq.{analysis_id}", "select": "*", "limit": 1},
+    )
+    return rows[0] if isinstance(rows, list) and rows else None
 
 
 def update_analysis(
@@ -167,11 +209,13 @@ def update_analysis(
         body=changes,
         params={"id": f"eq.{analysis_id}", "select": "*"},
     )
+    _clear_list_cache()
     return rows[0] if isinstance(rows, list) and rows else None
 
 
 def delete_analysis(analysis_id: str) -> None:
     _request("DELETE", TABLE_NAME, params={"id": f"eq.{analysis_id}"})
+    _clear_list_cache()
 
 
 def list_table_records(
