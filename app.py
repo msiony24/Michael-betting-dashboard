@@ -7235,11 +7235,12 @@ with tabs[3]:
     )
 
     st.markdown("### Automatic Slate Preview")
-    api_key = _odds_api_key()
+    # Startup safety: do not call external slate APIs during every Streamlit rerun.
+    # The automatic slate is temporarily disabled while app-wide performance is stabilized.
+    api_key = ""
     if not api_key:
         st.info(
-            "Automatic loading is ready but inactive. Add THE_ODDS_API_KEY to Streamlit Secrets; "
-            "the key is never stored in GitHub or displayed in the app."
+            "Automatic Daily Slate loading is temporarily disabled in this recovery build so external API calls cannot block the rest of Macabets."
         )
     else:
         try:
