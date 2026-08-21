@@ -23,6 +23,7 @@ from analysis_store import (
     delete_analysis as db_delete_analysis,
     is_configured as analysis_db_configured,
     list_analyses as db_list_analyses,
+    get_analysis as db_get_analysis,
     update_analysis as db_update_analysis,
 )
 from engine.analysis_log_metrics import (
@@ -7701,6 +7702,15 @@ with tabs[3]:
             use_container_width=True,
         )
 
+# Keep archive reruns lightweight. The frozen JSON snapshots can be very large, so
+# the archive index deliberately excludes them; one full row is fetched only when
+# the user opens a specific analysis.
+ANALYSIS_INDEX_SELECT = (
+    "id,created_at,event_date,sport,event_name,participant_a,participant_b,prediction,"
+    "market_type,market_odds_a,market_odds_b,market_line,fair_line,predicted_probability,"
+    "confidence,recommendation,model_version,status,favorite,notes,review,lesson"
+)
+
 with tabs[4]:
     archive_tabs = st.tabs(["Performance Center", "Analysis Log", "Legacy Tennis Archive", "Matchup Lab"])
 
@@ -7716,7 +7726,7 @@ with tabs[4]:
             st.info("Configure Supabase to use the Performance Center with the permanent Analysis Log.")
         else:
             try:
-                performance_rows = db_list_analyses(5000)
+                performance_rows = db_list_analyses(5000, select=ANALYSIS_INDEX_SELECT, cache_ttl=30)
             except Exception as exc:
                 performance_rows = []
                 st.error(f"Could not load predictions for the Performance Center: {exc}")
@@ -8126,7 +8136,7 @@ with tabs[4]:
         else:
             # Load the complete archive first so the report card is not affected by display filters.
             try:
-                all_universal_rows = db_list_analyses(5000)
+                all_universal_rows = db_list_analyses(5000, select=ANALYSIS_INDEX_SELECT, cache_ttl=30)
             except Exception as exc:
                 all_universal_rows = []
                 st.error(f"Could not load the permanent Analysis Log: {exc}")
@@ -8320,7 +8330,14 @@ with tabs[4]:
                     ),
                     key="universal_analysis_selected_id",
                 )
-                selected_row = next(row for row in universal_rows if row["id"] == selected_id)
+                selected_row_summary = next(row for row in universal_rows if row["id"] == selected_id)
+                # Only the selected analysis needs its frozen input/output snapshots.
+                # Fetching one full row here avoids downloading every snapshot on every rerun.
+                try:
+                    selected_row = db_get_analysis(selected_id) or selected_row_summary
+                except Exception as exc:
+                    selected_row = selected_row_summary
+                    st.warning(f"Could not load the selected frozen snapshot: {exc}")
 
                 d1, d2, d3, d4, d5, d6 = st.columns(6)
                 d1.metric("Prediction", selected_row.get("prediction") or "—")
