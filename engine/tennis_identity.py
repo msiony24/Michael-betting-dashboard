@@ -75,18 +75,14 @@ def _build_alias_map(registry: pd.DataFrame | None) -> dict[str, set[str]]:
     return aliases
 
 
-def _registry_signature() -> tuple[int, int] | None:
-    try:
-        stat = IDENTITY_REGISTRY_PATH.stat()
-        return int(stat.st_mtime_ns), int(stat.st_size)
-    except OSError:
-        return None
+@lru_cache(maxsize=1)
+def _default_alias_map() -> dict[str, set[str]]:
+    """Load the deployed identity registry once per Python process.
 
-
-@lru_cache(maxsize=4)
-def _default_alias_map(signature: tuple[int, int] | None) -> dict[str, set[str]]:
-    if signature is None:
-        return {}
+    Streamlit restarts the process when the repository deploy changes, so checking
+    the registry file with Path.stat() on every player-key lookup is unnecessary
+    and extremely expensive on hosted filesystems.
+    """
     try:
         registry = pd.read_csv(IDENTITY_REGISTRY_PATH, dtype={"player_key": str})
     except Exception:
@@ -104,14 +100,14 @@ def _build_signature_map(alias_map: dict[str, set[str]]) -> dict[tuple[str, str]
     return signatures
 
 
-@lru_cache(maxsize=4)
-def _default_signature_map(signature: tuple[int, int] | None) -> dict[tuple[str, str], set[str]]:
-    return _build_signature_map(_default_alias_map(signature))
+@lru_cache(maxsize=1)
+def _default_signature_map() -> dict[tuple[str, str], set[str]]:
+    return _build_signature_map(_default_alias_map())
 
 
 @lru_cache(maxsize=50000)
-def _provider_player_key_default(value: str, signature: tuple[int, int] | None) -> str | None:
-    alias_map = _default_alias_map(signature)
+def _provider_player_key_default(value: str) -> str | None:
+    alias_map = _default_alias_map()
     candidates = alias_map.get(normalized_name(value), set())
     if len(candidates) == 1:
         return next(iter(candidates))
@@ -121,10 +117,11 @@ def _provider_player_key_default(value: str, signature: tuple[int, int] | None) 
     requested_signature = player_name_signature(value)
     if not all(requested_signature):
         return None
-    signature_candidates = _default_signature_map(signature).get(requested_signature, set())
+    signature_candidates = _default_signature_map().get(requested_signature, set())
     if len(signature_candidates) == 1:
         return next(iter(signature_candidates))
     return None
+
 
 
 def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str | None:
@@ -137,7 +134,7 @@ def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str
     when multiple players share the same surname/initial.
     """
     if registry is None:
-        return _provider_player_key_default(str(value or ""), _registry_signature())
+        return _provider_player_key_default(str(value or ""))
 
     alias_map = _build_alias_map(registry)
     candidates = alias_map.get(normalized_name(value), set())
@@ -210,7 +207,7 @@ def resolve_player_name(
         alias_map = (
             _build_alias_map(registry)
             if registry is not None
-            else _default_alias_map(_registry_signature())
+            else _default_alias_map()
         )
         key_matches = unique_names[
             unique_names.map(
