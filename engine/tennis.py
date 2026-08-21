@@ -629,41 +629,64 @@ def simulate_matches(
     best_of_five: bool,
     seed: int | None = None,
 ) -> dict:
+    """Monte Carlo match simulation, vectorized with numpy.
+
+    Mathematically equivalent to simulating each match one set at a time in
+    a Python loop (each set is still an independent Bernoulli(set_p) draw,
+    and a match still ends the instant either side reaches sets_needed) --
+    but instead of a Python-level loop running `simulations` times (each
+    with its own inner while-loop), every simulation's sets are drawn and
+    resolved together as numpy array operations. This is the same model,
+    just not run one match at a time in pure Python.
+
+    Note: because the sets are drawn in one batched array rather than one
+    `rng.random()` call per set with early stopping, the exact sequence of
+    random draws differs from the old loop implementation even for the same
+    seed. The output distribution is the same; a specific seed will not
+    reproduce the old function's exact historical numbers.
+    """
     rng = np.random.default_rng(seed)
     sets_needed = 3 if best_of_five else 2
+    max_sets = 2 * sets_needed - 1  # a match can never go longer than this
 
     # Convert match-level strength to a set-level probability, then simulate sets.
     p = float(np.clip(probability, .05, .95))
     set_p = float(np.clip(.5 + (p - .5) * .72, .08, .92))
 
-    wins_a = 0
-    straight_a = 0
-    straight_b = 0
-    deciding = 0
+    # Draw every set for every simulation at once. Sets beyond the point a
+    # match would actually have clinched are drawn too (cheap) and simply
+    # ignored below -- this is what lets numpy do the work instead of Python.
+    a_wins_set = rng.random((simulations, max_sets)) < set_p  # bool grid
+
+    a_cum = np.cumsum(a_wins_set, axis=1)
+    sets_played = np.arange(1, max_sets + 1)
+    b_cum = sets_played[None, :] - a_cum
+
+    # First column where either side has clinched the match.
+    clinched = (a_cum >= sets_needed) | (b_cum >= sets_needed)
+    end_idx = np.argmax(clinched, axis=1)  # guaranteed True by the last column
+
+    rows = np.arange(simulations)
+    a_final = a_cum[rows, end_idx]
+    b_final = b_cum[rows, end_idx]
+
+    a_won = a_final > b_final
+    wins_a = int(np.count_nonzero(a_won))
+    straight_a = int(np.count_nonzero(a_won & (b_final == 0)))
+    straight_b = int(np.count_nonzero(~a_won & (a_final == 0)))
+    deciding = int(np.count_nonzero(
+        (np.maximum(a_final, b_final) == sets_needed)
+        & (np.minimum(a_final, b_final) == sets_needed - 1)
+    ))
+
     set_score_counts: dict[str, int] = {}
-
-    for _ in range(simulations):
-        a_sets = 0
-        b_sets = 0
-        while a_sets < sets_needed and b_sets < sets_needed:
-            if rng.random() < set_p:
-                a_sets += 1
-            else:
-                b_sets += 1
-
-        key = f"{a_sets}-{b_sets}"
-        set_score_counts[key] = set_score_counts.get(key, 0) + 1
-
-        if a_sets > b_sets:
-            wins_a += 1
-            if b_sets == 0:
-                straight_a += 1
-        else:
-            if a_sets == 0:
-                straight_b += 1
-
-        if max(a_sets, b_sets) == sets_needed and min(a_sets, b_sets) == sets_needed - 1:
-            deciding += 1
+    for winner_sets, loser_sets in [(sets_needed, n) for n in range(sets_needed)]:
+        a_count = int(np.count_nonzero((a_final == winner_sets) & (b_final == loser_sets)))
+        if a_count:
+            set_score_counts[f"{winner_sets}-{loser_sets}"] = a_count
+        b_count = int(np.count_nonzero((a_final == loser_sets) & (b_final == winner_sets)))
+        if b_count:
+            set_score_counts[f"{loser_sets}-{winner_sets}"] = b_count
 
     return {
         "simulations": simulations,
