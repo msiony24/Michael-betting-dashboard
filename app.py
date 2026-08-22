@@ -1277,6 +1277,44 @@ def tennis_confidence_meter(result):
     }
 
 
+def tennis_probability_confidence_band(probability_a, reliability_score=100):
+    """Return a user-facing confidence label anchored to win probability.
+
+    Win probability sets the maximum label. Data/model reliability may downgrade
+    the label, but can never promote a close matchup into a higher-confidence tier.
+    """
+    try:
+        probability_a = float(probability_a)
+    except (TypeError, ValueError):
+        probability_a = 0.5
+    favorite_probability = max(probability_a, 1.0 - probability_a)
+
+    if favorite_probability >= 0.85:
+        probability_level = 3
+    elif favorite_probability >= 0.80:
+        probability_level = 2
+    elif favorite_probability >= 0.60:
+        probability_level = 1
+    else:
+        probability_level = 0
+
+    try:
+        reliability_score = float(reliability_score)
+    except (TypeError, ValueError):
+        reliability_score = 0.0
+    if reliability_score >= 85:
+        reliability_level = 3
+    elif reliability_score >= 70:
+        reliability_level = 2
+    elif reliability_score >= 55:
+        reliability_level = 1
+    else:
+        reliability_level = 0
+
+    labels = ["Low Confidence", "Moderate Confidence", "High Confidence", "Very High Confidence"]
+    return labels[min(probability_level, reliability_level)]
+
+
 def tennis_bet_confidence(analysis_confidence, edge, expected_roi):
     """Grade confidence in a specific price without changing the match analysis."""
     positive_edge = max(float(edge), 0.0)
@@ -3413,6 +3451,13 @@ with tabs[1]:
                             analysis_confidence["band"] = "Moderate"
                         else:
                             analysis_confidence["band"] = "Low"
+
+                    # User-facing confidence is anchored to the actual projected win
+                    # probability. Reliability can downgrade the label, but cannot
+                    # make a near coin-flip look like a high-confidence prediction.
+                    analysis_confidence["band"] = tennis_probability_confidence_band(
+                        model_probability, analysis_confidence["overall"]
+                    )
                     bet_confidence = (
                         tennis_bet_confidence(
                             analysis_confidence["overall"],
@@ -3719,8 +3764,7 @@ with tabs[1]:
                         f"Fair {format_american(fair_odds_b)}",
                     )
                     m3.metric(
-                        "Analysis Confidence",
-                        f"{analysis_confidence['overall']}/100",
+                        "Model Confidence",
                         analysis_confidence["band"],
                     )
 
@@ -3748,19 +3792,14 @@ with tabs[1]:
                             f"The difference is {abs(no_vig_edge):.1%}."
                         )
 
-                    st.markdown("#### Confidence Meters")
+                    st.markdown("#### Confidence")
                     confidence_col1, confidence_col2 = st.columns(2)
                     with confidence_col1:
-                        st.markdown("**Confidence in Macabets’ Analysis**")
-                        st.progress(analysis_confidence["overall"] / 100)
-                        st.write(
-                            f"{analysis_confidence['overall']}/100 — "
-                            f"{analysis_confidence['band']}"
-                        )
+                        st.markdown("**Model Confidence**")
+                        st.write(f"**{analysis_confidence['band']}**")
                         st.caption(
-                            "Combines model stability, data quality, the smaller historical "
-                            f"sample ({analysis_confidence['minimum_sample']} matches) and "
-                            "health/context clarity."
+                            "Win probability sets the confidence ceiling. Data quality, sample size, "
+                            "health/context clarity and conflicting matchup evidence can only lower it."
                         )
 
                     with confidence_col2:
@@ -3768,20 +3807,14 @@ with tabs[1]:
                             st.markdown(
                                 f"**Confidence in Your {considered_player} Bet**"
                             )
-                            st.progress(bet_confidence["overall"] / 100)
-                            st.write(
-                                f"{bet_confidence['overall']}/100 — "
-                                f"{bet_confidence['band']}"
-                            )
+                            st.write(f"**{bet_confidence['band']}**")
                             st.caption(
-                                "Combines analysis confidence with the selected player’s "
-                                "edge and expected return at the available sportsbook price."
+                                "This is a secondary price/edge label. Win probability remains the primary signal."
                             )
                         else:
                             st.markdown("**Confidence in a Specific Bet**")
                             st.info(
-                                "Select a player before analyzing to receive a separate "
-                                "bet-confidence score."
+                                "Select a player before analyzing to receive a separate bet-confidence label."
                             )
 
                     matchup_analysis = build_matchup_analysis(result, considered_player)
