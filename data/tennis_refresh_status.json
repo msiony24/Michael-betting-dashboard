@@ -1,7 +1,12 @@
 {
   "current_year": 2026,
-  "current_year_match_count": 2291,
+  "current_year_match_count": 2241,
   "current_year_matches_with_serve_return_stats": 896,
+  "data_integrity_cleanup": {
+    "major_event_levels_normalized": true,
+    "near_date_provider_duplicates_removed": 50,
+    "qualifying_rounds_separated": true
+  },
   "failures": [],
   "latest_match_date": "2026-08-21",
   "live_refresh": {
