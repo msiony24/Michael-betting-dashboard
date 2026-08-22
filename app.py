@@ -96,8 +96,8 @@ except Exception as exc:
     UFC_ENGINE_AVAILABLE = False
     UFC_ENGINE_IMPORT_ERROR = str(exc)
 
-APP_VERSION = "Macabets v0.97 — UFC Advanced Striking"
-BUILD_DATE = "August 18, 2026"
+APP_VERSION = "Macabets v0.98 — Tennis Audit Release"
+BUILD_DATE = "August 22, 2026"
 
 st.set_page_config(
     page_title="Macabets",
