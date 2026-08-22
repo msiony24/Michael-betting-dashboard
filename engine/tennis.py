@@ -18,6 +18,9 @@ from .player_profiles import (
 from .tennis_serve_return import serve_return_profile, serve_return_matchup_adjustment
 
 
+TENNIS_MODEL_VERSION = "Macabets Tennis v0.98 - Validated Transition/Pressure Calibration"
+
+
 ROUND_MAP = {
     "Qualifying": "Q",
     "R128": "R128",
@@ -1248,21 +1251,24 @@ def analyze(
     rank_b = pb["rank"]
     rank_p = 1 / (1 + math.exp(-((-math.log(max(rank_a, 1))) - (-math.log(max(rank_b, 1)))) * .9))
 
-    base = (
+    # v0.98 validated core. Phase 1-4 walk-forward testing showed that the
+    # weighted overall Elo + surface Elo + ranking blend is the stable base.
+    # Keep this exact probability isolated so unvalidated diagnostic layers do
+    # not silently alter the audited core.
+    base = float(np.clip(
         weights["overall_elo"] * overall_p
         + weights["surface_elo"] * surface_p
-        + weights["ranking"] * rank_p
-    )
+        + weights["ranking"] * rank_p,
+        0.05, 0.95,
+    ))
 
-    # Quietly correct for a stale historical baseline when an emerging player has
-    # demonstrated a sustained breakout across the season. This is intentionally
-    # not exposed as a separate UI factor.
+    # Breakout trajectory remains available as diagnostics, but Phase 4 did not
+    # promote it into the validated v0.98 probability path.
     trajectory_adjustment = float(np.clip(
         trajectory_a["probability_uplift"] - trajectory_b["probability_uplift"],
         -0.028,
         0.028,
     ))
-    base = float(np.clip(base + trajectory_adjustment, 0.05, 0.95))
 
     # Quietly account for each player's verified historical performance against
     # the opponent's handedness. Small samples are strongly shrunk toward the
@@ -1281,7 +1287,8 @@ def analyze(
         -0.025,
         0.025,
     ))
-    base = float(np.clip(base + handedness_adjustment, 0.05, 0.95))
+    # Retained for diagnostics/evidence only until it earns promotion through
+    # the same walk-forward validation process as the v0.98 factors.
 
     # Serve/Return Engine: build opponent-aware, sample-shrunk profiles from
     # verified match-level point statistics. It blends the last year, recent 90
@@ -1505,24 +1512,23 @@ def analyze(
          f"{player_b} {pb['deciding_win']:.0%}."),
     ]
 
-    # Cap the combined secondary adjustment. Context should refine the core rating,
-    # not overpower it when several related factors all point in the same direction.
-    total_adjustment = float(np.clip(sum(v for _, v, _ in factors), -0.12, 0.12))
+    # v0.98 promoted secondary layer. Phase 4 validated only surface transition
+    # and event pressure as additions to the audited core. Keep every other
+    # factor available for diagnostics/narrative, but do not let it move the
+    # production probability until it independently earns promotion.
+    promoted_transition = 2.125 * transition
+    promoted_pressure = 0.975 * pressure
+    total_adjustment = float(np.clip(
+        promoted_transition + promoted_pressure,
+        -0.04, 0.04,
+    ))
     raw_model = float(np.clip(base + total_adjustment, 0.05, 0.95))
 
-    # Calibrate extreme outputs back toward 50%. Sparse data receives more shrinkage.
-    minimum_sample = min(pa["sample"], pb["sample"])
-    if minimum_sample >= 40 and serve_return_available:
-        calibration_strength = 0.88
-    elif minimum_sample >= 20:
-        calibration_strength = 0.82
-    else:
-        calibration_strength = 0.76
-    final_model = float(np.clip(
-        0.50 + (raw_model - 0.50) * calibration_strength,
-        0.08,
-        0.92,
-    ))
+    # Phase 3-4 found the old 0.76/0.82/0.88 shrink toward 50% degraded
+    # probability quality. The validated candidate therefore uses the audited
+    # probability directly. Keep the field for archive compatibility.
+    calibration_strength = 1.0
+    final_model = raw_model
     best_of_five = str(match_format).casefold() == "best of 5"
     simulation = simulate_matches(final_model, simulations, best_of_five)
 
@@ -1571,6 +1577,7 @@ def analyze(
     ))
 
     return {
+        "model_version": TENNIS_MODEL_VERSION,
         "player_a": player_a,
         "player_b": player_b,
         "tournament": tournament,
@@ -1638,6 +1645,16 @@ def analyze(
         "base_probability": base,
         "raw_model_probability": raw_model,
         "total_secondary_adjustment": total_adjustment,
+        "v098_promoted_adjustment": {
+            "surface_transition_raw": transition,
+            "surface_transition_multiplier": 2.125,
+            "surface_transition_promoted": promoted_transition,
+            "event_pressure_raw": pressure,
+            "event_pressure_multiplier": 0.975,
+            "event_pressure_promoted": promoted_pressure,
+            "combined_cap": 0.04,
+        },
+        "diagnostic_all_factor_sum": float(sum(v for _, v, _ in factors)),
         "calibration_strength": calibration_strength,
         "model_probability": final_model,
         "win_probability": simulation["win_probability"],
