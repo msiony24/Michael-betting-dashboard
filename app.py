@@ -3470,7 +3470,7 @@ with tabs[1]:
                             "client_event_id": tennis_log_token,
                             "event_date": market_snapshot.get("match_date"),
                             "sport": "Tennis",
-                            "model_version": "Macabets Tennis v0.47",
+                            "model_version": str(result.get("model_version") or "Macabets Tennis v0.98"),
                             "event_name": f"{analyzed_a} vs {analyzed_b}",
                             "participant_a": analyzed_a, "participant_b": analyzed_b,
                             "market_type": "Moneyline",
