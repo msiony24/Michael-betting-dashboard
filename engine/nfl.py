@@ -45,9 +45,12 @@ def team_power_score(team: str, overrides: dict | None = None) -> tuple[float, d
                 components[key] = min(max(float(overrides[key]), 0.0), 100.0)
 
     raw = sum(components[key] * weight for key, weight in TEAM_RATING_WEIGHTS.items())
-    # Roughly 2.5 rating points equal one scoreboard point. The scale is
-    # intentionally compressed until historical calibration is complete.
-    power_points = (raw - 67.5) / 2.5
+    # Production team-strength grades are already compressed by the player/unit
+    # aggregation layers. Treat one weighted rating point as roughly one football
+    # edge point so real team differences are not compressed a second time.
+    # The previous /2.5 conversion made home field dominate too many matchups and
+    # produced an unrealistically narrow fair-spread distribution.
+    power_points = raw - 67.5
     return round(power_points, 2), components
 
 
