@@ -1,0 +1,37 @@
+name: NFL Phase 1 Audit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'audit/nfl_phase1_backtest.py'
+      - '.github/workflows/nfl_phase1_audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install audit dependencies
+        run: pip install pandas numpy
+
+      - name: Run NFL Phase 1 audit
+        run: python audit/nfl_phase1_backtest.py --output-dir audit/results_nfl_phase1
+
+      - name: Upload Phase 1 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfl-phase1-audit-results
+          path: audit/results_nfl_phase1/
+          if-no-files-found: error
