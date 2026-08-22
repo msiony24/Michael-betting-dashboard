@@ -94,10 +94,38 @@ def _default_alias_map(signature: tuple[int, int] | None) -> dict[str, set[str]]
     return _build_alias_map(registry)
 
 
+@lru_cache(maxsize=1)
+def _runtime_alias_map() -> dict[str, set[str]]:
+    """Load the on-disk registry once per app process.
+
+    Streamlit restarts the process when deployed files change, so repeatedly
+    stat-ing the CSV during every historical row lookup only adds filesystem
+    overhead without improving correctness.
+    """
+    return _default_alias_map(_registry_signature())
+
+
+def _alias_map(registry: pd.DataFrame | None = None) -> dict[str, set[str]]:
+    """Return the registry alias map without rebuilding it for every lookup."""
+    if registry is not None:
+        return _build_alias_map(registry)
+    return _runtime_alias_map()
+
+
+def _canonical_player_key_from_alias_map(value: Any, alias_map: dict[str, set[str]]) -> str:
+    candidates = alias_map.get(normalized_name(value), set())
+    if len(candidates) == 1:
+        return f"api:{next(iter(candidates))}"
+
+    surname, initial = player_name_signature(value)
+    if surname and initial:
+        return f"name:{surname}|{initial}"
+    return f"name:{normalized_name(value)}"
+
+
 def provider_player_key(value: Any, registry: pd.DataFrame | None = None) -> str | None:
     """Return one unambiguous API-Tennis player key for a known alias."""
-    alias_map = _build_alias_map(registry) if registry is not None else _default_alias_map(_registry_signature())
-    candidates = alias_map.get(normalized_name(value), set())
+    candidates = _alias_map(registry).get(normalized_name(value), set())
     if len(candidates) == 1:
         return next(iter(candidates))
     return None
@@ -110,14 +138,7 @@ def canonical_player_key(value: Any, registry: pd.DataFrame | None = None) -> st
     name unambiguously. Older players without provider IDs retain the surname and
     first-initial fallback so historical coverage remains intact.
     """
-    player_key = provider_player_key(value, registry=registry)
-    if player_key:
-        return f"api:{player_key}"
-
-    surname, initial = player_name_signature(value)
-    if surname and initial:
-        return f"name:{surname}|{initial}"
-    return f"name:{normalized_name(value)}"
+    return _canonical_player_key_from_alias_map(value, _alias_map(registry))
 
 
 def resolve_player_name(
@@ -139,11 +160,35 @@ def resolve_player_name(
     counts = names.value_counts()
     unique_names = counts.index.to_series()
     requested_normalized = normalized_name(requested_name)
-    requested_key = canonical_player_key(requested_name, registry=registry)
+    alias_map = _alias_map(registry)
+    requested_key = _canonical_player_key_from_alias_map(requested_name, alias_map)
+    requested_player_key = (
+        requested_key.removeprefix("api:") if requested_key.startswith("api:") else None
+    )
+    requested_signature = player_name_signature(requested_name)
 
-    key_matches = unique_names[
-        unique_names.map(lambda value: canonical_player_key(value, registry=registry)).eq(requested_key)
-    ]
+    def _matches_requested_identity(value: Any) -> bool:
+        # Normal path: both names reduce to the same unambiguous canonical key.
+        if _canonical_player_key_from_alias_map(value, alias_map) == requested_key:
+            return True
+
+        # Historical ATP feeds often abbreviate names (for example,
+        # ``Nakashima B.``). That abbreviated alias can legitimately be shared by
+        # more than one provider player ID, so canonical_player_key must remain
+        # conservative and cannot assign it globally. When the requested full
+        # name resolves to one verified provider ID, however, we can bridge that
+        # request to a historical alias that explicitly contains the same ID and
+        # has the same surname/first-initial signature.
+        if requested_player_key:
+            historical_candidates = alias_map.get(normalized_name(value), set())
+            if (
+                requested_player_key in historical_candidates
+                and player_name_signature(value) == requested_signature
+            ):
+                return True
+        return False
+
+    key_matches = unique_names[unique_names.map(_matches_requested_identity)]
     if key_matches.empty:
         return None, {
             "requested": requested_name,
