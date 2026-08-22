@@ -31,7 +31,7 @@ def test_weights_sum_to_one():
     assert round(sum(TEAM_STATE_WEIGHTS.values()), 10) == 1.0
 
 
-def test_live_snapshot_replaces_available_components(tmp_path: Path):
+def test_team_state_does_not_double_count_live_components(tmp_path: Path):
     priors = tmp_path / "ratings.json"
     snapshot = tmp_path / "snapshot.csv"
     _write_priors(priors)
@@ -53,13 +53,15 @@ def test_live_snapshot_replaces_available_components(tmp_path: Path):
 
     state = build_team_state("Test Team", snapshot_path=snapshot, ratings_path=priors)
 
-    # Week 4 current-season evidence carries 38% weight under the audited
-    # progressive blend; the personnel prior still matters early in the season.
-    assert state.components["quarterback"] == 83.04
-    assert state.components["offensive_line"] == 78.66
+    # The input ratings are already the production baseline, so QB/OL and other
+    # football components must not be blended with team_snapshot a second time.
+    assert state.components["quarterback"] == 80
+    assert state.components["offensive_line"] == 76
+    # Week 4 recent form is the one separate live signal and carries 38% weight.
     assert state.components["recent_form"] == 75.67
     assert state.components["coaching"] == 82
-    assert state.component_sources["coaching"] == "personnel prior"
+    assert state.component_sources["quarterback"] == "automated rating baseline"
+    assert state.component_sources["coaching"] == "automated rating baseline"
     assert state.season == 2026
     assert state.week == 4
 
