@@ -42,3 +42,16 @@ def test_moneyline_is_primary_output_and_spread_is_present():
     assert isinstance(result["fair_moneyline_away"], int)
     assert isinstance(result["fair_spread_home"], float)
     assert "decisive_factors" in result
+
+
+def test_team_power_scale_preserves_meaningful_qb_separation():
+    neutral = {key: 70.0 for key in TEAM_RATING_WEIGHTS}
+    qb_home = dict(neutral)
+    qb_home["quarterback"] = 80.0
+
+    neutral_power, _ = team_power_score("Buffalo Bills", neutral)
+    qb_power, _ = team_power_score("Buffalo Bills", qb_home)
+
+    # A 10-point QB grade edge at a 22% production weight should contribute
+    # about 2.2 football edge points rather than being compressed again.
+    assert round(qb_power - neutral_power, 1) == 2.2
