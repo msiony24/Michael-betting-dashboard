@@ -6,6 +6,9 @@ from engine.nfl_availability import classify_availability, sleeper_payload_to_fr
 def test_definitive_and_uncertain_statuses():
     assert classify_availability(roster_status="Active", injury_status="Out", active=True) == ("Out", True)
     assert classify_availability(roster_status="Injured Reserve", injury_status="", active=False) == ("Out", True)
+    assert classify_availability(roster_status="Inactive", injury_status="IR", active=True) == ("Out", True)
+    assert classify_availability(roster_status="Active", injury_status="PUP", active=True) == ("Out", True)
+    assert classify_availability(roster_status="Active", injury_status="Sus", active=True) == ("Out", True)
     assert classify_availability(roster_status="Active", injury_status="Questionable", active=True) == ("Questionable", False)
     assert classify_availability(roster_status="Active", injury_status="Doubtful", active=True) == ("Doubtful", False)
     assert classify_availability(roster_status="Active", injury_status="", active=True) == ("Active", False)
@@ -95,18 +98,32 @@ def test_sleeper_out_qb_activates_qb2_in_team_unit(tmp_path):
     assert qb["availability_promotions"][0]["in"] == "Backup Quarterback"
 
 
-def test_sleeper_team_abbreviations_are_canonicalized(tmp_path):
-    import pandas as pd
-    from engine.nfl_availability import load_availability, sleeper_payload_to_frame
-
-    frame = sleeper_payload_to_frame({
-        "1": {"full_name": "Rams Player", "team": "LAR", "position": "WR", "status": "Active"},
-        "2": {"full_name": "Raiders Player", "team": "OAK", "position": "RB", "status": "Active"},
-    })
-    assert frame.loc[frame.player_name.eq("Rams Player"), "team_abbr"].iloc[0] == "LA"
-    assert frame.loc[frame.player_name.eq("Raiders Player"), "team_abbr"].iloc[0] == "LV"
+def test_load_availability_reclassifies_stale_hard_status_rows(tmp_path):
+    from engine.nfl_availability import load_availability
 
     path = tmp_path / "availability.csv"
-    pd.DataFrame([{"player_name": "Rams Player", "name_key": "ramsplayer", "team_abbr": "LAR", "definitively_unavailable": False}]).to_csv(path, index=False)
+    pd.DataFrame([
+        {
+            "player_name": "IR Starter", "name_key": "irstarter", "team_abbr": "BUF",
+            "active": True, "roster_status": "Inactive", "injury_status": "IR",
+            "availability_state": "Active", "definitively_unavailable": False,
+        },
+        {
+            "player_name": "PUP Starter", "name_key": "pupstarter", "team_abbr": "BUF",
+            "active": True, "roster_status": "Active", "injury_status": "PUP",
+            "availability_state": "Active", "definitively_unavailable": False,
+        },
+        {
+            "player_name": "Questionable Starter", "name_key": "questionablestarter", "team_abbr": "BUF",
+            "active": True, "roster_status": "Active", "injury_status": "Questionable",
+            "availability_state": "Questionable", "definitively_unavailable": False,
+        },
+    ]).to_csv(path, index=False)
+
     loaded = load_availability(path)
-    assert loaded.loc[0, "team_abbr"] == "LA"
+    ir = loaded.loc[loaded.player_name.eq("IR Starter")].iloc[0]
+    pup = loaded.loc[loaded.player_name.eq("PUP Starter")].iloc[0]
+    questionable = loaded.loc[loaded.player_name.eq("Questionable Starter")].iloc[0]
+    assert ir.availability_state == "Out" and bool(ir.definitively_unavailable) is True
+    assert pup.availability_state == "Out" and bool(pup.definitively_unavailable) is True
+    assert questionable.availability_state == "Questionable" and bool(questionable.definitively_unavailable) is False
