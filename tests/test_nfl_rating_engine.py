@@ -56,3 +56,46 @@ def test_saves_status_and_history(tmp_path):
     assert status["players_rated"] == 1
     assert json.loads((tmp_path / "rating_status.json").read_text())["teams_rated"] == 1
     assert (tmp_path / "rating_history.jsonl").read_text().strip()
+
+
+def test_automatic_nflverse_depth_chart_is_normalized_and_preferred(tmp_path):
+    from engine.nfl_depth_chart import TEAM_TO_ABBR, load_depth_charts
+    from engine.nfl_rating_engine import _resolve_depth_chart_path
+
+    rows = []
+    for team_abbr in TEAM_TO_ABBR.values():
+        rows.append({
+            "dt": "2026-08-21T10:00:00Z",
+            "team": team_abbr,
+            "player_name": f"Old {team_abbr} QB",
+            "pos_abb": "QB",
+            "pos_slot": 1,
+            "pos_rank": 1,
+        })
+        rows.append({
+            "dt": "2026-08-22T10:00:00Z",
+            "team": team_abbr,
+            "player_name": f"Current {team_abbr} QB",
+            "pos_abb": "QB",
+            "pos_slot": 1,
+            "pos_rank": 1,
+        })
+        rows.append({
+            "dt": "2026-08-22T10:00:00Z",
+            "team": team_abbr,
+            "player_name": f"Backup {team_abbr} QB",
+            "pos_abb": "QB",
+            "pos_slot": 1,
+            "pos_rank": 2,
+        })
+    auto_path = tmp_path / "depth_charts.csv"
+    pd.DataFrame(rows).to_csv(auto_path, index=False)
+
+    normalized = load_depth_charts(auto_path)
+    bills = normalized[(normalized["team_abbr"] == "BUF") & (normalized["Position"] == "QB")].iloc[0]
+    assert bills["Starter"] == "Current BUF QB"
+    assert bills["2nd String"] == "Backup BUF QB"
+    assert "Old BUF QB" not in bills.tolist()
+    assert normalized.attrs["source_name"] == "nflverse automatic depth chart"
+    assert normalized["team_abbr"].nunique() == 32
+    assert _resolve_depth_chart_path(tmp_path) == auto_path

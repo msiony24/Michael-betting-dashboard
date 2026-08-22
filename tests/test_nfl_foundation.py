@@ -70,3 +70,25 @@ def test_optional_dataset_failure_is_recorded(tmp_path, monkeypatch):
     assert not injuries.available
     assert "not published yet" in injuries.error
     assert result.available_count == 9
+
+
+def test_depth_chart_refresh_keeps_only_latest_timestamp_snapshot(tmp_path, monkeypatch):
+    class SnapshotNFL(FakeNFL):
+        def load_depth_charts(self, seasons):
+            return pd.DataFrame([
+                {"dt": "2026-08-20T10:00:00Z", "team": "BUF", "player_name": "Old QB", "gsis_id": "old", "pos_abb": "QB", "pos_rank": 1},
+                {"dt": "2026-08-22T10:00:00Z", "team": "BUF", "player_name": "Current QB", "gsis_id": "new", "pos_abb": "QB", "pos_rank": 1},
+                {"dt": "2026-08-22T10:00:00Z", "team": "KC", "player_name": "Current KC QB", "gsis_id": "kc", "pos_abb": "QB", "pos_rank": 1},
+            ])
+
+    def fake_performance(season, output_path):
+        pd.DataFrame([{"team": "Kansas City Chiefs", "season": season}]).to_csv(output_path, index=False)
+        return FetchResult(season=season, rows=1, output_path=str(output_path), fetched_at_utc="now")
+
+    monkeypatch.setattr(foundation, "_fetch_performance_with_fallback", fake_performance)
+    foundation.refresh_nfl_foundation(2026, data_dir=tmp_path, nfl_module=SnapshotNFL())
+
+    depth = pd.read_csv(tmp_path / "depth_charts.csv")
+    assert len(depth) == 2
+    assert set(depth["player_name"]) == {"Current QB", "Current KC QB"}
+    assert depth["dt"].nunique() == 1
