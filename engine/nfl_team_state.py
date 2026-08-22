@@ -44,16 +44,11 @@ CURRENT_SEASON_START_WEIGHT = 0.20
 CURRENT_SEASON_WEEK_STEP = 0.06
 CURRENT_SEASON_MAX_WEIGHT = 0.85
 
-LIVE_COMPONENTS = {
-    "quarterback",
-    "offense",
-    "defense",
-    "offensive_line",
-    "defensive_line",
-    "secondary",
-    "special_teams",
-    "recent_form",
-}
+# The automated rating engine already blends current/prior NFL performance into
+# QB, OL, DL, secondary, special teams and the derived offense/defense grades.
+# Re-blending those same team_snapshot fields here would count the same evidence
+# twice. Team-state keeps only recent form as a separate live snapshot signal.
+LIVE_COMPONENTS = {"recent_form"}
 
 
 @dataclass(frozen=True)
@@ -167,34 +162,37 @@ def build_team_state(
         prior_value = _score(prior.get(component, 67.5))
         live_value = row.get(component) if row is not None and component in row else None
 
-        # Recent form is intentionally current-season only. Carrying Week 18
-        # momentum from the prior season into a new season creates false recency.
-        if component == "recent_form" and snapshot_season != target_season:
-            components[component] = 67.5
-            sources[component] = "neutral preseason baseline"
+        # Every non-recent-form component arrives here already carrying the
+        # audited Madden/depth-chart baseline plus the appropriate NFL
+        # performance blend from nfl_rating_engine.py. Keep that value intact so
+        # current-season team performance is not counted a second time.
+        if component != "recent_form":
+            components[component] = prior_value
+            sources[component] = "automated rating baseline"
             continue
 
+        # Recent form is intentionally current-season only and is the one live
+        # team_snapshot signal that is not already embedded in the rating engine.
+        # Start from neutral so prior-season Week 18 momentum cannot leak forward.
         if (
-            component in LIVE_COMPONENTS
+            snapshot_season == target_season
             and live_value is not None
             and pd.notna(live_value)
             and evidence_weight > 0
         ):
-            live_score = _score(live_value, prior_value)
+            live_score = _score(live_value, 67.5)
             components[component] = round(
-                prior_value * (1.0 - evidence_weight) + live_score * evidence_weight, 2
+                67.5 * (1.0 - evidence_weight) + live_score * evidence_weight, 2
             )
-            season_label = "current-season" if snapshot_season == target_season else "prior-season"
             sources[component] = (
-                f"{1.0-evidence_weight:.0%} personnel prior + "
-                f"{evidence_weight:.0%} {season_label} NFL performance"
+                f"{1.0-evidence_weight:.0%} neutral baseline + "
+                f"{evidence_weight:.0%} current-season recent form"
             )
         else:
-            fallback = 67.5 if component == "recent_form" else prior_value
-            components[component] = _score(fallback)
-            sources[component] = "neutral fallback" if component == "recent_form" else "personnel prior"
-            if component in LIVE_COMPONENTS:
-                warnings.append(f"{component} is using {sources[component]}")
+            components[component] = 67.5
+            sources[component] = "neutral preseason baseline"
+            if snapshot_season == target_season:
+                warnings.append("recent_form is using neutral preseason baseline")
 
     base_rating = sum(
         components[name] * weight for name, weight in TEAM_STATE_WEIGHTS.items()
