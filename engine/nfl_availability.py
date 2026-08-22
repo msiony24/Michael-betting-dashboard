@@ -24,12 +24,6 @@ DEFAULT_NFL_DIR = PROJECT_ROOT / "data" / "nfl"
 DEFAULT_AVAILABILITY_PATH = DEFAULT_NFL_DIR / "sleeper_availability.csv"
 DEFAULT_STATUS_PATH = DEFAULT_NFL_DIR / "sleeper_availability_status.json"
 SLEEPER_PLAYERS_URL = "https://api.sleeper.app/v1/players/nfl"
-TEAM_ABBR_ALIASES = {"LAR": "LA", "OAK": "LV"}
-
-
-def canonical_team_abbr(value: Any) -> str:
-    team = _text(value).upper()
-    return TEAM_ABBR_ALIASES.get(team, team)
 
 
 def normalize_player_name(value: Any) -> str:
@@ -53,7 +47,16 @@ def classify_availability(*, roster_status: Any = "", injury_status: Any = "", a
     roster = _text(roster_status).lower()
     injury = _text(injury_status).lower()
 
-    hard_injury = {"out"}
+    # Sleeper often places roster-list designations (IR/PUP/Sus) in
+    # ``injury_status`` while leaving ``status`` as Active or Inactive. Treat
+    # those exact designations as hard-unavailable too; otherwise an IR/PUP
+    # starter can incorrectly remain in Macabets' active lineup.
+    hard_injury = {
+        "out", "ir", "pup", "sus", "suspended", "nfi", "cov",
+        "injured reserve", "injured_reserve", "reserve/injured", "reserve injured",
+        "physically unable", "commissioner exempt",
+        "non-football injury", "non football injury", "non-football illness",
+    }
     hard_roster_tokens = (
         "injured reserve", "injured_reserve", "reserve/injured", "reserve injured",
         "physically unable", "pup", "suspended", "commissioner exempt",
@@ -81,7 +84,7 @@ def sleeper_payload_to_frame(payload: dict[str, Any], *, updated_at_utc: str | N
         first = _text(player.get("first_name"))
         last = _text(player.get("last_name"))
         full = _text(player.get("full_name")) or " ".join(v for v in (first, last) if v).strip()
-        team = canonical_team_abbr(player.get("team"))
+        team = _text(player.get("team")).upper()
         if not full or not team:
             continue
         roster_status = _text(player.get("status"))
@@ -173,12 +176,27 @@ def load_availability(path: Path | str = DEFAULT_AVAILABILITY_PATH) -> pd.DataFr
         return pd.DataFrame()
     if "name_key" not in frame.columns and "player_name" in frame.columns:
         frame["name_key"] = frame["player_name"].map(normalize_player_name)
-    if "team_abbr" in frame.columns:
-        frame["team_abbr"] = frame["team_abbr"].map(canonical_team_abbr)
-    if "definitively_unavailable" in frame.columns:
-        frame["definitively_unavailable"] = frame["definitively_unavailable"].astype(str).str.lower().isin({"true", "1", "yes"})
-    else:
-        frame["definitively_unavailable"] = False
+    # Reclassify on load instead of trusting an older CSV's cached state. This
+    # makes classification fixes effective immediately and protects the rating
+    # engine from stale/misclassified availability snapshots between refreshes.
+    def _active_value(value: Any):
+        text = _text(value).lower()
+        if text in {"true", "1", "yes"}:
+            return True
+        if text in {"false", "0", "no"}:
+            return False
+        return None
+
+    classified = frame.apply(
+        lambda row: classify_availability(
+            roster_status=row.get("roster_status", ""),
+            injury_status=row.get("injury_status", ""),
+            active=_active_value(row.get("active", None)),
+        ),
+        axis=1,
+    )
+    frame["availability_state"] = [state for state, _ in classified]
+    frame["definitively_unavailable"] = [bool(unavailable) for _, unavailable in classified]
     return frame
 
 
