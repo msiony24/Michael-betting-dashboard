@@ -101,33 +101,57 @@ def test_automatic_nflverse_depth_chart_is_normalized_and_preferred(tmp_path):
     assert _resolve_depth_chart_path(tmp_path) == auto_path
 
 
-def test_sleeper_availability_is_matched_by_team_for_duplicate_names(tmp_path):
+def test_player_performance_uses_gsis_identity_not_name_collision(tmp_path):
+    """Same-name players must never inherit each other's nflverse performance."""
     madden = tmp_path / "madden.csv"
     nfl = tmp_path / "nfl"
     nfl.mkdir()
     pd.DataFrame([
-        {"player_name": "Byron Young", "team": "LA", "position": "DE", "overall": 84},
-        {"player_name": "Byron Young", "team": "PHI", "position": "DT", "overall": 70},
+        {"player_name": "Justin Jefferson", "team": "Minnesota Vikings", "position": "WR", "overall": 94,
+         "speed": 92, "acceleration": 91, "catching": 96, "awareness": 95},
+        {"player_name": "Justin Jefferson", "team": "Cleveland Browns", "position": "LB", "overall": 67,
+         "speed": 84, "acceleration": 85, "tackle": 70, "awareness": 65},
     ]).to_csv(madden, index=False)
     pd.DataFrame([
-        {
-            "player_name": "Byron Young", "name_key": "byronyoung", "team_abbr": "LA",
-            "position": "DL", "roster_status": "Active", "injury_status": "",
-            "practice_participation": "", "availability_state": "Active",
-            "definitively_unavailable": False, "updated_at_utc": "2026-08-22T12:00:00+00:00",
-        },
-        {
-            "player_name": "Byron Young", "name_key": "byronyoung", "team_abbr": "PHI",
-            "position": "DL", "roster_status": "Active", "injury_status": "Questionable",
-            "practice_participation": "Limited", "availability_state": "Questionable",
-            "definitively_unavailable": False, "updated_at_utc": "2026-08-22T12:00:00+00:00",
-        },
-    ]).to_csv(nfl / "sleeper_availability.csv", index=False)
+        {"full_name": "Justin Jefferson", "team": "MIN", "position": "WR", "gsis_id": "00-0036322", "status": "Active"},
+        {"full_name": "Justin Jefferson", "team": "CLE", "position": "LB", "gsis_id": "00-0041075", "status": "Active"},
+    ]).to_csv(nfl / "rosters.csv", index=False)
+    pd.DataFrame([
+        {"player_id": "00-0036322", "player_display_name": "Justin Jefferson", "team": "MIN", "position": "WR",
+         "targets": 170, "receptions": 120, "receiving_yards": 1800, "receiving_tds": 12,
+         "rushing_yards": 0, "macabets_performance_cap": 0.20},
+    ]).to_csv(nfl / "player_weekly_stats.csv", index=False)
 
     players = build_player_ratings(madden, nfl)
-    la = players[(players.player_name == "Byron Young") & (players.team_abbr == "LA")].iloc[0]
-    phi = players[(players.player_name == "Byron Young") & (players.team_abbr == "PHI")].iloc[0]
-    assert la.availability_state == "Active"
-    assert la.injury_status == ""
-    assert phi.availability_state == "Questionable"
-    assert phi.injury_status == "Questionable"
+    vikings = players[(players.player_name.eq("Justin Jefferson")) & (players.team_abbr.eq("MIN"))].iloc[0]
+    browns = players[(players.player_name.eq("Justin Jefferson")) & (players.team_abbr.eq("CLE"))].iloc[0]
+    assert vikings.gsis_id == "00-0036322"
+    assert vikings.performance_weight > 0
+    assert browns.gsis_id == "00-0041075"
+    assert browns.performance_weight == 0
+    assert pd.isna(browns.performance_grade)
+
+
+def test_nflverse_arizona_roster_abbreviation_resolves_gsis(tmp_path):
+    """nflverse uses AZ while Macabets/Sleeper use ARI; identity must still resolve."""
+    madden = tmp_path / "madden.csv"
+    nfl = tmp_path / "nfl"
+    nfl.mkdir()
+    pd.DataFrame([
+        {"player_name": "Test Cardinal", "team": "Arizona Cardinals", "position": "WR", "overall": 80,
+         "speed": 88, "acceleration": 87, "catching": 80, "awareness": 78},
+    ]).to_csv(madden, index=False)
+    pd.DataFrame([
+        {"full_name": "Test Cardinal", "team": "AZ", "position": "WR", "gsis_id": "00-0099999", "status": "Active"},
+    ]).to_csv(nfl / "rosters.csv", index=False)
+    pd.DataFrame([
+        {"player_id": "00-0099999", "player_display_name": "Test Cardinal", "team": "ARI", "position": "WR",
+         "targets": 100, "receptions": 70, "receiving_yards": 1000, "receiving_tds": 8,
+         "rushing_yards": 0, "macabets_performance_cap": 0.20},
+    ]).to_csv(nfl / "player_weekly_stats.csv", index=False)
+
+    players = build_player_ratings(madden, nfl)
+    row = players.iloc[0]
+    assert row.team_abbr == "ARI"
+    assert row.gsis_id == "00-0099999"
+    assert row.performance_weight > 0
