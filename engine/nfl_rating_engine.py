@@ -248,12 +248,15 @@ def _load_roster_status(path: Path) -> pd.DataFrame:
     frame = pd.read_csv(path)
     name_col = _find_col(frame, ("full_name", "player_name", "name"))
     if not name_col: return pd.DataFrame()
+    team_col = _find_col(frame, ("team", "recent_team", "team_abbr"))
     result = pd.DataFrame({
         "name_key": frame[name_col].map(_name_key),
+        "team_abbr": frame[team_col].astype(str).str.upper().str.strip() if team_col else "",
         "roster_status": frame[_find_col(frame, ("status",))] if _find_col(frame, ("status",)) else "",
         "gsis_id": frame[_find_col(frame, ("gsis_id", "player_id"))] if _find_col(frame, ("gsis_id", "player_id")) else "",
     })
-    return result.drop_duplicates("name_key", keep="last")
+    keys = ["name_key", "team_abbr"] if team_col else ["name_key"]
+    return result.drop_duplicates(keys, keep="last")
 
 
 def _load_injuries(path: Path) -> pd.DataFrame:
@@ -261,9 +264,15 @@ def _load_injuries(path: Path) -> pd.DataFrame:
     frame = pd.read_csv(path)
     name_col = _find_col(frame, ("full_name", "player_name", "name"))
     if not name_col: return pd.DataFrame()
+    team_col = _find_col(frame, ("team", "recent_team", "team_abbr"))
     status_col = _find_col(frame, ("report_status", "game_status", "practice_status", "status"))
-    result = pd.DataFrame({"name_key": frame[name_col].map(_name_key), "injury_status": frame[status_col] if status_col else ""})
-    return result.drop_duplicates("name_key", keep="last")
+    result = pd.DataFrame({
+        "name_key": frame[name_col].map(_name_key),
+        "team_abbr": frame[team_col].astype(str).str.upper().str.strip() if team_col else "",
+        "injury_status": frame[status_col] if status_col else "",
+    })
+    keys = ["name_key", "team_abbr"] if team_col else ["name_key"]
+    return result.drop_duplicates(keys, keep="last")
 
 
 def build_player_ratings(
@@ -280,6 +289,17 @@ def build_player_ratings(
     players["trait_grade"] = players.apply(_weighted_trait_grade, axis=1)
 
     root = Path(nfl_dir)
+
+    # Resolve the current team assignment before joining live roster/injury feeds.
+    # Names are not globally unique in the NFL (for example, two Byron Youngs), so
+    # availability must be matched by player name + team rather than name alone.
+    chart_path = Path(depth_chart_path) if depth_chart_path is not None else root / "footballguys_depth_charts.csv"
+    depth_charts = load_depth_charts(chart_path)
+    assignments = depth_chart_team_assignments(depth_charts)
+    assigned = players["name_key"].map(assignments)
+    players["depth_chart_team_override"] = assigned.notna() & assigned.ne(players["team_abbr"])
+    players["team_abbr"] = assigned.where(assigned.notna(), players["team_abbr"])
+
     stats = _performance_grades(_aggregate_weekly_stats(root / "player_weekly_stats.csv"))
     if not stats.empty:
         merge_cols = ["name_key", "performance_grade", "sample_size"]
@@ -313,12 +333,13 @@ def build_player_ratings(
             rename_map["gsis_id"] = "_fresh_gsis_id"
         roster_merge = roster_merge.rename(columns=rename_map)
 
-        keep_cols = ["name_key"] + [
+        join_keys = ["name_key", "team_abbr"] if "team_abbr" in roster_merge.columns else ["name_key"]
+        keep_cols = join_keys + [
             column for column in ("_fresh_roster_status", "_fresh_gsis_id")
             if column in roster_merge.columns
         ]
-        roster_merge = roster_merge[keep_cols].drop_duplicates("name_key", keep="first")
-        players = players.merge(roster_merge, on="name_key", how="left")
+        roster_merge = roster_merge[keep_cols].drop_duplicates(join_keys, keep="last")
+        players = players.merge(roster_merge, on=join_keys, how="left")
 
         if "_fresh_roster_status" in players.columns:
             fresh = players["_fresh_roster_status"].fillna("").astype(str).str.strip()
@@ -345,12 +366,12 @@ def build_player_ratings(
         ]
         sleeper = sleeper[[c for c in sleeper_cols if c in sleeper.columns]].copy()
         sleeper = sleeper.rename(columns={
-            "team_abbr": "_sleeper_team_abbr",
             "roster_status": "_sleeper_roster_status",
             "injury_status": "_sleeper_injury_status",
             "updated_at_utc": "availability_updated_at_utc",
         })
-        players = players.merge(sleeper.drop_duplicates("name_key", keep="last"), on="name_key", how="left")
+        sleeper = sleeper.drop_duplicates(["name_key", "team_abbr"], keep="last")
+        players = players.merge(sleeper, on=["name_key", "team_abbr"], how="left")
         if "_sleeper_roster_status" in players.columns:
             live = players["_sleeper_roster_status"].fillna("").astype(str).str.strip()
             current = players["roster_status"].fillna("").astype(str).str.strip()
@@ -363,7 +384,8 @@ def build_player_ratings(
     else:
         injuries = _load_injuries(root / "injuries.csv")
         if not injuries.empty:
-            players = players.merge(injuries, on="name_key", how="left")
+            join_keys = ["name_key", "team_abbr"] if "team_abbr" in injuries.columns else ["name_key"]
+            players = players.merge(injuries, on=join_keys, how="left")
         else:
             players["injury_status"] = ""
         injury_text = players["injury_status"].fillna("").astype(str).str.lower()
@@ -401,17 +423,6 @@ def build_player_ratings(
     players["macabets_rating"] = players["base_rating"].clip(0, 99).round(2)
     players["rating_confidence"] = np.where(players["performance_weight"] > .35, "high", np.where(players["performance_weight"] > .10, "medium", "baseline"))
     players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 27 + nflverse performance", "Madden 27 baseline")
-
-    # The depth chart is authoritative for current team assignment. This matters for
-    # offseason trades/free-agent moves that Madden launch rosters or nflverse files
-    # may not yet reflect. Madden still supplies the talent grade; it does not decide
-    # which team the player currently belongs to.
-    chart_path = Path(depth_chart_path) if depth_chart_path is not None else root / "footballguys_depth_charts.csv"
-    depth_charts = load_depth_charts(chart_path)
-    assignments = depth_chart_team_assignments(depth_charts)
-    assigned = players["name_key"].map(assignments)
-    players["depth_chart_team_override"] = assigned.notna() & assigned.ne(players["team_abbr"])
-    players["team_abbr"] = assigned.where(assigned.notna(), players["team_abbr"])
 
     keep = ["player_name", "team_abbr", "position", "position_family", "overall", "trait_grade",
             "performance_grade", "performance_weight", "availability_adjustment", "macabets_rating",
