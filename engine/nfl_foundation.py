@@ -152,6 +152,23 @@ def _latest_week_rows(frame: pd.DataFrame) -> pd.DataFrame:
     return working.drop(columns=["_week_sort"])
 
 
+def _latest_depth_chart_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    """Keep only the newest nflverse depth-chart snapshot.
+
+    nflverse depth charts are timestamped snapshots and currently do not expose a
+    season/week column. Storing the entire history causes production to mix stale
+    preseason orders with the current chart.
+    """
+    if frame.empty:
+        return frame
+    if "dt" in frame.columns:
+        parsed = pd.to_datetime(frame["dt"], errors="coerce", utc=True)
+        valid = parsed.dropna()
+        if not valid.empty:
+            return frame.loc[parsed.eq(valid.max())].copy()
+    return _latest_week_rows(frame)
+
+
 def _safe_dataset(
     *,
     name: str,
@@ -369,7 +386,7 @@ def refresh_nfl_foundation(
         ("team_weekly_stats", "team_weekly_stats.csv", lambda: nfl_module.load_team_stats([season], summary_level="week"), lambda f: _season_filter(f, season)),
         ("snap_counts", "snap_counts.csv", lambda: nfl_module.load_snap_counts([season]), lambda f: _season_filter(f, season)),
         ("injuries", "injuries.csv", lambda: nfl_module.load_injuries([season]), lambda f: _season_filter(f, season)),
-        ("depth_charts", "depth_charts.csv", lambda: nfl_module.load_depth_charts([season]), lambda f: _latest_week_rows(_season_filter(f, season))),
+        ("depth_charts", "depth_charts.csv", lambda: nfl_module.load_depth_charts([season]), lambda f: _latest_depth_chart_rows(_season_filter(f, season))),
     ]
 
     for name, filename, loader, transform in specs:

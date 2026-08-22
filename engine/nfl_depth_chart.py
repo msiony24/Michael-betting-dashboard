@@ -18,8 +18,13 @@ import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DEPTH_CHART_PATH = PROJECT_ROOT / "data" / "footballguys_depth_charts.csv"
+AUTO_DEPTH_CHART_PATH = PROJECT_ROOT / "data" / "nfl" / "depth_charts.csv"
 
 DEPTH_COLUMNS = ("Starter", "2nd String", "3rd String", "4th String", "5th String")
+AUTO_DEPTH_REQUIRED = {"dt", "team", "player_name", "pos_abb", "pos_rank"}
+AUTO_ROLE_MAP = {"NB": "SCB"}
+OFFENSE_ROLES = {"QB", "RB", "FB", "WR", "TE", "LT", "LG", "C", "RG", "RT"}
+SPECIAL_TEAMS_ROLES = {"PK", "P", "H", "PR", "KR", "LS"}
 
 TEAM_TO_ABBR = {
     "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
@@ -43,11 +48,93 @@ def normalize_player_name(value: Any) -> str:
     return re.sub(r"[^a-z0-9]", "", text)
 
 
+def _empty_depth_chart() -> pd.DataFrame:
+    return pd.DataFrame(columns=["Team", "Unit", "Position", *DEPTH_COLUMNS, "Source URL", "team_abbr"])
+
+
+def _depth_unit(role: str) -> str:
+    role = str(role or "").upper().strip()
+    if role in OFFENSE_ROLES:
+        return "Offense"
+    if role in SPECIAL_TEAMS_ROLES:
+        return "Special Teams"
+    return "Defense"
+
+
+def _latest_auto_snapshot(frame: pd.DataFrame) -> tuple[pd.DataFrame, str]:
+    """Return only the newest nflverse depth-chart snapshot.
+
+    nflverse publishes a timestamped history rather than a single current table.
+    Production must never accidentally mix March, April, preseason, and current
+    depth charts together.
+    """
+    if frame.empty or "dt" not in frame.columns:
+        return frame.copy(), ""
+    parsed = pd.to_datetime(frame["dt"], errors="coerce", utc=True)
+    valid = parsed.dropna()
+    if valid.empty:
+        return frame.copy(), ""
+    latest = valid.max()
+    current = frame.loc[parsed.eq(latest)].copy()
+    return current, latest.isoformat()
+
+
+def _normalize_auto_depth_chart(frame: pd.DataFrame) -> pd.DataFrame:
+    """Convert nflverse's long depth-chart history into Macabets' wide schema."""
+    missing = AUTO_DEPTH_REQUIRED - set(frame.columns)
+    if missing:
+        raise ValueError("Automated depth chart file missing required columns: " + ", ".join(sorted(missing)))
+
+    current, snapshot_at = _latest_auto_snapshot(frame)
+    if current.empty:
+        out = _empty_depth_chart()
+        out.attrs["source_name"] = "nflverse automatic depth chart"
+        out.attrs["snapshot_at"] = snapshot_at
+        return out
+
+    current["team"] = current["team"].astype(str).str.upper().str.strip()
+    current["Position"] = (
+        current["pos_abb"].astype(str).str.upper().str.strip().replace(AUTO_ROLE_MAP)
+    )
+    current["_rank"] = pd.to_numeric(current["pos_rank"], errors="coerce").fillna(999.0)
+    slot_values = current["pos_slot"] if "pos_slot" in current.columns else pd.Series("", index=current.index)
+    current["_slot"] = pd.to_numeric(slot_values, errors="coerce").fillna(999.0)
+    current["player_name"] = current["player_name"].astype(str).str.strip()
+    current = current[current["team"].isin(ABBR_TO_TEAM) & current["player_name"].ne("") & current["Position"].ne("")].copy()
+
+    rows: list[dict[str, str]] = []
+    for (team_abbr, role), group in current.groupby(["team", "Position"], sort=True):
+        ordered = (
+            group.sort_values(["_rank", "_slot", "player_name"], kind="stable")
+            .drop_duplicates("player_name", keep="first")
+        )
+        names = ordered["player_name"].tolist()[: len(DEPTH_COLUMNS)]
+        row: dict[str, str] = {
+            "Team": ABBR_TO_TEAM[str(team_abbr)],
+            "Unit": _depth_unit(str(role)),
+            "Position": str(role),
+            "Source URL": f"nflverse automatic depth chart ({snapshot_at})" if snapshot_at else "nflverse automatic depth chart",
+            "team_abbr": str(team_abbr),
+        }
+        for index, column in enumerate(DEPTH_COLUMNS):
+            row[column] = names[index] if index < len(names) else ""
+        rows.append(row)
+
+    out = pd.DataFrame(rows, columns=["Team", "Unit", "Position", *DEPTH_COLUMNS, "Source URL", "team_abbr"])
+    out.attrs["source_name"] = "nflverse automatic depth chart"
+    out.attrs["snapshot_at"] = snapshot_at
+    return out
+
+
 def load_depth_charts(path: Path | str = DEFAULT_DEPTH_CHART_PATH) -> pd.DataFrame:
     path = Path(path)
     if not path.exists():
-        return pd.DataFrame(columns=["Team", "Unit", "Position", *DEPTH_COLUMNS, "Source URL", "team_abbr"])
+        return _empty_depth_chart()
     frame = pd.read_csv(path, dtype=str).fillna("")
+
+    if AUTO_DEPTH_REQUIRED.issubset(frame.columns):
+        return _normalize_auto_depth_chart(frame)
+
     required = {"Team", "Unit", "Position", *DEPTH_COLUMNS}
     missing = required - set(frame.columns)
     if missing:
@@ -58,6 +145,8 @@ def load_depth_charts(path: Path | str = DEFAULT_DEPTH_CHART_PATH) -> pd.DataFra
     frame["team_abbr"] = frame["Team"].map(TEAM_TO_ABBR).fillna("")
     for col in DEPTH_COLUMNS:
         frame[col] = frame[col].astype(str).str.strip()
+    frame.attrs["source_name"] = "Footballguys/manual depth chart"
+    frame.attrs["snapshot_at"] = ""
     return frame
 
 
@@ -82,7 +171,9 @@ def team_depth_chart(depth_charts: pd.DataFrame, team_abbr: str) -> pd.DataFrame
     if depth_charts.empty:
         return depth_charts.copy()
     abbr = str(team_abbr or "").upper().strip()
-    return depth_charts[depth_charts["team_abbr"].eq(abbr)].copy()
+    team_frame = depth_charts[depth_charts["team_abbr"].eq(abbr)].copy()
+    team_frame.attrs.update(depth_charts.attrs)
+    return team_frame
 
 
 def _row(team_depth: pd.DataFrame, position: str) -> pd.Series | None:

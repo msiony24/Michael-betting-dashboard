@@ -26,6 +26,7 @@ from engine.nfl_availability import (
     load_availability_status,
 )
 from engine.nfl_depth_chart import (
+    AUTO_DEPTH_CHART_PATH,
     DEFAULT_DEPTH_CHART_PATH,
     depth_chart_team_assignments,
     load_depth_charts,
@@ -638,12 +639,13 @@ def build_team_ratings(
         unavailable_count = sum(len(unit.get("unavailable_starters", []) or []) for unit in units.values())
         promotion_count = sum(len(unit.get("availability_promotions", []) or []) for unit in units.values())
         uncertain_count = sum(len(unit.get("availability_uncertainty", []) or []) for unit in units.values())
+        depth_source = str(depth_charts.attrs.get("source_name") or "depth chart") if not current_depth.empty else "rating-order fallback"
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": "Macabets automated rating engine v1.3 - Footballguys depth chart + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": False,
+            "source": f"Macabets automated rating engine v1.4 - {depth_source} + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": False,
             "personnel_matchup_influence_enabled": True,
-            "depth_chart_source": "Footballguys" if not current_depth.empty else "rating-order fallback",
+            "depth_chart_source": depth_source,
             "depth_chart_rows": int(len(current_depth)),
             "availability_source": "Sleeper" if "Sleeper" in availability_sources else (availability_sources[0] if availability_sources else ""),
             "availability_updated_at_utc": max(availability_updates) if availability_updates else "",
@@ -661,20 +663,33 @@ def _write_json(path: Path, payload: Any) -> None:
     temp.replace(path)
 
 
-def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, Any], *, nfl_dir: Path | str = DEFAULT_NFL_DIR) -> dict[str, Any]:
+def save_rating_outputs(
+    player_ratings: pd.DataFrame,
+    team_ratings: dict[str, Any],
+    *,
+    nfl_dir: Path | str = DEFAULT_NFL_DIR,
+    depth_chart_path: Path | str | None = None,
+) -> dict[str, Any]:
     root = Path(nfl_dir); root.mkdir(parents=True, exist_ok=True)
     updated = datetime.now(timezone.utc).isoformat(timespec="seconds")
     player_path, team_path = root / "player_ratings.csv", root / "team_ratings_auto.json"
     temp = player_path.with_suffix(".csv.tmp"); player_ratings.to_csv(temp, index=False); temp.replace(player_path)
     _write_json(team_path, team_ratings)
     availability_status = load_availability_status(Path(nfl_dir) / "sleeper_availability_status.json")
+    depth_sources = sorted({
+        str(team.get("depth_chart_source") or "").strip()
+        for team in team_ratings.values()
+        if isinstance(team, dict) and str(team.get("depth_chart_source") or "").strip()
+    })
+    depth_source = ", ".join(depth_sources) if depth_sources else "Unavailable"
+    resolved_depth_path = Path(depth_chart_path) if depth_chart_path is not None else None
     status = {
-        "schema_version": "1.3", "engine_version": "1.3-depth-chart-plus-availability", "updated_at_utc": updated,
+        "schema_version": "1.4", "engine_version": "1.4-auto-depth-chart", "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
         "prediction_influence_enabled": False,
-        "depth_chart_source": "Footballguys",
-        "depth_chart_file": str(Path(nfl_dir) / "footballguys_depth_charts.csv"),
+        "depth_chart_source": depth_source,
+        "depth_chart_file": str(resolved_depth_path) if resolved_depth_path is not None else "",
         "availability_source": availability_status.get("source", "Sleeper snapshot not available"),
         "availability_updated_at_utc": availability_status.get("updated_at_utc"),
         "availability_players": availability_status.get("players", 0),
@@ -690,17 +705,29 @@ def save_rating_outputs(player_ratings: pd.DataFrame, team_ratings: dict[str, An
 
 
 def _resolve_depth_chart_path(nfl_dir: Path | str = DEFAULT_NFL_DIR) -> Path:
-    """Resolve the authoritative Footballguys depth-chart file robustly.
+    """Resolve the best current depth chart for production ratings.
 
-    The project historically stored this CSV in both ``data/`` and ``data/nfl/``.
-    Production must not silently fall back to rating order because one location is
-    absent, so prefer the canonical root-data path and accept the legacy nfl path.
+    The daily nflverse snapshot is preferred because it updates automatically with
+    roster/depth changes. The existing Footballguys CSV remains a safe fallback if
+    the automatic dataset is missing or malformed.
     """
-    candidates = [
+    root = Path(nfl_dir)
+    auto_candidates = [root / "depth_charts.csv", AUTO_DEPTH_CHART_PATH]
+    for candidate in auto_candidates:
+        if not candidate.exists():
+            continue
+        try:
+            chart = load_depth_charts(candidate)
+        except Exception:
+            continue
+        if not chart.empty and chart["team_abbr"].nunique() >= 32:
+            return candidate
+
+    fallback_candidates = [
         DEFAULT_DEPTH_CHART_PATH,
-        Path(nfl_dir) / "footballguys_depth_charts.csv",
+        root / "footballguys_depth_charts.csv",
     ]
-    for candidate in candidates:
+    for candidate in fallback_candidates:
         if candidate.exists():
             return candidate
     return DEFAULT_DEPTH_CHART_PATH
@@ -718,4 +745,4 @@ def build_and_save_ratings(*, madden_path: Path | str = DEFAULT_MADDEN_PATH, nfl
         snapshot_path=Path(nfl_dir) / "team_snapshot.csv",
         depth_chart_path=depth_chart_path,
     )
-    return save_rating_outputs(players, teams, nfl_dir=nfl_dir)
+    return save_rating_outputs(players, teams, nfl_dir=nfl_dir, depth_chart_path=depth_chart_path)
