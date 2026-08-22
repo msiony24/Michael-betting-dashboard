@@ -60,6 +60,11 @@ def normalize_round(value: object) -> str:
         "Round of 64": "R64",
         "Round of 32": "R32",
         "Round of 16": "R16",
+        # API-Tennis commonly describes a 128-player bracket by the number of
+        # matches remaining rather than by ATP round names.
+        "1/64-finals": "R128",
+        "1/32-finals": "R64",
+        "1/16-finals": "R32",
         "1/8-finals": "R16",
         "Quarter-finals": "QF",
         "Semi-finals": "SF",
@@ -70,19 +75,116 @@ def normalize_round(value: object) -> str:
     return mapping.get(text, text)
 
 
+_GRAND_SLAM_NAME_TOKENS = (
+    "australian open",
+    "french open",
+    "roland garros",
+    "wimbledon",
+    "us open",
+    "u.s. open",
+)
+
+_MASTERS_1000_NAME_TOKENS = (
+    "indian wells",
+    "bnp paribas open",
+    "miami open",
+    "monte carlo",
+    "monte-carlo",
+    "madrid open",
+    "mutua madrid",
+    "italian open",
+    "internazionali bnl",
+    "rome masters",
+    "canadian open",
+    "national bank open",
+    "montreal",
+    "toronto",
+    "cincinnati",
+    "shanghai masters",
+    "shanghai rolex masters",
+    "paris masters",
+)
+
+
 def normalize_level(value: object) -> str:
-    text = str(value).strip().lower()
-    if "grand slam" in text:
+    """Normalize provider series/category text *or* a tournament name.
+
+    The yearly workbook usually supplies a reliable Series field. API-Tennis
+    fixtures do not, so live rows pass the tournament name here. Explicit name
+    aliases prevent Grand Slams and Masters 1000 events from silently degrading
+    to generic ATP-level matches during the rolling API refresh.
+    """
+    text = re.sub(r"\s+", " ", str(value or "").strip().lower())
+    if "masters cup" in text or "tour finals" in text or "atp finals" in text:
+        return "F"
+    if "grand slam" in text or any(token in text for token in _GRAND_SLAM_NAME_TOKENS):
         return "G"
-    if "masters" in text or "1000" in text:
+    if (
+        "masters" in text
+        or "1000" in text
+        or any(token in text for token in _MASTERS_1000_NAME_TOKENS)
+    ):
         return "M"
     if "atp250" in text or "atp 250" in text:
         return "A"
     if "atp500" in text or "atp 500" in text:
         return "A"
-    if "masters cup" in text or "tour finals" in text:
-        return "F"
     return "A"
+
+
+def normalize_api_draw_context(frame: pd.DataFrame) -> pd.DataFrame:
+    """Separate qualifying rounds from the main draw in API fixture data.
+
+    API-Tennis can label qualifying rounds as ``Quarter-finals``,
+    ``Semi-finals`` and ``Final`` under the same tournament name as the main
+    draw. Without correction, Macabets interprets those as late-round pressure
+    matches and can also count Slam/Masters qualifiers as main-draw experience.
+
+    For each event/year, the earliest R128/R64/R32 date marks the start of the
+    main draw. Earlier knockout-labelled rows are converted to ``Q`` and are
+    downgraded to generic ATP level for historical experience calculations.
+    """
+    if frame is None or frame.empty:
+        return frame.copy() if frame is not None else pd.DataFrame(columns=MATCH_COLUMNS)
+
+    out = frame.copy()
+    out["round"] = out["round"].map(normalize_round)
+
+    # Repair category loss from older API rows as well as newly converted rows.
+    # Only promote explicitly recognized major events; generic ATP 250/500 names
+    # keep their existing yearly-workbook classification.
+    inferred_levels = out["tourney_name"].map(normalize_level)
+    promote = inferred_levels.isin(["G", "M", "F"])
+    out.loc[promote, "tourney_level"] = inferred_levels[promote]
+
+    dates = pd.to_datetime(out["tourney_date"].astype(str), format="%Y%m%d", errors="coerce")
+    out["_event_year"] = dates.dt.year
+    out["_event_date"] = dates
+
+    for (_, _), group in out.groupby(["tourney_name", "_event_year"], dropna=False):
+        if group.empty:
+            continue
+        main_start = None
+        for opening_round in ("R128", "R64", "R32"):
+            candidates = group.loc[group["round"].eq(opening_round), "_event_date"].dropna()
+            if not candidates.empty:
+                main_start = candidates.min()
+                break
+        if main_start is None:
+            continue
+
+        qualifying = group.index[
+            group["_event_date"].notna()
+            & group["_event_date"].lt(main_start)
+            & group["round"].isin(["Q", "R16", "QF", "SF", "F"])
+        ]
+        if len(qualifying):
+            out.loc[qualifying, "round"] = "Q"
+            # Do not let qualifying inflate Grand Slam/Masters main-draw
+            # experience or big-event win rates.
+            out.loc[qualifying, "tourney_level"] = "A"
+
+    return out.drop(columns=["_event_year", "_event_date"], errors="ignore")
 
 
 def build_score(row: pd.Series) -> str:
@@ -513,13 +615,195 @@ def convert_api_fixtures(
 
     if not rows:
         return pd.DataFrame(columns=MATCH_COLUMNS)
-    return pd.DataFrame(rows, columns=MATCH_COLUMNS)
+    return normalize_api_draw_context(pd.DataFrame(rows, columns=MATCH_COLUMNS))
 
 
 def _match_key(row: pd.Series) -> str:
     signatures = sorted([player_signature(row.get("winner_name")), player_signature(row.get("loser_name"))])
     players = "|".join(f"{surname}:{initial}" for surname, initial in signatures)
     return f"{str(row.get('tourney_date') or '')}|{players}"
+
+
+def _pair_key(row: pd.Series) -> str:
+    signatures = sorted([
+        player_signature(row.get("winner_name")),
+        player_signature(row.get("loser_name")),
+    ])
+    return "|".join(f"{surname}:{initial}" for surname, initial in signatures)
+
+
+def _winner_key(row: pd.Series) -> str:
+    surname, initial = player_signature(row.get("winner_name"))
+    return f"{surname}:{initial}"
+
+
+def _normalized_score_key(value: object) -> str:
+    """Collapse provider tiebreak notation to the underlying set score.
+
+    API-Tennis may emit ``7.7-6.4`` where the yearly workbook stores ``7-6``.
+    For duplicate detection those are the same completed set.
+    """
+    parts = re.findall(
+        r"(\d+)(?:\.\d+)?\s*-\s*(\d+)(?:\.\d+)?",
+        str(value or ""),
+    )
+    return " ".join(f"{int(a)}-{int(b)}" for a, b in parts)
+
+
+def _names_likely_same_for_dedupe(left: object, right: object) -> bool:
+    """Conservative alias match used only for near-date duplicate cleanup."""
+    if player_signature(left) == player_signature(right):
+        return True
+
+    def parts(value: object) -> tuple[str, set[str]]:
+        tokens = _name_tokens(value)
+        if not tokens:
+            return "", set()
+        if len(tokens[-1]) == 1:
+            first_initial = tokens[-1]
+            name_words = {token for token in tokens[:-1] if len(token) > 1}
+        else:
+            first_initial = tokens[0][0]
+            name_words = {token for token in tokens[1:] if len(token) > 1}
+        return first_initial, name_words
+
+    left_initial, left_words = parts(left)
+    right_initial, right_words = parts(right)
+    return bool(
+        left_initial
+        and left_initial == right_initial
+        and left_words
+        and right_words
+        and left_words.intersection(right_words)
+    )
+
+
+def _row_data_quality(row: pd.Series) -> int:
+    api_fields = [
+        "winner_player_key", "loser_player_key",
+        "w_svpt", "l_svpt", "w_1stWon", "l_1stWon", "w_2ndWon", "l_2ndWon",
+    ]
+    score = 0
+    for column in api_fields:
+        value = row.get(column)
+        if value is not None and not pd.isna(value) and str(value).strip() not in {"", "nan", "None"}:
+            score += 1
+    if _normalized_score_key(row.get("score")):
+        score += 1
+    return score
+
+
+def deduplicate_near_date_matches(frame: pd.DataFrame) -> pd.DataFrame:
+    """Remove duplicate provider rows shifted by one calendar day.
+
+    The yearly workbook and API-Tennis can represent the same match on adjacent
+    dates (usually timezone/reporting differences) and under different tournament
+    aliases. Exact date+player dedupe therefore misses them, double-counting recent
+    form and fatigue. Within the same player pair, adjacent-day rows with the same
+    winner are treated as duplicates when their normalized scores agree or one
+    score is missing. The richer row (player IDs/point stats) is retained.
+    """
+    if frame is None or frame.empty:
+        return frame.copy() if frame is not None else pd.DataFrame(columns=MATCH_COLUMNS)
+
+    out = frame.copy().reset_index(drop=True)
+    out["_pair_key"] = out.apply(_pair_key, axis=1)
+    out["_winner_key"] = out.apply(_winner_key, axis=1)
+    out["_score_key"] = out["score"].map(_normalized_score_key)
+    out["_parsed_date"] = pd.to_datetime(
+        out["tourney_date"].astype(str).str.replace(".0", "", regex=False),
+        format="%Y%m%d",
+        errors="coerce",
+    )
+    out["_quality"] = out.apply(_row_data_quality, axis=1)
+
+    drop: set[int] = set()
+    for _, group in out.groupby("_pair_key", sort=False):
+        if len(group) < 2:
+            continue
+        ordered = group.sort_values("_parsed_date")
+        indices = ordered.index.tolist()
+        for left_pos in range(len(indices) - 1):
+            i = indices[left_pos]
+            if i in drop:
+                continue
+            for right_pos in range(left_pos + 1, len(indices)):
+                j = indices[right_pos]
+                if j in drop:
+                    continue
+                di = out.at[i, "_parsed_date"]
+                dj = out.at[j, "_parsed_date"]
+                if pd.isna(di) or pd.isna(dj):
+                    continue
+                day_gap = abs((dj - di).days)
+                if day_gap > 1:
+                    break
+                if out.at[i, "_winner_key"] != out.at[j, "_winner_key"]:
+                    continue
+                score_i = out.at[i, "_score_key"]
+                score_j = out.at[j, "_score_key"]
+                score_compatible = (
+                    (score_i and score_j and score_i == score_j)
+                    or not score_i
+                    or not score_j
+                )
+                if not score_compatible:
+                    continue
+
+                qi = int(out.at[i, "_quality"])
+                qj = int(out.at[j, "_quality"])
+                # Prefer the richer API-enriched row. Ties prefer the earlier
+                # provider date, matching API-Tennis's America/New_York pull.
+                if qj > qi:
+                    drop.add(i)
+                    break
+                drop.add(j)
+
+    # A second, tightly constrained pass catches provider aliases where a
+    # compound surname changes the primary signature (for example historical
+    # ``Mpetshi G.`` vs live ``G. Mpetshi Perricard``). It requires the same
+    # normalized score, same winner/loser orientation and a date gap <= 1 day.
+    remaining = out.drop(index=sorted(drop)).sort_values("_parsed_date")
+    indices = remaining.index.tolist()
+    for left_pos in range(len(indices) - 1):
+        i = indices[left_pos]
+        if i in drop:
+            continue
+        di = out.at[i, "_parsed_date"]
+        if pd.isna(di):
+            continue
+        for right_pos in range(left_pos + 1, len(indices)):
+            j = indices[right_pos]
+            if j in drop:
+                continue
+            dj = out.at[j, "_parsed_date"]
+            if pd.isna(dj):
+                continue
+            if (dj - di).days > 1:
+                break
+            score_i = out.at[i, "_score_key"]
+            score_j = out.at[j, "_score_key"]
+            if not score_i or score_i != score_j:
+                continue
+            row_i = out.loc[i]
+            row_j = out.loc[j]
+            if not (
+                _names_likely_same_for_dedupe(row_i.get("winner_name"), row_j.get("winner_name"))
+                and _names_likely_same_for_dedupe(row_i.get("loser_name"), row_j.get("loser_name"))
+            ):
+                continue
+            qi = int(out.at[i, "_quality"])
+            qj = int(out.at[j, "_quality"])
+            if qj > qi:
+                drop.add(i)
+                break
+            drop.add(j)
+
+    cleaned = out.drop(index=sorted(drop)).drop(
+        columns=["_pair_key", "_winner_key", "_score_key", "_parsed_date", "_quality"],
+        errors="ignore",
+    )
+    return cleaned.reset_index(drop=True)
 
 
 def merge_live_matches(baseline: pd.DataFrame, live: pd.DataFrame) -> pd.DataFrame:
@@ -544,6 +828,8 @@ def merge_live_matches(baseline: pd.DataFrame, live: pd.DataFrame) -> pd.DataFra
             combined[column] = pd.NA
     combined = combined[MATCH_COLUMNS]
     combined["tourney_date"] = combined["tourney_date"].astype(str).str.replace(".0", "", regex=False)
+    combined = normalize_api_draw_context(combined)
+    combined = deduplicate_near_date_matches(combined)
     combined = combined.sort_values(["tourney_date", "tourney_name", "round", "winner_name"])
     return combined.reset_index(drop=True)
 
