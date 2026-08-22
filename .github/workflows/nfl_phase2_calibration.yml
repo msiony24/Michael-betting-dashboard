@@ -1,0 +1,49 @@
+name: NFL Phase 2 Calibration
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'audit/nfl_phase2_calibration.py'
+      - '.github/workflows/nfl_phase2_calibration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Run NFL Phase 2 calibration
+        run: python audit/nfl_phase2_calibration.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfl-phase2-calibration-results
+          path: audit/results_nfl_phase2/
+          if-no-files-found: error
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audit/results_nfl_phase2
+          if git diff --cached --quiet; then
+            echo "No result changes."
+          else
+            git commit -m "Store NFL Phase 2 calibration results"
+            git push
+          fi
