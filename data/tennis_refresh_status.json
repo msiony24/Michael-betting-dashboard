@@ -1,33 +1,28 @@
 {
   "current_year": 2026,
-  "current_year_match_count": 2241,
-  "current_year_matches_with_serve_return_stats": 896,
-  "data_integrity_cleanup": {
-    "major_event_levels_normalized": true,
-    "near_date_provider_duplicates_removed": 50,
-    "qualifying_rounds_separated": true
-  },
+  "current_year_match_count": 2250,
+  "current_year_matches_with_serve_return_stats": 905,
   "failures": [],
-  "latest_match_date": "2026-08-21",
+  "latest_match_date": "2026-08-22",
   "live_refresh": {
-    "all_fixtures_received": 17306,
+    "all_fixtures_received": 17316,
     "chunk_days": 6,
-    "completed_atp_singles_imported": 709,
+    "completed_atp_singles_imported": 718,
     "failed_fixture_windows": [],
     "fixture_windows_attempted": 11,
     "fixture_windows_failed": 0,
     "fixture_windows_succeeded": 11,
-    "fixtures_fetched_at": "2026-08-22T10:49:46.748958+00:00",
+    "fixtures_fetched_at": "2026-08-22T23:18:54.824909+00:00",
     "fixtures_source": "chunked",
-    "matches_with_serve_return_stats": 708,
-    "player_identity_alias_count": 11271,
-    "player_identity_count": 9031,
+    "matches_with_serve_return_stats": 717,
+    "player_identity_alias_count": 11275,
+    "player_identity_count": 9033,
     "standings_error": "",
-    "standings_fetched_at": "2026-08-22T10:49:47.758971+00:00",
+    "standings_fetched_at": "2026-08-22T23:18:56.147068+00:00",
     "standings_source": "live",
     "window_start": "2026-06-23",
     "window_stop": "2026-08-22"
   },
   "ok": true,
-  "updated_at_utc": "2026-08-22T10:49:49.553739+00:00"
+  "updated_at_utc": "2026-08-22T23:19:00.335508+00:00"
 }
