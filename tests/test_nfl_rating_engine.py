@@ -99,3 +99,35 @@ def test_automatic_nflverse_depth_chart_is_normalized_and_preferred(tmp_path):
     assert normalized.attrs["source_name"] == "nflverse automatic depth chart"
     assert normalized["team_abbr"].nunique() == 32
     assert _resolve_depth_chart_path(tmp_path) == auto_path
+
+
+def test_sleeper_availability_is_matched_by_team_for_duplicate_names(tmp_path):
+    madden = tmp_path / "madden.csv"
+    nfl = tmp_path / "nfl"
+    nfl.mkdir()
+    pd.DataFrame([
+        {"player_name": "Byron Young", "team": "LA", "position": "DE", "overall": 84},
+        {"player_name": "Byron Young", "team": "PHI", "position": "DT", "overall": 70},
+    ]).to_csv(madden, index=False)
+    pd.DataFrame([
+        {
+            "player_name": "Byron Young", "name_key": "byronyoung", "team_abbr": "LA",
+            "position": "DL", "roster_status": "Active", "injury_status": "",
+            "practice_participation": "", "availability_state": "Active",
+            "definitively_unavailable": False, "updated_at_utc": "2026-08-22T12:00:00+00:00",
+        },
+        {
+            "player_name": "Byron Young", "name_key": "byronyoung", "team_abbr": "PHI",
+            "position": "DL", "roster_status": "Active", "injury_status": "Questionable",
+            "practice_participation": "Limited", "availability_state": "Questionable",
+            "definitively_unavailable": False, "updated_at_utc": "2026-08-22T12:00:00+00:00",
+        },
+    ]).to_csv(nfl / "sleeper_availability.csv", index=False)
+
+    players = build_player_ratings(madden, nfl)
+    la = players[(players.player_name == "Byron Young") & (players.team_abbr == "LA")].iloc[0]
+    phi = players[(players.player_name == "Byron Young") & (players.team_abbr == "PHI")].iloc[0]
+    assert la.availability_state == "Active"
+    assert la.injury_status == ""
+    assert phi.availability_state == "Questionable"
+    assert phi.injury_status == "Questionable"

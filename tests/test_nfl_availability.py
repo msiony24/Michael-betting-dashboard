@@ -93,3 +93,20 @@ def test_sleeper_out_qb_activates_qb2_in_team_unit(tmp_path):
     assert qb["top_players"][0]["name"] == "Backup Quarterback"
     assert qb["availability_promotions"][0]["out"] == "Starter Quarterback"
     assert qb["availability_promotions"][0]["in"] == "Backup Quarterback"
+
+
+def test_sleeper_team_abbreviations_are_canonicalized(tmp_path):
+    import pandas as pd
+    from engine.nfl_availability import load_availability, sleeper_payload_to_frame
+
+    frame = sleeper_payload_to_frame({
+        "1": {"full_name": "Rams Player", "team": "LAR", "position": "WR", "status": "Active"},
+        "2": {"full_name": "Raiders Player", "team": "OAK", "position": "RB", "status": "Active"},
+    })
+    assert frame.loc[frame.player_name.eq("Rams Player"), "team_abbr"].iloc[0] == "LA"
+    assert frame.loc[frame.player_name.eq("Raiders Player"), "team_abbr"].iloc[0] == "LV"
+
+    path = tmp_path / "availability.csv"
+    pd.DataFrame([{"player_name": "Rams Player", "name_key": "ramsplayer", "team_abbr": "LAR", "definitively_unavailable": False}]).to_csv(path, index=False)
+    loaded = load_availability(path)
+    assert loaded.loc[0, "team_abbr"] == "LA"
