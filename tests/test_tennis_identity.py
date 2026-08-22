@@ -52,6 +52,17 @@ def test_provider_player_id_resolves_reversed_and_historical_aliases():
     assert resolution["method"] == "provider_player_id"
 
 
+
+def test_default_registry_resolves_juan_manuel_cerundolo():
+    assert canonical_player_key("Juan Manuel Cerundolo") == "api:388"
+    matches = pd.DataFrame([
+        {"winner_name": "Cerundolo J.M.", "loser_name": "Opponent X."},
+    ])
+    resolved, resolution = resolve_player_name(matches, "Juan Manuel Cerundolo")
+    assert resolved == "Cerundolo J.M."
+    assert resolution["player_key"] == "388"
+
+
 def test_resolver_and_perspective_merge_felix_aliases():
     matches = pd.DataFrame([
         {
