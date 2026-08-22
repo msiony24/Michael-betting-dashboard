@@ -4680,6 +4680,14 @@ with tabs[1]:
                                 <div class="macabets-edge-value">{html.escape(edge_text)}</div>
                             </div>
                             <div class="macabets-edge-item">
+                                <div class="macabets-edge-label">Macabets Fair Moneyline</div>
+                                <div class="macabets-edge-value">{html.escape(projected_nfl_winner)} {format_american(winner_fair_ml)}</div>
+                            </div>
+                            <div class="macabets-edge-item">
+                                <div class="macabets-edge-label">Market Moneyline</div>
+                                <div class="macabets-edge-value">{html.escape(projected_nfl_winner)} {format_american(winner_market_ml)}</div>
+                            </div>
+                            <div class="macabets-edge-item">
                                 <div class="macabets-edge-label">Projected Winner</div>
                                 <div class="macabets-edge-value">{html.escape(projected_nfl_winner)}</div>
                             </div>
