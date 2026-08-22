@@ -1,0 +1,36 @@
+{
+  "purpose": "audit-only probability calibration; production untouched",
+  "games": 1954,
+  "current_denominator": 8.25,
+  "best_log_loss_denominator": {
+    "denominator": 12.100000000000023,
+    "games": 1954.0,
+    "log_loss": 0.6429387593026006,
+    "brier": 0.22574516868188682,
+    "mean_probability": 0.5338983305611741,
+    "actual_home_win_rate": 0.5368474923234391
+  },
+  "best_brier_denominator": {
+    "denominator": 11.750000000000018,
+    "games": 1954.0,
+    "log_loss": 0.6429740683341825,
+    "brier": 0.22573244964099232,
+    "mean_probability": 0.5347148754752614,
+    "actual_home_win_rate": 0.5368474923234391
+  },
+  "recommended_candidate": {
+    "denominator": 12.1,
+    "games": 1954,
+    "log_loss": 0.6429387593026006,
+    "brier": 0.22574516868188682,
+    "mean_probability": 0.5338983305611741,
+    "actual_home_win_rate": 0.5368474923234391
+  },
+  "improvement_vs_current": {
+    "log_loss_absolute": 0.008522386204645516,
+    "log_loss_relative_pct": 1.3081956250836333,
+    "brier_absolute": 0.0023416480959224384,
+    "brier_relative_pct": 1.0266477164278875
+  },
+  "promotion_rule": "Prefer a rounded denominator near the broad optimum, not a fragile decimal optimum. Promote only if season-level calibration remains stable."
+}
