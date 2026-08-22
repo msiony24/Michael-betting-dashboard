@@ -189,6 +189,26 @@ def resolve_player_name(
         return False
 
     key_matches = unique_names[unique_names.map(_matches_requested_identity)]
+
+    # Some live feeds provide a full name that has not yet been written into the
+    # provider-ID registry, while the historical feed already contains the
+    # abbreviated form (for example ``Juan Manuel Cerundolo`` vs
+    # ``Cerundolo J.M.``). In that case, allow a surname/first-initial bridge
+    # only when every historical name with that signature collapses to one
+    # canonical identity. This preserves coverage without guessing across
+    # genuinely ambiguous players who share the same surname and initial.
+    if key_matches.empty and requested_signature != ("", ""):
+        signature_matches = unique_names[
+            unique_names.map(lambda value: player_name_signature(value) == requested_signature)
+        ]
+        if not signature_matches.empty:
+            signature_keys = {
+                _canonical_player_key_from_alias_map(value, alias_map)
+                for value in signature_matches.tolist()
+            }
+            if len(signature_keys) == 1:
+                key_matches = signature_matches
+
     if key_matches.empty:
         return None, {
             "requested": requested_name,
@@ -209,7 +229,13 @@ def resolve_player_name(
             reverse=True,
         )
         resolved = ranked[0][0]
-        method = "provider_player_id" if requested_key.startswith("api:") else "surname_initial"
+        resolved_key = _canonical_player_key_from_alias_map(resolved, alias_map)
+        method = (
+            "provider_player_id"
+            if requested_key.startswith("api:")
+            else "unique_signature" if resolved_key.startswith("api:")
+            else "surname_initial"
+        )
 
     return resolved, {
         "requested": requested_name,
