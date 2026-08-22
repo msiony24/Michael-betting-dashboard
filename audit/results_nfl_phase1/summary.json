@@ -1,0 +1,38 @@
+{
+  "purpose": "audit-only; production code untouched",
+  "historical_test_seasons": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "games_tested": 1954,
+  "walk_forward_model": {
+    "description": "pregame-only team strength updated after each completed game",
+    "k_factor": 0.18,
+    "season_regression": 0.55,
+    "home_field_points": 1.7
+  },
+  "production_probability_mapping": {
+    "denominator": 8.25,
+    "games": 1954,
+    "accuracy": 0.62999,
+    "log_loss": 0.651461,
+    "brier": 0.228087,
+    "mean_probability": 0.54526,
+    "actual_home_win_rate": 0.53685
+  },
+  "best_grid_probability_mapping": {
+    "denominator": 12.0,
+    "games": 1954.0,
+    "accuracy": 0.62999,
+    "log_loss": 0.642941,
+    "brier": 0.225739,
+    "mean_probability": 0.53413,
+    "actual_home_win_rate": 0.53685
+  },
+  "interpretation_guardrail": "This calibrates the margin-to-probability assumption on a leakage-resistant historical proxy. It is not a claim that the full current Macabets NFL engine had these historical predictions, because historical snapshots of every current engine layer do not exist in the repo."
+}
