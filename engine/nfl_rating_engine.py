@@ -114,6 +114,7 @@ MAX_TRAIT_DEVIATION = 3.0
 
 
 STAT_ALIASES = {
+    "player_id": ("player_id", "gsis_id"),
     "player_name": ("player_display_name", "player_name", "full_name", "name"),
     "team": ("recent_team", "team", "team_abbr"),
     "position": ("position", "position_group"),
@@ -185,7 +186,23 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     frame = pd.read_csv(path)
     mapping = {key: _find_col(frame, aliases) for key, aliases in STAT_ALIASES.items()}
     if not mapping["player_name"]: return pd.DataFrame()
-    clean = pd.DataFrame({key: frame[col] if col else 0 for key, col in mapping.items()})
+
+    data = {}
+    for key, col in mapping.items():
+        if col:
+            data[key] = frame[col]
+        elif key == "player_id":
+            data[key] = ""
+        else:
+            data[key] = 0
+    clean = pd.DataFrame(data)
+
+    # nflverse player_id is the stable GSIS identity and must remain a string.
+    # Name-only aggregation can merge different NFL players who share a name
+    # (for example the two Byron Youngs or the two Justin Jeffersons).
+    clean["player_id"] = clean["player_id"].fillna("").astype(str).str.strip()
+    clean.loc[clean["player_id"].str.lower().isin({"", "nan", "none", "0", "0.0"}), "player_id"] = ""
+
     # Current-season files without an explicit cap may use the normal 80% ceiling.
     # Preseason fallback files explicitly carry macabets_performance_cap=0.20.
     if mapping.get("performance_cap") is None:
@@ -193,13 +210,26 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     clean["name_key"] = clean["player_name"].map(_name_key)
     clean["team"] = clean["team"].astype(str).str.upper()
     clean["position"] = clean["position"].astype(str).str.upper()
-    numeric = [c for c in clean.columns if c not in {"player_name", "name_key", "team", "position"}]
+    numeric = [c for c in clean.columns if c not in {"player_id", "player_name", "name_key", "team", "position"}]
     clean[numeric] = clean[numeric].apply(pd.to_numeric, errors="coerce").fillna(0)
     agg = {c: "sum" for c in numeric}
     if "performance_cap" in agg:
         agg["performance_cap"] = "max"
-    agg.update({"player_name": "last", "team": "last", "position": "last"})
-    return clean.groupby("name_key", as_index=False).agg(agg)
+    agg.update({"player_name": "last", "name_key": "last", "team": "last", "position": "last"})
+
+    with_id = clean[clean["player_id"].ne("")].groupby("player_id", as_index=False).agg(agg)
+    without_id = clean[clean["player_id"].eq("")].copy()
+    if not without_id.empty:
+        fallback_agg = dict(agg)
+        fallback_agg.pop("name_key", None)
+        without_id = without_id.groupby("name_key", as_index=False).agg(fallback_agg)
+        without_id.insert(0, "player_id", "")
+
+    if with_id.empty:
+        return without_id
+    if without_id.empty:
+        return with_id
+    return pd.concat([with_id, without_id], ignore_index=True, sort=False)
 
 
 def _percentile_score(series: pd.Series) -> pd.Series:
@@ -251,7 +281,10 @@ def _load_roster_status(path: Path) -> pd.DataFrame:
     team_col = _find_col(frame, ("team", "recent_team", "team_abbr"))
     result = pd.DataFrame({
         "name_key": frame[name_col].map(_name_key),
-        "team_abbr": frame[team_col].astype(str).str.upper().str.strip() if team_col else "",
+        "team_abbr": (
+            frame[team_col].astype(str).str.upper().str.strip().replace({"AZ": "ARI", "LAR": "LA", "OAK": "LV"})
+            if team_col else ""
+        ),
         "roster_status": frame[_find_col(frame, ("status",))] if _find_col(frame, ("status",)) else "",
         "gsis_id": frame[_find_col(frame, ("gsis_id", "player_id"))] if _find_col(frame, ("gsis_id", "player_id")) else "",
     })
@@ -300,20 +333,57 @@ def build_player_ratings(
     players["depth_chart_team_override"] = assigned.notna() & assigned.ne(players["team_abbr"])
     players["team_abbr"] = assigned.where(assigned.notna(), players["team_abbr"])
 
+    roster = _load_roster_status(root / "weekly_rosters.csv")
+    if roster.empty:
+        roster = _load_roster_status(root / "rosters.csv")
+
+    # Resolve the nflverse/GSIS identity before applying historical performance.
+    # Current team + normalized name is only used to discover the stable ID; the
+    # performance join itself uses GSIS so trades retain prior production without
+    # leaking stats across different same-name players.
+    if "gsis_id" not in players.columns:
+        players["gsis_id"] = ""
+    if not roster.empty and "gsis_id" in roster.columns:
+        identity = roster[["name_key", "team_abbr", "gsis_id"]].copy()
+        identity = identity.rename(columns={"gsis_id": "_identity_gsis_id"})
+        identity = identity.drop_duplicates(["name_key", "team_abbr"], keep="last")
+        players = players.merge(identity, on=["name_key", "team_abbr"], how="left")
+        fresh_id = players["_identity_gsis_id"].fillna("").astype(str).str.strip()
+        current_id = players["gsis_id"].fillna("").astype(str).str.strip()
+        players["gsis_id"] = fresh_id.where(fresh_id.ne(""), current_id)
+        players = players.drop(columns=["_identity_gsis_id"])
+
     stats = _performance_grades(_aggregate_weekly_stats(root / "player_weekly_stats.csv"))
     if not stats.empty:
-        merge_cols = ["name_key", "performance_grade", "sample_size"]
+        perf_cols = ["performance_grade", "sample_size"]
         if "performance_cap" in stats.columns:
-            merge_cols.append("performance_cap")
-        players = players.merge(stats[merge_cols], on="name_key", how="left")
+            perf_cols.append("performance_cap")
+
+        # Primary identity path: exact GSIS/player_id match.
+        stats_by_id = stats[stats.get("player_id", pd.Series(index=stats.index, dtype=str)).fillna("").astype(str).str.strip().ne("")].copy()
+        if not stats_by_id.empty:
+            stats_by_id["_stats_identity"] = "id:" + stats_by_id["player_id"].astype(str).str.strip()
+        # Safe fallback for fixtures/legacy rows that lack GSIS: only allow a name
+        # alias when that normalized name belongs to exactly one stats identity.
+        identity_counts = stats.groupby("name_key")["player_id"].apply(
+            lambda values: max(1, len({str(v).strip() for v in values if str(v).strip()}))
+        )
+        unique_names = set(identity_counts[identity_counts.eq(1)].index)
+        stats_by_name = stats[stats["name_key"].isin(unique_names)].drop_duplicates("name_key", keep="last").copy()
+        stats_by_name["_stats_identity"] = "name:" + stats_by_name["name_key"].astype(str)
+
+        stats_lookup = pd.concat([stats_by_id, stats_by_name], ignore_index=True, sort=False)
+        stats_lookup = stats_lookup[["_stats_identity"] + perf_cols].drop_duplicates("_stats_identity", keep="first")
+
+        player_gsis = players["gsis_id"].fillna("").astype(str).str.strip()
+        players["_stats_identity"] = np.where(
+            player_gsis.ne(""), "id:" + player_gsis, "name:" + players["name_key"].astype(str)
+        )
+        players = players.merge(stats_lookup, on="_stats_identity", how="left").drop(columns=["_stats_identity"])
     else:
         players["performance_grade"] = np.nan
         players["sample_size"] = 0.0
         players["performance_cap"] = 0.0
-
-    roster = _load_roster_status(root / "weekly_rosters.csv")
-    if roster.empty:
-        roster = _load_roster_status(root / "rosters.csv")
 
     # Madden 27's final player file is now pre-enriched from nflverse rosters and may
     # already contain roster_status / gsis_id. A second roster merge would create
