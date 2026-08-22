@@ -1,0 +1,6 @@
+criterion,passed,value
+2025 log loss improves,True,-0.0010060608582665997
+2026 log loss improves,True,-0.0018087320560603581
+Overall Brier improves,True,-0.0005202237393036879
+Overall accuracy not worse by >0.25pp,True,0.0014686444411807775
+Candidate adjustment stays surgical (p95 <= 5pp),True,0.04000000000000001
