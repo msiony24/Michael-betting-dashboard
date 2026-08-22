@@ -4,6 +4,7 @@ player_key,alias,canonical_name
 522,A-L. Friedsam,A-L. Friedsam
 75973,A. A. Ceuca,A. A. Ceuca
 74737,A. A. Frutos Alonso,A. A. Frutos Alonso
+40090,A. A. Koskel,A. A. Koskel
 38052,A. Abbagnato,A. Abbagnato
 82857,A. Abedinzadeh,A. Abedinzadeh
 48889,A. Ahn,A. Ahn
@@ -22,6 +23,7 @@ player_key,alias,canonical_name
 81144,A. Bal,A. Bal
 50790,A. Balestrieri,A. Balestrieri
 84722,A. Barmicheva,A. Barmicheva
+31462,A. Barth,A. Barth
 103493,A. Baybars,A. Baybars
 103843,A. Bazderova,A. Bazderova
 6551,A. Beck,A. Beck
@@ -42,6 +44,7 @@ player_key,alias,canonical_name
 101165,A. Brooks,A. Brooks
 20694,A. Brune,A. Brune
 51324,A. Bulatova,A. Bulatova
+15078,A. Burchak,A. Burchak
 81419,A. C. Adascalitei,A. C. Adascalitei
 83103,A. C. Gadoiu,A. C. Gadoiu
 39505,A. C. Nava Elkin,A. C. Nava Elkin
@@ -121,12 +124,15 @@ player_key,alias,canonical_name
 83295,A. Huseinovic,A. Huseinovic
 69065,A. I. Anghel,A. I. Anghel
 59294,A. I. Marginean,A. I. Marginean
+88187,A. I. Varsa,A. I. Varsa
+58495,A. Iancu,A. Iancu
 51378,A. Ibragimova,A. Ibragimova
 37936,A. Ilagan,A. Ilagan
 37936,Andre Ilagan,A. Ilagan
 101857,A. Ishii,A. Ishii
 13618,A. Ito,A. Ito
 76964,A. J. Lopez Ocampos,A. J. Lopez Ocampos
+77935,A. J. Sartori,A. J. Sartori
 2270,A. James,A. James
 87839,A. Jancarikova,A. Jancarikova
 13032,A. Jaskova,A. Jaskova
@@ -185,7 +191,9 @@ player_key,alias,canonical_name
 11583,A. Miyamoto,A. Miyamoto
 14242,A. Monnot,A. Monnot
 105278,A. Morris,A. Morris
+75576,A. Motta,A. Motta
 21946,A. Mozgaleva,A. Mozgaleva
+14543,A. Mubarak,A. Mubarak
 13030,A. N. Isaacs,A. N. Isaacs
 13621,A. Nagata,A. Nagata
 12932,A. Nagy,A. Nagy
@@ -296,8 +304,10 @@ player_key,alias,canonical_name
 2250,A. Vrancken Peeters,A. Vrancken Peeters
 105592,A. Warang,A. Warang
 78942,A. Watanabe,A. Watanabe
+87262,A. Watanabe Eriksson,A. Watanabe Eriksson
 21785,A. Watane,A. Watane
 1387,A. Wildgruber,A. Wildgruber
+1368,A. Wirges,A. Wirges
 89075,A. Wong,A. Wong
 9244,A. Xu,A. Xu
 104802,A. Yakusheva,A. Yakusheva
@@ -310,6 +320,7 @@ player_key,alias,canonical_name
 13411,A. Zolotareva,A. Zolotareva
 2581,A. Zucchini,A. Zucchini
 100,A.F. Santos,A.F. Santos
+69983,A. Tripathi,Aadarsh Tripathi
 69983,Aadarsh Tripathi,Aadarsh Tripathi
 57709,A. Funk,Aaron Funk
 57709,Aaron Funk,Aaron Funk
@@ -402,6 +413,7 @@ player_key,alias,canonical_name
 105225,Agamenone/ Ribecai,Agamenone/ Ribecai
 104371,Aggarwal/ Boros,Aggarwal/ Boros
 104684,Aggarwal/ Cizek,Aggarwal/ Cizek
+107240,Aggarwal/ Warik,Aggarwal/ Warik
 105689,Aginskiy/ Mantach,Aginskiy/ Mantach
 66370,Agostinetto/ Fondriest,Agostinetto/ Fondriest
 106772,Agostini/ Delaney,Agostini/ Delaney
@@ -420,6 +432,7 @@ player_key,alias,canonical_name
 77522,Agustin Libre,Agustin Libre
 91698,Agustin Pernas Thiago,Agustin Pernas Thiago
 77147,Agustin Salazar,Agustin Salazar
+107230,Agwi/ Elamin,Agwi/ Elamin
 67250,Agwi/ Mischker,Agwi/ Mischker
 90102,Ahmed Wageh Yassin,Ahmed Wageh Yassin
 91701,Ahmed Zaki,Ahmed Zaki
@@ -438,6 +451,7 @@ player_key,alias,canonical_name
 9381,Aidan Kim,Aidan Kim
 875,Aidan McHugh,Aidan McHugh
 106920,Aikawa/ Boehner,Aikawa/ Boehner
+107204,Aikawa/ Pulchartova,Aikawa/ Pulchartova
 104495,Aikawa/ Yodpetch,Aikawa/ Yodpetch
 21543,Ainius Sabaliauskas,Ainius Sabaliauskas
 104340,Ait el Bachir/ Claeys,Ait el Bachir/ Claeys
@@ -503,6 +517,7 @@ player_key,alias,canonical_name
 105903,Alcala/ Garza,Alcala/ Garza
 104328,Alcantara/ Hsieh,Alcantara/ Hsieh
 104612,Alcantara/ Lai,Alcantara/ Lai
+107170,Alcantara/ Matsuda,Alcantara/ Matsuda
 105940,Alcantara/ Rifqi Fitriadi,Alcantara/ Rifqi Fitriadi
 106124,Alcantara/ Ryan Ziegann,Alcantara/ Ryan Ziegann
 103706,Alcantara/ Suksumrarn,Alcantara/ Suksumrarn
@@ -748,6 +763,7 @@ player_key,alias,canonical_name
 19802,Amador Salazar,Amador Salazar
 105430,Amarandei/ Balducci,Amarandei/ Balducci
 91345,Amarandei/ Berto,Amarandei/ Berto
+107231,Amarandei/ Kokot,Amarandei/ Kokot
 106190,Amarandei/ Scomparin,Amarandei/ Scomparin
 100450,Amariei/ Herea,Amariei/ Herea
 700,A. Raynel,Amaury Raynel
@@ -848,6 +864,7 @@ player_key,alias,canonical_name
 888,Andrew Paulson,Andrew Paulson
 105830,Andrienko/ Battesti,Andrienko/ Battesti
 106948,Andrienko/ Cassani,Andrienko/ Cassani
+107258,Andrienko/ Claeys,Andrienko/ Claeys
 105651,Andrienko/ Heuser,Andrienko/ Heuser
 31668,A. Casanova,Andrin Casanova
 31668,Andrin Casanova,Andrin Casanova
@@ -864,6 +881,7 @@ player_key,alias,canonical_name
 105420,Angeloni/ Cerelli,Angeloni/ Cerelli
 76204,Angeloni/ Cherie Ligniere,Angeloni/ Cherie Ligniere
 106860,Angeloni/ Ciocca,Angeloni/ Ciocca
+107226,Angeloni/ Paolini,Angeloni/ Paolini
 105492,Angelovska/ Simonsen,Angelovska/ Simonsen
 69774,Anghel/ Simionescu,Anghel/ Simionescu
 104446,Anghel/ Tanasie,Anghel/ Tanasie
@@ -958,6 +976,7 @@ player_key,alias,canonical_name
 2724,Arends/ Pel,Arends/ Pel
 104892,Arevalo/ Ostapenko,Arevalo/ Ostapenko
 62919,Arevalo/ Pavic,Arevalo/ Pavic
+86905,Argyrokastriti/ Brune,Argyrokastriti/ Brune
 89055,Argyrokastriti/ Korokozidi,Argyrokastriti/ Korokozidi
 105336,Argyrokastriti/ Nepliy,Argyrokastriti/ Nepliy
 105960,Argyrokastriti/ Urbanova,Argyrokastriti/ Urbanova
@@ -1002,6 +1021,7 @@ player_key,alias,canonical_name
 74130,Arseneault/ Cross,Arseneault/ Cross
 91816,Arseneault/ Lacasse,Arseneault/ Lacasse
 105006,Arseneault/ Ovcharenko,Arseneault/ Ovcharenko
+107195,Arseneault/ Rozin,Arseneault/ Rozin
 106415,Arsic/ Vijay Shankar,Arsic/ Vijay Shankar
 49391,A. Alekseychuk,Artem Alekseychuk
 49391,Artem Alekseychuk,Artem Alekseychuk
@@ -1034,6 +1054,7 @@ player_key,alias,canonical_name
 87586,Arystanbekova/ Dyussebay,Arystanbekova/ Dyussebay
 17875,Arystanbekova/ Nupbay,Arystanbekova/ Nupbay
 32293,Arystanbekova/ Rustemova,Arystanbekova/ Rustemova
+107242,Arzhankin/ Khotchenkov,Arzhankin/ Khotchenkov
 104652,Arzhankin/ Manukyan,Arzhankin/ Manukyan
 96069,Arzhankin/ Pankin,Arzhankin/ Pankin
 10864,A. Harazaki,Asahi Harazaki
@@ -1153,6 +1174,7 @@ player_key,alias,canonical_name
 38246,B. Thamchaiwat,B. Thamchaiwat
 39129,B. Thompson,B. Thompson
 106728,B. Vokrojova,B. Vokrojova
+5,B. Walker,B. Walker
 23378,B. Weintraub,B. Weintraub
 80157,B. Zeltina,B. Zeltina
 9881,Baadi T.,Baadi T.
@@ -1198,10 +1220,12 @@ player_key,alias,canonical_name
 58399,Bakonyi/ Jilly,Bakonyi/ Jilly
 106647,Bakonyi/ Kisantal,Bakonyi/ Kisantal
 105366,Bal/ Kaynak,Bal/ Kaynak
+107081,Balaji/ Chandrasekar,Balaji/ Chandrasekar
 101357,Balaji/ Demoliner,Balaji/ Demoliner
 105304,Balaji/ Goransson,Balaji/ Goransson
 70984,Balciunas/ De Lange,Balciunas/ De Lange
 104797,Balciunas/ Karthik,Balciunas/ Karthik
+107083,Balshaw/ Jorda Sanchis,Balshaw/ Jorda Sanchis
 88004,Baltazar Wiger Nordas,Baltazar Wiger Nordas
 88023,Baluska/ Kremer,Baluska/ Kremer
 75239,Baluska/ Papamalamis,Baluska/ Papamalamis
@@ -1228,6 +1252,7 @@ player_key,alias,canonical_name
 105428,Barbier Gazeu/ Daryabeigi,Barbier Gazeu/ Daryabeigi
 105069,Barbieri/ Mondazzi,Barbieri/ Mondazzi
 104233,Barbiero/ Bullamah,Barbiero/ Bullamah
+107156,Barbulescu/ Ceuca,Barbulescu/ Ceuca
 18817,Barnat/ Duda,Barnat/ Duda
 76615,Barnett/ Lechemia,Barnett/ Lechemia
 22826,Barnett/ Murray,Barnett/ Murray
@@ -1261,6 +1286,7 @@ player_key,alias,canonical_name
 4694,Nicolas Barrientos,Barrientos N.
 37499,Barrientos/ Behar,Barrientos/ Behar
 54756,Barrientos/ Borges,Barrientos/ Borges
+57817,Barrios Vera/ Mejia,Barrios Vera/ Mejia
 89813,Barros/ Leme Da Silva,Barros/ Leme Da Silva
 106984,Barros/ Mi,Barros/ Mi
 107115,Barroso Campos/ Cacao,Barroso Campos/ Cacao
@@ -1268,6 +1294,7 @@ player_key,alias,canonical_name
 75506,Barroso Campos/ Echeverria,Barroso Campos/ Echeverria
 79709,Barroso Campos/ Forcano,Barroso Campos/ Forcano
 106884,Barroso Campos/ Scaglia,Barroso Campos/ Scaglia
+100165,Barry/ Broom,Barry/ Broom
 72656,Barry/ Gannon,Barry/ Gannon
 105316,Barry/ Genov,Barry/ Genov
 78169,Barry/ Hoedt,Barry/ Hoedt
@@ -1282,11 +1309,13 @@ player_key,alias,canonical_name
 105126,Bartel/ Rojas,Bartel/ Rojas
 104714,Bartel/ Sartz-Lunde,Bartel/ Sartz-Lunde
 104398,Bartel/ Seye,Bartel/ Seye
+107161,Bartel/ Vasilescu,Bartel/ Vasilescu
 104502,Barth/ De Boer,Barth/ De Boer
 86935,Barth/ Greer,Barth/ Greer
 105142,Barth/ Groen,Barth/ Groen
 104758,Barthes/ Jonio,Barthes/ Jonio
 105311,Barton/ Kumstat,Barton/ Kumstat
+82919,Barton/ Vrbensky,Barton/ Vrbensky
 103068,Bartunkova/ Eala,Bartunkova/ Eala
 105706,Bartunkova/ Salkova,Bartunkova/ Salkova
 104337,Barun/ Biletic,Barun/ Biletic
@@ -1311,6 +1340,7 @@ player_key,alias,canonical_name
 105466,Basile/ Raynel,Basile/ Raynel
 106221,Basile/ Rolland de Ravel,Basile/ Rolland de Ravel
 104268,Basile/ Tixhon,Basile/ Tixhon
+86872,Basile/ de Marchi,Basile/ de Marchi
 86713,Basiletti/ Urgesi,Basiletti/ Urgesi
 13535,Basing M.,Basing M.
 13535,M. Basing,Basing M.
@@ -1353,6 +1383,7 @@ player_key,alias,canonical_name
 20663,Bautista Vilicich,Bautista Vilicich
 105172,Bax/ Courte,Bax/ Courte
 106445,Bax/ Ghibaudo,Bax/ Ghibaudo
+107043,Bax/ Mayot,Bax/ Mayot
 107055,Baybars/ Milev,Baybars/ Milev
 105298,Bayerlova/ Feng,Bayerlova/ Feng
 106325,Bayerlova/ Gimbrere,Bayerlova/ Gimbrere
@@ -1401,7 +1432,9 @@ player_key,alias,canonical_name
 107073,Behrmann/ Zimmer,Behrmann/ Zimmer
 104956,Bekker/ Zingg,Bekker/ Zingg
 757,Bekkhan Atlangeriev,Bekkhan Atlangeriev
+73232,Belafalvi-Balint/ Szoke,Belafalvi-Balint/ Szoke
 105671,Belda/ Garcia Domenech,Belda/ Garcia Domenech
+107236,Belda/ Peiro Serrano,Belda/ Peiro Serrano
 73688,Belis/ Vetrih,Belis/ Vetrih
 85439,Belkovics/ Gubi,Belkovics/ Gubi
 105458,Bellegy/ Berard,Bellegy/ Berard
@@ -1463,6 +1496,7 @@ player_key,alias,canonical_name
 72007,Bennour Dit Sahli/ Hermassi,Bennour Dit Sahli/ Hermassi
 59840,B. Torcq,Benoit Torcq
 59840,Benoit Torcq,Benoit Torcq
+88976,Beraldo/ Comino,Beraldo/ Comino
 106186,Beraldo/ Primucci,Beraldo/ Primucci
 105688,Beraldo/ Sciahbasi,Beraldo/ Sciahbasi
 1767,Berankis R.,Berankis R.
@@ -1497,6 +1531,7 @@ player_key,alias,canonical_name
 57540,Bernet H.,Bernet H.
 57540,H. Bernet,Bernet H.
 57540,Henry Bernet,Bernet H.
+71754,Bernet/ Stricker,Bernet/ Stricker
 6984,Berrettini J.,Berrettini J.
 6984,Jacopo Berrettini,Berrettini J.
 2844,Berrettini M.,Berrettini M.
@@ -1509,6 +1544,7 @@ player_key,alias,canonical_name
 106558,Bertea/ Lansere,Bertea/ Lansere
 105969,Bertea/ Pace,Bertea/ Pace
 106923,Bertea/ Vergara Rivera,Bertea/ Vergara Rivera
+107205,Bertea/ Zaytseva,Bertea/ Zaytseva
 53868,Bertimon/ Bertimon,Bertimon/ Bertimon
 105979,Bertimon/ Binda,Bertimon/ Binda
 106853,Bertimon/ Lapalu,Bertimon/ Lapalu
@@ -1524,7 +1560,9 @@ player_key,alias,canonical_name
 106435,Bertrand/ Dougaz,Bertrand/ Dougaz
 83195,Bertrand/ Kalyanpur,Bertrand/ Kalyanpur
 60035,Bertrand/ Ponchet,Bertrand/ Ponchet
+107201,Bervid/ Halamova,Bervid/ Halamova
 106139,Bessonov/ Shebekin,Bessonov/ Shebekin
+107121,Best/ Biletic,Best/ Biletic
 95097,Bestetti/ Pezzoli,Bestetti/ Pezzoli
 104762,Betancourt/ De Alba,Betancourt/ De Alba
 104976,Betov/ Hsu,Betov/ Hsu
@@ -1544,6 +1582,7 @@ player_key,alias,canonical_name
 105999,Bianchi/ Lage Castelan,Bianchi/ Lage Castelan
 105349,Bianchi/ Magadan,Bianchi/ Magadan
 86757,Bianchi/ Milavsky,Bianchi/ Milavsky
+107042,Bianchi/ Pearson,Bianchi/ Pearson
 72403,Bianchi/ Perez,Bianchi/ Perez
 106062,Bianchi/ Pujol Navarro,Bianchi/ Pujol Navarro
 61223,Bidan/ Collignon,Bidan/ Collignon
@@ -1574,12 +1613,15 @@ player_key,alias,canonical_name
 104533,Bini/ de Camargo Silva,Bini/ de Camargo Silva
 105986,Biolay/ Chlpac,Biolay/ Chlpac
 104595,Biolay/ Lollia,Biolay/ Lollia
+107133,Biolay/ Mettraux,Biolay/ Mettraux
+81323,Biondolillo/ D'Agostino,Biondolillo/ D'Agostino
 106690,Biot/ Vaissaud,Biot/ Vaissaud
 106261,Biot/ Volkova,Biot/ Volkova
 73057,Biot/ Wojcik,Biot/ Wojcik
 105052,Birnbaumer/ Torres,Birnbaumer/ Torres
 104853,Biro/ Nagy,Biro/ Nagy
 106248,Biro/ Urbanova,Biro/ Urbanova
+107135,Biro/ Zaparyniuk,Biro/ Zaparyniuk
 84008,Birrell/ Gibson,Birrell/ Gibson
 106083,Birrell/ Stearns,Birrell/ Stearns
 40113,B. Duran,Birtan Duran
@@ -1588,6 +1630,7 @@ player_key,alias,canonical_name
 103911,Bittoun/ Blazka,Bittoun/ Blazka
 106045,Bittoun/ Lomakin,Bittoun/ Lomakin
 81976,Bittoun/ Ouakaa,Bittoun/ Ouakaa
+107029,Bittoun/ Shimizu,Bittoun/ Shimizu
 105477,Bizjak/ Daniels,Bizjak/ Daniels
 99952,Bizjak/ Kovacic,Bizjak/ Kovacic
 61114,Bjork/ Johansson,Bjork/ Johansson
@@ -1605,6 +1648,7 @@ player_key,alias,canonical_name
 409,Geoffrey Blancaneaux,Blancaneaux G.
 106436,Blancaneaux/ Durasovic,Blancaneaux/ Durasovic
 104544,Blancaneaux/ Ghazouani Durand,Blancaneaux/ Ghazouani Durand
+107030,Blancaneaux/ Hermans,Blancaneaux/ Hermans
 10117,Blancaneaux/ Martineau,Blancaneaux/ Martineau
 1314,Blanch D.,Blanch D.
 1314,D. Blanch,Blanch D.
@@ -1639,6 +1683,7 @@ player_key,alias,canonical_name
 105427,Blokhin/ Rappaport,Blokhin/ Rappaport
 106528,Blomqvist/ Heinonen,Blomqvist/ Heinonen
 106260,Blomqvist/ Nikcevic,Blomqvist/ Nikcevic
+6655,B. Baker,Blu Baker
 6655,Blu Baker,Blu Baker
 88927,Bo Fan Wen,Bo Fan Wen
 88927,W. B. Fan,Bo Fan Wen
@@ -1658,6 +1703,7 @@ player_key,alias,canonical_name
 105119,Boehner/ Pohle,Boehner/ Pohle
 79800,Boehner/ Voracek,Boehner/ Voracek
 40845,Boehner/ Wirges,Boehner/ Wirges
+103365,Boehner/ Yesypchuk,Boehner/ Yesypchuk
 92968,Bogdan Petre Stefan Ilie,Bogdan Petre Stefan Ilie
 92968,I. B. Petre S.,Bogdan Petre Stefan Ilie
 76298,B. Seleznev,Bogdan Seleznev
@@ -1676,6 +1722,7 @@ player_key,alias,canonical_name
 50571,Bojica/ Drugdova,Bojica/ Drugdova
 80668,Bojica/ Mettraux,Bojica/ Mettraux
 102222,Bojica/ Senica,Bojica/ Senica
+26820,Bojica/ Szabo,Bojica/ Szabo
 84263,Bojicic Ono/ Camargo Lima,Bojicic Ono/ Camargo Lima
 104534,Bojicic Ono/ Ortenblad Nogueira,Bojicic Ono/ Ortenblad Nogueira
 106410,Bojicic Ono/ Osorio,Bojicic Ono/ Osorio
@@ -1693,6 +1740,7 @@ player_key,alias,canonical_name
 105881,Bonardi/ Urrutia,Bonardi/ Urrutia
 106237,Bond-Scott/ Thompson,Bond-Scott/ Thompson
 3524,Bondar/ Frech,Bondar/ Frech
+107023,Bonding/ Maxted,Bonding/ Maxted
 63765,Bondioli/ Caniato,Bondioli/ Caniato
 107145,Bonelli/ Manta,Bonelli/ Manta
 85035,Bonnaud/ Branger,Bonnaud/ Branger
@@ -1737,6 +1785,7 @@ player_key,alias,canonical_name
 104617,Boroczky/ Jeck,Boroczky/ Jeck
 105068,Boros/ Catini,Boros/ Catini
 107072,Boros/ Sallay,Boros/ Sallay
+74464,Borrasca/ Silenci,Borrasca/ Silenci
 106933,Borrasca/ Zuccon,Borrasca/ Zuccon
 102826,Borrelli/ Liusso,Borrelli/ Liusso
 107110,Boschmans/ Watanabe Eriksson,Boschmans/ Watanabe Eriksson
@@ -1847,6 +1896,7 @@ player_key,alias,canonical_name
 105015,Britto/ Gomez,Britto/ Gomez
 104735,Britto/ Ribeiro de Almeida,Britto/ Ribeiro de Almeida
 105711,Britto/ Rodrigues,Britto/ Rodrigues
+40719,Britto/ Saraiva Dos Santos,Britto/ Saraiva Dos Santos
 66602,Britto/ Villanueva,Britto/ Villanueva
 106898,Britton/ Dada-Mascoll,Britton/ Dada-Mascoll
 86035,Britton/ Griffiths,Britton/ Griffiths
@@ -1866,6 +1916,7 @@ player_key,alias,canonical_name
 73312,Brockmann/ Daems,Brockmann/ Daems
 105705,Brockmann/ Kraus,Brockmann/ Kraus
 100504,Brockmann/ Seidel,Brockmann/ Seidel
+107163,Brockmann/ Steiner,Brockmann/ Steiner
 106286,Bromfield/ Chastang Cooper,Bromfield/ Chastang Cooper
 79588,Bronzetti/ Mazza,Bronzetti/ Mazza
 11027,Bronzetti/ Trevisan,Bronzetti/ Trevisan
@@ -1893,6 +1944,7 @@ player_key,alias,canonical_name
 106575,Brown/ Drayton,Brown/ Drayton
 105549,Brown/ Faucon,Brown/ Faucon
 106964,Brown/ Lakshmanan,Brown/ Lakshmanan
+107250,Brown/ Miletich,Brown/ Miletich
 105579,Brown/ Mireles,Brown/ Mireles
 105583,Brown/ Rapolu,Brown/ Rapolu
 100236,Brown/ Reasco Gonzalez,Brown/ Reasco Gonzalez
@@ -1943,6 +1995,7 @@ player_key,alias,canonical_name
 74465,Bueno/ Dourado Zimermman,Bueno/ Dourado Zimermman
 84639,Bueno/ Kawano Cho,Bueno/ Kawano Cho
 106597,Bueno/ Nahum,Bueno/ Nahum
+39722,Bueno/ Prado Angelo,Bueno/ Prado Angelo
 105151,Bulatova/ Yao,Bulatova/ Yao
 104852,Bulatova/ Zelnickova,Bulatova/ Zelnickova
 70994,Bulbarella/ Plaza Araujo,Bulbarella/ Plaza Araujo
@@ -1958,6 +2011,7 @@ player_key,alias,canonical_name
 104012,Burdet/ Covato,Burdet/ Covato
 106918,Burdet/ Nagel,Burdet/ Nagel
 63636,Burillo Escorihuela/ Romero Gormaz,Burillo Escorihuela/ Romero Gormaz
+96636,Burillo Escorihuela/ Teixido Garcia,Burillo Escorihuela/ Teixido Garcia
 105535,Burillo Escorihuela/ Wagner,Burillo Escorihuela/ Wagner
 106197,Burnett/ Dussault,Burnett/ Dussault
 14084,Burrage/ Christie,Burrage/ Christie
@@ -2046,6 +2100,7 @@ player_key,alias,canonical_name
 85967,C. Giambelli,C. Giambelli
 38048,C. Gomez,C. Gomez
 74153,C. Grignac,C. Grignac
+107245,C. Gutierrez Imaz,C. Gutierrez Imaz
 107164,C. H. Ho,C. H. Ho
 85028,C. Hermanns,C. Hermanns
 68682,C. Hill,C. Hill
@@ -2059,6 +2114,7 @@ player_key,alias,canonical_name
 10896,C. Kuhl,C. Kuhl
 62516,C. Langlais,C. Langlais
 509,C. Liu,C. Liu
+24582,C. Lopez,C. Lopez
 38035,C. Lopez Martinez,C. Lopez Martinez
 105656,C. M. Munteanu,C. M. Munteanu
 56260,C. Mahjoob,C. Mahjoob
@@ -2117,6 +2173,7 @@ player_key,alias,canonical_name
 82866,C. Zerega,C. Zerega
 1822,C. Zhao,C. Zhao
 53060,C. Zhu,C. Zhu
+107224,CONSTANTIN/ Georgescu,CONSTANTIN/ Georgescu
 96467,Cabassers Morros/ Cabassers Morros,Cabassers Morros/ Cabassers Morros
 106598,Cabezas Dominguez/ Tanguilig,Cabezas Dominguez/ Tanguilig
 105740,Cabio/ Taylor,Cabio/ Taylor
@@ -2190,6 +2247,7 @@ player_key,alias,canonical_name
 106382,Carbis/ Swarbrick,Carbis/ Swarbrick
 52405,Carboni/ Uzhylovskyi,Carboni/ Uzhylovskyi
 85615,Careaga/ Careaga,Careaga/ Careaga
+107151,Caripi/ Terblanche,Caripi/ Terblanche
 106889,Caripi/ Vance,Caripi/ Vance
 104741,Caripi/ van Wyk,Caripi/ van Wyk
 84558,Carl Holder,Carl Holder
@@ -2246,11 +2304,13 @@ player_key,alias,canonical_name
 104886,Cash/ Schuurs,Cash/ Schuurs
 61759,Cash/ Stevens,Cash/ Stevens
 23576,Cash/ Tracy,Cash/ Tracy
+107136,Cassani/ Walker,Cassani/ Walker
 103964,Cassidy/ Yardley,Cassidy/ Yardley
 12744,Cassone M.,Cassone M.
 12744,M. Cassone,Cassone M.
 12744,Murphy Cassone,Cassone M.
 82513,Castagnola/ Fellin,Castagnola/ Fellin
+67786,Castagnola/ Fondriest,Castagnola/ Fondriest
 274,Castagnola/ Tabacco,Castagnola/ Tabacco
 105460,Castelnuovo/ Laborde,Castelnuovo/ Laborde
 105321,Castelnuovo/ Lock,Castelnuovo/ Lock
@@ -2266,6 +2326,7 @@ player_key,alias,canonical_name
 102900,Catanzarite/ Dean,Catanzarite/ Dean
 104842,Catanzarite/ Nahum,Catanzarite/ Nahum
 106349,Catanzarite/ Shumate,Catanzarite/ Shumate
+85847,Catini/ Matta,Catini/ Matta
 68204,Catini/ Perfetti,Catini/ Perfetti
 104984,Catry/ Janvier,Catry/ Janvier
 105245,Cattaneo/ Cocola,Cattaneo/ Cocola
@@ -2283,6 +2344,7 @@ player_key,alias,canonical_name
 37774,Ccuno/ Herazo Gonzalez,Ccuno/ Herazo Gonzalez
 104054,Ccuno/ Konishi Silva,Ccuno/ Konishi Silva
 106343,Ccuno/ Pedone,Ccuno/ Pedone
+35750,Ccuno/ Pereira,Ccuno/ Pereira
 35005,Ccuno/ Perez Garcia,Ccuno/ Perez Garcia
 106568,Ccuno/ Sousa Salazar,Ccuno/ Sousa Salazar
 1095,Cecchinato M.,Cecchinato M.
@@ -2295,7 +2357,9 @@ player_key,alias,canonical_name
 40631,H. C. Gokpinar,Cem Gokpinar Haydar
 106793,Cernovicky/ Svoboda,Cernovicky/ Svoboda
 77776,Cerny/ Kucera,Cerny/ Kucera
+107216,Cerny/ Martin,Cerny/ Martin
 105266,Cerqueira Carvalho Farias Lima/ Pedrotti,Cerqueira Carvalho Farias Lima/ Pedrotti
+107247,Cerqueira Carvalho Farias Lima/ Soares,Cerqueira Carvalho Farias Lima/ Soares
 1104,Cerundolo F.,Cerundolo F.
 1104,F. Cerundolo,Cerundolo F.
 1104,Francisco Cerundolo,Cerundolo F.
@@ -2387,6 +2451,7 @@ player_key,alias,canonical_name
 28481,Chen/ Lin,Chen/ Lin
 102713,Chen/ Meng,Chen/ Meng
 103348,Chen/ Okey,Chen/ Okey
+107198,Chen/ Plipuech,Chen/ Plipuech
 94233,Chen/ RuoXi,Chen/ RuoXi
 106819,Chen/ Shao,Chen/ Shao
 105041,Chen/ Tomida,Chen/ Tomida
@@ -2396,6 +2461,7 @@ player_key,alias,canonical_name
 59317,Chen/ Zhang,Chen/ Zhang
 57378,Cheng Chen Yan,Cheng Chen Yan
 57378,Y. C. Chen,Cheng Chen Yan
+107032,Chepelev/ Kuzmanov,Chepelev/ Kuzmanov
 104334,Chepelev/ Prihodko,Chepelev/ Prihodko
 106654,Chepelev/ Sotikovs,Chepelev/ Sotikovs
 49055,Chepik/ Klok,Chepik/ Klok
@@ -2433,6 +2499,7 @@ player_key,alias,canonical_name
 88290,Cho Seung Woo/Yang,Cho Seung Woo/Yang
 106814,Choe/ Shearer,Choe/ Shearer
 94530,Choi/ Choi,Choi/ Choi
+107199,Choi/ Desvignes,Choi/ Desvignes
 91339,Choi/ Jang,Choi/ Jang
 50308,Choi/ Kim,Choi/ Kim
 70278,Choi/ Lee,Choi/ Lee
@@ -2442,6 +2509,7 @@ player_key,alias,canonical_name
 5979,Choinski J.,Choinski J.
 5979,J. Choinski,Choinski J.
 5979,Jan Choinski,Choinski J.
+107193,Choinski/ De Jong,Choinski/ De Jong
 106080,Chong/ Hozumi,Chong/ Hozumi
 105339,Chong/ Piter,Chong/ Piter
 50921,Chong/ Tikhonova,Chong/ Tikhonova
@@ -2492,6 +2560,7 @@ player_key,alias,canonical_name
 106866,Cigarran/ Fernandez,Cigarran/ Fernandez
 57910,Cigarran/ Gagliardo,Cigarran/ Gagliardo
 92197,Cigarran/ Kicker,Cigarran/ Kicker
+107252,Cigarran/ Ratti,Cigarran/ Ratti
 106383,Cilek/ Dalla,Cilek/ Dalla
 59084,Cilekova/ Veleva,Cilekova/ Veleva
 2167,Cilic M.,Cilic M.
@@ -2563,6 +2632,7 @@ player_key,alias,canonical_name
 825,Collignon R.,Collignon R.
 825,R. Collignon,Collignon R.
 825,Raphael Collignon,Collignon R.
+107244,Collignon/ Martens,Collignon/ Martens
 104515,Collignon/ Prizmic,Collignon/ Prizmic
 105309,Collignon/ Rinderknech,Collignon/ Rinderknech
 105669,Collins/ Lincer,Collins/ Lincer
@@ -2616,6 +2686,7 @@ player_key,alias,canonical_name
 67327,Cooper Woestendick,Cooper Woestendick
 102369,Cooper/ Giotis,Cooper/ Giotis
 104761,Cooper/ Hohmann,Cooper/ Hohmann
+107228,Cooper/ Moroni,Cooper/ Moroni
 92306,Cooper/ Sels,Cooper/ Sels
 82233,Cooper/ Vanshelboim,Cooper/ Vanshelboim
 1205,Coppejans K.,Coppejans K.
@@ -2754,6 +2825,7 @@ player_key,alias,canonical_name
 10906,D. Glushkova,D. Glushkova
 54024,D. Gorska,D. Gorska
 9241,D. Guzman,D. Guzman
+107212,D. Guzmicky,D. Guzmicky
 58611,D. Havermans,D. Havermans
 189,D. Hewitt,D. Hewitt
 63480,D. Hwang,D. Hwang
@@ -2774,12 +2846,14 @@ player_key,alias,canonical_name
 59060,D. M. Ilie,D. M. Ilie
 102652,D. Macej,D. Macej
 104629,D. Makarski,D. Makarski
+122,D. Marcinkevica,D. Marcinkevica
 54858,D. Maric,D. Maric
 13466,D. Martynov,D. Martynov
 105981,D. Matvejeva,D. Matvejeva
 582,D. Michalski,D. Michalski
 582,Daniel Michalski,D. Michalski
 49896,D. Miskovic,D. Miskovic
+73174,D. Molokova Ferreira,D. Molokova Ferreira
 52022,D. Mpetshi Perricard,D. Mpetshi Perricard
 104810,D. Odobasic,D. Odobasic
 1111,D. Papamichail,D. Papamichail
@@ -2793,6 +2867,7 @@ player_key,alias,canonical_name
 179,D. Salkova,D. Salkova
 157,D. Semenistaja,D. Semenistaja
 7403,D. Shnaider,D. Shnaider
+65953,D. Shubina,D. Shubina
 55523,D. Simionescu,D. Simionescu
 87825,D. Smolik,D. Smolik
 1131,D. Snigur,D. Snigur
@@ -2812,6 +2887,7 @@ player_key,alias,canonical_name
 9260,D. Vidmanova,D. Vidmanova
 1440,D. Vismane,D. Vismane
 106653,D. Vterkovskiy,D. Vterkovskiy
+107214,D. Wallechner,D. Wallechner
 2813,D. Yastremska,D. Yastremska
 52647,D. Yesypchuk,D. Yesypchuk
 103731,D. Yigin,D. Yigin
@@ -2833,6 +2909,7 @@ player_key,alias,canonical_name
 105609,Dada-Mascoll/ Smejkalova,Dada-Mascoll/ Smejkalova
 63232,Daems/ Firman,Daems/ Firman
 105863,Daems/ Pohle,Daems/ Pohle
+107160,Daems/ Steur,Daems/ Steur
 104583,Daems/ Vaissaud,Daems/ Vaissaud
 52070,Dahlin M.,Dahlin M.
 52070,M. Dahlin,Dahlin M.
@@ -2972,6 +3049,7 @@ player_key,alias,canonical_name
 105473,De Baene/ Klys,De Baene/ Klys
 106288,De Baene/ Seye,De Baene/ Seye
 10689,De Bernardis/ Passaro,De Bernardis/ Passaro
+79950,De Bernardis/ Spadola,De Bernardis/ Spadola
 106192,De Bernardis/ Spiridon,De Bernardis/ Spiridon
 106027,De Campora/ Mendez Xi,De Campora/ Mendez Xi
 106803,De Carvalho/ Dugardin,De Carvalho/ Dugardin
@@ -2992,6 +3070,7 @@ player_key,alias,canonical_name
 106509,De Keulenaer/ Eldin,De Keulenaer/ Eldin
 70192,De Klerk/ Vorwerk,De Klerk/ Vorwerk
 61372,De Koning/ Hageman,De Koning/ Hageman
+107257,De Koning/ Longueville,De Koning/ Longueville
 105686,De Koning/ Stevic,De Koning/ Stevic
 18628,De Krom/ Nijboer,De Krom/ Nijboer
 91638,De Krom/ Ovcharenko,De Krom/ Ovcharenko
@@ -3052,6 +3131,7 @@ player_key,alias,canonical_name
 66658,Demanet/ Loge,Demanet/ Loge
 70190,Demanet/ Ratiu,Demanet/ Ratiu
 95227,Dembo/ Jovanovski,Dembo/ Jovanovski
+107078,Demin/ Gakhov,Demin/ Gakhov
 100087,Demoliner/ Galloway,Demoliner/ Galloway
 104966,Demoliner/ Vocel,Demoliner/ Vocel
 1935,Den Ouden G.,Den Ouden G.
@@ -3061,6 +3141,7 @@ player_key,alias,canonical_name
 106911,Dencheva/ Panshina,Dencheva/ Panshina
 661,D. Wassermann,Deney Wassermann
 661,Deney Wassermann,Deney Wassermann
+107196,Deng/ Han,Deng/ Han
 104250,Deng/ Ren,Deng/ Ren
 2101,D. Klok,Denis Klok
 2101,Denis Klok,Denis Klok
@@ -3078,6 +3159,7 @@ player_key,alias,canonical_name
 105461,Dereeper/ Menard,Dereeper/ Menard
 878,D. Pham,Derek Pham
 878,Derek Pham,Derek Pham
+107239,Derepasko/ Haita,Derepasko/ Haita
 104657,Derepasko/ Pankin,Derepasko/ Pankin
 105080,Derepasko/ Sotikovs,Derepasko/ Sotikovs
 89302,Derepasko/ Vasilev,Derepasko/ Vasilev
@@ -3117,6 +3199,7 @@ player_key,alias,canonical_name
 9909,G. Diallo,Diallo G.
 9909,Gabriel Diallo,Diallo G.
 19427,Dian Nedev,Dian Nedev
+107248,Dias/ Monteleone,Dias/ Monteleone
 105827,Diatlova/ Pereira De Aguiar,Diatlova/ Pereira De Aguiar
 2002,Diaz Acosta F.,Diaz Acosta F.
 2002,F. Diaz Acosta,Diaz Acosta F.
@@ -3176,6 +3259,7 @@ player_key,alias,canonical_name
 37896,Djuric B.,Djuric B.
 102961,Dmitrii Burtsev,Dmitrii Burtsev
 49815,Dmitrii Vasilev,Dmitrii Vasilev
+76705,D. Bessonov,Dmitry Bessonov
 76705,Dmitry Bessonov,Dmitry Bessonov
 23829,D. Dolzhenkov,Dmitry Dolzhenkov
 23829,Dmitry Dolzhenkov,Dmitry Dolzhenkov
@@ -3216,7 +3300,9 @@ player_key,alias,canonical_name
 55112,D. Rolland,Dominique Rolland
 55112,Dominique Rolland,Dominique Rolland
 106304,Dominko/ Godsick,Dominko/ Godsick
+84084,Dominko/ Obrul,Dominko/ Obrul
 104750,Dominko/ Portugal,Dominko/ Portugal
+10964,Donald/ Nicod,Donald/ Nicod
 97204,Donders/ Khoeblal,Donders/ Khoeblal
 57977,Donders/ Verbeek,Donders/ Verbeek
 76074,Dong/ Lagaev,Dong/ Lagaev
@@ -3226,6 +3312,7 @@ player_key,alias,canonical_name
 23958,Dong/ Wang,Dong/ Wang
 106111,Dong/ Xu,Dong/ Xu
 103393,Donski/ Paulson,Donski/ Paulson
+107254,Donski/ Rai,Donski/ Rai
 74206,Dorian Juszczak,Dorian Juszczak
 13796,D. Tremblay,Dorian Tremblay
 13796,Dorian Tremblay,Dorian Tremblay
@@ -3278,6 +3365,7 @@ player_key,alias,canonical_name
 9809,Drzewiecki/ Majchrzak,Drzewiecki/ Majchrzak
 10253,Drzewiecki/ Matuszewski,Drzewiecki/ Matuszewski
 95753,Drzewiecki/ Pieczonka,Drzewiecki/ Pieczonka
+10046,Drzewiecki/ Walkow,Drzewiecki/ Walkow
 105836,Du Pasquier Jensen/ Roesch,Du Pasquier Jensen/ Roesch
 81076,Du Pree/ Van Emst,Du Pree/ Van Emst
 70202,Du Pree/ Van den Broek,Du Pree/ Van den Broek
@@ -3389,11 +3477,13 @@ player_key,alias,canonical_name
 1823,E. Jacquemot,E. Jacquemot
 19419,E. Jaeger,E. Jaeger
 50,E. Jamshidi,E. Jamshidi
+107209,E. Johansson,E. Johansson
 10924,E. Jones,E. Jones
 87042,E. K. Malmkjaer,E. K. Malmkjaer
 198,E. Kalieva,E. Kalieva
 1985,E. Kazionova,E. Kazionova
 10901,E. Khayrutdinova,E. Khayrutdinova
+39049,E. Khotchenkov,E. Khotchenkov
 106579,E. King,E. King
 106579,Ene/ King,E. King
 6766,E. King,E. King
@@ -3438,6 +3528,7 @@ player_key,alias,canonical_name
 52688,E. O. Ghirardato,E. O. Ghirardato
 18807,E. Ovcharenko,E. Ovcharenko
 105657,E. Oxford,E. Oxford
+24520,E. Park,E. Park
 75890,E. Perelygina,E. Perelygina
 53165,E. Plosnik,E. Plosnik
 9399,E. Pridankina,E. Pridankina
@@ -3453,6 +3544,7 @@ player_key,alias,canonical_name
 4526,E. Sema,E. Sema
 104795,E. Serkedi,E. Serkedi
 5340,E. Shaw,E. Shaw
+107220,E. Shcherbakov,E. Shcherbakov
 1986,E. Shibahara,E. Shibahara
 61722,E. Slavikova,E. Slavikova
 86464,E. Sumann,E. Sumann
@@ -3482,6 +3574,7 @@ player_key,alias,canonical_name
 86641,Echazu/ Osorio,Echazu/ Osorio
 106425,Echazu/ Rodriguez,Echazu/ Rodriguez
 96359,Echeverria/ Giunta,Echeverria/ Giunta
+107028,Echeverria/ Matusevich,Echeverria/ Matusevich
 106975,Edengren/ Nanobashvili Saba,Edengren/ Nanobashvili Saba
 38076,E. Ambarzumjan,Edison Ambarzumjan
 38076,Edison Ambarzumjan,Edison Ambarzumjan
@@ -3600,6 +3693,7 @@ player_key,alias,canonical_name
 104310,Eriksson Ziverts/ Photiadis,Eriksson Ziverts/ Photiadis
 104520,Erjavec/ Marcinko,Erjavec/ Marcinko
 104546,Erler/ Erler,Erler/ Erler
+107082,Erler/ Stevens,Erler/ Stevens
 104675,Erlewein/ Hammes,Erlewein/ Hammes
 84502,Erlewein/ Sonesson,Erlewein/ Sonesson
 107008,Errani/ Fernandez,Errani/ Fernandez
@@ -3620,6 +3714,7 @@ player_key,alias,canonical_name
 92128,E. Talavera Cortes,Esteban Talavera Cortes
 92128,Esteban Talavera Cortes,Esteban Talavera Cortes
 104481,Estevez/ Gonzalez Daniele,Estevez/ Gonzalez Daniele
+62486,Estevez/ La Serna,Estevez/ La Serna
 106566,Estevez/ Meabe,Estevez/ Meabe
 7654,Estonia W,Estonia W
 1777,Etcheverry T.,Etcheverry T.
@@ -3691,6 +3786,7 @@ player_key,alias,canonical_name
 56352,F. Dymak,F. Dymak
 91360,F. Fedeli,F. Fedeli
 526,F. Ferro,F. Ferro
+107211,F. Fischer,F. Fischer
 87071,F. Fontes Damorim,F. Fontes Damorim
 100050,F. G. Colasanto,F. G. Colasanto
 61315,F. Gandolfi,F. Gandolfi
@@ -3733,6 +3829,7 @@ player_key,alias,canonical_name
 823,Franco Roncadelli,F. Roncadelli
 106848,F. Ronnholm,F. Ronnholm
 57428,F. Sacco,F. Sacco
+39027,F. Schlossmann,F. Schlossmann
 106709,F. Sebek,F. Sebek
 79838,F. Soderqvist,F. Soderqvist
 2116,F. Sziedat,F. Sziedat
@@ -3746,6 +3843,7 @@ player_key,alias,canonical_name
 105246,Fabre/ Verwerft,Fabre/ Verwerft
 9568,F. Andaloro,Fabrizio Andaloro
 9568,Fabrizio Andaloro,Fabrizio Andaloro
+107124,Facek/ Panik,Facek/ Panik
 8880,Facundo Juarez,Facundo Juarez
 14018,F. Yunis,Facundo Yunis
 14018,Facundo Yunis,Facundo Yunis
@@ -3793,6 +3891,7 @@ player_key,alias,canonical_name
 105413,Farzam/ Lopez Cherubino,Farzam/ Lopez Cherubino
 104621,Farzami/ Isaacs,Farzami/ Isaacs
 104457,Farzami/ Ksandinov,Farzami/ Ksandinov
+107243,Faucon/ Majdandzic,Faucon/ Majdandzic
 92642,Faucon/ Uzhylovskyi,Faucon/ Uzhylovskyi
 106801,Faucon/ Vance,Faucon/ Vance
 65519,Faurel T.,Faurel T.
@@ -3812,6 +3911,7 @@ player_key,alias,canonical_name
 38833,Federico Aguilar Cardozo,Federico Aguilar Cardozo
 1240,F. Arnaboldi,Federico Arnaboldi
 1240,Federico Arnaboldi,Federico Arnaboldi
+13407,F. Bove,Federico Bove
 13407,Federico Bove,Federico Bove
 69611,Federico Gonzalez Benitez,Federico Gonzalez Benitez
 5673,F. Iannaccone,Federico Iannaccone
@@ -3854,6 +3954,7 @@ player_key,alias,canonical_name
 92494,F. Roussel,Felix Roussel
 92494,Felix Roussel,Felix Roussel
 104895,Fellin/ Oradini,Fellin/ Oradini
+107261,Fellin/ Winter,Fellin/ Winter
 56933,Feng/ Li,Feng/ Li
 104564,Fenty/ Poling,Fenty/ Poling
 68450,F. Livet Novkirichka,Ferdinand Livet Novkirichka
@@ -3905,8 +4006,10 @@ player_key,alias,canonical_name
 420,Ficovich J.P.,Ficovich J.P.
 420,J. P. Ficovich,Ficovich J.P.
 420,Pablo Ficovich Juan,Ficovich J.P.
+107260,Ficovich/ Huertas Del Pino Cordova,Ficovich/ Huertas Del Pino Cordova
 106885,Fidler/ Zdravkovski,Fidler/ Zdravkovski
 106978,Figl/ Hallquist Lithen,Figl/ Hallquist Lithen
+107152,Figl/ Kovac,Figl/ Kovac
 64815,Figl/ Toffanin,Figl/ Toffanin
 39919,F. Fumagalli,Filiberto Fumagalli
 39919,Filiberto Fumagalli,Filiberto Fumagalli
@@ -3938,6 +4041,7 @@ player_key,alias,canonical_name
 101814,Finn Emslie-Robson,Finn Emslie-Robson
 8169,Finn Murgett,Finn Murgett
 94154,Finn Willman,Finn Willman
+107122,Fiorentini/ Pisanu,Fiorentini/ Pisanu
 106287,Firman/ Otzipka,Firman/ Otzipka
 68029,Firman/ Serban,Firman/ Serban
 105115,Firman/ Sobolieva,Firman/ Sobolieva
@@ -4050,6 +4154,7 @@ player_key,alias,canonical_name
 62930,Fu Wong Tsz,Fu Wong Tsz
 62930,T. F. Wong,Fu Wong Tsz
 106935,Fuchs/ Fuchs,Fuchs/ Fuchs
+107031,Fuchs/ Perez,Fuchs/ Perez
 61647,Fuchs/ Thayne,Fuchs/ Thayne
 2833,Fucsovics M.,Fucsovics M.
 2833,M. Fucsovics,Fucsovics M.
@@ -4089,6 +4194,8 @@ player_key,alias,canonical_name
 38149,G. Feistel,G. Feistel
 92801,G. Ferro,G. Ferro
 1784,G. Garcia-Perez,G. Garcia-Perez
+97857,G. Gomes Ferreira,G. Gomes Ferreira
+74171,G. Groth,G. Groth
 106024,G. H. Song Kwon,G. H. Song Kwon
 36585,G. Hays,G. Hays
 106707,G. Horelka,G. Horelka
@@ -4167,6 +4274,7 @@ player_key,alias,canonical_name
 794,Gage Brymer,Gage Brymer
 93631,Gagliardo/ Guadagno,Gagliardo/ Guadagno
 106993,Gagliardo/ Valente,Gagliardo/ Valente
+107259,Gaillard/ Schueller,Gaillard/ Schueller
 574,Gakhov I.,Gakhov I.
 574,I. Gakhov,Gakhov I.
 574,Ivan Gakhov,Gakhov I.
@@ -4199,6 +4307,7 @@ player_key,alias,canonical_name
 106267,Gandolfi/ Mariani,Gandolfi/ Mariani
 86491,Gandolfi/ Pizzigoni,Gandolfi/ Pizzigoni
 105342,Ganesan/ Martin,Ganesan/ Martin
+107021,Gannon/ MacKinlay,Gannon/ MacKinlay
 67867,Ganta/  Javia,Ganta/  Javia
 105324,Ganta/  Jones,Ganta/  Jones
 89789,Ganta/  Matsuda,Ganta/  Matsuda
@@ -4258,6 +4367,7 @@ player_key,alias,canonical_name
 107128,Gavrielides/ Loosen,Gavrielides/ Loosen
 104721,Gavrila/ Prisacariu,Gavrila/ Prisacariu
 37158,Gavrila/ Sakellaridi,Gavrila/ Sakellaridi
+96126,Gavrila/ Sebestova,Gavrila/ Sebestova
 105161,Gavrila/ Szabo,Gavrila/ Szabo
 105736,Gavrila/ Webley-Smith,Gavrila/ Webley-Smith
 69365,Gay/ Ramos Sierra,Gay/ Ramos Sierra
@@ -4271,6 +4381,7 @@ player_key,alias,canonical_name
 587,Geerts M.,Geerts M.
 587,M. Geerts,Geerts M.
 587,Michael Geerts,Geerts M.
+107022,Geerts/ Martineau,Geerts/ Martineau
 106434,Geerts/ Perez,Geerts/ Perez
 86135,Genier/ Nikles,Genier/ Nikles
 104773,Genier/ Stepanov,Genier/ Stepanov
@@ -4347,6 +4458,7 @@ player_key,alias,canonical_name
 1208,Gill F.,Gill F.
 106441,Gille/ Sachko,Gille/ Sachko
 90887,Gille/ Verbeek,Gille/ Verbeek
+107227,Gima/ Partal,Gima/ Partal
 102550,Gimbrere/ Sakellaridi,Gimbrere/ Sakellaridi
 106173,Gimenez/ Picard,Gimenez/ Picard
 104222,Giordano/ Liu,Giordano/ Liu
@@ -4405,6 +4517,7 @@ player_key,alias,canonical_name
 106200,Gogineni/ Young,Gogineni/ Young
 104434,Goina/ Hejtmanek,Goina/ Hejtmanek
 105470,Goina/ Kovacevic,Goina/ Kovacevic
+107134,Goina/ Ogescu,Goina/ Ogescu
 104707,Goina/ Pochtovyk,Goina/ Pochtovyk
 92872,Goina/ Zaparyniuk,Goina/ Zaparyniuk
 101627,Goity Zapico/ Meneo,Goity Zapico/ Meneo
@@ -4450,6 +4563,7 @@ player_key,alias,canonical_name
 104922,Gonzalez-Galino/ Konduri,Gonzalez-Galino/ Konduri
 102255,Gonzalez/ Gonzalez,Gonzalez/ Gonzalez
 104964,Gonzalez/ Hidalgo,Gonzalez/ Hidalgo
+107079,Gonzalez/ Ho,Gonzalez/ Ho
 107052,Gonzalez/ Navedo Espejo,Gonzalez/ Navedo Espejo
 106075,Gonzalez/ Pacheco Mendez,Gonzalez/ Pacheco Mendez
 18356,Gonzalez/ Reyes-Varela,Gonzalez/ Reyes-Varela
@@ -4469,6 +4583,7 @@ player_key,alias,canonical_name
 106751,Gottvaldova/ Tvrzska,Gottvaldova/ Tvrzska
 7368,Grabher/ Kraus,Grabher/ Kraus
 106279,Gram/ Monteleone,Gram/ Monteleone
+107206,Grammatikopoulou/ Lemaitre,Grammatikopoulou/ Lemaitre
 50326,Grammatikopoulou/ Matoula,Grammatikopoulou/ Matoula
 2870,Granollers/ Zeballos,Granollers/ Zeballos
 105732,Grant/ Ibragimova,Grant/ Ibragimova
@@ -4486,6 +4601,7 @@ player_key,alias,canonical_name
 56006,Gregor Hausberger,Gregor Hausberger
 38038,Gregor Ramskogler,Gregor Ramskogler
 104360,Gregorczyk/ Piotrowska,Gregorczyk/ Piotrowska
+31886,G. Biondolillo,Gregorio Biondolillo
 31886,Gregorio Biondolillo,Gregorio Biondolillo
 105560,Gregoriou/ Terblanche,Gregoriou/ Terblanche
 1073,Grenier H.,Grenier H.
@@ -4516,6 +4632,7 @@ player_key,alias,canonical_name
 105437,Grunewald/ Venkatraman,Grunewald/ Venkatraman
 61513,Grzegorzewski/ Majchrzak,Grzegorzewski/ Majchrzak
 106207,Grzegorzewski/ Pereira,Grzegorzewski/ Pereira
+107229,Grzegorzewski/ Sadzik,Grzegorzewski/ Sadzik
 106623,Grzegorzewski/ Thurner,Grzegorzewski/ Thurner
 105228,Gschwendtner/ Lakshmanan,Gschwendtner/ Lakshmanan
 106627,Gschwendtner/ Mischker,Gschwendtner/ Mischker
@@ -4524,6 +4641,7 @@ player_key,alias,canonical_name
 106082,Guarachi/ Harrison,Guarachi/ Harrison
 103834,Guarachi/ Rosolska,Guarachi/ Rosolska
 7669,Guatemala W,Guatemala W
+107225,Gubi/ Zavaczki,Gubi/ Zavaczki
 87140,Guelord Kayombo,Guelord Kayombo
 13566,Guerrieri/ Ricca,Guerrieri/ Ricca
 104555,Gueymard Wayenburg/ Kasnikowski,Gueymard Wayenburg/ Kasnikowski
@@ -4532,6 +4650,8 @@ player_key,alias,canonical_name
 38125,G. Dalmasso,Guillaume Dalmasso
 38125,Guillaume Dalmasso,Guillaume Dalmasso
 103887,Guilleme/ Munk Mesa,Guilleme/ Munk Mesa
+27035,Andrade/ Guillen Meza,Guillen Meza A.
+27035,Guillen Meza A.,Guillen Meza A.
 9230,A. Guillen Meza,Guillen Meza A.
 9230,Alvaro Guillen Meza,Guillen Meza A.
 9230,Guillen Meza A.,Guillen Meza A.
@@ -4666,6 +4786,7 @@ player_key,alias,canonical_name
 94995,Hanamichi Carvajal,Hanamichi Carvajal
 106328,Hanatani/ Korpanec Davies,Hanatani/ Korpanec Davies
 106196,Hance/ Satterfield,Hance/ Satterfield
+107154,Handel/ Oetzbach,Handel/ Oetzbach
 83995,Handel/ Poertner,Handel/ Poertner
 78201,Hands/ Summers,Hands/ Summers
 1764,Hanfmann Y.,Hanfmann Y.
@@ -4728,6 +4849,7 @@ player_key,alias,canonical_name
 104523,Haverlag/ Udvardy,Haverlag/ Udvardy
 103974,Havermans/ Samardzic,Havermans/ Samardzic
 105368,Havlickova/ Knutson,Havlickova/ Knutson
+107203,Havlickova/ Krejcova,Havlickova/ Krejcova
 105159,Havlickova/ Podrez,Havlickova/ Podrez
 86818,Havlickova/ Samson,Havlickova/ Samson
 106284,Hawkshaw/ Walsh,Hawkshaw/ Walsh
@@ -4753,6 +4875,7 @@ player_key,alias,canonical_name
 2410,G. Heide,Heide G.
 2410,Gustavo Heide,Heide G.
 2410,Heide G.,Heide G.
+95969,Heide/ Miguel,Heide/ Miguel
 104347,Heine/ Isbruch,Heine/ Isbruch
 106666,Heinrich/ Korpatsch,Heinrich/ Korpatsch
 86887,Heinz/ Siegler,Heinz/ Siegler
@@ -4792,6 +4915,7 @@ player_key,alias,canonical_name
 102704,H. Shylov,Heorhii Shylov
 102704,Heorhii Shylov,Heorhii Shylov
 106687,Herazo Gonzalez/ Horvit,Herazo Gonzalez/ Horvit
+107155,Herazo Gonzalez/ Kuhl,Herazo Gonzalez/ Kuhl
 1748,Herbert P.H.,Herbert P.H.
 1748,P. Herbert,Herbert P.H.
 1748,Pierre-Hugues Herbert,Herbert P.H.
@@ -4801,6 +4925,7 @@ player_key,alias,canonical_name
 105893,Herea/ Vergara Rivera,Herea/ Vergara Rivera
 78908,Heredia/ Linde Palacios,Heredia/ Linde Palacios
 106465,Heredia/ Marques,Heredia/ Marques
+107080,Heredia/ Sharan,Heredia/ Sharan
 93938,Heredia/ Tobon,Heredia/ Tobon
 104576,Heredia/ Urrea,Heredia/ Urrea
 70317,H. Hoeyeraal,Herman Hoeyeraal
@@ -4888,6 +5013,7 @@ player_key,alias,canonical_name
 8158,Holt B.,Holt B.
 1543,Homberg/ Kobierski,Homberg/ Kobierski
 105687,Homberg/ Mischker,Homberg/ Mischker
+102998,Homberg/ Mueller,Homberg/ Mueller
 104500,Homberg/ Slavic,Homberg/ Slavic
 104497,Homola/ Hrazdil,Homola/ Hrazdil
 106629,Homola/ Jedrzejczak,Homola/ Jedrzejczak
@@ -4928,6 +5054,7 @@ player_key,alias,canonical_name
 87368,Hou/ Lee,Hou/ Lee
 106954,Hou/ Plipuech,Hou/ Plipuech
 106787,Hou/ Voisin,Hou/ Voisin
+107172,Hou/ Wu Kai An,Hou/ Wu Kai An
 104711,Houas/ Sahnoun,Houas/ Sahnoun
 106347,Hovde/ Rabman,Hovde/ Rabman
 66327,H. Roh,Hoyoung Roh
@@ -5033,6 +5160,7 @@ player_key,alias,canonical_name
 91244,I. C. Millan,I. C. Millan
 30,I. D. Amariei,I. D. Amariei
 11610,I. Dapkute,I. Dapkute
+103291,I. Delaloye,I. Delaloye
 65048,I. Dyussebay,I. Dyussebay
 3000,I. Fetecau,I. Fetecau
 85210,I. Foshee,I. Foshee
@@ -5071,6 +5199,7 @@ player_key,alias,canonical_name
 14,I. Sebestova,I. Sebestova
 503,I. Shinikova,I. Shinikova
 223,I. Shymanovich,I. Shymanovich
+107246,I. Sigrist,I. Sigrist
 40792,I. Skoog,I. Skoog
 78628,I. Snoussi,I. Snoussi
 86839,I. Spink,I. Spink
@@ -5283,6 +5412,7 @@ player_key,alias,canonical_name
 57541,J. Facek,J. Facek
 87812,J. Fedor,J. Fedor
 56803,J. Fellows,J. Fellows
+102571,J. Font,J. Font
 19896,J. G. Gerald Gonzalez,J. G. Gerald Gonzalez
 87073,J. Gamble,J. Gamble
 9238,J. Garcia,J. Garcia
@@ -5299,6 +5429,7 @@ player_key,alias,canonical_name
 89213,J. Hazelitt,J. Hazelitt
 88241,J. Held,J. Held
 93494,J. Hernandez,J. Hernandez
+1051,J. Hinojosa Gomez,J. Hinojosa Gomez
 97000,J. Horwood,J. Horwood
 65066,J. Hossam Salah,J. Hossam Salah
 23886,J. Hsu,J. Hsu
@@ -5332,10 +5463,12 @@ player_key,alias,canonical_name
 78985,Jamie Mackenzie,J. Mackenzie
 76640,J. Marcos Cattoni,J. Marcos Cattoni
 13335,J. Marmorstein,J. Marmorstein
+736,J. Maute,J. Maute
 103860,J. McGloughlin,J. McGloughlin
 105673,J. Mendes,J. Mendes
 38864,J. Mendieta,J. Mendieta
 81688,J. Messina,J. Messina
+9249,J. Middendorf,J. Middendorf
 232,J. Mikulskyte,J. Mikulskyte
 104862,J. Mitchell,J. Mitchell
 24519,J. Moon,J. Moon
@@ -5374,6 +5507,7 @@ player_key,alias,canonical_name
 78075,J. Schilz,J. Schilz
 3130,J. Shin,J. Shin
 78990,J. Sibai,J. Sibai
+107213,J. Siftar,J. Siftar
 30094,J. Solarski,J. Solarski
 2600,J. Stamatova,J. Stamatova
 15563,J. Struplova,J. Struplova
@@ -5508,6 +5642,7 @@ player_key,alias,canonical_name
 101083,Jans/ Whitehouse,Jans/ Whitehouse
 105907,Jansen/ Petrovic,Jansen/ Petrovic
 105481,Janssen/ Koussenkova,Janssen/ Koussenkova
+107256,Janssen/ Palm,Janssen/ Palm
 104344,Janssen/ Roesch,Janssen/ Roesch
 104321,Jansson/ Kumar,Jansson/ Kumar
 51975,Jansson/ Rovai,Jansson/ Rovai
@@ -5527,6 +5662,7 @@ player_key,alias,canonical_name
 1261,Jasika O.,Jasika O.
 1261,O. Jasika,Jasika O.
 1261,Omar Jasika,Jasika O.
+72348,Jaskova/ Vlckova,Jaskova/ Vlckova
 654,Jasza Szajrych,Jasza Szajrych
 83520,Jauffret/ Llewellyn,Jauffret/ Llewellyn
 105180,Jauffret/ Slama,Jauffret/ Slama
@@ -5725,6 +5861,7 @@ player_key,alias,canonical_name
 79356,Jovic/ McNally,Jovic/ McNally
 103914,Jovic/ Milosavljevic,Jovic/ Milosavljevic
 104658,Jovic/ Premzl,Jovic/ Premzl
+107233,Jovic/ Radovanovic,Jovic/ Radovanovic
 106161,Jovic/ Zivkovic,Jovic/ Zivkovic
 77618,Jr Olivarez Eric,Jr Olivarez Eric
 10296,D. J. Kim,Ju Kim Dong
@@ -5886,6 +6023,7 @@ player_key,alias,canonical_name
 13168,K. Veldman,K. Veldman
 2826,K. Volynets,K. Volynets
 20220,K. Vozniak,K. Vozniak
+107222,K. Vukovic,K. Vukovic
 71639,K. Vymazal,K. Vymazal
 95212,K. Watanabe,K. Watanabe
 9523,K. Wiersholm,K. Wiersholm
@@ -5979,6 +6117,7 @@ player_key,alias,canonical_name
 106295,Karatancheva/ Kern,Karatancheva/ Kern
 106925,Karatancheva/ Papamichail,Karatancheva/ Papamichail
 76853,Karatancheva/ Primorac,Karatancheva/ Primorac
+100978,Karatancheva/ Thombare,Karatancheva/ Thombare
 92447,Karatancheva/ Vilar,Karatancheva/ Vilar
 1901,Aslan Karatsev,Karatsev A.
 1901,Karatsev A.,Karatsev A.
@@ -5993,6 +6132,7 @@ player_key,alias,canonical_name
 8886,K. Poling,Karl Poling
 8886,Karl Poling,Karl Poling
 13125,Karlis Ozolins,Karlis Ozolins
+81046,K. Kajin,Karlo Kajin
 81046,Karlo Kajin,Karlo Kajin
 83109,Karlsson Wistrand/ Koistila Larsson,Karlsson Wistrand/ Koistila Larsson
 106788,Karlsson Wistrand/ Kumar,Karlsson Wistrand/ Kumar
@@ -6090,6 +6230,7 @@ player_key,alias,canonical_name
 2400,Khachanov/ Rublev,Khachanov/ Rublev
 102313,Khan Barkat,Khan Barkat
 105596,Khan/ Russell,Khan/ Russell
+107237,Kharlamov/ Tiukaev,Kharlamov/ Tiukaev
 81561,Kharlanova/ Mamedova,Kharlanova/ Mamedova
 105890,Khayrutdinova/ Kononova,Khayrutdinova/ Kononova
 106350,Khayrutdinova/ McNeil,Khayrutdinova/ McNeil
@@ -6106,6 +6247,7 @@ player_key,alias,canonical_name
 96569,Khotchenkov/ Yazdani,Khotchenkov/ Yazdani
 104453,Khramtsova/ Vasileva,Khramtsova/ Vasileva
 101223,Khrebtova/ Wagner,Khrebtova/ Wagner
+107249,Khuda/ Kurmanaev,Khuda/ Kurmanaev
 6983,K. Sultanov,Khumoyun Sultanov
 6983,Khumoyun Sultanov,Khumoyun Sultanov
 9479,Kichenok/ Kichenok,Kichenok/ Kichenok
@@ -6119,6 +6261,8 @@ player_key,alias,canonical_name
 55562,Kielan/ Matuszewski,Kielan/ Matuszewski
 105716,Kielan/ Neuchrist,Kielan/ Neuchrist
 104971,Kielan/ Poljak,Kielan/ Poljak
+107019,Kielan/ Vega Hernandez,Kielan/ Vega Hernandez
+87535,Kiger/ Seggerman,Kiger/ Seggerman
 81685,Kiger/ Stalder,Kiger/ Stalder
 75073,Kiger/ Trhac,Kiger/ Trhac
 105062,Kikawada/ Kosaka,Kikawada/ Kosaka
@@ -6128,7 +6272,9 @@ player_key,alias,canonical_name
 38234,Kim Eunchae,Kim Eunchae
 39477,Kim Eunchae/Lee,Kim Eunchae/Lee
 11521,Kim/ Kim,Kim/ Kim
+107197,Kim/ Kozaki,Kim/ Kozaki
 101990,Kim/ Lu,Kim/ Lu
+107047,Kim/ Martin,Kim/ Martin
 83621,Kim/ Roh,Kim/ Roh
 31401,Kim/ Shin,Kim/ Shin
 106855,Kindhult/ Nyqvist,Kindhult/ Nyqvist
@@ -6148,10 +6294,13 @@ player_key,alias,canonical_name
 1863,E. Kirkin,Kirkin E.
 1863,Ergi Kirkin,Kirkin E.
 1863,Kirkin E.,Kirkin E.
+27106,Kirkin/ Yevseyev,Kirkin/ Yevseyev
 76043,Kirkov/ Stevens,Kirkov/ Stevens
+107255,Kisantal/ Popovic,Kisantal/ Popovic
 104036,Kitahara/ Nishino,Kitahara/ Nishino
 106453,Kittay/ Romboli,Kittay/ Romboli
 104904,Kittay/ Romios,Kittay/ Romios
+107194,Kittay/ Stalder,Kittay/ Stalder
 106508,Klaassen/ Van Herck,Klaassen/ Van Herck
 106781,Klaassen/ Vasa,Klaassen/ Vasa
 85154,Kleege/ Seeman,Kleege/ Seeman
@@ -6166,6 +6315,7 @@ player_key,alias,canonical_name
 106513,Klimas/ Poritskyi,Klimas/ Poritskyi
 104732,Klimovicova/ Podrez,Klimovicova/ Podrez
 106555,Klok/ Ochi,Klok/ Ochi
+107238,Klok/ Vijay Shankar,Klok/ Vijay Shankar
 106960,Kluczynski/ Mizerski,Kluczynski/ Mizerski
 58301,Klugman/ Xu,Klugman/ Xu
 105123,Klys/ Solakov,Klys/ Solakov
@@ -6175,6 +6325,7 @@ player_key,alias,canonical_name
 69830,Knani/ Trifi,Knani/ Trifi
 104957,Knight/ Wong,Knight/ Wong
 89494,Knippling/ Schinas,Knippling/ Schinas
+107162,Knorr/ Middendorf,Knorr/ Middendorf
 64772,Knutson/ Vilar,Knutson/ Vilar
 23191,K. Suzuki,Ko Suzuki
 23191,Ko Suzuki,Ko Suzuki
@@ -6198,6 +6349,7 @@ player_key,alias,canonical_name
 426,T. Kokkinakis,Kokkinakis T.
 426,Thanasi Kokkinakis,Kokkinakis T.
 104808,Kokkinakis/ Kovacevic,Kokkinakis/ Kovacevic
+107159,Kokkinis/ McKenzie,Kokkinis/ McKenzie
 9226,K. Isomura,Kokoro Isomura
 9226,Kokoro Isomura,Kokoro Isomura
 384,Kolar Z.,Kolar Z.
@@ -6325,6 +6477,7 @@ player_key,alias,canonical_name
 13537,Krittin Koaykul,Krittin Koaykul
 105046,Kroitor/ Maklakova,Kroitor/ Maklakova
 105554,Krolitzky/ Swart,Krolitzky/ Swart
+107234,Krstic ./ Manukyan,Krstic ./ Manukyan
 1751,Krueger M.,Krueger M.
 1751,M. Krueger,Krueger M.
 1751,Mitchell Krueger,Krueger M.
@@ -6501,6 +6654,7 @@ player_key,alias,canonical_name
 68315,L. Luciano,L. Luciano
 104632,L. Luemkemann,L. Luemkemann
 63493,L. M. Cinalli,L. M. Cinalli
+103894,L. M. Oprescu,L. M. Oprescu
 62484,L. M. Shibata,L. M. Shibata
 53951,L. Ma,L. Ma
 5151,L. Mair,L. Mair
@@ -6510,6 +6664,7 @@ player_key,alias,canonical_name
 8570,L. Maxted,L. Maxted
 53,L. Meyer Auf Der Heide,L. Meyer Auf Der Heide
 68334,L. Mi,L. Mi
+88420,L. Mietusch,L. Mietusch
 462,L. Miyazaki,L. Miyazaki
 106419,L. Morini,L. Morini
 104263,L. Mouffe,L. Mouffe
@@ -6537,6 +6692,7 @@ player_key,alias,canonical_name
 92080,L. Rabl,L. Rabl
 1364,L. Radivojevic,L. Radivojevic
 13325,L. Reed,L. Reed
+2233,L. Renard,L. Renard
 15808,L. Rodriguez,L. Rodriguez
 101637,L. Romanova,L. Romanova
 141,L. Romero Gormaz,L. Romero Gormaz
@@ -6584,6 +6740,7 @@ player_key,alias,canonical_name
 90045,L. McFadzean,Lachlan McFadzean
 90045,Lachlan McFadzean,Lachlan McFadzean
 69059,Lachlan Vickery,Lachlan Vickery
+107153,Lafarga Verdeguer/ Schellhorn,Lafarga Verdeguer/ Schellhorn
 55792,Lagaev/ Leroux,Lagaev/ Leroux
 105092,Lagerbohm/ Wygona,Lagerbohm/ Wygona
 106468,Lagutin/ Melero,Lagutin/ Melero
@@ -6608,6 +6765,7 @@ player_key,alias,canonical_name
 21011,L. Ruland,Lambert Ruland
 21011,Lambert Ruland,Lambert Ruland
 3023,Lammons/ Withrow,Lammons/ Withrow
+107200,Lan/ Zeng,Lan/ Zeng
 104330,Lan/ Zhang,Lan/ Zhang
 39864,Landaluce M.,Landaluce M.
 39864,M. Landaluce,Landaluce M.
@@ -6621,6 +6779,7 @@ player_key,alias,canonical_name
 107076,Lanik/ Michalik,Lanik/ Michalik
 28353,Lanik/ Novansky,Lanik/ Novansky
 16063,Lanik/ Pokorny,Lanik/ Pokorny
+90381,Lansere/ Yuneva,Lansere/ Yuneva
 20190,Lansere/ Zaytseva,Lansere/ Zaytseva
 30750,Laos W,Laos W
 105027,Lapalme/ Roux,Lapalme/ Roux
@@ -6639,6 +6798,7 @@ player_key,alias,canonical_name
 104451,Laskutova/ Wiersholm,Laskutova/ Wiersholm
 57545,L. Poertner,Lasse Poertner
 57545,Lasse Poertner,Lasse Poertner
+107018,Latinovic/ Loof,Latinovic/ Loof
 79741,Latinovic/ Poljicak,Latinovic/ Poljicak
 104220,Latinovic/ Vrbensky,Latinovic/ Vrbensky
 106440,Latinovic/ Zeballos,Latinovic/ Zeballos
@@ -6654,6 +6814,7 @@ player_key,alias,canonical_name
 104990,Lazar/ Luciano,Lazar/ Luciano
 61243,Lazar/ Pochtovyk,Lazar/ Pochtovyk
 96375,Lazar/ Shapatava,Lazar/ Shapatava
+107253,Lazar/ Solakov,Lazar/ Solakov
 105832,Lazarenko/ Skliar,Lazarenko/ Skliar
 90413,Lazaro Juncadella/ Pikkaart,Lazaro Juncadella/ Pikkaart
 106201,Lazaro Juncadella/ Sakagawa,Lazaro Juncadella/ Sakagawa
@@ -6818,6 +6979,7 @@ player_key,alias,canonical_name
 1076,Lokoli L.,Lokoli L.
 87975,Lomakin/ Sarksian,Lomakin/ Sarksian
 106448,Lomakin/ Sinclair,Lomakin/ Sinclair
+107171,Lomakin/ Tamm,Lomakin/ Tamm
 104415,Lomakin/ Yap,Lomakin/ Yap
 96165,Lombardini/ Raggi,Lombardini/ Raggi
 105650,Longueville/ Vogt,Longueville/ Vogt
@@ -6868,6 +7030,7 @@ player_key,alias,canonical_name
 74727,Louis Larue,Louis Larue
 8769,L. Tessa,Louis Tessa
 8769,Louis Tessa,Louis Tessa
+54685,L. Van Herck,Louis Van Herck
 54685,Louis Van Herck,Louis Van Herck
 106976,Loureiro/  Hoeyeraal,Loureiro/  Hoeyeraal
 105887,Loureiro/  Huertas Del Pino,Loureiro/  Huertas Del Pino
@@ -6975,6 +7138,7 @@ player_key,alias,canonical_name
 105540,M. A. Almada,M. A. Almada
 8127,M. A. Jecan,M. A. Jecan
 24405,M. A. Vergara del Puerto,M. A. Vergara del Puerto
+27406,M. Agwi,M. Agwi
 13333,M. Aikawa,M. Aikawa
 9534,M. Andreeva,M. Andreeva
 40096,M. Andrienko,M. Andrienko
@@ -7019,6 +7183,7 @@ player_key,alias,canonical_name
 1348,M. Colmegna,M. Colmegna
 33954,M. Crossley,M. Crossley
 88182,M. D. Stan,M. D. Stan
+107223,M. Despotovic,M. Despotovic
 34548,M. Dobreva,M. Dobreva
 78941,M. Drobysheva,M. Drobysheva
 33199,M. Dzjachangirova,M. Dzjachangirova
@@ -7050,6 +7215,7 @@ player_key,alias,canonical_name
 106706,M. Hlavnicka,M. Hlavnicka
 147,M. Hodzic,M. Hodzic
 2296,M. Hoedt,M. Hoedt
+56111,M. Hoffmann,M. Hoffmann
 1787,M. Hontama,M. Hontama
 38670,M. Horvit,M. Horvit
 1243,M. Houkes,M. Houkes
@@ -7084,6 +7250,7 @@ player_key,alias,canonical_name
 6702,M. Kupres,M. Kupres
 1052,M. Kuramochi,M. Kuramochi
 187,M. L. Carle,M. L. Carle
+107217,M. L. Harnoth,M. L. Harnoth
 23806,M. L. Oliveira,M. L. Oliveira
 105290,M. Lapalme,M. Lapalme
 83613,M. Laron,M. Laron
@@ -7117,6 +7284,7 @@ player_key,alias,canonical_name
 84428,M. Matias,M. Matias
 34,M. Matoula,M. Matoula
 89697,M. Mattel,M. Mattel
+66958,M. Medvedeva,M. Medvedeva
 11762,M. Mendez,M. Mendez
 2265,M. Mettraux,M. Mettraux
 57240,M. Migdalski,M. Migdalski
@@ -7187,6 +7355,7 @@ player_key,alias,canonical_name
 85377,M. Specht,M. Specht
 69676,M. Sroka,M. Sroka
 70649,M. Stanisavljevic,M. Stanisavljevic
+103787,M. Steinkamp,M. Steinkamp
 56261,M. Stoiana,M. Stoiana
 63495,M. Stojsavljevic,M. Stojsavljevic
 68442,M. Stosovic,M. Stosovic
@@ -7203,6 +7372,7 @@ player_key,alias,canonical_name
 13545,M. Toma,M. Toma
 22868,M. Tona,M. Tona
 512,M. Trevisan,M. Trevisan
+53879,M. Trujillo Garnica,M. Trujillo Garnica
 460,M. Uchijima,M. Uchijima
 81772,M. Uemura,M. Uemura
 87145,M. V. Chelemen,M. V. Chelemen
@@ -7249,6 +7419,7 @@ player_key,alias,canonical_name
 1180,F. Maestrelli,Maestrelli F.
 1180,Francesco Maestrelli,Maestrelli F.
 1180,Maestrelli F.,Maestrelli F.
+70814,Maestrelli/ Pellegrino,Maestrelli/ Pellegrino
 105852,Maftei/ Murariu,Maftei/ Murariu
 106073,Alvarez Valdes/ Magadan,Magadan A.
 106073,Magadan A.,Magadan A.
@@ -7289,6 +7460,7 @@ player_key,alias,canonical_name
 30748,Malaysia W,Malaysia W
 73425,Maleckova/ Skoch,Maleckova/ Skoch
 105660,Malla/ Tunas,Malla/ Tunas
+107207,Malmkjaer/ Okutoyi,Malmkjaer/ Okutoyi
 104027,Malmkjaer/ Svendsen,Malmkjaer/ Svendsen
 106902,Maloney/ Yardley,Maloney/ Yardley
 11433,Malta,Malta
@@ -7360,6 +7532,7 @@ player_key,alias,canonical_name
 3679,Igor Marcondes,Marcondes I.
 3679,Marcondes I.,Marcondes I.
 86229,Marcondes/ Slavic,Marcondes/ Slavic
+107046,Marcondes/ Zormann Da Silva,Marcondes/ Zormann Da Silva
 7014,M. Walters,Marcus Walters
 7014,Marcus Walters,Marcus Walters
 1321,M. Gengel,Marek Gengel
@@ -7388,6 +7561,7 @@ player_key,alias,canonical_name
 984,Mario Mansilla Diez,Mario Mansilla Diez
 68640,Mario Martinez Serrano,Mario Martinez Serrano
 106825,Marioara/ Stancescu,Marioara/ Stancescu
+107138,Marioara/ Torres Murcia,Marioara/ Torres Murcia
 105990,Marionneau/ Marionneau,Marionneau/ Marionneau
 105634,Mariotti/ Radi,Mariotti/ Radi
 738,Mark Whitehouse,Mark Whitehouse
@@ -7603,6 +7777,7 @@ player_key,alias,canonical_name
 90409,Mattias Pisanu,Mattias Pisanu
 104311,Matuszczyk/ Michocki,Matuszczyk/ Michocki
 106052,Matuszewski/ Pieczonka,Matuszewski/ Pieczonka
+100913,Matuszewski/ Werblinski,Matuszewski/ Werblinski
 37919,M. Cerny,Matyas Cerny
 37919,Matyas Cerny,Matyas Cerny
 918,M. Fuele,Matyas Fuele
@@ -7818,6 +7993,7 @@ player_key,alias,canonical_name
 67442,Miguel L.,Miguel L.
 104234,Miguel/ Saraiva Dos Santos,Miguel/ Saraiva Dos Santos
 86014,Miguel/ Sesko,Miguel/ Sesko
+38260,M. Vetrih,Miha Vetrih
 38260,Miha Vetrih,Miha Vetrih
 15768,Mihai Papoe Radu,Mihai Papoe Radu
 15768,R. M. Papoe,Mihai Papoe Radu
@@ -7843,6 +8019,7 @@ player_key,alias,canonical_name
 101818,Mikhail Tsapenko,Mikhail Tsapenko
 90666,Mikhaylova/ Suslova,Mikhaylova/ Suslova
 15224,Mikolaj Lorens,Mikolaj Lorens
+40562,Mikovic/ Mikovic,Mikovic/ Mikovic
 106523,Mikovic/ Novakovic,Mikovic/ Novakovic
 105964,Mikovic/ Radovanovic,Mikovic/ Radovanovic
 938,L. Mikrut,Mikrut L.
@@ -8054,6 +8231,7 @@ player_key,alias,canonical_name
 85844,N. Carpentier,N. Carpentier
 85779,N. Dho,N. Dho
 5249,N. Eto,N. Eto
+107251,N. Fays,N. Fays
 1020,N. Fouad,N. Fouad
 13738,N. Gadient,N. Gadient
 76960,N. Giannini,N. Giannini
@@ -8070,6 +8248,7 @@ player_key,alias,canonical_name
 106852,N. Kaler,N. Kaler
 40160,N. Katsumi,N. Katsumi
 13546,N. Kawaguchi,N. Kawaguchi
+22404,N. Keremedchiev,N. Keremedchiev
 103769,N. Kha,N. Kha
 4348,N. Kim,N. Kim
 81142,N. Klys,N. Klys
@@ -8147,6 +8326,7 @@ player_key,alias,canonical_name
 104548,Nagoudi/ Paganetti,Nagoudi/ Paganetti
 94882,Nagoudi/ Sakellaridis,Nagoudi/ Sakellaridis
 75138,Nagy/ Sebestova,Nagy/ Sebestova
+107137,Nagy/ Simion,Nagy/ Simion
 66728,Nagy/ Steur,Nagy/ Steur
 106989,Nahmias Melo Rodrigues/ Sigrist,Nahmias Melo Rodrigues/ Sigrist
 105283,Nahum/ Quadre,Nahum/ Quadre
@@ -8212,6 +8392,7 @@ player_key,alias,canonical_name
 103419,Neel/ Olmos,Neel/ Olmos
 65731,Nefve/ Vance,Nefve/ Vance
 106607,Nefve/ Zapp,Nefve/ Zapp
+1301,N. Oberleitner,Neil Oberleitner
 1301,Neil Oberleitner,Neil Oberleitner
 104400,Neilson-Gatenby/ Shaw,Neilson-Gatenby/ Shaw
 104933,Neimanis/ Todoran,Neimanis/ Todoran
@@ -8228,6 +8409,7 @@ player_key,alias,canonical_name
 1904,N. Fatic,Nerman Fatic
 1904,Nerman Fatic,Nerman Fatic
 107150,Neskovic/ Scheerle,Neskovic/ Scheerle
+86138,Nesterov/ Ovcharenko,Nesterov/ Ovcharenko
 106042,Neuchrist/ Poljak,Neuchrist/ Poljak
 104561,Neuchrist/ Vrbensky,Neuchrist/ Vrbensky
 2022,L. Neumayer,Neumayer L.
@@ -8430,6 +8612,7 @@ player_key,alias,canonical_name
 101057,O. Korpanec Davies,O. Korpanec Davies
 19335,O. Lincer,O. Lincer
 95164,O. Majdandzic,O. Majdandzic
+2211,O. Moraing,O. Moraing
 12876,O. Oliynykova,O. Oliynykova
 104912,O. Page,O. Page
 40751,O. Panasa,O. Panasa
@@ -8639,6 +8822,7 @@ player_key,alias,canonical_name
 51930,P. Rivoli,P. Rivoli
 72520,P. Roche Alcaya,P. Roche Alcaya
 67510,P. Rodrigues Longobardi,P. Rodrigues Longobardi
+107215,P. Schmid,P. Schmid
 9069,P. Sedlackova,P. Sedlackova
 86096,P. Skliar,P. Skliar
 92496,P. Starkova,P. Starkova
@@ -8682,6 +8866,7 @@ player_key,alias,canonical_name
 80934,Pan/ Sun,Pan/ Sun
 53815,Pan/ Wang,Pan/ Wang
 29833,Panama W,Panama W
+107241,Pankin/ Tsapenko,Pankin/ Tsapenko
 101099,Panshina/ Zolotareva,Panshina/ Zolotareva
 103016,Pantaratorn/ Paparkar,Pantaratorn/ Paparkar
 81218,Panwar/ Patil,Panwar/ Patil
@@ -8742,6 +8927,7 @@ player_key,alias,canonical_name
 1894,Tommy Paul,Paul T.
 103379,Paul/ Seggerman,Paul/ Seggerman
 49546,Paul/ Shelton,Paul/ Shelton
+68463,Paul/ Vocel,Paul/ Vocel
 22363,Paulson/ Poljak,Paulson/ Poljak
 104982,Paulson/ Vliegen,Paulson/ Vliegen
 105949,Paun/ Rodriguez,Paun/ Rodriguez
@@ -8873,6 +9059,7 @@ player_key,alias,canonical_name
 107111,Piatti/ Vujic,Piatti/ Vujic
 91202,Pieczonka/ Vrbensky,Pieczonka/ Vrbensky
 81035,Pieri/ Prisacariu,Pieri/ Prisacariu
+80473,Pieri/ Raggi,Pieri/ Raggi
 106322,Pieri/ Shapatava,Pieri/ Shapatava
 105877,Pieri/ Tsygourova,Pieri/ Tsygourova
 69812,P. Basile,Pierluigi Basile
@@ -8895,6 +9082,7 @@ player_key,alias,canonical_name
 104275,Pignaton/ Majdandzic,Pignaton/ Majdandzic
 104636,Pignaton/ Marshall,Pignaton/ Marshall
 104910,Pigossi/ Waltert,Pigossi/ Waltert
+19216,P. Vaitiekunas,Pijus Vaitiekunas
 19216,Pijus Vaitiekunas,Pijus Vaitiekunas
 72946,Pinho/ Silva,Pinho/ Silva
 1858,J. Pinnington Jones,Pinnington Jones J.
@@ -8947,6 +9135,7 @@ player_key,alias,canonical_name
 105719,Ponchet/ Poulsen Brostrom,Ponchet/ Poulsen Brostrom
 104951,Pop/ Tu,Pop/ Tu
 105646,Popa/ Prunescu Nita,Popa/ Prunescu Nita
+107157,Popa/ Simionescu,Popa/ Simionescu
 87390,Popescu/ Sagmar,Popescu/ Sagmar
 104355,Popescu/ Shan,Popescu/ Shan
 1758,D. Popko,Popko D.
@@ -9052,9 +9241,11 @@ player_key,alias,canonical_name
 104804,R. Kurmanaev,R. Kurmanaev
 6697,R. Lacasse,R. Lacasse
 106713,R. Lassan,R. Lassan
+107221,R. Lefevre,R. Lefevre
 86745,R. Lokko,R. Lokko
 76314,R. Longueville,R. Longueville
 61974,R. M. Nijkamp,R. M. Nijkamp
+11187,R. Mallory,R. Mallory
 68705,R. Mallory,R. Mallory
 479,R. Marino,R. Marino
 1132,R. Masarova,R. Masarova
@@ -9162,9 +9353,12 @@ player_key,alias,canonical_name
 2408,J. Reis Da Silva,Reis Da Silva J.
 2408,Lucas Reis Da Silva Joao,Reis Da Silva J.
 2408,Reis Da Silva J.,Reis Da Silva J.
+38157,J. Silva,Reis Da Silva J.
+38157,Reis Da Silva J.,Reis Da Silva J.
 69090,Dinis Silva Joao,Reis Da Silva J.
 69090,J. D. Silva,Reis Da Silva J.
 69090,Reis Da Silva J.,Reis Da Silva J.
+29894,Reitano/ Spiridon,Reitano/ Spiridon
 71048,R. Komagata,Reiya Komagata
 71048,Reiya Komagata,Reiya Komagata
 59291,Rejchtman Vinciguerra W.,Rejchtman Vinciguerra W.
@@ -9175,6 +9369,7 @@ player_key,alias,canonical_name
 89618,Remy Dugardin,Remy Dugardin
 646,R. Nakamura,Ren Nakamura
 646,Ren Nakamura,Ren Nakamura
+51664,Ren/ Wang,Ren/ Wang
 91862,Ren/ Zhang,Ren/ Zhang
 107093,Renard/ Voisin,Renard/ Voisin
 105797,Rengifo/ Soares,Rengifo/ Soares
@@ -9190,6 +9385,7 @@ player_key,alias,canonical_name
 63492,Ri. Alame,Ri. Alame
 104235,Ribeiro de Almeida/ Kohlmann,Ribeiro de Almeida/ Kohlmann
 105018,Ribeiro/ Rodriguez Taverna,Ribeiro/ Rodriguez Taverna
+107020,Ribeiro/ Soto,Ribeiro/ Soto
 103407,Ribeiro/ Zeballos,Ribeiro/ Zeballos
 3702,Ricardo Rodriguez,Ricardo Rodriguez
 104543,Ricca/ Zormann Da Silva,Ricca/ Zormann Da Silva
@@ -9374,6 +9570,7 @@ player_key,alias,canonical_name
 793,Ryuki Matsuda,Ryuki Matsuda
 38293,Ryusuke Horiuchi,Ryusuke Horiuchi
 70723,S- Zielinski/ Hsieh,S- Zielinski/ Hsieh
+26497,S. A. Andreescu,S. A. Andreescu
 38942,S. A. Larraya Guidi,S. A. Larraya Guidi
 105654,S. Aginskiy,S. Aginskiy
 25026,S. Ahlawat,S. Ahlawat
@@ -9408,6 +9605,7 @@ player_key,alias,canonical_name
 102021,S. Ciobica,S. Ciobica
 1150,S. Cirstea,S. Cirstea
 29863,S. Clarke,S. Clarke
+2264,S. Cohen Perovani,S. Cohen Perovani
 9248,S. Costoulas,S. Costoulas
 104188,S. Coulibaly,S. Coulibaly
 90581,S. Cucu,S. Cucu
@@ -9418,8 +9616,10 @@ player_key,alias,canonical_name
 51998,S. Deppner,S. Deppner
 86346,S. Dias,S. Dias
 1793,S. Djoubri,S. Djoubri
+36845,S. Dols,S. Dols
 15598,S. Drugdova,S. Drugdova
 102223,S. E. Meneguetti,S. E. Meneguetti
+107219,S. Enache,S. Enache
 38259,S. Ewing,S. Ewing
 107087,S. F. Fontan P. d.,S. F. Fontan P. d.
 106479,S. Filiz,S. Filiz
@@ -9504,12 +9704,14 @@ player_key,alias,canonical_name
 104426,S. Put,S. Put
 89637,S. R. Anugonda,S. R. Anugonda
 90031,S. R. Lim,S. R. Lim
+951,S. Reitano,S. Reitano
 2584,S. Rocchetti,S. Rocchetti
 78401,S. Ronde,S. Ronde
 19429,S. Rutlauka,S. Rutlauka
 7486,S. Saito,S. Saito
 226,S. Sakellaridi,S. Sakellaridi
 8362,S. Samir,S. Samir
+70152,S. Schnyder,S. Schnyder
 8157,S. Sec,S. Sec
 5967,S. Seifert,S. Seifert
 120,S. Shapatava,S. Shapatava
@@ -9560,6 +9762,7 @@ player_key,alias,canonical_name
 1202,Saba Purtseladze,Saba Purtseladze
 104289,Sabanin/ Seitz,Sabanin/ Seitz
 531,Sabanov/ Sabanov,Sabanov/ Sabanov
+107158,Sacco/ Sevcikova,Sacco/ Sevcikova
 74098,Sacco/ Stagno,Sacco/ Stagno
 1899,Sachko V.,Sachko V.
 1899,V. Sachko,Sachko V.
@@ -9631,6 +9834,7 @@ player_key,alias,canonical_name
 11415,San Marino,San Marino
 53760,San Marino W,San Marino W
 27574,Sanchez Jover/ Vives Marcos,Sanchez Jover/ Vives Marcos
+107232,Sanchez Martinez/ Zeuch,Sanchez Martinez/ Zeuch
 69286,Sanchez Quilez/ Winter Lopez,Sanchez Quilez/ Winter Lopez
 106337,Sanchez Uribe/ Soto Neira,Sanchez Uribe/ Soto Neira
 39928,S. Jong,Sander Jong
@@ -9672,6 +9876,7 @@ player_key,alias,canonical_name
 81398,Savva Rybkin,Savva Rybkin
 41405,Sawangkaew/ Wong Hong Yi,Sawangkaew/ Wong Hong Yi
 105056,Sawant/ Yardley,Sawant/ Yardley
+107218,Sawant/ Yashina,Sawant/ Yashina
 100642,Schaedel/ Vig,Schaedel/ Vig
 105188,Schaefbauer/ Usui,Schaefbauer/ Usui
 107089,Schaefer/ Teglas,Schaefer/ Teglas
@@ -9691,6 +9896,7 @@ player_key,alias,canonical_name
 1183,Schoolkate T.,Schoolkate T.
 1183,T. Schoolkate,Schoolkate T.
 1183,Tristan Schoolkate,Schoolkate T.
+12785,Schoolkate/ Sweeny,Schoolkate/ Sweeny
 105270,Schtulmann Gasca/ Tunas,Schtulmann Gasca/ Tunas
 104345,Schuknecht/ Zaparyniuk,Schuknecht/ Zaparyniuk
 106035,Schumann/ Torres Gomez,Schumann/ Torres Gomez
@@ -9794,6 +10000,7 @@ player_key,alias,canonical_name
 106129,Sharma/ Vasa,Sharma/ Vasa
 87971,Sharma/ Warik,Sharma/ Warik
 104389,Sharma/ Wilson,Sharma/ Wilson
+107235,Shcherbakov/ Zogranian,Shcherbakov/ Zogranian
 95310,Sheehy/ Zink,Sheehy/ Zink
 9219,A. Shelbayh,Shelbayh A.
 9219,Abedallah Shelbayh,Shelbayh A.
@@ -9826,6 +10033,7 @@ player_key,alias,canonical_name
 60722,Shinde/ Vasilescu,Shinde/ Vasilescu
 101273,Shinde/ Yamalapalli,Shinde/ Yamalapalli
 105844,Shinde/ Yao,Shinde/ Yao
+107202,Shinikova/ Sucha,Shinikova/ Sucha
 744,S. Hazawa,Shinji Hazawa
 744,Shinji Hazawa,Shinji Hazawa
 5216,S. Imai,Shintaro Imai
@@ -9867,6 +10075,7 @@ player_key,alias,canonical_name
 88148,S. Caldwell,Simon Caldwell
 88148,Simon Caldwell,Simon Caldwell
 38027,Simon Reveniau,Simon Reveniau
+13198,S. Agostini,Simone Agostini
 13198,Simone Agostini,Simone Agostini
 96534,S. Massellani,Simone Massellani
 96534,Simone Massellani,Simone Massellani
@@ -9876,6 +10085,7 @@ player_key,alias,canonical_name
 56721,Sinclair/ Walkin,Sinclair/ Walkin
 34788,Singapore,Singapore
 30747,Singapore W,Singapore W
+25361,Sinha/ Sureshkumar,Sinha/ Sureshkumar
 67740,Siniakova/ Townsend,Siniakova/ Townsend
 76030,Siniakova/ Zhang,Siniakova/ Zhang
 2072,J. Sinner,Sinner J.
@@ -9891,6 +10101,7 @@ player_key,alias,canonical_name
 105537,Skoog/ Wojcik,Skoog/ Wojcik
 5626,Skupski/ Krawczyk,Skupski/ Krawczyk
 106857,Slavic/ Stroemberg,Slavic/ Stroemberg
+93870,Smiej/ Suresh,Smiej/ Suresh
 54466,C. Smith,Smith C.
 54466,Colton Smith,Smith C.
 54466,Smith C.,Smith C.
@@ -10072,6 +10283,7 @@ player_key,alias,canonical_name
 38248,T. Adachi,T. Adachi
 396,T. Barrios Vera,T. Barrios Vera
 396,Tomas Barrios Vera,T. Barrios Vera
+50463,T. Boschmans,T. Boschmans
 36194,T. Bowers,T. Bowers
 12949,T. Browning,T. Browning
 85495,T. Brunetti,T. Brunetti
@@ -10089,6 +10301,7 @@ player_key,alias,canonical_name
 89211,T. Gowda,T. Gowda
 57429,T. Gruber,T. Gruber
 105165,T. H. Messa,T. H. Messa
+6456,T. Heger,T. Heger
 30904,T. Hermanova,T. Hermanova
 106392,T. Hohmann,T. Hohmann
 77847,T. Ismail,T. Ismail
@@ -10411,6 +10624,7 @@ player_key,alias,canonical_name
 1906,Tsitsipas S.,Tsitsipas S.
 792,T. Huang,Tsung-Hao Huang
 792,Tsung-Hao Huang,Tsung-Hao Huang
+1883,L. Tu,Tu L.
 1883,Li Tu,Tu L.
 1883,Tu L.,Tu L.
 58949,T. Batin,Tudor Batin
@@ -10458,6 +10672,7 @@ player_key,alias,canonical_name
 106341,Ukaegbu/ Williams,Ukaegbu/ Williams
 7491,U. Ignatik,Uladzimir Ignatik
 7491,Uladzimir Ignatik,Uladzimir Ignatik
+88817,U. Tarasevich,Uladzislau Tarasevich
 88817,Uladzislau Tarasevich,Uladzislau Tarasevich
 11438,United States Virgin Islands,United States Virgin Islands
 91070,Urrutia/ Vergara Rivera,Urrutia/ Vergara Rivera
@@ -10506,6 +10721,7 @@ player_key,alias,canonical_name
 38113,V. Leote Prata,V. Leote Prata
 2765,V. Lepchenko,V. Lepchenko
 76630,V. Lopez Ocampos,V. Lopez Ocampos
+15372,V. Losciale,V. Losciale
 40144,V. Mares,V. Mares
 13419,V. Martinez,V. Martinez
 2580,V. Meliss,V. Meliss
@@ -10539,6 +10755,7 @@ player_key,alias,canonical_name
 1375,V. Turini,V. Turini
 30799,V. Valdmannova,V. Valdmannova
 13820,V. Van De Peer,V. Van De Peer
+66582,V. Vargas,V. Vargas
 90855,V. Veleva,V. Veleva
 5341,V. Williams,V. Williams
 13506,V. Wolff,V. Wolff
@@ -10591,6 +10808,7 @@ player_key,alias,canonical_name
 104269,Van Zijl/ Wassermann,Van Zijl/ Wassermann
 70362,Van Zyl/ Van Zyl,Van Zyl/ Van Zyl
 58378,Van den Broek/ Van Emst,Van den Broek/ Van Emst
+3489,Vance/ Vance,Vance/ Vance
 35253,Vandermeersch/ Vincent,Vandermeersch/ Vincent
 106794,Vanek/ Ladman,Vanek/ Ladman
 55114,V. Manukyan,Vardan Manukyan
@@ -10743,6 +10961,7 @@ player_key,alias,canonical_name
 2168,Wawrinka S.,Wawrinka S.
 18370,Wehnelt/ Wessels,Wehnelt/ Wessels
 90594,Wehnelt/ Zeuch,Wehnelt/ Zeuch
+56936,Wei/ Yuan,Wei/ Yuan
 75604,W. Pan,Weiwen Pan
 75604,Weiwen Pan,Weiwen Pan
 71493,W. Kong,Weiyi Kong
@@ -10809,6 +11028,7 @@ player_key,alias,canonical_name
 46,X. Yao,X. Yao
 1819,X. You,X. You
 22721,X. Zhao,X. Zhao
+5720,X. Zhou,X. Zhou
 83913,X. Palomar,Xavi Palomar
 83913,Xavi Palomar,Xavi Palomar
 101798,Xiaofei Wang,Xiaofei Wang
