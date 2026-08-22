@@ -250,6 +250,24 @@ def safe_ratio(num: float, den: float, default: float) -> float:
     return float(num) / float(den)
 
 
+def _historical_set_count(score: object) -> int:
+    return len(re.findall(r"\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?", str(score or "")))
+
+
+def _historical_match_is_decider(row: pd.Series) -> bool:
+    """Return whether a historical match reached its deciding set.
+
+    ATP Grand Slam main-draw matches are best of five; other 2021+ ATP matches
+    in the Macabets database are best of three. A three-set Slam win is therefore
+    straight sets, not a deciding-set match.
+    """
+    set_count = _historical_set_count(row.get("score"))
+    level = str(row.get("level") or row.get("tourney_level") or "")
+    round_label = str(row.get("round") or "")
+    best_of_five = level == "G" and round_label not in {"Q", "Q1", "Q2", "Q3"}
+    return set_count >= (5 if best_of_five else 3)
+
+
 def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
     """Build a player profile without disguising missing data as real statistics."""
     if rows.empty:
@@ -270,7 +288,7 @@ def profile(rows: pd.DataFrame, surface: str, event_date: date) -> dict:
     surf = two_year[two_year["surface"].astype(str).str.casefold() == surface.casefold()]
     advanced = two_year[two_year["round"].isin(["QF", "SF", "F"])]
     big = two_year[two_year["level"].isin(["G", "M", "F"])]
-    deciding = two_year[two_year["score"].astype(str).str.count(r"\d+-\d+") >= 3]
+    deciding = two_year[two_year.apply(_historical_match_is_decider, axis=1)]
 
     valid_serve = one_year[["svpt", "first_won", "second_won"]].dropna()
     valid_return = one_year[["opp_svpt", "opp_first_won", "opp_second_won"]].dropna()
@@ -632,52 +650,61 @@ def simulate_matches(
     best_of_five: bool,
     seed: int | None = None,
 ) -> dict:
-    rng = np.random.default_rng(seed)
-    sets_needed = 3 if best_of_five else 2
+    """Return exact match/set-score probabilities for the selected format.
 
-    # Convert match-level strength to a set-level probability, then simulate sets.
+    ``probability`` is the audited Macabets match-strength probability before the
+    format layer. The historical production mapping converts that strength to a
+    per-set probability with a conservative 0.72 slope. Phase-specific audit work
+    showed that this format transform improves best-of-five probability quality,
+    so the mapping is retained. The old implementation then Monte-Carlo simulated
+    20,000 matches, which added avoidable run-to-run noise. These closed-form
+    probabilities are mathematically identical to the expectation of that
+    simulation and are deterministic.
+
+    ``simulations`` and ``seed`` remain accepted for backward compatibility with
+    existing UI/logging code; neither is needed for the exact calculation.
+    """
     p = float(np.clip(probability, .05, .95))
     set_p = float(np.clip(.5 + (p - .5) * .72, .08, .92))
+    q = 1.0 - set_p
 
-    wins_a = 0
-    straight_a = 0
-    straight_b = 0
-    deciding = 0
-    set_score_counts: dict[str, int] = {}
+    if best_of_five:
+        set_scores = {
+            "3-0": set_p ** 3,
+            "3-1": 3.0 * (set_p ** 3) * q,
+            "3-2": 6.0 * (set_p ** 3) * (q ** 2),
+            "0-3": q ** 3,
+            "1-3": 3.0 * (q ** 3) * set_p,
+            "2-3": 6.0 * (q ** 3) * (set_p ** 2),
+        }
+        win_probability = set_scores["3-0"] + set_scores["3-1"] + set_scores["3-2"]
+        straight_a = set_scores["3-0"]
+        straight_b = set_scores["0-3"]
+        deciding = set_scores["3-2"] + set_scores["2-3"]
+    else:
+        set_scores = {
+            "2-0": set_p ** 2,
+            "2-1": 2.0 * (set_p ** 2) * q,
+            "0-2": q ** 2,
+            "1-2": 2.0 * (q ** 2) * set_p,
+        }
+        win_probability = set_scores["2-0"] + set_scores["2-1"]
+        straight_a = set_scores["2-0"]
+        straight_b = set_scores["0-2"]
+        deciding = set_scores["2-1"] + set_scores["1-2"]
 
-    for _ in range(simulations):
-        a_sets = 0
-        b_sets = 0
-        while a_sets < sets_needed and b_sets < sets_needed:
-            if rng.random() < set_p:
-                a_sets += 1
-            else:
-                b_sets += 1
-
-        key = f"{a_sets}-{b_sets}"
-        set_score_counts[key] = set_score_counts.get(key, 0) + 1
-
-        if a_sets > b_sets:
-            wins_a += 1
-            if b_sets == 0:
-                straight_a += 1
-        else:
-            if a_sets == 0:
-                straight_b += 1
-
-        if max(a_sets, b_sets) == sets_needed and min(a_sets, b_sets) == sets_needed - 1:
-            deciding += 1
-
+    # Protect downstream formatting from floating-point residue while preserving
+    # enough precision for fair-line calculations.
+    set_scores = {key: float(value) for key, value in set_scores.items()}
     return {
         "simulations": simulations,
-        "win_probability": wins_a / simulations,
-        "straight_sets_a": straight_a / simulations,
-        "straight_sets_b": straight_b / simulations,
-        "deciding_set": deciding / simulations,
-        "set_scores": {
-            key: value / simulations
-            for key, value in sorted(set_score_counts.items())
-        },
+        "method": "exact_format_probability",
+        "set_probability_a": set_p,
+        "win_probability": float(win_probability),
+        "straight_sets_a": float(straight_a),
+        "straight_sets_b": float(straight_b),
+        "deciding_set": float(deciding),
+        "set_scores": set_scores,
     }
 
 
@@ -715,9 +742,7 @@ def fatigue_profile(rows: pd.DataFrame, event_date: date) -> dict:
 
     sets_3 = safe_int(recent_3["score"].map(_sets_played_from_score).sum())
     sets_7 = safe_int(recent_7["score"].map(_sets_played_from_score).sum())
-    deciders_7 = safe_int(
-        (recent_7["score"].map(_sets_played_from_score) >= 3).sum()
-    )
+    deciders_7 = safe_int(recent_7.apply(_historical_match_is_decider, axis=1).sum())
 
     active_weeks = set(
         pd.to_datetime(recent_14["date"]).dt.to_period("W").astype(str).tolist()
