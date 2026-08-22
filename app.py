@@ -3140,12 +3140,12 @@ with tabs[1]:
                     step=5,
                     key="auto_market_b",
                 )
-                simulations = o3.selectbox(
-                    "Simulations",
-                    [5000, 10000, 20000, 50000],
-                    index=2,
-                    key="auto_simulations",
-                )
+                # Tennis format probabilities are now exact closed-form calculations.
+                # Keep the legacy argument internally for archive/API compatibility, but
+                # do not ask the user to choose a Monte Carlo count that no longer affects
+                # the result.
+                simulations = 20000
+                o3.metric("Format engine", "Exact")
 
                 analyze_disabled = player_a == player_b
                 if analyze_disabled:
@@ -3875,8 +3875,8 @@ with tabs[1]:
 
                     simulation = result["simulation"]
 
-                    # Reconcile the simulation with the final matchup-adjusted verdict.
-                    # Preserve the simulation's conditional set-score distribution for each
+                    # Reconcile the exact format distribution with the final matchup-adjusted verdict.
+                    # Preserve the format engine's conditional set-score distribution for each
                     # player, while forcing each side's exact scores to sum to the same
                     # headline win probability shown everywhere else in the report.
                     raw_set_scores = {
@@ -4081,8 +4081,9 @@ with tabs[1]:
 
                     st.caption(
                         f"Model base probability: {result['base_probability']:.1%}. "
-                        f"Final pre-simulation model: {result['model_probability']:.1%}. "
-                        f"Simulation count: {simulation['simulations']:,}."
+                        f"Final pre-format model: {result['model_probability']:.1%}. "
+                        "Best-of-3 / best-of-5 format probability is calculated exactly "
+                        "with no Monte Carlo noise."
                     )
 
     with analysis_tabs[1]:
@@ -7289,7 +7290,7 @@ with tabs[4]:
     with archive_tabs[0]:
         st.subheader("Performance Center")
         st.caption(
-            "One place for every Macabets prediction, live performance tracking, your -250 to -450 Core Zone, "
+            "One place for every Macabets prediction, live performance tracking, your -200 to -380 Core Zone, "
             "and clean CSV exports for deeper analysis."
         )
 
@@ -7372,7 +7373,7 @@ with tabs[4]:
                     "Market": str(row.get("market_type", "")),
                     "Actual Line": odds,
                     "Line Bucket": _pc_line_bucket(odds),
-                    "Core Zone": bool(odds is not None and -450 <= odds <= -250),
+                    "Core Zone": bool(odds is not None and -380 <= odds <= -200),
                     "Market Implied %": implied_probability(odds) if odds not in (None, 0) else float("nan"),
                     "Fair Line": row.get("fair_line", ""),
                     "Prediction Confidence": confidence,
@@ -7422,7 +7423,7 @@ with tabs[4]:
                     "Date range", value=(min_date, max_date), min_value=min_date, max_value=max_date,
                     key="pc_date_range",
                 )
-                pc_core_only = f6.checkbox("Core Zone only (-250 to -450)", value=False, key="pc_core_zone_only")
+                pc_core_only = f6.checkbox("Core Zone only (-200 to -380)", value=False, key="pc_core_zone_only")
                 pc_search = f7.text_input(
                     "Search", placeholder="Player, team, event or prediction", key="pc_search_filter"
                 )
@@ -7503,7 +7504,7 @@ with tabs[4]:
 
                 core_frame = pc_filtered[pc_filtered["Core Zone"]].copy()
                 core_graded, core_w, core_l, core_acc, core_units, core_roi, core_expected = _pc_summary(core_frame)
-                st.markdown("### Core Zone — -250 to -450")
+                st.markdown("### Core Zone — -200 to -380")
                 c1, c2, c3, c4, c5, c6 = st.columns(6)
                 c1.metric("Record", f"{core_w}-{core_l}")
                 c2.metric("Win %", f"{core_acc:.1%}" if core_acc is not None else "—")
