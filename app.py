@@ -48,6 +48,8 @@ try:
         tournament_names as tennis_tournament_names,
         tournament_surface as tennis_tournament_surface,
         tournament_category as tennis_tournament_category,
+        tournament_surface_for_display_name as tennis_tournament_surface_for_display_name,
+        tournament_category_for_display_name as tennis_tournament_category_for_display_name,
     )
     TENNIS_ENGINE_AVAILABLE = True
     TENNIS_ENGINE_IMPORT_ERROR = ""
@@ -147,6 +149,16 @@ SLATE_COLUMNS = [
 
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 EASTERN_TZ = ZoneInfo("America/New_York")
+
+# Shared round options for tennis analysis widgets. The placeholder is first
+# so any auto-filled entry (daily slate, archive replay) that doesn't have a
+# real detected round lands on an explicit "please confirm" state instead of
+# silently defaulting to a specific round that's usually wrong.
+TENNIS_ROUND_NOT_DETECTED = "— Select round —"
+TENNIS_ROUND_OPTIONS = [
+    TENNIS_ROUND_NOT_DETECTED, "Qualifying", "R128", "R64", "R32", "R16",
+    "Quarterfinal", "Semifinal", "Final",
+]
 
 def _format_nfl_availability_timestamp(value):
     """Format an ISO availability timestamp in Eastern Time for the NFL UI."""
@@ -3040,7 +3052,7 @@ with tabs[1]:
                 )
                 round_name = meta4.selectbox(
                     "Round",
-                    ["Qualifying", "R128", "R64", "R32", "R16", "Quarterfinal", "Semifinal", "Final"],
+                    TENNIS_ROUND_OPTIONS,
                     key="auto_round",
                 )
 
@@ -7066,28 +7078,22 @@ with tabs[3]:
                             st.error("Both sides need moneyline odds before this matchup can be analyzed.")
                         else:
                             tournament_name = str(selected_event["sport"])
-                            tournament_lower = tournament_name.lower()
-                            if any(name in tournament_lower for name in ["wimbledon"]):
-                                inferred_surface = "Grass"
-                            elif any(name in tournament_lower for name in [
-                                "french open", "roland garros", "monte carlo", "madrid",
-                                "rome", "italian open", "barcelona", "hamburg", "kitzbuhel",
-                                "umag", "bastad", "geneva", "estoril", "munich"
-                            ]):
-                                inferred_surface = "Clay"
+
+                            # Tournament sponsor names and odds-feed labels rarely match the
+                            # historical ATP dataset's own naming (e.g. "ATP Cincinnati Open" vs.
+                            # a prior season's "Western & Southern Financial Group Masters"), so
+                            # bridge through the real match history instead of a raw keyword
+                            # guess -- this is what correctly identifies a Masters 1000 event
+                            # that a plain "masters"/"1000" substring check would miss.
+                            try:
+                                slate_matches, _ = load_matches()
+                            except Exception:
+                                slate_matches = pd.DataFrame()
+                            if not slate_matches.empty:
+                                inferred_surface = tennis_tournament_surface_for_display_name(slate_matches, tournament_name)
+                                inferred_category = tennis_tournament_category_for_display_name(slate_matches, tournament_name)
                             else:
                                 inferred_surface = "Hard"
-
-                            if any(name in tournament_lower for name in [
-                                "australian open", "french open", "roland garros",
-                                "wimbledon", "us open"
-                            ]):
-                                inferred_category = "Grand Slam"
-                            elif any(token in tournament_lower for token in ["masters", "1000"]):
-                                inferred_category = "Masters 1000"
-                            elif "500" in tournament_lower:
-                                inferred_category = "ATP 500"
-                            else:
                                 inferred_category = "ATP 250"
 
                             inferred_format = (
@@ -7101,11 +7107,15 @@ with tabs[3]:
                             odds_a_value = int(selected_event["odds_a"])
                             odds_b_value = int(selected_event["odds_b"])
 
+                            # The odds feed that populates the daily slate carries no round
+                            # information at all (just teams/time/price), so there is nothing
+                            # to detect the round from. Land on an explicit placeholder rather
+                            # than silently asserting a specific round that's usually wrong.
                             st.session_state.pending_fair_line_prefill = {
                                 "fle_date": event_date,
                                 "fle_tournament": tournament_name,
                                 "fle_surface": inferred_surface,
-                                "fle_round": "R32",
+                                "fle_round": TENNIS_ROUND_NOT_DETECTED,
                                 "fle_favorite": player_a_name,
                                 "fle_opponent": player_b_name,
                                 "fle_market_a": odds_a_value,
@@ -7113,7 +7123,7 @@ with tabs[3]:
                                 "auto_match_date": event_date,
                                 "auto_tournament": tournament_name,
                                 "auto_surface": inferred_surface,
-                                "auto_round": "R32",
+                                "auto_round": TENNIS_ROUND_NOT_DETECTED,
                                 "auto_tournament_category": inferred_category,
                                 "auto_environment": "Outdoor",
                                 "auto_match_format": inferred_format,
