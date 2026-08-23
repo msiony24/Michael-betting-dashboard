@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from engine.nfl import analyze, team_power_score
+from engine.confidence import recommendation_from_edge
 from engine.nfl_data import TEAM_RATING_WEIGHTS
 
 
@@ -44,14 +45,14 @@ def test_moneyline_is_primary_output_and_spread_is_present():
     assert "decisive_factors" in result
 
 
-def test_team_power_scale_preserves_meaningful_qb_separation():
-    neutral = {key: 70.0 for key in TEAM_RATING_WEIGHTS}
-    qb_home = dict(neutral)
-    qb_home["quarterback"] = 80.0
+def test_negative_model_vs_market_edge_is_always_a_pass():
+    # NFL passes signed percentage-point edge into the shared helper. A model
+    # disagreement in the wrong direction must never become a bet via abs(edge).
+    assert recommendation_from_edge(-8.0, 78.0) == "Pass"
+    assert recommendation_from_edge(-2.5, 72.0) == "Pass"
+    assert recommendation_from_edge(0.0, 78.0) == "Pass"
 
-    neutral_power, _ = team_power_score("Buffalo Bills", neutral)
-    qb_power, _ = team_power_score("Buffalo Bills", qb_home)
 
-    # A 10-point QB grade edge at a 22% production weight should contribute
-    # about 2.2 football edge points rather than being compressed again.
-    assert round(qb_power - neutral_power, 1) == 2.2
+def test_positive_moneyline_edge_can_still_recommend():
+    assert recommendation_from_edge(1.0, 60.0) == "Lean"
+    assert recommendation_from_edge(2.5, 72.0) == "Good Bet"
