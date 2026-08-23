@@ -50,7 +50,19 @@ def _finish_multiplier(method: object) -> float:
 
 
 def _dominance_multiplier(row: pd.Series) -> float:
-    """Small event-summary modifier; opponent quality remains the main signal."""
+    """Shared, fight-level K-factor amplifier for lopsided performances.
+
+    This is deliberately magnitude-only (abs of the stat gap), not signed, and
+    is applied identically to both fighters' K-factor for a given fight. A
+    signed, per-fighter version (the winner's own gap vs. the loser's own gap)
+    was tried first, but even though the two signed values are symmetric
+    around 1.0 before the final clip, multiplying two *different* K-factors by
+    values that are merely symmetric around 1.0 does not keep the Elo exchange
+    zero-sum -- the winner ends up gaining more than the loser loses. Using one
+    shared, unsigned multiplier for both sides keeps the exchange exactly
+    conservative while still letting a decisive performance move both ratings
+    more than a close one.
+    """
     try:
         sig = float(row.get("sig_str", np.nan))
         opp_sig = float(row.get("opponent_sig_str", np.nan))
@@ -63,12 +75,12 @@ def _dominance_multiplier(row: pd.Series) -> float:
 
     raw = 0.0
     if not np.isnan(sig) and not np.isnan(opp_sig):
-        raw += np.clip((sig - opp_sig) / 90.0, -0.30, 0.30)
+        raw += np.clip(abs(sig - opp_sig) / 90.0, 0.0, 0.30)
     if not np.isnan(kd) and not np.isnan(opp_kd):
-        raw += np.clip((kd - opp_kd) * 0.10, -0.20, 0.20)
+        raw += np.clip(abs(kd - opp_kd) * 0.10, 0.0, 0.20)
     if not np.isnan(td) and not np.isnan(opp_td):
-        raw += np.clip((td - opp_td) * 0.03, -0.12, 0.12)
-    return float(np.clip(1.0 + raw * 0.16, 0.92, 1.08))
+        raw += np.clip(abs(td - opp_td) * 0.03, 0.0, 0.12)
+    return float(np.clip(1.0 + raw * 0.16, 1.0, 1.08))
 
 
 def _prepare_fights(fights: pd.DataFrame) -> pd.DataFrame:
@@ -146,10 +158,9 @@ def build_elo_history(
         exp_b = 1.0 - exp_a
 
         finish_mult = max(_finish_multiplier(a.get("method")), _finish_multiplier(b.get("method")))
-        dom_a = _dominance_multiplier(a)
-        dom_b = _dominance_multiplier(b)
-        k_a = config.k_factor * finish_mult * dom_a
-        k_b = config.k_factor * finish_mult * dom_b
+        dom = _dominance_multiplier(a)
+        k_a = config.k_factor * finish_mult * dom
+        k_b = config.k_factor * finish_mult * dom
 
         new_a = rating_a + k_a * (score_a - exp_a)
         new_b = rating_b + k_b * (score_b - exp_b)
@@ -167,8 +178,8 @@ def build_elo_history(
             div_before_b = division_ratings.get(key_b, config.base_elo)
             div_exp_a = _expected(div_before_a, div_before_b)
             div_exp_b = 1.0 - div_exp_a
-            div_after_a = div_before_a + config.division_k_factor * finish_mult * dom_a * (score_a - div_exp_a)
-            div_after_b = div_before_b + config.division_k_factor * finish_mult * dom_b * (score_b - div_exp_b)
+            div_after_a = div_before_a + config.division_k_factor * finish_mult * dom * (score_a - div_exp_a)
+            div_after_b = div_before_b + config.division_k_factor * finish_mult * dom * (score_b - div_exp_b)
             division_ratings[key_a] = div_after_a
             division_ratings[key_b] = div_after_b
 

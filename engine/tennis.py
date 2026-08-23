@@ -85,11 +85,21 @@ def tournament_names(matches: pd.DataFrame) -> list[str]:
 
 
 def tournament_surface(matches: pd.DataFrame, tournament: str) -> str:
+    if matches is None or matches.empty or "tourney_name" not in matches.columns:
+        return "Hard"
     rows = matches[matches["tourney_name"] == tournament].sort_values("tourney_date")
     if rows.empty:
         return "Hard"
     value = rows.iloc[-1]["surface"]
     return value if value in {"Hard", "Clay", "Grass", "Carpet"} else "Hard"
+
+
+def tournament_surface_for_display_name(matches: pd.DataFrame, display_name: str) -> str:
+    """Surface lookup that first bridges an external display name to the
+    matching historical tournament name. See ``resolve_tournament_display_name``.
+    """
+    resolved = resolve_tournament_display_name(matches, display_name)
+    return tournament_surface(matches, resolved)
 
 
 TOURNAMENT_LEVEL_LABELS = {
@@ -104,9 +114,11 @@ TOURNAMENT_LEVEL_LABELS = {
 
 def tournament_category(matches: pd.DataFrame, tournament: str) -> str:
     """Infer the most recent event category for a tournament."""
+    if matches is None or matches.empty or "tourney_name" not in matches.columns:
+        return _category_from_name_only(tournament)
     rows = matches[matches["tourney_name"] == tournament].sort_values("tourney_date")
     if rows.empty:
-        return "ATP 250"
+        return _category_from_name_only(tournament)
 
     level = str(rows.iloc[-1].get("tourney_level", "A"))
     if level == "G":
@@ -122,15 +134,91 @@ def tournament_category(matches: pd.DataFrame, tournament: str) -> str:
 
     # ATP data does not consistently separate 250 and 500 in tourney_level.
     # Use a conservative name-based inference and leave the UI editable.
-    name = norm(tournament)
-    known_500 = {
-        "rotterdam", "rio de janeiro", "dubai", "acapulco", "barcelona",
-        "halle", "queens club", "hamburg", "washington", "beijing",
-        "tokyo", "vienna", "basel",
-    }
-    if any(token in name for token in known_500):
+    return _category_from_name_only(tournament)
+
+
+# Tournament sponsor names change year to year (e.g. Cincinnati has been sold
+# under several different title sponsors), so a plain keyword match against
+# the *current* display name can miss well-known Masters/500 events entirely.
+# These sets key on the stable host-city/event identity instead.
+_KNOWN_MASTERS_1000_CITIES = {
+    "indian wells", "miami", "monte carlo", "madrid", "rome", "italian open",
+    "canada", "canadian open", "montreal", "toronto", "cincinnati",
+    "western southern", "shanghai", "paris", "bercy",
+}
+_KNOWN_ATP_500_CITIES = {
+    "rotterdam", "rio de janeiro", "dubai", "acapulco", "barcelona",
+    "halle", "queens club", "hamburg", "washington", "beijing",
+    "tokyo", "vienna", "basel",
+}
+
+
+def _category_from_name_only(tournament: str) -> str:
+    tokens = _significant_tournament_tokens(tournament)
+
+    def _city_matches(cities: set[str]) -> bool:
+        for city in cities:
+            city_tokens = _significant_tournament_tokens(city)
+            if city_tokens and city_tokens <= tokens:
+                return True
+        return False
+
+    if _city_matches(_KNOWN_MASTERS_1000_CITIES):
+        return "Masters 1000"
+    if _city_matches(_KNOWN_ATP_500_CITIES):
         return "ATP 500"
     return "ATP 250"
+
+
+_TOURNAMENT_NAME_NOISE_WORDS = {
+    "atp", "wta", "open", "masters", "cup", "tour", "tennis", "championships",
+    "championship", "the", "and", "financial", "group", "presented", "by",
+    "international", "classic", "series", "1000", "500", "250",
+}
+
+
+def _significant_tournament_tokens(value: str) -> set[str]:
+    text = norm(value).replace("'", "").replace("\u2019", "")
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return {token for token in text.split() if token and token not in _TOURNAMENT_NAME_NOISE_WORDS}
+
+
+def resolve_tournament_display_name(matches: pd.DataFrame, display_name: str) -> str:
+    """Map an external display name (odds feed, daily slate) to the matching
+    ``tourney_name`` actually used in the historical ATP dataset for the same
+    event, so category/surface lookups aren't defeated by year-to-year sponsor
+    branding (e.g. an odds feed's "ATP Cincinnati Open" vs. the ATP data's
+    "Western & Southern Financial Group Masters" in older seasons, or plain
+    "Cincinnati" in newer ones). Falls back to the input unchanged if no
+    historical tournament shares a significant name token with it.
+    """
+    if matches is None or matches.empty or "tourney_name" not in matches.columns:
+        return display_name
+    if (matches["tourney_name"] == display_name).any():
+        return display_name  # exact match already works, no bridging needed
+
+    target_tokens = _significant_tournament_tokens(display_name)
+    if not target_tokens:
+        return display_name
+
+    best_name, best_overlap, best_date = display_name, 0, None
+    grouped = matches.dropna(subset=["tourney_name"]).groupby("tourney_name")["tourney_date"].max()
+    for candidate_name, latest_date in grouped.items():
+        overlap = len(target_tokens & _significant_tournament_tokens(candidate_name))
+        if overlap > best_overlap or (overlap == best_overlap and overlap > 0 and (best_date is None or latest_date > best_date)):
+            best_name, best_overlap, best_date = candidate_name, overlap, latest_date
+    return best_name if best_overlap > 0 else display_name
+
+
+def tournament_category_for_display_name(matches: pd.DataFrame, display_name: str) -> str:
+    """Category lookup that first bridges an external display name to the
+    matching historical tournament name, then reuses ``tournament_category``.
+    Use this instead of ``tournament_category`` directly whenever the name
+    came from an odds feed or daily slate rather than a dropdown the user
+    picked from the historical tournament list.
+    """
+    resolved = resolve_tournament_display_name(matches, display_name)
+    return tournament_category(matches, resolved)
 
 
 def context_weights(
