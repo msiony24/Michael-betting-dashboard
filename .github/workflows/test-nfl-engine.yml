@@ -6,9 +6,14 @@ on:
     paths:
       - "engine/nfl_team_quality.py"
       - "engine/nfl_ratings_loader.py"
+      - "engine/nfl_coaching.py"
       - "data/nfl_team_ratings.json"
+      - "data/coaching_2026.csv"
       - "test_nfl_team_quality.py"
       - "test_nfl_ratings_loader.py"
+      - "tests/test_nfl_team_quality.py"
+      - "tests/test_nfl_ratings_loader.py"
+      - "tests/test_nfl_coaching.py"
       - ".github/workflows/test-nfl-engine.yml"
 
 jobs:
@@ -24,7 +29,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
       - name: Run NFL Engine Tests
         run: |
-          python test_nfl_team_quality.py
-          python test_nfl_ratings_loader.py
+          python -m pytest tests/test_nfl_team_quality.py tests/test_nfl_ratings_loader.py tests/test_nfl_coaching.py -v
