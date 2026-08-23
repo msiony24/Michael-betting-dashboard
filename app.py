@@ -2143,7 +2143,7 @@ def decision_label(expected_roi, confidence):
 
     reason = (
         f"Macabets' final verdict is {verdict.lower()} after weighing the offered price "
-        f"against the model edge and {confidence_score:.0f}/100 prediction confidence."
+        "against the model edge and current model confidence."
     )
     return verdict, reason
 
@@ -2260,6 +2260,77 @@ def _analysis_verdict(row):
     return _analysis_pricing_report(row)["verdict"]
 
 
+def _analysis_confidence_label(row):
+    """Return the qualitative confidence label used by the current model UI.
+
+    Saved Tennis analyses already store the probability-anchored band inside the
+    frozen snapshot. NFL/UFC snapshots expose their engine band. Legacy rows fall
+    back to projected win probability so the archive never needs to display the
+    retired 1-100 score.
+    """
+    snapshot = row.get("analysis_snapshot") or {}
+    if isinstance(snapshot, str):
+        try:
+            snapshot = json.loads(snapshot)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            snapshot = {}
+
+    candidates = []
+    if isinstance(snapshot, dict):
+        analysis_confidence = snapshot.get("analysis_confidence") or {}
+        if isinstance(analysis_confidence, dict):
+            candidates.extend([
+                analysis_confidence.get("band"),
+                analysis_confidence.get("label"),
+            ])
+        engine_result = snapshot.get("engine_result") or {}
+        if isinstance(engine_result, dict):
+            candidates.extend([
+                engine_result.get("confidence_band"),
+                engine_result.get("confidence_label"),
+            ])
+        candidates.extend([
+            snapshot.get("confidence_band"),
+            snapshot.get("confidence_label"),
+        ])
+
+    aliases = {
+        "low": "Low",
+        "moderate": "Moderate",
+        "solid": "High",
+        "high": "High",
+        "very high": "Very High",
+        "exceptional": "Very High",
+        "pass": "Low",
+    }
+    for candidate in candidates:
+        label = str(candidate or "").strip()
+        if not label:
+            continue
+        label = re.sub(r"\s+confidence$", "", label, flags=re.IGNORECASE).strip()
+        normalized = aliases.get(label.casefold())
+        if normalized:
+            return normalized
+
+    # Legacy fallback: use the stored projected winner probability. This mirrors
+    # the current Tennis confidence thresholds without exposing a numeric score.
+    try:
+        probability = float(row.get("predicted_probability"))
+    except (TypeError, ValueError):
+        probability = None
+    if probability is not None and 0.0 < probability < 1.0:
+        favorite_probability = max(probability, 1.0 - probability)
+        if favorite_probability >= 0.85:
+            return "Very High"
+        if favorite_probability >= 0.80:
+            return "High"
+        if favorite_probability >= 0.60:
+            return "Moderate"
+        return "Low"
+
+    return "—"
+
+
 def _ufc_derivative_performance(row):
     """Read the evaluated UFC derivative market and its automatic settlement result.
 
@@ -2314,7 +2385,7 @@ def _analysis_price_verdict_explanation(row):
     fair_line = str(row.get("fair_line") or "—")
 
     assessment_text = PRICE_ASSESSMENT_DEFINITIONS.get(assessment, "This label compares the market line with Macabets' fair line.")
-    verdict_text = VERDICT_DEFINITIONS.get(verdict, "This verdict weighs both price and prediction confidence.")
+    verdict_text = VERDICT_DEFINITIONS.get(verdict, "This verdict weighs both price and the current confidence level.")
 
     if assessment == "Premium":
         specific = (
@@ -7297,7 +7368,7 @@ with tabs[4]:
     with archive_tabs[0]:
         st.subheader("Performance Center")
         st.caption(
-            "One place for every Macabets prediction, live performance tracking, your -200 to -380 Core Zone, "
+            "One place for every Macabets prediction, live performance tracking, your -250 to -450 Core Zone, "
             "and clean CSV exports for deeper analysis."
         )
 
@@ -7360,13 +7431,7 @@ with tabs[4]:
             for row in performance_rows:
                 odds = _pc_line_number(row)
                 result = _pc_result(row)
-                confidence = pd.to_numeric(pd.Series([row.get("confidence")]), errors="coerce").iloc[0]
-                try:
-                    confidence = float(confidence)
-                    if confidence <= 10:
-                        confidence *= 10
-                except (TypeError, ValueError):
-                    confidence = float("nan")
+                confidence_label = _analysis_confidence_label(row)
                 event_date = pd.to_datetime(row.get("event_date") or row.get("created_at"), errors="coerce")
                 ufc_derivative = _ufc_derivative_performance(row)
                 pc_records.append({
@@ -7380,10 +7445,10 @@ with tabs[4]:
                     "Market": str(row.get("market_type", "")),
                     "Actual Line": odds,
                     "Line Bucket": _pc_line_bucket(odds),
-                    "Core Zone": bool(odds is not None and -380 <= odds <= -200),
+                    "Core Zone": bool(odds is not None and -450 <= odds <= -250),
                     "Market Implied %": implied_probability(odds) if odds not in (None, 0) else float("nan"),
                     "Fair Line": row.get("fair_line", ""),
-                    "Prediction Confidence": confidence,
+                    "Confidence": confidence_label,
                     "Price Assessment": _analysis_price_assessment(row),
                     "Verdict": _analysis_verdict(row),
                     "Prediction Result": result,
@@ -7425,13 +7490,20 @@ with tabs[4]:
                 assessment_options = ["All"] + sorted(x for x in pc_all["Price Assessment"].dropna().unique().tolist() if x and x != "—")
                 pc_assessment = f4.selectbox("Price Assessment", assessment_options, key="pc_assessment_filter")
 
-                f5, f6, f7 = st.columns([1.4, 1.4, 2.2])
+                f5, f6, f7, f8 = st.columns([1.4, 1.4, 1.4, 2.2])
                 pc_date_range = f5.date_input(
                     "Date range", value=(min_date, max_date), min_value=min_date, max_value=max_date,
                     key="pc_date_range",
                 )
-                pc_core_only = f6.checkbox("Core Zone only (-200 to -380)", value=False, key="pc_core_zone_only")
-                pc_search = f7.text_input(
+                pc_core_only = f6.checkbox("Core Zone only (-250 to -450)", value=False, key="pc_core_zone_only")
+                confidence_order = ["Low", "Moderate", "High", "Very High"]
+                available_confidence = [
+                    label for label in confidence_order if label in set(pc_all["Confidence"].dropna().tolist())
+                ]
+                pc_confidence = f7.selectbox(
+                    "Confidence", ["All"] + available_confidence, key="pc_confidence_filter"
+                )
+                pc_search = f8.text_input(
                     "Search", placeholder="Player, team, event or prediction", key="pc_search_filter"
                 )
 
@@ -7445,20 +7517,6 @@ with tabs[4]:
                     )
                 else:
                     chosen_line_range = (0, 0)
-
-                confidence_values = pc_all["Prediction Confidence"].dropna()
-                if not confidence_values.empty:
-                    conf_low = int(max(0, confidence_values.min()))
-                    conf_high = int(min(100, confidence_values.max()))
-                    if conf_low < conf_high:
-                        chosen_confidence = st.slider(
-                            "Prediction Confidence", min_value=conf_low, max_value=conf_high,
-                            value=(conf_low, conf_high), key="pc_confidence_range"
-                        )
-                    else:
-                        chosen_confidence = (conf_low, conf_high)
-                else:
-                    chosen_confidence = (0, 100)
 
                 pc_filtered = pc_all.copy()
                 if pc_sport != "All":
@@ -7480,10 +7538,8 @@ with tabs[4]:
                     pc_filtered = pc_filtered[
                         pc_filtered["Actual Line"].between(chosen_line_range[0], chosen_line_range[1], inclusive="both")
                     ]
-                if not confidence_values.empty and chosen_confidence[0] != chosen_confidence[1]:
-                    pc_filtered = pc_filtered[
-                        pc_filtered["Prediction Confidence"].between(chosen_confidence[0], chosen_confidence[1], inclusive="both")
-                    ]
+                if pc_confidence != "All":
+                    pc_filtered = pc_filtered[pc_filtered["Confidence"] == pc_confidence]
                 if pc_search.strip():
                     q = pc_search.strip().casefold()
                     searchable = pc_filtered[["Event", "Participant A", "Participant B", "Prediction"]].fillna("").astype(str).agg(" ".join, axis=1).str.casefold()
@@ -7511,7 +7567,7 @@ with tabs[4]:
 
                 core_frame = pc_filtered[pc_filtered["Core Zone"]].copy()
                 core_graded, core_w, core_l, core_acc, core_units, core_roi, core_expected = _pc_summary(core_frame)
-                st.markdown("### Core Zone — -200 to -380")
+                st.markdown("### Core Zone — -250 to -450")
                 c1, c2, c3, c4, c5, c6 = st.columns(6)
                 c1.metric("Record", f"{core_w}-{core_l}")
                 c2.metric("Win %", f"{core_acc:.1%}" if core_acc is not None else "—")
@@ -7613,11 +7669,10 @@ with tabs[4]:
                     verdict_table = _pc_group_table(pc_filtered, "Verdict", verdict_order)
                     st.dataframe(verdict_table, use_container_width=True, hide_index=True)
 
-                st.markdown("#### By Prediction Confidence")
-                confidence_bands = [(0, 59, "Below 60"), (60, 69, "60-69"), (70, 74, "70-74"), (75, 79, "75-79"), (80, 84, "80-84"), (85, 89, "85-89"), (90, 100, "90-100")]
+                st.markdown("#### By Confidence")
                 confidence_rows = []
-                for low, high, label in confidence_bands:
-                    segment = pc_filtered[pc_filtered["Prediction Confidence"].between(low, high, inclusive="both")]
+                for label in ["Very High", "High", "Moderate", "Low"]:
+                    segment = pc_filtered[pc_filtered["Confidence"] == label]
                     sg, sw, sl, sa, su, sr, se = _pc_summary(segment)
                     confidence_rows.append({
                         "Confidence": label,
@@ -7649,7 +7704,7 @@ with tabs[4]:
 
                 display_cols = [
                     "Date", "Sport", "Event", "Prediction", "Market", "Actual Line", "Core Zone",
-                    "Fair Line", "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
+                    "Fair Line", "Confidence", "Price Assessment", "Verdict", "Prediction Result",
                     "Derivative Market", "Derivative Result",
                 ]
                 display_frame = prediction_view[display_cols].copy().sort_values("Date", ascending=False)
@@ -7659,7 +7714,7 @@ with tabs[4]:
                 export_cols = [
                     "ID", "Date", "Sport", "Event", "Participant A", "Participant B", "Prediction", "Market",
                     "Actual Line", "Core Zone", "Market Implied %", "Fair Line",
-                    "Prediction Confidence", "Price Assessment", "Verdict", "Prediction Result",
+                    "Confidence", "Price Assessment", "Verdict", "Prediction Result",
                     "Derivative Market", "Derivative Odds", "Derivative Verdict", "Derivative Result",
                     "Derivative Secondary", "Derivative Secondary Odds", "Derivative Secondary Result",
                     "UFC Actual Method", "UFC Actual Round", "UFC Actual Time", "Model Version",
@@ -7789,23 +7844,13 @@ with tabs[4]:
                 )
 
             with st.expander("Confidence calibration", expanded=False):
-                confidence_bands = [(90, 100), (80, 89), (70, 79), (60, 69), (0, 59)]
                 calibration_rows = []
-                for low, high in confidence_bands:
-                    band_rows = []
-                    for row in completed_rows:
-                        try:
-                            confidence_value = float(row.get("confidence"))
-                        except (TypeError, ValueError):
-                            continue
-                        if confidence_value <= 10:
-                            confidence_value *= 10
-                        if low <= confidence_value <= high:
-                            band_rows.append(row)
+                for label in ["Very High", "High", "Moderate", "Low"]:
+                    band_rows = [row for row in completed_rows if _analysis_confidence_label(row) == label]
                     band_correct = sum(_prediction_result(row) == "Correct" for row in band_rows)
                     band_incorrect = len(band_rows) - band_correct
                     calibration_rows.append({
-                        "Confidence": f"{low}–{high}" if low else "Below 60",
+                        "Confidence": label,
                         "Record": f"{band_correct}-{band_incorrect}",
                         "Graded": len(band_rows),
                         "Actual Accuracy": band_correct / len(band_rows) if band_rows else None,
@@ -7890,7 +7935,7 @@ with tabs[4]:
                     "Sport": row.get("sport", ""),
                     "Event": row.get("event_name", ""),
                     "Prediction": row.get("prediction", ""),
-                    "Prediction Confidence": row.get("confidence"),
+                    "Confidence": _analysis_confidence_label(row),
                     "Actual Line": _analysis_market_line(row),
                     "Fair Line": row.get("fair_line", ""),
                     "Price Assessment": _analysis_price_assessment(row),
@@ -7914,7 +7959,7 @@ with tabs[4]:
 
                 d1, d2, d3, d4, d5, d6 = st.columns(6)
                 d1.metric("Prediction", selected_row.get("prediction") or "—")
-                d2.metric("Prediction Confidence", f"{float(selected_row.get('confidence')):.0f}/100" if selected_row.get("confidence") is not None else "—")
+                d2.metric("Confidence", _analysis_confidence_label(selected_row))
                 d3.metric("Actual Line", _analysis_market_line(selected_row))
                 d4.metric("Fair Line", selected_row.get("fair_line") or "—")
                 d5.metric("Price Assessment", _analysis_price_assessment(selected_row))
