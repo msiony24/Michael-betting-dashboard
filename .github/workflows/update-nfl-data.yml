@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Run NFL data tests
-        run: python -m pytest tests/test_nfl_foundation.py tests/test_nfl_fetch_upgrade.py tests/test_nfl_team_state.py -q
+        run: python -m pytest tests/test_nfl_foundation.py tests/test_nfl_fetch_upgrade.py tests/test_nfl_team_state.py tests/test_nfl_fetch.py -q
 
       - name: Refresh NFL player weekly performance
         run: |
