@@ -61,7 +61,7 @@ jobs:
         run: python update_nfl_ratings.py
 
       - name: Run NFL rating tests
-        run: python -m pytest tests/test_nfl_rating_engine.py tests/test_nfl_availability.py tests/test_nfl_depth_chart.py tests/test_nfl_depth_chart_resolution.py tests/test_nfl_analyze.py tests/test_nfl_simulation.py -q
+        run: python -m pytest tests/test_nfl_rating_engine.py tests/test_nfl_availability.py tests/test_nfl_depth_chart.py tests/test_nfl_depth_chart_resolution.py tests/test_nfl_analyze.py tests/test_nfl_simulation.py tests/test_nfl_style_matchups.py tests/test_nfl_scheme_tendencies.py tests/test_nfl_situational_intelligence.py -q
 
       - name: Commit refreshed NFL data
         run: |
