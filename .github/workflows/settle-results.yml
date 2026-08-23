@@ -44,7 +44,7 @@ jobs:
         run: python -m pip install --upgrade pip pytest
 
       - name: Run settlement unit tests
-        run: python -m pytest tests/test_result_settlement.py tests/test_result_settlement_gaps.py -v
+        run: python -m pytest tests/test_result_settlement.py tests/test_result_settlement_gaps.py tests/test_settle_results.py -v
 
       - name: Settle pending predictions
         env:
