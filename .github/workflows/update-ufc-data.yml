@@ -39,7 +39,7 @@ jobs:
         run: python -m pytest tests/test_ufc_foundation.py -q
 
       - name: Test UFC analytical modules
-        run: python -m pytest tests/test_ufc_opponent_adjustment.py tests/test_ufc_cardio.py tests/test_ufc_damage.py tests/test_ufc_striking_matchups.py tests/test_ufc_grappling_matchups.py tests/test_ufc_markets.py tests/test_ufc_simulation.py tests/test_ufc_ratings.py -q
+        run: python -m pytest tests/test_ufc_opponent_adjustment.py tests/test_ufc_cardio.py tests/test_ufc_damage.py tests/test_ufc_striking_matchups.py tests/test_ufc_grappling_matchups.py tests/test_ufc_markets.py tests/test_ufc_simulation.py tests/test_ufc_ratings.py tests/test_ufc_context.py tests/test_ufc_performance.py tests/test_ufc_style_matchups.py tests/test_ufc_analyze.py -q
 
       - name: Test UFC data-source fallback chain
         run: python -m pytest tests/test_ufc_data_fallback.py -q
