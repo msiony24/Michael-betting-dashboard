@@ -140,6 +140,14 @@ def fighter_cardio_profile(
     config: UFCCardioConfig | None = None,
 ) -> dict[str, Any]:
     config = config or UFCCardioConfig()
+    if fights is None or fights.empty or "fighter" not in fights.columns:
+        return {
+            "available": False,
+            "version": CARDIO_VERSION,
+            "fighter": fighter,
+            "sample": 0,
+            "reason": "No fight history is available yet for this fighter.",
+        }
     frame = _attach_opponent_round_stats(fights)
     if "event_date" in frame.columns:
         frame["event_date"] = pd.to_datetime(frame["event_date"], errors="coerce")
