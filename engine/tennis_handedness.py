@@ -155,7 +155,15 @@ def _player_rows(matches: pd.DataFrame, player: str, event_date: Any) -> tuple[p
 
 def _decorate_with_opponent_hand(rows: pd.DataFrame, player_target: str) -> pd.DataFrame:
     if rows.empty:
-        return rows.copy()
+        out = rows.copy()
+        # Callers unconditionally read won/opponent/opponent_hand below; keep
+        # those columns present (just empty) so a player with zero matches
+        # before the requested date degrades to empty splits instead of
+        # crashing with a KeyError.
+        out["won"] = pd.Series(dtype=bool)
+        out["opponent"] = pd.Series(dtype=object)
+        out["opponent_hand"] = pd.Series(dtype=object)
+        return out
     out = rows.copy()
     out["won"] = _row_identity_mask(out["winner_name"], player_target)
     out["opponent"] = np.where(out["won"], out["loser_name"], out["winner_name"])
