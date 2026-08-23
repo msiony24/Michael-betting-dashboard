@@ -4646,9 +4646,16 @@ with tabs[1]:
                     outlook = "Toss-up"
 
                 decision_sentence = explanation_report["take"]
+
+                # The primary NFL recommendation is a winner/moneyline decision.
+                # Keep spread disagreement visible as secondary market context, but
+                # never pair a moneyline verdict with the opposite side's spread.
+                # Macabets still projects a winner on every analysis even when the
+                # current price does not justify a wager.
+                actionable_moneyline_verdicts = {"Strong Bet", "Worth Betting", "Lean"}
                 recommendation_text = (
-                    spread_value_text
-                    if price_report["verdict"].lower() != "pass" and value_team
+                    f"{projected_nfl_winner} ML {format_american(winner_market_ml)}"
+                    if price_report["verdict"] in actionable_moneyline_verdicts
                     else "PASS"
                 )
 
@@ -4677,7 +4684,7 @@ with tabs[1]:
                                 <div class="macabets-edge-value">{html.escape(fair_line_text)}</div>
                             </div>
                             <div class="macabets-edge-item">
-                                <div class="macabets-edge-label">Market Edge</div>
+                                <div class="macabets-edge-label">Spread Value</div>
                                 <div class="macabets-edge-value">{html.escape(edge_text)}</div>
                             </div>
                             <div class="macabets-edge-item">
