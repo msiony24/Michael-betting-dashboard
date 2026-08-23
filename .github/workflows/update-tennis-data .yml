@@ -41,7 +41,7 @@ jobs:
         run: python -m pytest tests/test_tennis_daily_refresh.py tests/test_tennis_serve_return.py tests/test_tennis_format_probability.py -q
 
       - name: Test player intelligence and matchup engine
-        run: python -m pytest tests/test_player_traits.py tests/test_matchup_engine.py tests/test_player_profiles.py tests/test_player_intelligence_store.py tests/test_api_tennis.py -q
+        run: python -m pytest tests/test_player_traits.py tests/test_matchup_engine.py tests/test_player_profiles.py tests/test_player_intelligence_store.py tests/test_api_tennis.py tests/test_tennis_h2h.py tests/test_tennis_handedness.py -q
 
       - name: Show tennis freshness
         run: |
