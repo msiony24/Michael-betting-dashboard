@@ -1330,18 +1330,23 @@ def tennis_probability_confidence_band(probability_a, reliability_score=100):
 def tennis_bet_confidence(analysis_confidence, edge, expected_roi):
     """Grade confidence in a specific price without changing the match analysis."""
     positive_edge = max(float(edge), 0.0)
-    positive_roi = max(float(expected_roi), 0.0)
     edge_score = min(positive_edge / 0.10 * 100.0, 100.0)
-    roi_score = min(positive_roi / 0.10 * 100.0, 100.0)
+    # Deliberately price-agnostic: roi_score used to carry 25% of this score,
+    # but dollar ROI for a given probability edge is mathematically compressed
+    # at short prices (the same 5-point edge pays far less ROI% at -350 than
+    # at +150). Weighting on raw ROI meant a heavy favorite with genuinely
+    # strong, well-supported conviction still read as "Cautious"/"Low" purely
+    # because of price. Edge (probability disagreement with the market) is
+    # the actual price-agnostic measure of conviction, so it now carries the
+    # full non-confidence weight instead of splitting with roi_score.
     score = (
         float(analysis_confidence) * 0.55
-        + edge_score * 0.20
-        + roi_score * 0.25
+        + edge_score * 0.45
     )
 
-    if expected_roi < 0.02:
+    if positive_edge < 0.02:
         score = min(score, 49)
-    elif expected_roi < 0.05:
+    elif positive_edge < 0.05:
         score = min(score, 69)
     score = int(round(min(max(score, 0), 100)))
 
@@ -2034,15 +2039,27 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
 
     expected_roi = probability * american_to_decimal(market_odds) - 1
 
-    if expected_roi >= 0.15:
+    # Price-assessment label is deliberately edge-based (model probability
+    # minus the market-implied probability), not raw ROI. ROI for a given
+    # edge is mathematically compressed at short prices (the same edge pays
+    # far less ROI% at -350 than at +150), so ROI-based breakpoints quietly
+    # mislabeled well-supported heavy favorites as "Fair"/"Premium" even when
+    # the model saw real value. These breakpoints are calibrated so a bet at
+    # a typical near-even-money price (-110) gets the identical label it
+    # always did; the fix is that the same edge now means the same label at
+    # every price, not just around -110.
+    market_implied_probability = implied_probability(market_odds)
+    edge = probability - market_implied_probability
+
+    if edge >= 0.08:
         quality = "Very Underpriced"
-    elif expected_roi >= 0.04:
+    elif edge >= 0.02:
         quality = "Underpriced"
-    elif expected_roi >= -0.02:
+    elif edge >= -0.01:
         quality = "Fair"
-    elif expected_roi >= -0.07:
+    elif edge >= -0.035:
         quality = "Premium"
-    elif expected_roi >= -0.12:
+    elif edge >= -0.06:
         quality = "Overpriced"
     else:
         quality = "Very Overpriced"
@@ -2050,13 +2067,21 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     # A Strong Bet must clear BOTH the value test and a minimum win-probability
     # conviction floor. A large pricing edge alone cannot turn a modest favorite
     # into Macabets' strongest recommendation.
+    #
+    # "Worth Betting" is an active recommendation to wager real money, so it
+    # requires the model's own expected_roi to be non-negative. High confidence
+    # alone can no longer promote a price the model itself considers -EV into
+    # a betting recommendation -- that gap (confidence overriding a negative
+    # price judgment) was allowing "Worth Betting" to include bets Macabets'
+    # own math had already flagged as bad value, and live tracking confirmed
+    # exactly that: "Worth Betting" was the weakest-performing verdict bucket.
+    # A high-confidence pick with a negative-but-not-terrible price now lands
+    # in "Lean" instead -- still surfaced, but no longer told to bet on it.
     if expected_roi >= 0.08 and confidence_score >= 75 and probability >= 0.65:
         verdict = "Strong Bet"
     elif expected_roi >= 0.025 and confidence_score >= 62:
         verdict = "Worth Betting"
-    elif expected_roi >= -0.015 and confidence_score >= 82:
-        verdict = "Worth Betting"
-    elif expected_roi >= -0.05 and confidence_score >= 88:
+    elif expected_roi >= 0.0 and confidence_score >= 82:
         verdict = "Worth Betting"
     elif expected_roi >= -0.075 and confidence_score >= 78:
         verdict = "Lean"
