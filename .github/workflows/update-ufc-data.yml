@@ -38,6 +38,9 @@ jobs:
       - name: Test UFC rating foundation
         run: python -m pytest tests/test_ufc_foundation.py -q
 
+      - name: Test UFC analytical modules
+        run: python -m pytest tests/test_ufc_opponent_adjustment.py tests/test_ufc_cardio.py tests/test_ufc_damage.py tests/test_ufc_striking_matchups.py tests/test_ufc_grappling_matchups.py tests/test_ufc_markets.py tests/test_ufc_simulation.py -q
+
       - name: Show UFC refresh status
         run: |
           cat data/ufc/refresh_status.json
