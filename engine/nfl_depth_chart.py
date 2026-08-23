@@ -334,6 +334,15 @@ def match_depth_players(team_players: pd.DataFrame, planned: list[tuple[str, str
     used: set[int] = set()
     for name, role in planned:
         idx = lookup.get(normalize_player_name(name))
+        # An exact normalized-name hit is not enough on its own: if two
+        # players on the same roster happen to share a normalized name at
+        # different positions (real collisions happen -- e.g. a depth chart
+        # QB slot and an unrelated DB with the same name), blindly trusting
+        # the name match would silently attach the wrong player's rating
+        # profile to the slot. Require role compatibility here too, exactly
+        # as the fuzzy fallback path already does below.
+        if idx is not None and not _role_compatible(working.loc[idx].get("position"), role):
+            idx = None
         if idx is None or idx in used:
             idx = _fallback_name_match(working, name, role, used)
         if idx is None or idx in used:
