@@ -20,8 +20,15 @@ def load_raw_database():
 
 def test_database_loads_and_contains_initial_player_batch():
     database = PlayerTraitsDatabase()
-    assert database.version == "1.0"
-    assert len(database.all_players()) == 20
+    # Compare against the raw file's own metadata rather than a hardcoded
+    # version string, so this doesn't go stale (and silently stop testing
+    # anything) on the next version bump.
+    assert database.version == load_raw_database()["_metadata"]["version"]
+    # Player count grows as the curated database is expanded; assert against
+    # the raw file instead of a hardcoded count so this doesn't go stale
+    # (and silently stop testing anything) every time a player is added.
+    assert len(database.all_players()) == len(load_raw_database()["players"])
+    assert len(database.all_players()) > 0
     assert "Jannik Sinner" in database.all_players()
     assert "Carlos Alcaraz" in database.all_players()
 
