@@ -17,8 +17,13 @@ def confidence_band(score: float) -> str:
 
 
 def recommendation_from_edge(edge_points: float, confidence: float) -> str:
-    """Convert model-vs-market spread edge and confidence into a restrained label."""
-    edge = abs(float(edge_points))
+    """Convert a *signed* model-vs-market edge into a restrained bet label.
+
+    Positive edge means the model assigns the recommended side a higher win
+    probability than the no-vig market. A zero or negative edge is never a bet,
+    regardless of how large the disagreement is.
+    """
+    edge = float(edge_points)
     confidence = float(confidence)
     if confidence < 50 or edge < 0.75:
         return "Pass"
