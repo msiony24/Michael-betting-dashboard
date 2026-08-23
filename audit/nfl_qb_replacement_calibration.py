@@ -32,6 +32,11 @@ class QBReplacementAuditRow:
     market_open_spread: float | None = None
     market_close_spread: float | None = None
     result_margin: float | None = None
+    pregame_status_known: bool = True
+    starter_unavailable_before_kickoff: bool = True
+    replacement_started: bool = True
+    in_game_replacement: bool = False
+    eligible_for_calibration: bool = True
 
 
 def save_qb_audit_row(row: QBReplacementAuditRow, path: str | Path) -> None:
@@ -73,3 +78,28 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
             value["avg_adjustment"] /= value["games"]
 
     return buckets
+
+
+def qb_replacement_is_eligible(
+    *,
+    starter_unavailable_before_kickoff: bool,
+    replacement_started: bool,
+    in_game_replacement: bool,
+    analysis_created_after_status: bool,
+    game_completed: bool,
+) -> bool:
+    """Determine whether a QB replacement belongs in calibration.
+
+    Only true pregame replacement decisions should train the calibration audit.
+    """
+    if not game_completed:
+        return False
+    if not starter_unavailable_before_kickoff:
+        return False
+    if not replacement_started:
+        return False
+    if in_game_replacement:
+        return False
+    if not analysis_created_after_status:
+        return False
+    return True
