@@ -25,6 +25,8 @@ from engine.nfl_availability import (
     load_availability,
     load_availability_status,
 )
+from engine.nfl_qb_intelligence import apply_qb_replacement_adjustment
+
 from engine.nfl_depth_chart import (
     AUTO_DEPTH_CHART_PATH,
     DEFAULT_DEPTH_CHART_PATH,
@@ -615,6 +617,15 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
     }.get(unit, 0.05)
     grade = starter_grade * (1.0 - depth_blend) + depth_grade * depth_blend
 
+    qb_replacement_context = {}
+    if unit == "quarterback" and unavailable_starters:
+        grade, qb_replacement_context = apply_qb_replacement_adjustment(
+            grade=grade,
+            healthy_starters=healthy_starters,
+            active_starters=starters,
+            depth=depth,
+        )
+
     if not healthy_starters.empty:
         healthy_starter_grade = float(healthy_starters["macabets_rating"].mean())
         healthy_depth_grade = float(healthy_depth["macabets_rating"].mean()) if not healthy_depth.empty else healthy_starter_grade
@@ -649,6 +660,7 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
         "unavailable_starters": unavailable_starters,
         "availability_promotions": availability_promotions,
         "availability_source": "Sleeper" if unavailable_starters or availability_promotions else "",
+        "qb_replacement_context": qb_replacement_context,
         "availability_uncertainty": [
             {"name": str(r.get("player_name", "")), "role": str(r.get("depth_chart_role", "") or ""),
              "status": str(r.get("availability_state", ""))}
