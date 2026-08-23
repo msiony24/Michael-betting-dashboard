@@ -6,6 +6,6 @@
   "source": "Sleeper",
   "source_url": "https://api.sleeper.app/v1/players/nfl",
   "teams": 33,
-  "uncertain": 255,
-  "updated_at_utc": "2026-08-23T18:05:22+00:00"
+  "uncertain": 254,
+  "updated_at_utc": "2026-08-23T18:36:20+00:00"
 }
