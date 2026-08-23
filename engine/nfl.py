@@ -55,7 +55,8 @@ def team_power_score(team: str, overrides: dict | None = None) -> tuple[float, d
 
 
 def spread_to_home_probability(home_margin: float) -> float:
-    # Calibratable logistic mapping. A 3-point favorite is approximately 59%.
+    # Calibratable logistic mapping. With the current divisor (12.0, set by
+    # the Phase 2 calibration audit) a 3-point favorite is approximately 56%.
     return 1.0 / (1.0 + math.exp(-float(home_margin) / 12.0))
 
 
