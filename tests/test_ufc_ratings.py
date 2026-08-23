@@ -108,13 +108,13 @@ def test_elo_history_is_conserved_for_an_even_decision_with_no_stat_gap():
     assert gain == pytest.approx(loss, abs=1e-9)
 
 
-def test_elo_history_documents_known_asymmetry_from_the_dominance_multiplier():
-    # KNOWN BEHAVIOR, not necessarily desired: because the dominance multiplier
-    # is computed independently per fighter from that fighter's own stat gap,
-    # a lopsided finish makes the winner's k-factor rise while the loser's
-    # k-factor falls -- so the winner's gain and the loser's loss are not
-    # exactly equal and opposite. This test pins the current magnitude so any
-    # future change to the dominance formula shows up here explicitly.
+def test_elo_history_dominant_finish_is_now_conserved():
+    # Regression test for a previously-fixed bug: the dominance multiplier used
+    # to be computed independently per fighter, which made a lopsided finish
+    # non-conservative (the winner gained more than the loser lost). It's now
+    # one shared, magnitude-based multiplier applied to both sides, so a
+    # decisive finish still moves ratings more than a close one, but the
+    # exchange stays exactly zero-sum.
     fights = pd.DataFrame([
         {"event_date": "2025-01-01", "fight_url": "f1", "fighter": "Alpha", "opponent": "Beta",
          "result": "W", "division": "Men’s Lightweight", "method": "KO/TKO",
@@ -126,9 +126,28 @@ def test_elo_history_documents_known_asymmetry_from_the_dominance_multiplier():
     history, ratings = build_elo_history(fights, UFCRatingConfig())
     gain = ratings["Alpha"] - 1500.0
     loss = 1500.0 - ratings["Beta"]
-    # The winner of a dominant finish currently gains more than the loser
-    # loses -- net Elo is created in the exchange rather than conserved.
-    assert gain > loss
+    assert gain == pytest.approx(loss, abs=1e-9)
+    # A dominant finish should still move ratings more than a plain even decision.
+    _, even_ratings = build_elo_history(_fight_pair("W", "L"), UFCRatingConfig())
+    even_gain = even_ratings["Alpha"] - 1500.0
+    assert gain > even_gain
+
+
+def test_elo_history_conserved_regardless_of_which_side_is_more_dominant():
+    # The shared multiplier must give the identical result no matter which
+    # fighter's row happens to be processed "first" in the pairing.
+    fights_b_dominant = pd.DataFrame([
+        {"event_date": "2025-01-01", "fight_url": "f1", "fighter": "Alpha", "opponent": "Beta",
+         "result": "L", "division": "Men’s Lightweight", "method": "Decision - Unanimous",
+         "sig_str": 10, "kd": 0, "td": 0, "sub_att": 0},
+        {"event_date": "2025-01-01", "fight_url": "f1", "fighter": "Beta", "opponent": "Alpha",
+         "result": "W", "division": "Men’s Lightweight", "method": "Decision - Unanimous",
+         "sig_str": 80, "kd": 2, "td": 3, "sub_att": 0},
+    ])
+    history, ratings = build_elo_history(fights_b_dominant, UFCRatingConfig())
+    gain = ratings["Beta"] - 1500.0
+    loss = 1500.0 - ratings["Alpha"]
+    assert gain == pytest.approx(loss, abs=1e-9)
 
 
 def test_elo_history_ignores_fights_with_unscoreable_result():
