@@ -118,3 +118,42 @@ def test_configured_client_uses_fresh_cache_without_network(tmp_path: Path):
     response = client.request("get_standings", event_type="ATP", cache_ttl=timedelta(hours=12))
     assert response.source == "cache"
     assert response.result == [{"place": 1}]
+
+
+def test_write_then_read_cache_round_trip_supports_odds_mapping(tmp_path: Path):
+    path = tmp_path / "odds.json"
+    result = {"159923": {"Home/Away": {"Home": {"bet365": "1.50"}, "Away": {"bet365": "2.75"}}}}
+    _write_cache(path, "get_odds", {"date_start": "2026-08-24"}, result)
+    cached = _read_cache(path, max_age=timedelta(hours=1))
+    assert cached is not None
+    assert cached["result"] == result
+
+
+def test_normalize_prematch_odds_extracts_only_match_winner_market():
+    from engine.api_tennis import normalize_prematch_odds
+
+    raw = {
+        "159923": {
+            "Home/Away": {
+                "Home": {"bet365": "1.50", "bwin": "1.48"},
+                "Away": {"bet365": "2.75", "bwin": "2.80"},
+                "6:4": {"bet365": "9.50"},
+            },
+            "Home/Away (1st Set)": {
+                "Home": {"bet365": "1.60"},
+                "Away": {"bet365": "2.40"},
+            },
+        }
+    }
+    parsed = normalize_prematch_odds(raw)
+    assert parsed["159923"]["home_odds"] == -200
+    assert parsed["159923"]["away_odds"] == 180
+    assert parsed["159923"]["home_book"] == "bet365"
+    assert parsed["159923"]["away_book"] == "bwin"
+
+
+def test_normalize_prematch_odds_ignores_non_moneyline_markets():
+    from engine.api_tennis import normalize_prematch_odds
+
+    raw = {"1": {"Set Betting": {"2:0": {"bet365": "2.10"}}}}
+    assert normalize_prematch_odds(raw) == {}
