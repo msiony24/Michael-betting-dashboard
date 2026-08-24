@@ -2552,27 +2552,6 @@ if st.session_state.pop("open_analysis_engine_tab", False):
     )
 
 with tabs[0]:
-    with st.expander("What's New in Macabets v0.21", expanded=True):
-        st.markdown(
-            """
-            - Added the Macabets NFL v0.1 foundation workspace
-            - Added all 32 NFL teams, game context and Vegas market inputs
-            - Added a stable NFL report structure for fair lines, projected scores, win probability, confidence, upset risk and game scripts
-            - NFL v0.1 is explicitly market-derived and will not claim an independent betting edge before the Team Quality Engine exists
-            - Added one-click tennis analysis directly from the Automatic Daily Slate
-            - Daily Slate matchups now prefill and automatically run the Tennis Analysis Engine
-            - Tennis always appears as a Daily Slate option, with feed diagnostics and API quota details
-            - Head-to-Head Summary: overall record, current-surface record and most recent meeting
-            - Removed 7-day workload and rest metrics because the available data was not reliable enough
-            - Surface Transition Engine: recent exposure and adaptation to the current surface
-            - Opponent Style Matchups with automatic or manual style tags
-            - Injury and retirement-risk context
-            - Tournament motivation: home event, defending points, priority and ranking pressure
-            - Draw-pressure context with deliberately limited model impact
-            - Every new factor appears in the probability-impact breakdown
-            """
-        )
-
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Current Bankroll", money(current_bankroll), money(net_profit))
     c2.metric("Pending Exposure", money(pending_exposure))
