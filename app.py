@@ -2163,13 +2163,21 @@ def decision_label(expected_roi, confidence):
     # so it must never manufacture a Strong Bet from ROI + confidence alone.
     # The main moneyline_price_quality() function is the source of truth for that
     # verdict because it can enforce the win-probability floor.
+    #
+    # "Worth Betting" requires non-negative expected_roi -- confidence alone can
+    # no longer promote a price this helper's own math considers -EV. This
+    # mirrors the fix already made in moneyline_price_quality(); this function
+    # had drifted into a separate, duplicate implementation that still carried
+    # the same loophole (a bet could be called "Worth Betting" with expected_roi
+    # as low as -5% purely on high confidence), and it's what actually drives
+    # the live "Decision" metric shown during analysis and the saved
+    # selected_bet_decision field -- so leaving it unfixed here meant the
+    # in-the-moment decision could still disagree with the correct one.
     if expected_roi >= 0.08 and confidence_score >= 70:
         verdict = "Worth Betting"
     elif expected_roi >= 0.025 and confidence_score >= 62:
         verdict = "Worth Betting"
-    elif expected_roi >= -0.015 and confidence_score >= 82:
-        verdict = "Worth Betting"
-    elif expected_roi >= -0.05 and confidence_score >= 88:
+    elif expected_roi >= 0.0 and confidence_score >= 82:
         verdict = "Worth Betting"
     elif expected_roi >= -0.075 and confidence_score >= 78:
         verdict = "Lean"
