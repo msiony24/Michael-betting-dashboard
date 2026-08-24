@@ -23,7 +23,7 @@ class APITennisError(RuntimeError):
 
 @dataclass(frozen=True)
 class APITennisResponse:
-    result: list[dict[str, Any]]
+    result: list[dict[str, Any]] | dict[str, Any]
     source: str
     fetched_at: str
     cache_key: str
@@ -86,14 +86,19 @@ def _read_cache(path: Path, max_age: timedelta | None) -> dict[str, Any] | None:
         if max_age is not None and _utc_now() - fetched_at > max_age:
             return None
 
-        if not isinstance(payload.get("result"), list):
+        if not isinstance(payload.get("result"), (list, dict)):
             return None
         return payload
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
         return None
 
 
-def _write_cache(path: Path, method: str, params: dict[str, Any], result: list[dict[str, Any]]) -> None:
+def _write_cache(
+    path: Path,
+    method: str,
+    params: dict[str, Any],
+    result: list[dict[str, Any]] | dict[str, Any],
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "method": method,
@@ -194,7 +199,7 @@ class APITennisClient:
                 result = payload.get("result", [])
                 if result is None:
                     result = []
-                if not isinstance(result, list):
+                if not isinstance(result, (list, dict)):
                     raise APITennisError(
                         f"{clean_method} returned an unexpected result format."
                     )
@@ -262,6 +267,33 @@ class APITennisClient:
             force_refresh=force_refresh,
         )
 
+    def get_odds(
+        self,
+        date_start: date | str | None = None,
+        date_stop: date | str | None = None,
+        *,
+        match_key: int | str | None = None,
+        event_type_key: int | str | None = None,
+        tournament_key: int | str | None = None,
+        force_refresh: bool = False,
+    ) -> APITennisResponse:
+        """Return API-Tennis pre-match odds.
+
+        API-Tennis returns ``get_odds`` as a mapping keyed by match/event key,
+        unlike fixtures/players which return lists. The generic client accepts
+        both shapes so odds can share the same cache/retry behavior.
+        """
+        return self.request(
+            "get_odds",
+            date_start=str(date_start) if date_start is not None else None,
+            date_stop=str(date_stop) if date_stop is not None else None,
+            match_key=match_key,
+            event_type_key=event_type_key,
+            tournament_key=tournament_key,
+            cache_ttl=timedelta(minutes=20),
+            force_refresh=force_refresh,
+        )
+
     def get_player(self, player_key: int | str, *, force_refresh: bool = False) -> APITennisResponse:
         return self.request(
             "get_players",
@@ -269,6 +301,73 @@ class APITennisClient:
             cache_ttl=timedelta(days=1),
             force_refresh=force_refresh,
         )
+
+
+def decimal_to_american(decimal_price: Any) -> int | None:
+    """Convert decimal bookmaker odds to integer American odds."""
+    try:
+        decimal_price = float(decimal_price)
+    except (TypeError, ValueError):
+        return None
+    if decimal_price <= 1.0:
+        return None
+    if decimal_price >= 2.0:
+        return int(round((decimal_price - 1.0) * 100))
+    return int(round(-100.0 / (decimal_price - 1.0)))
+
+
+def _best_book_price(prices: Any) -> tuple[float | None, str]:
+    """Return the best valid decimal price and its bookmaker label."""
+    if not isinstance(prices, dict):
+        return None, "—"
+    best_price = None
+    best_book = "—"
+    for bookmaker, raw_price in prices.items():
+        try:
+            price = float(raw_price)
+        except (TypeError, ValueError):
+            continue
+        if price <= 1.0 or price > 100.0:
+            continue
+        if best_price is None or price > best_price:
+            best_price = price
+            best_book = str(bookmaker or "API-Tennis")
+    return best_price, best_book
+
+
+def normalize_prematch_odds(result: Any) -> dict[str, dict[str, Any]]:
+    """Extract match-winner prices from API-Tennis ``get_odds`` output.
+
+    Only the ``Home/Away`` market is used. Set betting, first-set markets, and
+    other derivatives are deliberately ignored so the fallback cannot be mixed
+    up with the Macabets moneyline input.
+    """
+    if not isinstance(result, dict):
+        return {}
+
+    normalized: dict[str, dict[str, Any]] = {}
+    for match_key, markets in result.items():
+        if not isinstance(markets, dict):
+            continue
+        home_away = markets.get("Home/Away")
+        if not isinstance(home_away, dict):
+            continue
+
+        home_decimal, home_book = _best_book_price(home_away.get("Home"))
+        away_decimal, away_book = _best_book_price(home_away.get("Away"))
+        home_american = decimal_to_american(home_decimal)
+        away_american = decimal_to_american(away_decimal)
+        if home_american is None and away_american is None:
+            continue
+
+        normalized[str(match_key)] = {
+            "home_odds": home_american,
+            "away_odds": away_american,
+            "home_book": home_book,
+            "away_book": away_book,
+            "source": "API-Tennis",
+        }
+    return normalized
 
 
 def safe_request(
