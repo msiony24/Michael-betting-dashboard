@@ -86,14 +86,23 @@ except Exception as exc:
     TENNIS_ENGINE_IMPORT_ERROR = str(exc)
 
 try:
-    from engine.api_tennis import APITennisClient, APITennisError
+    from engine.api_tennis import APITennisClient, APITennisError, normalize_prematch_odds
     API_TENNIS_AVAILABLE = True
     API_TENNIS_IMPORT_ERROR = ""
 except Exception as exc:
     APITennisClient = None
     APITennisError = RuntimeError
+    normalize_prematch_odds = lambda _result: {}
     API_TENNIS_AVAILABLE = False
     API_TENNIS_IMPORT_ERROR = str(exc)
+
+try:
+    from engine.tennis_daily_slate import merge_tennis_schedule_with_market
+except Exception:
+    def merge_tennis_schedule_with_market(schedule, market_slate):
+        if schedule is not None and not schedule.empty:
+            return schedule.copy()
+        return market_slate.copy() if market_slate is not None else pd.DataFrame()
 
 try:
     from engine.nfl import analyze as analyze_nfl_match
@@ -1087,7 +1096,22 @@ def fetch_api_tennis_today():
         return [], {"source": "unavailable", "fetched_at": None, "error": str(exc)}
 
 
-def normalize_api_tennis_schedule(fixtures):
+@st.cache_data(ttl=1200, show_spinner=False)
+def fetch_api_tennis_odds_today():
+    """Load today's API-Tennis pre-match moneyline markets as a fallback source."""
+    if not API_TENNIS_AVAILABLE or APITennisClient is None:
+        return {}, {"source": "unavailable", "error": API_TENNIS_IMPORT_ERROR or "API-Tennis client unavailable"}
+    try:
+        client = APITennisClient()
+        today = datetime.now(EASTERN_TZ).date()
+        response = client.get_odds(today, today)
+        normalized = normalize_prematch_odds(response.result)
+        return normalized, {"source": response.source, "fetched_at": response.fetched_at, "error": ""}
+    except Exception as exc:
+        return {}, {"source": "unavailable", "fetched_at": None, "error": str(exc)}
+
+
+def normalize_api_tennis_schedule(fixtures, api_tennis_odds=None):
     """Normalize API-Tennis fixtures into the same basic columns as the automatic slate."""
     rows = []
     today_eastern = datetime.now(EASTERN_TZ).date()
@@ -1118,17 +1142,27 @@ def normalize_api_tennis_schedule(fixtures):
             start_time = datetime.combine(event_date, time(12, 0), tzinfo=EASTERN_TZ)
             time_et = event_time or "TBD"
         tournament = str(event.get("tournament_name") or event.get("league_name") or event_type.upper()).strip()
+        event_id = str(event.get("event_key") or "")
+        fallback = (api_tennis_odds or {}).get(event_id, {})
+        odds_a = fallback.get("home_odds")
+        odds_b = fallback.get("away_odds")
+        book_a = fallback.get("home_book", "—")
+        book_b = fallback.get("away_book", "—")
+        if odds_a is not None:
+            book_a = f"{book_a} (API-Tennis)"
+        if odds_b is not None:
+            book_b = f"{book_b} (API-Tennis)"
         rows.append({
-            "event_id": str(event.get("event_key") or ""),
+            "event_id": event_id,
             "start_time": start_time,
             "time_et": time_et,
             "sport": tournament,
             "participant_a": player_a,
             "participant_b": player_b,
-            "odds_a": pd.NA,
-            "odds_b": pd.NA,
-            "book_a": "—",
-            "book_b": "—",
+            "odds_a": odds_a if odds_a is not None else pd.NA,
+            "odds_b": odds_b if odds_b is not None else pd.NA,
+            "book_a": book_a,
+            "book_b": book_b,
         })
     return pd.DataFrame(rows).sort_values(["start_time", "sport", "participant_a"]).reset_index(drop=True) if rows else pd.DataFrame()
 
@@ -6564,21 +6598,22 @@ with tabs[3]:
                 if refresh:
                     fetch_sport_odds.clear()
                     fetch_api_tennis_today.clear()
+                    fetch_api_tennis_odds_today.clear()
 
                 with st.spinner("Loading today's market slate..."):
                     tennis_load_errors = []
                     if available_choices[selected_label] == "__all_tennis__":
                         api_tennis_fixtures, api_tennis_status = fetch_api_tennis_today()
-                        api_tennis_schedule = normalize_api_tennis_schedule(api_tennis_fixtures)
+                        api_tennis_odds, api_tennis_odds_status = fetch_api_tennis_odds_today()
+                        api_tennis_schedule = normalize_api_tennis_schedule(api_tennis_fixtures, api_tennis_odds)
                         if tennis_items:
-                            automatic_slate, usage, tennis_load_errors = combine_tennis_slate(api_key, tennis_items)
+                            odds_api_slate, usage, tennis_load_errors = combine_tennis_slate(api_key, tennis_items)
                         else:
-                            automatic_slate = pd.DataFrame()
+                            odds_api_slate = pd.DataFrame()
                             usage = sports_usage
-                        # API-Tennis owns the schedule. If market pricing is unavailable, keep the card visible
-                        # instead of incorrectly reporting that no tennis is scheduled.
-                        if automatic_slate.empty and not api_tennis_schedule.empty:
-                            automatic_slate = api_tennis_schedule
+                        # API-Tennis owns the schedule and supplies fallback odds. The Odds API
+                        # overlays preferred US sportsbook prices wherever it has the same match.
+                        automatic_slate = merge_tennis_schedule_with_market(api_tennis_schedule, odds_api_slate)
                     else:
                         api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
                         automatic_slate = normalize_api_slate(api_events, selected_label)
@@ -6592,6 +6627,13 @@ with tabs[3]:
                                 st.caption(f"API-Tennis schedule status: {api_tennis_status.get('error')}")
                             else:
                                 st.caption(f"API-Tennis schedule source: {api_tennis_status.get('source', 'unknown')}")
+                        api_tennis_odds_count = len(api_tennis_odds) if 'api_tennis_odds' in locals() else 0
+                        st.write(f"API-Tennis matches with pre-match odds: **{api_tennis_odds_count}**")
+                        if 'api_tennis_odds_status' in locals():
+                            if api_tennis_odds_status.get("error"):
+                                st.caption(f"API-Tennis odds status: {api_tennis_odds_status.get('error')}")
+                            else:
+                                st.caption(f"API-Tennis odds source: {api_tennis_odds_status.get('source', 'unknown')}")
                         st.write(f"Active Odds API ATP/WTA feeds discovered: **{len(tennis_items)}**")
                         if tennis_items:
                             for item in tennis_items:
@@ -6640,22 +6682,24 @@ with tabs[3]:
                 else:
                     if available_choices[selected_label] == "__all_tennis__":
                         tournament_count = automatic_slate["sport"].nunique()
-                        has_prices = automatic_slate["odds_a"].notna().any() or automatic_slate["odds_b"].notna().any()
-                        if has_prices:
+                        priced_matches = int((automatic_slate["odds_a"].notna() & automatic_slate["odds_b"].notna()).sum())
+                        if priced_matches:
                             st.success(
-                                f"Loaded {len(automatic_slate)} ATP/WTA matches across {tournament_count} active tournament(s) with market pricing."
+                                f"Loaded {len(automatic_slate)} scheduled ATP/WTA matches across {tournament_count} tournament(s). "
+                                f"Moneyline pricing is available for {priced_matches} match(es)."
                             )
                         else:
                             st.success(
-                                f"Loaded {len(automatic_slate)} ATP/WTA matches from API-Tennis. Live sportsbook odds are currently unavailable."
+                                f"Loaded {len(automatic_slate)} ATP/WTA matches from API-Tennis. Pre-match moneyline odds are currently unavailable."
                             )
                     has_any_prices = "odds_a" in automatic_slate and automatic_slate["odds_a"].notna().any()
                     if has_any_prices:
                         st.caption(
-                            f"Best available US moneyline shown for each side. API requests remaining: {usage['remaining']}."
+                            f"US sportsbook prices from The Odds API are preferred; API-Tennis bookmaker odds fill missing matches. "
+                            f"Odds API requests remaining: {usage['remaining']}."
                         )
                     else:
-                        st.caption("Schedule source: API-Tennis. Odds source: The Odds API (currently unavailable or not loaded).")
+                        st.caption("Schedule source: API-Tennis. Odds sources checked: The Odds API and API-Tennis.")
                     automatic_display = automatic_slate[
                         ["time_et", "sport", "participant_a", "odds_a", "book_a", "participant_b", "odds_b", "book_b"]
                     ].copy()
