@@ -2625,12 +2625,35 @@ st.markdown("""
     align-items: center;
     margin: .7rem 0 .4rem 0;
 }
-.macabets-home-player {text-align: center; min-width: 0;}
+.macabets-home-player {text-align: center; min-width: 0; position: relative;}
 .macabets-home-avatar {
     width: 54px; height: 54px; border-radius: 50%; margin: 0 auto .45rem auto;
     display: flex; align-items: center; justify-content: center;
-    background: #eef7f1; border: 1px solid #d6eadc; color: #166534;
+    background: #f5f6f8; border: 1px solid #dfe3e8; color: #475467;
     font-weight: 800; letter-spacing: .03em;
+}
+.macabets-home-player.is-winner .macabets-home-avatar {
+    background: #eaf8ef; border: 2px solid #22a559; color: #126b36;
+    box-shadow: 0 0 0 4px rgba(34, 165, 89, .08);
+}
+.macabets-home-winner-badge {
+    display: inline-block; margin: 0 auto .45rem auto; padding: .18rem .5rem;
+    border-radius: 999px; background: #eaf8ef; border: 1px solid #ccebd8;
+    color: #126b36; font-size: .64rem; line-height: 1.2; font-weight: 800;
+    letter-spacing: .04em; text-transform: uppercase;
+}
+.macabets-home-winner-badge.is-placeholder {visibility: hidden;}
+.macabets-home-winner-banner {
+    margin: .8rem 0 .9rem 0; padding: .72rem .9rem; border-radius: .7rem;
+    background: linear-gradient(135deg, #eaf8ef 0%, #f5fbf7 100%);
+    border: 1px solid #bfe5cd; text-align: center;
+}
+.macabets-home-winner-label {
+    color: #17713b; font-size: .72rem; font-weight: 800; letter-spacing: .05em;
+    text-transform: uppercase; margin-bottom: .15rem;
+}
+.macabets-home-winner-name {
+    color: #0f5f31; font-size: 1.28rem; line-height: 1.25; font-weight: 850;
 }
 .macabets-home-vs {font-size: .75rem; font-weight: 800; color: #98a2b3;}
 @media (max-width: 900px) {
@@ -2930,16 +2953,37 @@ if active_top_page == "Dashboard":
                 edge = probability - market_implied if probability is not None and market_implied is not None else None
                 confidence_label = _analysis_confidence_label(highest)
 
+                prediction_key = prediction.strip().casefold()
+                a_is_winner = prediction_key == participant_a.strip().casefold()
+                b_is_winner = prediction_key == participant_b.strip().casefold()
+                winner_name = (
+                    participant_a if a_is_winner else participant_b if b_is_winner else prediction
+                )
+                a_class = "macabets-home-player is-winner" if a_is_winner else "macabets-home-player"
+                b_class = "macabets-home-player is-winner" if b_is_winner else "macabets-home-player"
+                a_badge = (
+                    '<div class="macabets-home-winner-badge">Projected Winner</div>'
+                    if a_is_winner
+                    else '<div class="macabets-home-winner-badge is-placeholder">Projected Winner</div>'
+                )
+                b_badge = (
+                    '<div class="macabets-home-winner-badge">Projected Winner</div>'
+                    if b_is_winner
+                    else '<div class="macabets-home-winner-badge is-placeholder">Projected Winner</div>'
+                )
+
                 st.caption(f"{sport} · {confidence_label} Confidence")
                 st.markdown(
                     f"""
                     <div class="macabets-home-matchup">
-                        <div class="macabets-home-player">
+                        <div class="{a_class}">
+                            {a_badge}
                             <div class="macabets-home-avatar">{html.escape(_dashboard_initials(participant_a))}</div>
                             <div><strong>{html.escape(participant_a)}</strong></div>
                         </div>
                         <div class="macabets-home-vs">VS</div>
-                        <div class="macabets-home-player">
+                        <div class="{b_class}">
+                            {b_badge}
                             <div class="macabets-home-avatar">{html.escape(_dashboard_initials(participant_b))}</div>
                             <div><strong>{html.escape(participant_b)}</strong></div>
                         </div>
@@ -2948,12 +2992,20 @@ if active_top_page == "Dashboard":
                     unsafe_allow_html=True,
                 )
                 st.caption(event_name)
+                st.markdown(
+                    f"""
+                    <div class="macabets-home-winner-banner">
+                        <div class="macabets-home-winner-label">🏆 Macabets Projected Winner</div>
+                        <div class="macabets-home-winner-name">{html.escape(winner_name)}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
                 m1, m2, m3, m4 = st.columns(4)
                 m1.metric("Model Prob.", f"{probability:.1%}" if probability is not None else "—")
                 m2.metric("Market Implied", f"{market_implied:.1%}" if market_implied is not None else "—")
                 m3.metric("Edge", f"{edge:+.1%}" if edge is not None else "—")
                 m4.metric("Odds", format_american(market_odds) if market_odds is not None else "—")
-                st.caption(f"Projected winner: {prediction}")
                 if st.button("View Analysis →", key="home_view_analysis", use_container_width=True):
                     _queue_top_level_tab("Archive", "Analysis Log")
             else:
