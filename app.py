@@ -2689,34 +2689,106 @@ tabs = st.tabs([
     "Daily Slate", "Archive", "Settings", "Information"
 ])
 
-# Streamlit does not expose a native API for selecting a top-level tab.
-# Use one tiny client-side bridge for dashboard quick actions and Analysis Log reopen.
-def _queue_top_level_tab(tab_name: str) -> None:
-    st.session_state["open_top_level_tab"] = tab_name
+# Streamlit does not expose a native Python API for selecting an st.tabs tab.
+# Dashboard buttons therefore queue the destination and this tiny browser bridge
+# clicks the real Streamlit tab after the rerun. Streamlit renders its DOM
+# asynchronously, so retry for a few seconds instead of assuming the tab exists
+# immediately. This keeps navigation lightweight and avoids extra dependencies.
+def _queue_top_level_tab(tab_name: str, subtab_name=None) -> None:
+    st.session_state["open_top_level_tab"] = {
+        "top": str(tab_name),
+        "sub": str(subtab_name) if subtab_name else None,
+    }
     st.rerun()
 
 
 requested_top_tab = st.session_state.pop("open_top_level_tab", None)
 if st.session_state.pop("open_analysis_engine_tab", False):
-    requested_top_tab = "Analysis Engine"
+    requested_top_tab = {"top": "Analysis Engine", "sub": "Tennis Analysis"}
 
 if requested_top_tab:
-    safe_tab_name = json.dumps(str(requested_top_tab))
+    if isinstance(requested_top_tab, dict):
+        requested_top_name = str(requested_top_tab.get("top") or "")
+        requested_sub_name = requested_top_tab.get("sub")
+    else:
+        # Backward compatibility with any existing session created by an older build.
+        requested_top_name = str(requested_top_tab)
+        requested_sub_name = None
+
+    safe_tab_name = json.dumps(requested_top_name)
+    safe_subtab_name = json.dumps(str(requested_sub_name)) if requested_sub_name else "null"
     components.html(
         f"""
         <script>
-        const wanted = {safe_tab_name};
-        const tabs = window.parent.document.querySelectorAll('button[role="tab"]');
-        const target = Array.from(tabs).find(
-            (tab) => tab.textContent.trim().startsWith(wanted)
-        );
-        if (target) {{
-            target.click();
-            target.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-        }}
+        (() => {{
+            const wanted = {safe_tab_name};
+            const wantedSub = {safe_subtab_name};
+            const parentWindow = window.parent;
+            const doc = parentWindow.document;
+            let attempts = 0;
+            const maxAttempts = 60;
+
+            const labelsFor = (tablist) =>
+                Array.from(tablist.querySelectorAll('button[role="tab"]'))
+                    .map((tab) => tab.textContent.trim());
+
+            const findTopTab = () => {{
+                const tablists = Array.from(doc.querySelectorAll('[role="tablist"]'));
+                const topList = tablists.find((tablist) => {{
+                    const labels = labelsFor(tablist);
+                    return labels.includes('Dashboard') && labels.includes(wanted);
+                }});
+                if (!topList) return null;
+                return Array.from(topList.querySelectorAll('button[role="tab"]')).find(
+                    (tab) => tab.textContent.trim() === wanted
+                );
+            }};
+
+            const findSubTab = () => {{
+                if (!wantedSub) return null;
+                const tablists = Array.from(doc.querySelectorAll('[role="tablist"]'));
+                for (const tablist of tablists) {{
+                    const target = Array.from(tablist.querySelectorAll('button[role="tab"]')).find(
+                        (tab) => tab.textContent.trim() === wantedSub
+                    );
+                    if (target) return target;
+                }}
+                return null;
+            }};
+
+            const activateSubTab = (subAttempts = 0) => {{
+                if (!wantedSub) return;
+                const subTarget = findSubTab();
+                if (subTarget) {{
+                    subTarget.click();
+                    return;
+                }}
+                if (subAttempts < 30) {{
+                    parentWindow.setTimeout(() => activateSubTab(subAttempts + 1), 100);
+                }}
+            }};
+
+            const activate = () => {{
+                attempts += 1;
+                const target = findTopTab();
+                if (target) {{
+                    target.click();
+                    parentWindow.setTimeout(() => {{
+                        target.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+                        activateSubTab();
+                    }}, 120);
+                    return;
+                }}
+                if (attempts < maxAttempts) {{
+                    parentWindow.setTimeout(activate, 100);
+                }}
+            }};
+
+            parentWindow.setTimeout(activate, 120);
+        }})();
         </script>
         """,
-        height=0,
+        height=1,
     )
 
 
@@ -2865,7 +2937,7 @@ with tabs[0]:
             st.metric("Analyzed today", len(high_confidence_today))
             st.caption("High / Very High model confidence")
             if st.button("View Signals →", key="home_signals_top", use_container_width=True):
-                _queue_top_level_tab("Archive")
+                _queue_top_level_tab("Archive", "Analysis Log")
     with top4:
         with st.container(border=True):
             st.markdown("#### 🧠 Models Ready")
@@ -2932,7 +3004,7 @@ with tabs[0]:
                 m4.metric("Odds", format_american(market_odds) if market_odds is not None else "—")
                 st.caption(f"Projected winner: {prediction}")
                 if st.button("View Analysis →", key="home_view_analysis", use_container_width=True):
-                    _queue_top_level_tab("Archive")
+                    _queue_top_level_tab("Archive", "Analysis Log")
             else:
                 st.info("No matchup has been analyzed today yet.")
                 st.caption("The Dashboard will surface today's strongest saved analysis here without rerunning a model.")
@@ -2959,7 +3031,7 @@ with tabs[0]:
                 f"{performance['average_edge']:+.1%}" if performance["average_edge"] is not None else "—",
             )
             if st.button("View Full Performance →", key="home_performance", use_container_width=True):
-                _queue_top_level_tab("Archive")
+                _queue_top_level_tab("Archive", "Performance Center")
 
     st.write("")
     quick, status = st.columns([1.15, 1])
@@ -2975,7 +3047,7 @@ with tabs[0]:
             if q3.button("Log Bet", key="home_quick_bet", use_container_width=True):
                 _queue_top_level_tab("Bets")
             if q4.button("Archive", key="home_quick_archive", use_container_width=True):
-                _queue_top_level_tab("Archive")
+                _queue_top_level_tab("Archive", "Analysis Log")
 
     with status:
         with st.container(border=True):
