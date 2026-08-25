@@ -2754,15 +2754,26 @@ if queued_top in TOP_LEVEL_PAGES:
 if st.session_state.get("macabets_top_page") not in TOP_LEVEL_PAGES:
     st.session_state["macabets_top_page"] = "Dashboard"
 
-# Native, state-driven navigation. This is intentionally lightweight and does
-# not rely on JavaScript, external packages, or background work.
-active_top_page = st.radio(
-    "Macabets navigation",
-    TOP_LEVEL_PAGES,
-    horizontal=True,
-    key="macabets_top_page",
-    label_visibility="collapsed",
-)
+# Native, state-driven navigation. Prefer Streamlit's segmented control so the
+# main navigation reads like real tabs/pills instead of form-style radio buttons.
+# The fallback keeps Macabets compatible with older Streamlit builds without
+# adding any package or JavaScript dependency.
+if hasattr(st, "segmented_control"):
+    active_top_page = st.segmented_control(
+        "Macabets navigation",
+        TOP_LEVEL_PAGES,
+        selection_mode="single",
+        key="macabets_top_page",
+        label_visibility="collapsed",
+    )
+else:
+    active_top_page = st.radio(
+        "Macabets navigation",
+        TOP_LEVEL_PAGES,
+        horizontal=True,
+        key="macabets_top_page",
+        label_visibility="collapsed",
+    )
 st.divider()
 
 
@@ -3055,12 +3066,30 @@ if active_top_page == "Dashboard":
     with status:
         with st.container(border=True):
             st.markdown("### 🛡️ Macabets Status")
-            st.write(f"{'✅' if TENNIS_ENGINE_AVAILABLE else '⚪'} Tennis model {'ready' if TENNIS_ENGINE_AVAILABLE else 'unavailable'}")
-            st.write(f"{'✅' if NFL_ENGINE_AVAILABLE else '⚪'} NFL model {'ready' if NFL_ENGINE_AVAILABLE else 'unavailable'}")
-            st.write(f"{'✅' if UFC_ENGINE_AVAILABLE else '⚪'} UFC model {'ready' if UFC_ENGINE_AVAILABLE else 'unavailable'}")
-            st.write(f"✅ Daily Slate {'loaded (' + str(slate_count) + ')' if slate_count else 'ready'}")
-            st.write(f"{'✅' if analysis_db_configured() else '⚪'} Permanent Analysis Log {'connected' if analysis_db_configured() else 'not configured'}")
-            st.caption("Dashboard status uses existing app state; it does not poll external services in the background.")
+            status_left, status_right = st.columns(2)
+            with status_left:
+                st.markdown(
+                    f"{'✅' if TENNIS_ENGINE_AVAILABLE else '⚪'} **Tennis** · "
+                    f"{'Ready' if TENNIS_ENGINE_AVAILABLE else 'Unavailable'}"
+                )
+                st.markdown(
+                    f"{'✅' if NFL_ENGINE_AVAILABLE else '⚪'} **NFL** · "
+                    f"{'Ready' if NFL_ENGINE_AVAILABLE else 'Unavailable'}"
+                )
+                st.markdown(
+                    f"{'✅' if UFC_ENGINE_AVAILABLE else '⚪'} **UFC** · "
+                    f"{'Ready' if UFC_ENGINE_AVAILABLE else 'Unavailable'}"
+                )
+            with status_right:
+                st.markdown(
+                    f"✅ **Daily Slate** · "
+                    f"{'Loaded (' + str(slate_count) + ')' if slate_count else 'Ready'}"
+                )
+                st.markdown(
+                    f"{'✅' if analysis_db_configured() else '⚪'} **Analysis Log** · "
+                    f"{'Connected' if analysis_db_configured() else 'Not configured'}"
+                )
+            st.caption("Uses existing app state only — no background polling.")
 
 if active_top_page == "Analysis Engine":
     if st.session_state.get("macabets_analysis_page") not in ANALYSIS_PAGES:
