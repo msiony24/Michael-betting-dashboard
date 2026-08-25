@@ -174,3 +174,45 @@ def test_compare_experience_near_equal_profiles_report_even():
     result = compare_experience(a, b, "Hard")
     assert result["advantage"] == "Even"
     assert abs(result["probability_adjustment_a"]) < 0.005
+
+
+# --- API failure degradation: does it fail safely, not silently? -----------
+
+class _RaisingAPIClient:
+    """Simulates a genuine API failure (down, rate-limited, network error)."""
+    def get_standings(self, tour):
+        from engine.api_tennis import APITennisError
+        raise APITennisError("API-Tennis request failed: connection error")
+
+
+class _UnexpectedErrorAPIClient:
+    """Simulates a non-API bug surfacing during the API call (e.g. a
+    malformed response causing a KeyError) -- a different failure mode than
+    a clean APITennisError, and one that must not crash the whole profile
+    build either."""
+    def get_standings(self, tour):
+        raise KeyError("unexpected malformed response")
+
+
+def test_build_player_profile_api_failure_flags_unavailable_not_crash():
+    profile = build_player_profile(
+        _matches(), "Jannik Sinner", EVENT_DATE,
+        api_client=_RaisingAPIClient(), include_api=True, use_store=False,
+    )
+    assert "api_unavailable" in profile.data_flags
+    # Must not fabricate a ranking from a failed call.
+    assert profile.ranking is None
+    assert "api_tennis_standings" not in profile.data_sources
+    # Historical data (which succeeded) must still be present -- one data
+    # source failing should not wipe out data from a source that worked.
+    assert profile.career_matches > 0
+
+
+def test_build_player_profile_unexpected_api_error_also_degrades_safely():
+    profile = build_player_profile(
+        _matches(), "Jannik Sinner", EVENT_DATE,
+        api_client=_UnexpectedErrorAPIClient(), include_api=True, use_store=False,
+    )
+    assert "api_profile_error" in profile.data_flags
+    assert profile.ranking is None
+    assert profile.career_matches > 0  # historical path still unaffected
