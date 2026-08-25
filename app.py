@@ -145,23 +145,249 @@ st.set_page_config(
 )
 
 # --- Login gate -----------------------------------------------------------
-# Blocks the entire app behind a username/password check before anything
-# else renders. Credentials are never stored in the code or the repo -- they
-# live in Streamlit secrets (configured in the Streamlit Cloud dashboard, or
-# in a local .streamlit/secrets.toml that must stay out of git). The
-# password itself is never compared or stored in plain text, only its hash.
+# Macabets uses a signed browser cookie so a normal refresh does not force a
+# new login. The cookie is renewed while the user is active and expires after
+# 20 minutes of inactivity. A small browser-side idle guard also locks the app
+# automatically when the page is left untouched for 20 minutes.
+#
+# Credentials remain in Streamlit secrets. The browser receives only a signed
+# session token, never the password or password hash.
+import base64
 import hashlib
 import hmac
+
+AUTH_COOKIE_NAME = "macabets_auth"
+AUTH_IDLE_TIMEOUT_SECONDS = 20 * 60
+AUTH_COOKIE_RENEW_SECONDS = 30
+AUTH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
 
 
 def _hash_password(raw_password: str) -> str:
     return hashlib.sha256(raw_password.encode("utf-8")).hexdigest()
 
 
-def _require_login() -> None:
-    if st.session_state.get("authenticated", False):
-        return
+def _auth_signing_key(password_hash: str) -> bytes:
+    # Derive a separate signing key from the secret password hash. Changing the
+    # password automatically invalidates every outstanding browser session.
+    material = f"macabets-auth-cookie:{password_hash}".encode("utf-8")
+    return hashlib.sha256(material).digest()
 
+
+def _b64encode(raw: bytes) -> str:
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _b64decode(raw: str) -> bytes:
+    padding = "=" * (-len(raw) % 4)
+    return base64.urlsafe_b64decode((raw + padding).encode("ascii"))
+
+
+def _make_auth_token(username: str, password_hash: str) -> str:
+    issued_at = int(datetime.now(timezone.utc).timestamp())
+    payload = json.dumps(
+        {"u": username, "iat": issued_at},
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    payload_part = _b64encode(payload)
+    signature = hmac.new(
+        _auth_signing_key(password_hash),
+        payload_part.encode("ascii"),
+        hashlib.sha256,
+    ).digest()
+    return f"{payload_part}.{_b64encode(signature)}"
+
+
+def _valid_auth_token(token: str, username: str, password_hash: str) -> bool:
+    try:
+        payload_part, signature_part = str(token).split(".", 1)
+        expected_signature = hmac.new(
+            _auth_signing_key(password_hash),
+            payload_part.encode("ascii"),
+            hashlib.sha256,
+        ).digest()
+        supplied_signature = _b64decode(signature_part)
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            return False
+
+        payload = json.loads(_b64decode(payload_part).decode("utf-8"))
+        token_username = str(payload.get("u", ""))
+        issued_at = int(payload.get("iat", 0))
+        now = int(datetime.now(timezone.utc).timestamp())
+        age = now - issued_at
+        return (
+            hmac.compare_digest(token_username, username)
+            and 0 <= age <= AUTH_TOKEN_MAX_AGE_SECONDS
+        )
+    except Exception:
+        return False
+
+
+def _read_auth_cookie() -> str:
+    try:
+        return str(st.context.cookies.get(AUTH_COOKIE_NAME, "") or "")
+    except Exception:
+        # Older/local Streamlit builds may not expose st.context.cookies. The
+        # deployed app uses a current Streamlit build, but failing closed here
+        # is safer than treating a missing cookie as authenticated.
+        return ""
+
+
+def _cookie_write_js(token: str, *, reload_parent: bool = False) -> None:
+    token_js = json.dumps(token)
+    cookie_name_js = json.dumps(AUTH_COOKIE_NAME)
+    reload_js = "window.parent.location.reload();" if reload_parent else ""
+    components.html(
+        f"""
+        <script>
+        (() => {{
+            const doc = window.parent.document;
+            const secure = window.parent.location.protocol === 'https:' ? '; Secure' : '';
+            doc.cookie = {cookie_name_js} + '=' + {token_js}
+                + '; Path=/; Max-Age={AUTH_IDLE_TIMEOUT_SECONDS}; SameSite=Lax' + secure;
+            {reload_js}
+        }})();
+        </script>
+        """,
+        height=0,
+    )
+
+
+def _cookie_clear_js(*, reload_parent: bool = False) -> None:
+    cookie_name_js = json.dumps(AUTH_COOKIE_NAME)
+    reload_js = "window.parent.location.reload();" if reload_parent else ""
+    components.html(
+        f"""
+        <script>
+        (() => {{
+            const doc = window.parent.document;
+            const secure = window.parent.location.protocol === 'https:' ? '; Secure' : '';
+            doc.cookie = {cookie_name_js}
+                + '=; Path=/; Max-Age=0; SameSite=Lax' + secure;
+            {reload_js}
+        }})();
+        </script>
+        """,
+        height=0,
+    )
+
+
+def _install_idle_guard() -> None:
+    # The guard lives in the parent page so it survives Streamlit widget reruns.
+    # Any real user activity resets the timer and refreshes the cookie expiry.
+    # If 20 minutes pass untouched, it deletes the cookie and immediately sends
+    # the browser back through the login gate.
+    cookie_name_js = json.dumps(AUTH_COOKIE_NAME)
+    components.html(
+        f"""
+        <script>
+        (() => {{
+            const parentWindow = window.parent;
+            const parentDoc = parentWindow.document;
+            const COOKIE_NAME = {cookie_name_js};
+            const IDLE_MS = {AUTH_IDLE_TIMEOUT_SECONDS * 1000};
+            const RENEW_MS = {AUTH_COOKIE_RENEW_SECONDS * 1000};
+            const STATE_KEY = '__macabetsIdleGuard';
+
+            if (parentWindow[STATE_KEY] && parentWindow[STATE_KEY].cleanup) {{
+                parentWindow[STATE_KEY].cleanup();
+            }}
+
+            let lastActivity = Date.now();
+            let lastRenewal = 0;
+            let loggingOut = false;
+
+            function getCookie(name) {{
+                const prefix = name + '=';
+                const parts = parentDoc.cookie.split(';');
+                for (const rawPart of parts) {{
+                    const part = rawPart.trim();
+                    if (part.startsWith(prefix)) return part.substring(prefix.length);
+                }}
+                return '';
+            }}
+
+            function writeCookie(value) {{
+                const secure = parentWindow.location.protocol === 'https:' ? '; Secure' : '';
+                parentDoc.cookie = COOKIE_NAME + '=' + value
+                    + '; Path=/; Max-Age={AUTH_IDLE_TIMEOUT_SECONDS}; SameSite=Lax' + secure;
+            }}
+
+            function clearCookie() {{
+                const secure = parentWindow.location.protocol === 'https:' ? '; Secure' : '';
+                parentDoc.cookie = COOKIE_NAME
+                    + '=; Path=/; Max-Age=0; SameSite=Lax' + secure;
+            }}
+
+            function triggerLogout() {{
+                if (loggingOut) return;
+                loggingOut = true;
+                clearCookie();
+                const url = new URL(parentWindow.location.href);
+                url.searchParams.set('idle_logout', '1');
+                parentWindow.location.replace(url.toString());
+            }}
+
+            function recordActivity() {{
+                const now = Date.now();
+                // If the browser/tab was asleep past the timeout, do not let a
+                // fresh mouse movement revive the old authenticated page.
+                if (now - lastActivity >= IDLE_MS) {{
+                    triggerLogout();
+                    return;
+                }}
+                lastActivity = now;
+                if (now - lastRenewal >= RENEW_MS) {{
+                    const value = getCookie(COOKIE_NAME);
+                    if (!value) {{
+                        triggerLogout();
+                        return;
+                    }}
+                    writeCookie(value);
+                    lastRenewal = now;
+                }}
+            }}
+
+            const events = ['pointerdown', 'pointermove', 'keydown', 'scroll', 'touchstart'];
+            for (const eventName of events) {{
+                parentDoc.addEventListener(eventName, recordActivity, {{passive: true}});
+            }}
+
+            const timer = parentWindow.setInterval(() => {{
+                if (Date.now() - lastActivity >= IDLE_MS) triggerLogout();
+            }}, 5000);
+
+            // Loading or rerunning the app counts as activity and also extends
+            // the browser cookie for another 20 minutes.
+            const currentCookie = getCookie(COOKIE_NAME);
+            if (currentCookie) {{
+                writeCookie(currentCookie);
+                lastRenewal = Date.now();
+            }} else {{
+                triggerLogout();
+            }}
+
+            parentWindow[STATE_KEY] = {{
+                cleanup: () => {{
+                    parentWindow.clearInterval(timer);
+                    for (const eventName of events) {{
+                        parentDoc.removeEventListener(eventName, recordActivity);
+                    }}
+                }}
+            }};
+        }})();
+        </script>
+        """,
+        height=0,
+    )
+
+
+def _logout_browser_session(*, reload_parent: bool = True) -> None:
+    st.session_state.authenticated = False
+    _cookie_clear_js(reload_parent=reload_parent)
+
+
+def _require_login() -> None:
     try:
         expected_username = str(st.secrets["auth"]["username"])
         expected_password_hash = str(st.secrets["auth"]["password_hash"])
@@ -172,6 +398,29 @@ def _require_login() -> None:
         )
         st.stop()
 
+    # Browser-side idle lock redirects here with ?idle_logout=1. Treat that as
+    # an explicit logout even if an old Streamlit session_state still exists.
+    idle_logout = str(st.query_params.get("idle_logout", "")).lower() in {"1", "true", "yes"}
+    if idle_logout:
+        st.session_state.authenticated = False
+        _cookie_clear_js(reload_parent=False)
+        try:
+            del st.query_params["idle_logout"]
+        except Exception:
+            pass
+
+    token = _read_auth_cookie()
+    if not idle_logout and token and _valid_auth_token(
+        token, expected_username, expected_password_hash
+    ):
+        st.session_state.authenticated = True
+        _install_idle_guard()
+        return
+
+    # A missing/expired/invalid cookie wins over stale session_state. This is
+    # what makes the 20-minute inactivity rule hold even during a widget rerun.
+    st.session_state.authenticated = False
+
     st.title("Macabets")
     st.caption("Sign in to continue.")
     with st.form("login_form"):
@@ -181,13 +430,14 @@ def _require_login() -> None:
 
     if submitted:
         entered_hash = _hash_password(entered_password)
-        # hmac.compare_digest avoids leaking timing information about how
-        # much of the entered value matched -- cheap to do, no downside.
         username_ok = hmac.compare_digest(entered_username.strip(), expected_username)
         password_ok = hmac.compare_digest(entered_hash, expected_password_hash)
         if username_ok and password_ok:
+            token = _make_auth_token(expected_username, expected_password_hash)
             st.session_state.authenticated = True
-            st.rerun()
+            # Set the 20-minute browser cookie first, then reload. The reload is
+            # intentional: it proves the login survives a fresh Streamlit run.
+            _cookie_write_js(token, reload_parent=True)
         else:
             st.error("Incorrect username or password.")
 
@@ -2566,6 +2816,11 @@ with st.sidebar:
             st.success(f"Loaded {len(imported_analyses)} archived analyses.")
         except Exception as exc:
             st.error(f"Could not load analysis CSV: {exc}")
+
+    st.divider()
+    if st.button("Log out", use_container_width=True, key="macabets_logout"):
+        _logout_browser_session(reload_parent=True)
+        st.stop()
 
 bets = normalize_bets(st.session_state.bets)
 settled = bets[bets["status"].isin(["Won", "Lost", "Void", "Cashed Out"])]
