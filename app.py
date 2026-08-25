@@ -2972,7 +2972,7 @@ if active_top_page == "Dashboard":
                     else '<div class="macabets-home-winner-badge is-placeholder">Projected Winner</div>'
                 )
 
-                st.caption(f"{sport} · {confidence_label} Confidence")
+                st.markdown(f"**{sport} · Confidence Level: {confidence_label}**")
                 st.markdown(
                     f"""
                     <div class="macabets-home-matchup">
