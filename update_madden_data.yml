@@ -1,0 +1,57 @@
+name: Update Madden Data
+'on':
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 10 * * 1'
+
+permissions:
+  contents: write
+
+jobs:
+  update-madden-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      - name: Run Madden loader tests
+        run: python -m pytest tests/test_madden27_integration.py tests/test_madden_robust_import.py -v
+
+      - name: Import audited Madden 27 launch ratings and rebuild NFL ratings
+        run: python update_madden_data.py
+
+      - name: Validate Madden 27 rosters
+        run: python validate_madden_rosters.py
+
+      - name: Show generated files
+        run: |
+          ls -lh data/madden_27_players.csv data/madden_27_raw.json data/madden_27_metadata.json data/madden_27_team_ratings.json
+          ls -lh data/nfl/roster_*.csv data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json
+          ls -lh data/nfl/madden_27_validation.json data/nfl/madden_27_validation.csv
+          ls -lh data/nfl/madden_27_personnel_audit.json data/nfl/madden_27_personnel_audit.csv
+
+      - name: Commit updated Madden data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/madden_27_players.csv data/madden_27_raw.json data/madden_27_metadata.json data/madden_27_team_ratings.json
+          git add data/nfl/roster_*.csv data/nfl/player_ratings.csv data/nfl/team_ratings_auto.json data/nfl/rating_status.json data/nfl/rating_history.jsonl
+          git add data/nfl/madden_27_validation.json data/nfl/madden_27_validation.csv
+          git add data/nfl/madden_27_personnel_audit.json data/nfl/madden_27_personnel_audit.csv
+          git add data/madden_27_launch_ratings.xlsx
+          if git diff --cached --quiet; then
+            echo "No Madden data changes to commit."
+          else
+            git commit -m "Update Madden 27 ratings and NFL roster identity"
+            git push
+          fi
