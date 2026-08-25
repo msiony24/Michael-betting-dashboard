@@ -2898,6 +2898,46 @@ if active_top_page == "Dashboard":
         row for row in today_rows
         if _analysis_confidence_label(row) in {"High", "Very High"}
     ]
+
+    # Dashboard feature logic deliberately separates two questions:
+    # 1) What is Macabets' strongest actionable recommendation today?
+    # 2) Which predicted winner has the highest raw win probability today?
+    # A Pass / Complete Pass can never occupy the Highest Confidence card,
+    # but it can still be the Highest Win Probability because price and winner
+    # probability are different concepts.
+    actionable_verdicts = {"Strong Bet", "Worth Betting", "Lean"}
+    confidence_rank = {"Very High": 4, "High": 3, "Moderate": 2, "Low": 1, "—": 0}
+    verdict_rank = {"Strong Bet": 3, "Worth Betting": 2, "Lean": 1}
+
+    actionable_today = [row for row in today_rows if _analysis_verdict(row) in actionable_verdicts]
+
+    def _home_actionable_rank(row):
+        pricing = _analysis_pricing_report(row)
+        probability = _dashboard_number(row.get("predicted_probability"), -1.0)
+        expected_roi = _dashboard_number(pricing.get("expected_roi"), -999.0)
+        confidence_value = _dashboard_number(row.get("confidence"), -1.0)
+        return (
+            confidence_rank.get(_analysis_confidence_label(row), 0),
+            verdict_rank.get(str(pricing.get("verdict") or ""), 0),
+            probability,
+            expected_roi,
+            confidence_value,
+        )
+
+    highest_actionable = max(actionable_today, key=_home_actionable_rank) if actionable_today else None
+
+    probability_today = [
+        row for row in today_rows
+        if (_dashboard_number(row.get("predicted_probability")) or 0) > 0
+    ]
+    highest_probability = max(
+        probability_today,
+        key=lambda row: (
+            _dashboard_number(row.get("predicted_probability"), -1.0),
+            confidence_rank.get(_analysis_confidence_label(row), 0),
+        ),
+    ) if probability_today else None
+
     models_ready = int(bool(TENNIS_ENGINE_AVAILABLE)) + int(bool(NFL_ENGINE_AVAILABLE)) + int(bool(UFC_ENGINE_AVAILABLE))
 
     # Presentation-safe summary cards: no bankroll, stake, profit, or personal bet history.
@@ -2951,8 +2991,8 @@ if active_top_page == "Dashboard":
     with center:
         with st.container(border=True):
             st.markdown("### Highest Confidence Today")
-            if today_rows:
-                highest = max(today_rows, key=lambda row: _dashboard_number(row.get("confidence"), 0.0) or 0.0)
+            if highest_actionable:
+                highest = highest_actionable
                 participant_a = str(highest.get("participant_a") or "Participant A")
                 participant_b = str(highest.get("participant_b") or "Participant B")
                 sport = str(highest.get("sport") or "Analysis")
@@ -2963,6 +3003,7 @@ if active_top_page == "Dashboard":
                 market_implied = implied_probability(int(market_odds)) if market_odds not in (None, 0) else None
                 edge = probability - market_implied if probability is not None and market_implied is not None else None
                 confidence_label = _analysis_confidence_label(highest)
+                verdict = _analysis_verdict(highest)
 
                 prediction_key = prediction.strip().casefold()
                 a_is_winner = prediction_key == participant_a.strip().casefold()
@@ -2983,7 +3024,7 @@ if active_top_page == "Dashboard":
                     else '<div class="macabets-home-winner-badge is-placeholder">Projected Winner</div>'
                 )
 
-                st.markdown(f"**{sport} · Confidence Level: {confidence_label}**")
+                st.markdown(f"**{sport} · Confidence Level: {confidence_label} · Verdict: {verdict}**")
                 st.markdown(
                     f"""
                     <div class="macabets-home-matchup">
@@ -3019,6 +3060,11 @@ if active_top_page == "Dashboard":
                 m4.metric("Odds", format_american(market_odds) if market_odds is not None else "—")
                 if st.button("View Analysis →", key="home_view_analysis", use_container_width=True):
                     _queue_top_level_tab("Archive", "Analysis Log")
+            elif today_rows:
+                st.info("No actionable play qualifies for Highest Confidence Today.")
+                st.caption("Today's saved analyses are Pass / Complete Pass at the available prices, so Macabets will not feature one here as a betting recommendation.")
+                if st.button("View Today's Analyses →", key="home_view_passes", use_container_width=True):
+                    _queue_top_level_tab("Archive", "Analysis Log")
             else:
                 st.info("No matchup has been analyzed today yet.")
                 st.caption("The Dashboard will surface today's strongest saved analysis here without rerunning a model.")
@@ -3046,6 +3092,46 @@ if active_top_page == "Dashboard":
             )
             if st.button("View Full Performance →", key="home_performance", use_container_width=True):
                 _queue_top_level_tab("Archive", "Performance Center")
+
+    st.write("")
+    with st.container(border=True):
+        st.markdown("### 🏆 Highest Win Probability Today")
+        if highest_probability:
+            win_prediction = str(highest_probability.get("prediction") or "—")
+            win_probability = _dashboard_number(highest_probability.get("predicted_probability"))
+            win_confidence = _analysis_confidence_label(highest_probability)
+            win_verdict = _analysis_verdict(highest_probability)
+            win_market_odds = _dashboard_market_odds(highest_probability)
+            win_fair_line = str(highest_probability.get("fair_line") or "—")
+            if win_fair_line in {"", "—", "None"} and win_probability is not None:
+                try:
+                    win_fair_line = format_american(probability_to_american(win_probability))
+                except Exception:
+                    win_fair_line = "—"
+            win_event = str(highest_probability.get("event_name") or "")
+            win_explanation, _, _ = _analysis_price_verdict_explanation(highest_probability)
+
+            win_left, win_right = st.columns([0.95, 2.05])
+            with win_left:
+                st.metric("Projected Winner", win_prediction)
+                st.metric("Win Probability", f"{win_probability:.1%}" if win_probability is not None else "—")
+                st.caption(f"Confidence Level: {win_confidence}" + (f" · {win_event}" if win_event else ""))
+            with win_right:
+                w1, w2, w3 = st.columns(3)
+                w1.metric("Macabets Fair Line", win_fair_line)
+                w2.metric("Market Line", format_american(win_market_odds) if win_market_odds is not None else "—")
+                w3.metric("Verdict", win_verdict)
+                if win_verdict in {"Pass", "Complete Pass"}:
+                    st.markdown("**Why is the highest-probability winner still a Pass?**")
+                else:
+                    st.markdown(f"**Why the {win_verdict} verdict?**")
+                st.caption(win_explanation)
+                if win_verdict in {"Pass", "Complete Pass"}:
+                    st.caption(
+                        "Macabets can still believe this is the most likely winner on the board while refusing the bet because the sportsbook price is worse than the model's fair value."
+                    )
+        else:
+            st.info("No saved analysis with a valid win probability is available for today yet.")
 
     st.write("")
     quick, status = st.columns([1.15, 1])
