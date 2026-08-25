@@ -2684,112 +2684,63 @@ wins = int((decisions["status"] == "Won").sum()) if not decisions.empty else 0
 win_rate = wins / len(decisions) if len(decisions) else 0.0
 pending_exposure = float(pending["stake"].sum()) if not pending.empty else 0.0
 
-tabs = st.tabs([
+TOP_LEVEL_PAGES = [
     "Dashboard", "Analysis Engine", "Bets",
     "Daily Slate", "Archive", "Settings", "Information"
-])
+]
+ANALYSIS_PAGES = ["Tennis Analysis", "NFL Analysis", "UFC Analysis", "Outcome Simulator"]
+ARCHIVE_PAGES = ["Performance Center", "Analysis Log", "Legacy Tennis Archive", "Matchup Lab"]
 
-# Streamlit does not expose a native Python API for selecting an st.tabs tab.
-# Dashboard buttons therefore queue the destination and this tiny browser bridge
-# clicks the real Streamlit tab after the rerun. Streamlit renders its DOM
-# asynchronously, so retry for a few seconds instead of assuming the tab exists
-# immediately. This keeps navigation lightweight and avoids extra dependencies.
+
 def _queue_top_level_tab(tab_name: str, subtab_name=None) -> None:
-    st.session_state["open_top_level_tab"] = {
-        "top": str(tab_name),
-        "sub": str(subtab_name) if subtab_name else None,
-    }
+    """Queue native Streamlit navigation for the next rerun.
+
+    We intentionally do not try to click st.tabs with JavaScript. Streamlit does
+    not expose a supported API for that and browser-DOM bridges are fragile.
+    """
+    st.session_state["_macabets_queued_top_page"] = str(tab_name)
+    if subtab_name:
+        st.session_state["_macabets_queued_subpage"] = str(subtab_name)
     st.rerun()
 
 
-requested_top_tab = st.session_state.pop("open_top_level_tab", None)
-if st.session_state.pop("open_analysis_engine_tab", False):
-    requested_top_tab = {"top": "Analysis Engine", "sub": "Tennis Analysis"}
+# Consume navigation requests BEFORE the navigation widgets are instantiated.
+queued_top = st.session_state.pop("_macabets_queued_top_page", None)
+queued_sub = st.session_state.pop("_macabets_queued_subpage", None)
 
-if requested_top_tab:
-    if isinstance(requested_top_tab, dict):
-        requested_top_name = str(requested_top_tab.get("top") or "")
-        requested_sub_name = requested_top_tab.get("sub")
+# Backward compatibility with the previous dashboard build/session keys.
+legacy_request = st.session_state.pop("open_top_level_tab", None)
+if legacy_request and not queued_top:
+    if isinstance(legacy_request, dict):
+        queued_top = legacy_request.get("top")
+        queued_sub = legacy_request.get("sub") or queued_sub
     else:
-        # Backward compatibility with any existing session created by an older build.
-        requested_top_name = str(requested_top_tab)
-        requested_sub_name = None
+        queued_top = str(legacy_request)
 
-    safe_tab_name = json.dumps(requested_top_name)
-    safe_subtab_name = json.dumps(str(requested_sub_name)) if requested_sub_name else "null"
-    components.html(
-        f"""
-        <script>
-        (() => {{
-            const wanted = {safe_tab_name};
-            const wantedSub = {safe_subtab_name};
-            const parentWindow = window.parent;
-            const doc = parentWindow.document;
-            let attempts = 0;
-            const maxAttempts = 60;
+if st.session_state.pop("open_analysis_engine_tab", False):
+    queued_top = "Analysis Engine"
+    queued_sub = "Tennis Analysis"
 
-            const labelsFor = (tablist) =>
-                Array.from(tablist.querySelectorAll('button[role="tab"]'))
-                    .map((tab) => tab.textContent.trim());
+if queued_top in TOP_LEVEL_PAGES:
+    st.session_state["macabets_top_page"] = queued_top
+    if queued_top == "Analysis Engine" and queued_sub in ANALYSIS_PAGES:
+        st.session_state["macabets_analysis_page"] = queued_sub
+    elif queued_top == "Archive" and queued_sub in ARCHIVE_PAGES:
+        st.session_state["macabets_archive_page"] = queued_sub
 
-            const findTopTab = () => {{
-                const tablists = Array.from(doc.querySelectorAll('[role="tablist"]'));
-                const topList = tablists.find((tablist) => {{
-                    const labels = labelsFor(tablist);
-                    return labels.includes('Dashboard') && labels.includes(wanted);
-                }});
-                if (!topList) return null;
-                return Array.from(topList.querySelectorAll('button[role="tab"]')).find(
-                    (tab) => tab.textContent.trim() === wanted
-                );
-            }};
+if st.session_state.get("macabets_top_page") not in TOP_LEVEL_PAGES:
+    st.session_state["macabets_top_page"] = "Dashboard"
 
-            const findSubTab = () => {{
-                if (!wantedSub) return null;
-                const tablists = Array.from(doc.querySelectorAll('[role="tablist"]'));
-                for (const tablist of tablists) {{
-                    const target = Array.from(tablist.querySelectorAll('button[role="tab"]')).find(
-                        (tab) => tab.textContent.trim() === wantedSub
-                    );
-                    if (target) return target;
-                }}
-                return null;
-            }};
-
-            const activateSubTab = (subAttempts = 0) => {{
-                if (!wantedSub) return;
-                const subTarget = findSubTab();
-                if (subTarget) {{
-                    subTarget.click();
-                    return;
-                }}
-                if (subAttempts < 30) {{
-                    parentWindow.setTimeout(() => activateSubTab(subAttempts + 1), 100);
-                }}
-            }};
-
-            const activate = () => {{
-                attempts += 1;
-                const target = findTopTab();
-                if (target) {{
-                    target.click();
-                    parentWindow.setTimeout(() => {{
-                        target.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-                        activateSubTab();
-                    }}, 120);
-                    return;
-                }}
-                if (attempts < maxAttempts) {{
-                    parentWindow.setTimeout(activate, 100);
-                }}
-            }};
-
-            parentWindow.setTimeout(activate, 120);
-        }})();
-        </script>
-        """,
-        height=1,
-    )
+# Native, state-driven navigation. This is intentionally lightweight and does
+# not rely on JavaScript, external packages, or background work.
+active_top_page = st.radio(
+    "Macabets navigation",
+    TOP_LEVEL_PAGES,
+    horizontal=True,
+    key="macabets_top_page",
+    label_visibility="collapsed",
+)
+st.divider()
 
 
 @st.cache_data(ttl=120, show_spinner=False)
@@ -2895,7 +2846,7 @@ def _dashboard_performance(rows):
     }
 
 
-with tabs[0]:
+if active_top_page == "Dashboard":
     dashboard_rows = _dashboard_analysis_rows()
     today = date.today()
     today_rows = [row for row in dashboard_rows if _dashboard_date(row) == today]
@@ -3059,10 +3010,18 @@ with tabs[0]:
             st.write(f"{'✅' if analysis_db_configured() else '⚪'} Permanent Analysis Log {'connected' if analysis_db_configured() else 'not configured'}")
             st.caption("Dashboard status uses existing app state; it does not poll external services in the background.")
 
-with tabs[1]:
-    analysis_tabs = st.tabs(["Tennis Analysis", "NFL Analysis", "UFC Analysis", "Outcome Simulator"])
+if active_top_page == "Analysis Engine":
+    if st.session_state.get("macabets_analysis_page") not in ANALYSIS_PAGES:
+        st.session_state["macabets_analysis_page"] = "Tennis Analysis"
+    analysis_page = st.radio(
+        "Analysis section",
+        ANALYSIS_PAGES,
+        horizontal=True,
+        key="macabets_analysis_page",
+        label_visibility="collapsed",
+    )
 
-    with analysis_tabs[0]:
+    if analysis_page == "Tennis Analysis":
         st.subheader("Analysis Engine — Tennis")
         reopened_notice = st.session_state.pop("reopened_analysis_notice", None)
         if reopened_notice:
@@ -4259,7 +4218,7 @@ with tabs[1]:
                         "with no Monte Carlo noise."
                     )
 
-    with analysis_tabs[1]:
+    if analysis_page == "NFL Analysis":
         st.subheader("NFL Matchup Analysis")
         st.caption(
             "Compare the Macabets fair line with Vegas, evaluate a specific wager and review "
@@ -5691,7 +5650,7 @@ with tabs[1]:
                             f"The {abs(spread_difference):.1f}-point difference is not large enough to create a material spread edge."
                         )
 
-    with analysis_tabs[2]:
+    if analysis_page == "UFC Analysis":
         st.subheader("Analysis Engine — UFC")
         st.caption(
             "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, damage/durability risk, physical/context, simulation and derivative-market pricing. "
@@ -6726,7 +6685,7 @@ with tabs[1]:
                             for limitation in ufc_result.get("limitations", []):
                                 st.caption(f"• {limitation}")
 
-    with analysis_tabs[3]:
+    if analysis_page == "Outcome Simulator":
         st.subheader("Outcome Simulator")
         r1, r2, r3, r4 = st.columns(4)
         sim_bankroll = r1.number_input("Simulation bankroll", min_value=100.0, value=float(current_bankroll), step=1000.0)
@@ -6811,7 +6770,7 @@ with tabs[1]:
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
-with tabs[2]:
+if active_top_page == "Bets":
     bet_tabs = st.tabs(["New Bet", "Bet Ledger", "Performance"])
 
     with bet_tabs[0]:
@@ -6987,7 +6946,7 @@ with tabs[2]:
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
 
-with tabs[3]:
+if active_top_page == "Daily Slate":
     st.subheader("Daily Slate")
     analysis_ready_message = st.session_state.pop("daily_slate_analysis_ready", None)
     if analysis_ready_message:
@@ -7472,10 +7431,18 @@ with tabs[3]:
             use_container_width=True,
         )
 
-with tabs[4]:
-    archive_tabs = st.tabs(["Performance Center", "Analysis Log", "Legacy Tennis Archive", "Matchup Lab"])
+if active_top_page == "Archive":
+    if st.session_state.get("macabets_archive_page") not in ARCHIVE_PAGES:
+        st.session_state["macabets_archive_page"] = "Performance Center"
+    archive_page = st.radio(
+        "Archive section",
+        ARCHIVE_PAGES,
+        horizontal=True,
+        key="macabets_archive_page",
+        label_visibility="collapsed",
+    )
 
-    with archive_tabs[0]:
+    if archive_page == "Performance Center":
         st.subheader("Performance Center")
         st.caption(
             "One place for every Macabets prediction, live performance tracking, your -250 to -450 Core Zone, "
@@ -7858,7 +7825,7 @@ with tabs[4]:
                     use_container_width=True, key="pc_export_ufc",
                 )
 
-    with archive_tabs[1]:
+    if archive_page == "Analysis Log":
         st.subheader("Universal Analysis Log")
         st.caption("Every Tennis, NFL and UFC analysis is saved automatically as a frozen snapshot.")
         render_price_verdict_guide()
@@ -8257,7 +8224,7 @@ with tabs[4]:
                     "text/csv", use_container_width=True,
                 )
 
-    with archive_tabs[2]:
+    if archive_page == "Legacy Tennis Archive":
         st.subheader("Legacy Tennis Analysis Archive")
         analyses = normalize_analyses(st.session_state.analyses)
 
@@ -8379,7 +8346,7 @@ with tabs[4]:
                 use_container_width=True,
             )
 
-    with archive_tabs[3]:
+    if archive_page == "Matchup Lab":
         st.subheader("Matchup Lab")
         sport_lab = st.selectbox("Choose sport", SPORTS, key="lab_sport")
 
@@ -8459,7 +8426,7 @@ with tabs[4]:
 
         st.info("This page is a structured research worksheet. It does not automatically fetch current injuries, odds or statistics yet.")
 
-with tabs[5]:
+if active_top_page == "Settings":
     st.subheader("Settings")
     st.caption("Personal bankroll and restore controls live here so the Dashboard stays presentation-friendly.")
 
@@ -8533,7 +8500,7 @@ with tabs[5]:
     st.dataframe(normalize_analyses(st.session_state.analyses), use_container_width=True, hide_index=True)
 
 
-with tabs[6]:
+if active_top_page == "Information":
     st.subheader("How to Read Macabets Betting Grades")
     st.caption(
         "Macabets separates winner prediction accuracy from whether the offered moneyline is worth betting."
