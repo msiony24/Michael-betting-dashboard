@@ -2302,6 +2302,9 @@ def _save_universal_analysis(record):
         return None
     try:
         saved = db_create_analysis(record)
+        cache_fn = globals().get("_cached_universal_analysis_rows")
+        if cache_fn is not None:
+            cache_fn.clear()
         st.session_state["analysis_log_last_saved"] = record.get("event_name", "Analysis")
         return saved
     except Exception as exc:
@@ -2413,6 +2416,9 @@ def _apply_revision_to_analysis(analysis_id, context, revision, base_snapshot=No
     }
     updated = db_update_analysis(str(analysis_id), changes)
     if updated:
+        cache_fn = globals().get("_cached_universal_analysis_rows")
+        if cache_fn is not None:
+            cache_fn.clear()
         st.session_state["analysis_log_last_saved"] = context.get("event_name") or f"{player_a} vs {player_b}"
     return updated
 
@@ -2612,6 +2618,21 @@ st.markdown("""
 .macabets-score-box {border-top: 1px solid #e7eaf0; padding-top: .9rem;}
 .macabets-projected-score {font-size: 1.65rem; font-weight: 800; color: #172033;}
 .macabets-probability {font-size: 1rem; font-weight: 650; color: #172033; line-height: 1.55;}
+.macabets-home-matchup {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+    margin: .7rem 0 .4rem 0;
+}
+.macabets-home-player {text-align: center; min-width: 0;}
+.macabets-home-avatar {
+    width: 54px; height: 54px; border-radius: 50%; margin: 0 auto .45rem auto;
+    display: flex; align-items: center; justify-content: center;
+    background: #eef7f1; border: 1px solid #d6eadc; color: #166534;
+    font-weight: 800; letter-spacing: .03em;
+}
+.macabets-home-vs {font-size: .75rem; font-weight: 800; color: #98a2b3;}
 @media (max-width: 900px) {
     .macabets-edge-top, .macabets-score-row {grid-template-columns: 1fr;}
     .macabets-edge-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}
@@ -2622,7 +2643,7 @@ st.markdown("""
 title_col, version_col = st.columns([4, 1])
 with title_col:
     st.title("Macabets")
-    st.caption("Favorite-focused bet tracking, matchup analysis and bankroll risk control.")
+    st.caption("Betting Intelligence Platform · Matchup analysis, daily slate intelligence and model performance.")
 with version_col:
     st.markdown(
         f"""
@@ -2642,44 +2663,12 @@ with version_col:
     )
 
 with st.sidebar:
-    st.header("Core Settings")
-    st.session_state.bankroll = st.number_input(
-        "Starting bankroll",
-        min_value=0.0,
-        value=float(st.session_state.bankroll),
-        step=1000.0,
-    )
-    st.session_state.target_profit = st.number_input(
-        "Default target profit",
-        min_value=1.0,
-        value=float(st.session_state.target_profit),
-        step=500.0,
-    )
+    st.markdown("### Macabets")
+    st.caption("Private analytics workspace")
     st.divider()
-    st.subheader("Restore / Import")
-    uploaded = st.file_uploader("Upload a prior bets CSV", type=["csv"], key="bets_restore")
-    if uploaded is not None:
-        try:
-            imported = normalize_bets(pd.read_csv(uploaded))
-            st.session_state.bets = imported
-            st.success(f"Loaded {len(imported)} bets.")
-        except Exception as exc:
-            st.error(f"Could not load bets CSV: {exc}")
-
-    analysis_upload = st.file_uploader(
-        "Upload a prior analysis archive CSV",
-        type=["csv"],
-        key="analysis_restore",
-    )
-    if analysis_upload is not None:
-        try:
-            imported_analyses = normalize_analyses(pd.read_csv(analysis_upload))
-            st.session_state.analyses = imported_analyses
-            st.success(f"Loaded {len(imported_analyses)} archived analyses.")
-        except Exception as exc:
-            st.error(f"Could not load analysis CSV: {exc}")
-
-    st.divider()
+    st.markdown("**Session**")
+    st.caption("Private session active")
+    st.caption("Auto-locks after 20 minutes of inactivity.")
     if st.button("Log out", use_container_width=True, key="macabets_logout"):
         _logout()
 
@@ -2700,68 +2689,303 @@ tabs = st.tabs([
     "Daily Slate", "Archive", "Settings", "Information"
 ])
 
-# Streamlit does not expose a native API for selecting a top-level tab. When an
-# Analysis Log entry is reopened, this small client-side bridge selects the
-# Analysis Engine tab after the rerun so the user lands directly on the matchup.
+# Streamlit does not expose a native API for selecting a top-level tab.
+# Use one tiny client-side bridge for dashboard quick actions and Analysis Log reopen.
+def _queue_top_level_tab(tab_name: str) -> None:
+    st.session_state["open_top_level_tab"] = tab_name
+    st.rerun()
+
+
+requested_top_tab = st.session_state.pop("open_top_level_tab", None)
 if st.session_state.pop("open_analysis_engine_tab", False):
+    requested_top_tab = "Analysis Engine"
+
+if requested_top_tab:
+    safe_tab_name = json.dumps(str(requested_top_tab))
     components.html(
-        """
+        f"""
         <script>
+        const wanted = {safe_tab_name};
         const tabs = window.parent.document.querySelectorAll('button[role="tab"]');
         const target = Array.from(tabs).find(
-            (tab) => tab.textContent.trim().startsWith('Analysis Engine')
+            (tab) => tab.textContent.trim().startsWith(wanted)
         );
-        if (target) {
+        if (target) {{
             target.click();
-            target.scrollIntoView({behavior: 'smooth', block: 'start'});
-        }
+            target.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+        }}
         </script>
         """,
         height=0,
     )
 
+
+@st.cache_data(ttl=120, show_spinner=False)
+def _cached_universal_analysis_rows():
+    """Cache the permanent Analysis Log so multiple tabs do not repeat the same database read."""
+    return db_list_analyses(5000)
+
+
+def _dashboard_analysis_rows():
+    """Presentation-safe home-page data only. Never runs a model or hits an odds API."""
+    if not analysis_db_configured():
+        return []
+    try:
+        return list(_cached_universal_analysis_rows())[:500]
+    except Exception:
+        return []
+
+
+def _dashboard_date(row):
+    parsed = pd.to_datetime(row.get("event_date") or row.get("created_at"), errors="coerce")
+    if pd.isna(parsed):
+        return None
+    try:
+        return parsed.date()
+    except Exception:
+        return None
+
+
+def _dashboard_number(value, default=None):
+    try:
+        result = float(value)
+        return result if np.isfinite(result) else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _dashboard_market_odds(row):
+    prediction = str(row.get("prediction") or "").strip()
+    participant_a = str(row.get("participant_a") or "").strip()
+    participant_b = str(row.get("participant_b") or "").strip()
+    if prediction and prediction == participant_a:
+        raw = row.get("market_odds_a")
+    elif prediction and prediction == participant_b:
+        raw = row.get("market_odds_b")
+    else:
+        raw = row.get("market_line")
+    return _dashboard_number(raw)
+
+
+def _dashboard_is_core_zone(row):
+    odds = _dashboard_market_odds(row)
+    return odds is not None and -450 <= odds <= -250
+
+
+def _dashboard_initials(name):
+    pieces = [piece for piece in str(name or "").replace("-", " ").split() if piece]
+    if not pieces:
+        return "?"
+    if len(pieces) == 1:
+        return pieces[0][:2].upper()
+    return (pieces[0][0] + pieces[-1][0]).upper()
+
+
+def _dashboard_performance(rows):
+    graded = [row for row in rows if str(row.get("status") or "") in {"Won", "Lost"}]
+    def _sort_stamp(row):
+        parsed = pd.to_datetime(row.get("event_date") or row.get("created_at"), errors="coerce", utc=True)
+        if pd.isna(parsed):
+            return -1.0
+        try:
+            return float(parsed.timestamp())
+        except Exception:
+            return -1.0
+
+    graded.sort(key=_sort_stamp, reverse=True)
+    last_ten = graded[:10]
+    last_ten_wins = sum(str(row.get("status")) == "Won" for row in last_ten)
+    last_ten_losses = sum(str(row.get("status")) == "Lost" for row in last_ten)
+    overall_wins = sum(str(row.get("status")) == "Won" for row in graded)
+    overall_rate = overall_wins / len(graded) if graded else None
+
+    core = [row for row in graded if _dashboard_is_core_zone(row)]
+    core_wins = sum(str(row.get("status")) == "Won" for row in core)
+    core_rate = core_wins / len(core) if core else None
+
+    edges = []
+    for row in rows:
+        probability = _dashboard_number(row.get("predicted_probability"))
+        odds = _dashboard_market_odds(row)
+        if probability is None or odds in (None, 0):
+            continue
+        try:
+            edges.append(probability - implied_probability(int(odds)))
+        except Exception:
+            continue
+    average_edge = float(np.mean(edges)) if edges else None
+    return {
+        "last_ten_record": f"{last_ten_wins}-{last_ten_losses}" if last_ten else "—",
+        "overall_rate": overall_rate,
+        "core_rate": core_rate,
+        "average_edge": average_edge,
+        "sample": len(graded),
+    }
+
+
 with tabs[0]:
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Current Bankroll", money(current_bankroll), money(net_profit))
-    c2.metric("Pending Exposure", money(pending_exposure))
-    c3.metric("Settled ROI", f"{roi:.1%}")
-    c4.metric("Win Rate", f"{win_rate:.1%}")
-    c5.metric("Bets Logged", f"{len(bets)}")
+    dashboard_rows = _dashboard_analysis_rows()
+    today = date.today()
+    today_rows = [row for row in dashboard_rows if _dashboard_date(row) == today]
 
-    if current_bankroll > 0:
-        exposure_pct = pending_exposure / current_bankroll
-        if exposure_pct >= 0.25:
-            st.error(f"Pending exposure is {exposure_pct:.1%} of bankroll. This is a major concentration risk.")
-        elif exposure_pct >= 0.15:
-            st.warning(f"Pending exposure is {exposure_pct:.1%} of bankroll. Proceed carefully.")
-        elif exposure_pct > 0:
-            st.info(f"Pending exposure is {exposure_pct:.1%} of bankroll.")
+    slate = normalize_slate(st.session_state.daily_slate)
+    slate_count = len(slate)
+    slate_core_count = 0
+    if not slate.empty:
+        for _, row in slate.iterrows():
+            odds_values = [_dashboard_number(row.get("market_odds_a")), _dashboard_number(row.get("market_odds_b"))]
+            if any(odds is not None and -450 <= odds <= -250 for odds in odds_values):
+                slate_core_count += 1
 
-    left, right = st.columns([1.2, 1])
+    high_confidence_today = [
+        row for row in today_rows
+        if _analysis_confidence_label(row) in {"High", "Very High"}
+    ]
+    models_ready = int(bool(TENNIS_ENGINE_AVAILABLE)) + int(bool(NFL_ENGINE_AVAILABLE)) + int(bool(UFC_ENGINE_AVAILABLE))
+
+    # Presentation-safe summary cards: no bankroll, stake, profit, or personal bet history.
+    top1, top2, top3, top4 = st.columns(4)
+    with top1:
+        with st.container(border=True):
+            st.markdown("#### 🗓️ Today's Slate")
+            st.metric("Matches loaded", slate_count)
+            st.caption("Current locally loaded slate")
+            if st.button("Open Daily Slate →", key="home_open_slate_top", use_container_width=True):
+                _queue_top_level_tab("Daily Slate")
+    with top2:
+        with st.container(border=True):
+            st.markdown("#### ⭐ Core Zone Favorites")
+            st.metric("-250 to -450", slate_core_count)
+            st.caption("Core-zone prices in the loaded slate")
+            if st.button("View Core Zone →", key="home_core_zone_top", use_container_width=True):
+                _queue_top_level_tab("Daily Slate")
+    with top3:
+        with st.container(border=True):
+            st.markdown("#### 🛡️ High Confidence Signals")
+            st.metric("Analyzed today", len(high_confidence_today))
+            st.caption("High / Very High model confidence")
+            if st.button("View Signals →", key="home_signals_top", use_container_width=True):
+                _queue_top_level_tab("Archive")
+    with top4:
+        with st.container(border=True):
+            st.markdown("#### 🧠 Models Ready")
+            st.metric("Active engines", models_ready)
+            st.caption("Tennis + available NFL/UFC engines")
+            if st.button("Open Models →", key="home_models_top", use_container_width=True):
+                _queue_top_level_tab("Analysis Engine")
+
+    st.write("")
+    left, center, right = st.columns([1.05, 1.35, 1.0])
+
     with left:
-        st.subheader("Recent Bets")
-        if bets.empty:
-            st.write("No bets logged yet.")
-        else:
-            view = bets.sort_values("id", ascending=False).head(10)
-            st.dataframe(
-                view[["date", "sport", "event", "selection", "odds", "stake", "status", "result_profit"]],
-                use_container_width=True,
-                hide_index=True,
-            )
+        with st.container(border=True):
+            st.markdown("### Today's Macabets")
+            st.caption(today.strftime("%B %d, %Y"))
+            st.write("Daily intelligence using information Macabets has already loaded or analyzed.")
+            s1, s2 = st.columns(2)
+            s1.metric("Slate", slate_count)
+            s2.metric("Core Zone", slate_core_count)
+            s3, s4 = st.columns(2)
+            s3.metric("Analyzed Today", len(today_rows))
+            s4.metric("High Confidence", len(high_confidence_today))
+            if st.button("Open Daily Slate", type="primary", key="home_open_slate_main", use_container_width=True):
+                _queue_top_level_tab("Daily Slate")
+
+    with center:
+        with st.container(border=True):
+            st.markdown("### Highest Confidence Today")
+            if today_rows:
+                highest = max(today_rows, key=lambda row: _dashboard_number(row.get("confidence"), 0.0) or 0.0)
+                participant_a = str(highest.get("participant_a") or "Participant A")
+                participant_b = str(highest.get("participant_b") or "Participant B")
+                sport = str(highest.get("sport") or "Analysis")
+                event_name = str(highest.get("event_name") or f"{participant_a} vs {participant_b}")
+                prediction = str(highest.get("prediction") or "—")
+                probability = _dashboard_number(highest.get("predicted_probability"))
+                market_odds = _dashboard_market_odds(highest)
+                market_implied = implied_probability(int(market_odds)) if market_odds not in (None, 0) else None
+                edge = probability - market_implied if probability is not None and market_implied is not None else None
+                confidence_label = _analysis_confidence_label(highest)
+
+                st.caption(f"{sport} · {confidence_label} Confidence")
+                st.markdown(
+                    f"""
+                    <div class="macabets-home-matchup">
+                        <div class="macabets-home-player">
+                            <div class="macabets-home-avatar">{html.escape(_dashboard_initials(participant_a))}</div>
+                            <div><strong>{html.escape(participant_a)}</strong></div>
+                        </div>
+                        <div class="macabets-home-vs">VS</div>
+                        <div class="macabets-home-player">
+                            <div class="macabets-home-avatar">{html.escape(_dashboard_initials(participant_b))}</div>
+                            <div><strong>{html.escape(participant_b)}</strong></div>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.caption(event_name)
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Model Prob.", f"{probability:.1%}" if probability is not None else "—")
+                m2.metric("Market Implied", f"{market_implied:.1%}" if market_implied is not None else "—")
+                m3.metric("Edge", f"{edge:+.1%}" if edge is not None else "—")
+                m4.metric("Odds", format_american(market_odds) if market_odds is not None else "—")
+                st.caption(f"Projected winner: {prediction}")
+                if st.button("View Analysis →", key="home_view_analysis", use_container_width=True):
+                    _queue_top_level_tab("Archive")
+            else:
+                st.info("No matchup has been analyzed today yet.")
+                st.caption("The Dashboard will surface today's strongest saved analysis here without rerunning a model.")
+                if st.button("Analyze a Matchup →", key="home_analyze_empty", use_container_width=True):
+                    _queue_top_level_tab("Analysis Engine")
+
     with right:
-        st.subheader("Profit by Sport")
-        if settled.empty:
-            st.write("Settle bets to populate this chart.")
-        else:
-            profit_sport = settled.groupby("sport", as_index=False)["result_profit"].sum()
-            fig, ax = plt.subplots()
-            ax.bar(profit_sport["sport"], profit_sport["result_profit"])
-            ax.axhline(0, linewidth=1)
-            ax.set_ylabel("Profit / Loss ($)")
-            ax.tick_params(axis="x", rotation=35)
-            st.pyplot(fig, use_container_width=True)
-            plt.close(fig)
+        with st.container(border=True):
+            st.markdown("### Model Performance")
+            performance = _dashboard_performance(dashboard_rows)
+            p1, p2 = st.columns(2)
+            p1.metric("Last 10", performance["last_ten_record"])
+            p2.metric("Graded", performance["sample"])
+            st.metric(
+                "Overall Win Rate",
+                f"{performance['overall_rate']:.1%}" if performance["overall_rate"] is not None else "—",
+            )
+            st.metric(
+                "Core Zone Win Rate",
+                f"{performance['core_rate']:.1%}" if performance["core_rate"] is not None else "—",
+            )
+            st.metric(
+                "Average Model Edge",
+                f"{performance['average_edge']:+.1%}" if performance["average_edge"] is not None else "—",
+            )
+            if st.button("View Full Performance →", key="home_performance", use_container_width=True):
+                _queue_top_level_tab("Archive")
+
+    st.write("")
+    quick, status = st.columns([1.15, 1])
+    with quick:
+        with st.container(border=True):
+            st.markdown("### ⚡ Quick Actions")
+            st.caption("Common workflows without adding any background processing.")
+            q1, q2, q3, q4 = st.columns(4)
+            if q1.button("Analyze Matchup", key="home_quick_analysis", use_container_width=True):
+                _queue_top_level_tab("Analysis Engine")
+            if q2.button("Daily Slate", key="home_quick_slate", use_container_width=True):
+                _queue_top_level_tab("Daily Slate")
+            if q3.button("Log Bet", key="home_quick_bet", use_container_width=True):
+                _queue_top_level_tab("Bets")
+            if q4.button("Archive", key="home_quick_archive", use_container_width=True):
+                _queue_top_level_tab("Archive")
+
+    with status:
+        with st.container(border=True):
+            st.markdown("### 🛡️ Macabets Status")
+            st.write(f"{'✅' if TENNIS_ENGINE_AVAILABLE else '⚪'} Tennis model {'ready' if TENNIS_ENGINE_AVAILABLE else 'unavailable'}")
+            st.write(f"{'✅' if NFL_ENGINE_AVAILABLE else '⚪'} NFL model {'ready' if NFL_ENGINE_AVAILABLE else 'unavailable'}")
+            st.write(f"{'✅' if UFC_ENGINE_AVAILABLE else '⚪'} UFC model {'ready' if UFC_ENGINE_AVAILABLE else 'unavailable'}")
+            st.write(f"✅ Daily Slate {'loaded (' + str(slate_count) + ')' if slate_count else 'ready'}")
+            st.write(f"{'✅' if analysis_db_configured() else '⚪'} Permanent Analysis Log {'connected' if analysis_db_configured() else 'not configured'}")
+            st.caption("Dashboard status uses existing app state; it does not poll external services in the background.")
 
 with tabs[1]:
     analysis_tabs = st.tabs(["Tennis Analysis", "NFL Analysis", "UFC Analysis", "Outcome Simulator"])
@@ -7191,7 +7415,7 @@ with tabs[4]:
             st.info("Configure Supabase to use the Performance Center with the permanent Analysis Log.")
         else:
             try:
-                performance_rows = db_list_analyses(5000)
+                performance_rows = list(_cached_universal_analysis_rows())
             except Exception as exc:
                 performance_rows = []
                 st.error(f"Could not load predictions for the Performance Center: {exc}")
@@ -7585,7 +7809,7 @@ with tabs[4]:
         else:
             # Load the complete archive first so the report card is not affected by display filters.
             try:
-                all_universal_rows = db_list_analyses(5000)
+                all_universal_rows = list(_cached_universal_analysis_rows())
             except Exception as exc:
                 all_universal_rows = []
                 st.error(f"Could not load the permanent Analysis Log: {exc}")
@@ -7932,6 +8156,7 @@ with tabs[4]:
                             "notes": updated_notes.strip(), "review": updated_review.strip(),
                             "lesson": updated_lesson.strip(),
                         })
+                        _cached_universal_analysis_rows.clear()
                         st.success("Analysis updated.")
                         st.rerun()
                     except Exception as exc:
@@ -7946,6 +8171,7 @@ with tabs[4]:
                 ):
                     try:
                         db_delete_analysis(selected_id)
+                        _cached_universal_analysis_rows.clear()
                         st.success("Analysis permanently deleted.")
                         st.rerun()
                     except Exception as exc:
@@ -8163,7 +8389,48 @@ with tabs[4]:
 
 with tabs[5]:
     st.subheader("Settings")
-    st.caption("Bankroll, target-profit and restore controls remain in the sidebar.")
+    st.caption("Personal bankroll and restore controls live here so the Dashboard stays presentation-friendly.")
+
+    with st.expander("Bankroll & Target Profit", expanded=False):
+        p1, p2 = st.columns(2)
+        st.session_state.bankroll = p1.number_input(
+            "Starting bankroll",
+            min_value=0.0,
+            value=float(st.session_state.bankroll),
+            step=1000.0,
+            key="settings_bankroll",
+        )
+        st.session_state.target_profit = p2.number_input(
+            "Default target profit",
+            min_value=1.0,
+            value=float(st.session_state.target_profit),
+            step=500.0,
+            key="settings_target_profit",
+        )
+
+    with st.expander("Restore / Import", expanded=False):
+        uploaded = st.file_uploader("Upload a prior bets CSV", type=["csv"], key="bets_restore")
+        if uploaded is not None:
+            try:
+                imported = normalize_bets(pd.read_csv(uploaded))
+                st.session_state.bets = imported
+                st.success(f"Loaded {len(imported)} bets.")
+            except Exception as exc:
+                st.error(f"Could not load bets CSV: {exc}")
+
+        analysis_upload = st.file_uploader(
+            "Upload a prior analysis archive CSV",
+            type=["csv"],
+            key="analysis_restore",
+        )
+        if analysis_upload is not None:
+            try:
+                imported_analyses = normalize_analyses(pd.read_csv(analysis_upload))
+                st.session_state.analyses = imported_analyses
+                st.success(f"Loaded {len(imported_analyses)} archived analyses.")
+            except Exception as exc:
+                st.error(f"Could not load analysis CSV: {exc}")
+
     st.divider()
     st.subheader("Backup and Export")
     st.warning(
