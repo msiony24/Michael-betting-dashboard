@@ -127,3 +127,51 @@ def test_load_availability_reclassifies_stale_hard_status_rows(tmp_path):
     assert ir.availability_state == "Out" and bool(ir.definitively_unavailable) is True
     assert pup.availability_state == "Out" and bool(pup.definitively_unavailable) is True
     assert questionable.availability_state == "Questionable" and bool(questionable.definitively_unavailable) is False
+
+
+def test_sleeper_out_qb_applies_replacement_penalty_not_just_promotion(tmp_path):
+    # Extends test_sleeper_out_qb_activates_qb2_in_team_unit: confirms the
+    # end-to-end chain doesn't stop at "the right backup got selected" --
+    # the final grade must also reflect apply_qb_replacement_adjustment's
+    # situational penalty, and qb_replacement_context must be populated for
+    # the UI/logging to explain why.
+    madden = tmp_path / "madden.csv"
+    nfl = tmp_path / "nfl"
+    nfl.mkdir()
+    pd.DataFrame([
+        {"player_name": "Starter Quarterback", "team": "BUF", "position": "QB", "overall": 92,
+         "speed": 80, "strength": 70, "agility": 78, "awareness": 90, "injury": 90, "change_of_direction": 75},
+        {"player_name": "Backup Quarterback", "team": "BUF", "position": "QB", "overall": 72,
+         "speed": 75, "strength": 70, "agility": 75, "awareness": 70, "injury": 90, "change_of_direction": 72},
+    ]).to_csv(madden, index=False)
+    depth = nfl / "footballguys_depth_charts.csv"
+    pd.DataFrame([{
+        "Team": "Buffalo Bills", "Unit": "Offense", "Position": "QB",
+        "Starter": "Starter Quarterback", "2nd String": "Backup Quarterback",
+        "3rd String": "", "4th String": "", "5th String": "", "Source URL": "fixture",
+    }]).to_csv(depth, index=False)
+    pd.DataFrame([
+        {"player_name": "Starter Quarterback", "name_key": "starterquarterback", "team_abbr": "BUF",
+         "roster_status": "Active", "injury_status": "Out", "practice_participation": "DNP",
+         "availability_state": "Out", "definitively_unavailable": True,
+         "updated_at_utc": "2026-08-10T20:00:00+00:00"},
+        {"player_name": "Backup Quarterback", "name_key": "backupquarterback", "team_abbr": "BUF",
+         "roster_status": "Active", "injury_status": "", "practice_participation": "Full",
+         "availability_state": "Active", "definitively_unavailable": False,
+         "updated_at_utc": "2026-08-10T20:00:00+00:00"},
+    ]).to_csv(nfl / "sleeper_availability.csv", index=False)
+
+    players = build_player_ratings(madden, nfl, depth_chart_path=depth)
+    teams = build_team_ratings(players, snapshot_path=nfl / "missing.csv", depth_chart_path=depth)
+    qb = teams["Buffalo Bills"]["units"]["quarterback"]
+
+    assert qb["qb_replacement_context"] != {}
+    assert qb["qb_replacement_context"]["starter"] == "Starter Quarterback"
+    assert qb["qb_replacement_context"]["replacement"] == "Backup Quarterback"
+    # The applied grade must be lower than the healthy (pre-injury) grade,
+    # and lower than even the backup's own raw rating alone -- confirming
+    # the situational penalty is actually subtracted, not just computed and
+    # discarded.
+    assert qb["grade"] < qb["healthy_grade"]
+    assert qb["grade"] < qb["qb_replacement_context"]["replacement_rating"]
+    assert qb["qb_replacement_context"]["grade_adjustment"] < 0
