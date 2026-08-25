@@ -3006,12 +3006,29 @@ if active_top_page == "Dashboard":
             st.markdown("### Today's Macabets")
             st.caption(today.strftime("%B %d, %Y"))
             st.write("Daily intelligence using information Macabets has already loaded or analyzed.")
+
+            strong_bets_today = sum(_analysis_verdict(row) == "Strong Bet" for row in today_rows)
+            worth_betting_today = sum(_analysis_verdict(row) == "Worth Betting" for row in today_rows)
+
             s1, s2 = st.columns(2)
             s1.metric("Slate", slate_count)
             s2.metric("Core Zone", slate_core_count)
             s3, s4 = st.columns(2)
-            s3.metric("Analyzed Today", len(today_rows))
-            s4.metric("High Confidence", len(high_confidence_today))
+            s3.metric("Analyzed", len(today_rows))
+            s4.metric("Actionable", len(actionable_today))
+            s5, s6 = st.columns(2)
+            s5.metric("Strong Bets", strong_bets_today)
+            s6.metric("Worth Betting", worth_betting_today)
+
+            if highest_probability:
+                summary_prediction = str(highest_probability.get("prediction") or "—")
+                summary_probability = _dashboard_number(highest_probability.get("predicted_probability"))
+                summary_verdict = _analysis_verdict(highest_probability)
+                summary_probability_text = f"{summary_probability:.1%}" if summary_probability is not None else "—"
+                st.caption(
+                    f"Highest win probability: {summary_prediction} · {summary_probability_text} · {summary_verdict}"
+                )
+
             if st.button("Open Daily Slate", type="primary", key="home_open_slate_main", use_container_width=True):
                 _queue_top_level_tab("Daily Slate")
 
@@ -3177,42 +3194,18 @@ if active_top_page == "Dashboard":
             st.info("No saved analysis with a valid win probability is available for today yet.")
 
     st.write("")
-    quick, glance = st.columns([1.15, 1])
-    with quick:
-        with st.container(border=True):
-            st.markdown("### ⚡ Quick Actions")
-            st.caption("Common workflows without adding any background processing.")
-            q1, q2, q3, q4 = st.columns(4)
-            if q1.button("Analyze Matchup", key="home_quick_analysis", use_container_width=True):
-                _queue_top_level_tab("Analysis Engine")
-            if q2.button("Daily Slate", key="home_quick_slate", use_container_width=True):
-                _queue_top_level_tab("Daily Slate")
-            if q3.button("Log Bet", key="home_quick_bet", use_container_width=True):
-                _queue_top_level_tab("Bets")
-            if q4.button("Archive", key="home_quick_archive", use_container_width=True):
-                _queue_top_level_tab("Archive", "Analysis Log")
-
-    with glance:
-        with st.container(border=True):
-            st.markdown("### 📊 Today at a Glance")
-            strong_bets_today = sum(_analysis_verdict(row) == "Strong Bet" for row in today_rows)
-            worth_betting_today = sum(_analysis_verdict(row) == "Worth Betting" for row in today_rows)
-            g1, g2 = st.columns(2)
-            g1.metric("Analyzed", len(today_rows))
-            g2.metric("Actionable", len(actionable_today))
-            g3, g4 = st.columns(2)
-            g3.metric("Strong Bets", strong_bets_today)
-            g4.metric("Worth Betting", worth_betting_today)
-            if highest_probability:
-                glance_prediction = str(highest_probability.get("prediction") or "—")
-                glance_probability = _dashboard_number(highest_probability.get("predicted_probability"))
-                glance_verdict = _analysis_verdict(highest_probability)
-                probability_text = f"{glance_probability:.1%}" if glance_probability is not None else "—"
-                st.caption(
-                    f"Highest win probability: {glance_prediction} · {probability_text} · {glance_verdict}"
-                )
-            else:
-                st.caption("No valid win-probability analysis has been saved today yet.")
+    with st.container(border=True):
+        st.markdown("### ⚡ Quick Actions")
+        st.caption("Common workflows without adding any background processing.")
+        q1, q2, q3, q4 = st.columns(4)
+        if q1.button("Analyze Matchup", key="home_quick_analysis", use_container_width=True):
+            _queue_top_level_tab("Analysis Engine")
+        if q2.button("Daily Slate", key="home_quick_slate", use_container_width=True):
+            _queue_top_level_tab("Daily Slate")
+        if q3.button("Log Bet", key="home_quick_bet", use_container_width=True):
+            _queue_top_level_tab("Bets")
+        if q4.button("Archive", key="home_quick_archive", use_container_width=True):
+            _queue_top_level_tab("Archive", "Analysis Log")
 
 if active_top_page == "Analysis Engine":
     if st.session_state.get("macabets_analysis_page") not in ANALYSIS_PAGES:
