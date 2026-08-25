@@ -2481,11 +2481,11 @@
       "qb2": "Davis Mills",
       "count_qb": 3,
       "count_rb": 4,
-      "count_wr_te": 13,
+      "count_wr_te": 14,
       "count_ol": 12,
       "count_dl_edge": 14,
       "count_lb": 10,
-      "count_secondary": 15,
+      "count_secondary": 14,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -2542,6 +2542,12 @@
             "macabets_rating": 83.57
           },
           {
+            "name": "Kayshon Boutte",
+            "position": "WR",
+            "overall": 80.0,
+            "macabets_rating": 81.31
+          },
+          {
             "name": "Tank Dell",
             "position": "WR",
             "overall": 79.0,
@@ -2552,12 +2558,6 @@
             "position": "WR",
             "overall": 77.0,
             "macabets_rating": 79.06
-          },
-          {
-            "name": "Xavier Hutchinson",
-            "position": "WR",
-            "overall": 73.0,
-            "macabets_rating": 75.36
           }
         ],
         "OL": [
@@ -4327,17 +4327,17 @@
       "team": "NE",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 71,
+      "rated_players": 72,
       "qb1": "Drake Maye",
       "qb2": "Tommy DeVito",
       "count_qb": 3,
       "count_rb": 6,
-      "count_wr_te": 12,
+      "count_wr_te": 11,
       "count_ol": 12,
       "count_dl_edge": 15,
       "count_lb": 6,
-      "count_secondary": 14,
-      "count_st": 3,
+      "count_secondary": 15,
+      "count_st": 4,
       "top_by_unit": {
         "QB": [
           {
@@ -4393,12 +4393,6 @@
             "macabets_rating": 85.02
           },
           {
-            "name": "Kayshon Boutte",
-            "position": "WR",
-            "overall": 80.0,
-            "macabets_rating": 81.31
-          },
-          {
             "name": "Romeo Doubs",
             "position": "WR",
             "overall": 79.0,
@@ -4409,6 +4403,12 @@
             "position": "WR",
             "overall": 77.0,
             "macabets_rating": 78.52
+          },
+          {
+            "name": "Mack Hollins",
+            "position": "WR",
+            "overall": 76.0,
+            "macabets_rating": 78.38
           }
         ],
         "OL": [
@@ -4517,10 +4517,10 @@
             "macabets_rating": 77.0
           },
           {
-            "name": "Julian Ashby",
-            "position": "LS",
-            "overall": 65.0,
-            "macabets_rating": 62.0
+            "name": "Matt Haack",
+            "position": "P",
+            "overall": 73.0,
+            "macabets_rating": 75.75
           }
         ]
       },
@@ -6381,7 +6381,7 @@
       "team": "WAS",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 73,
       "qb1": "Jayden Daniels",
       "qb2": "Marcus Mariota",
       "count_qb": 4,
@@ -6391,7 +6391,7 @@
       "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
-      "count_st": 4,
+      "count_st": 3,
       "top_by_unit": {
         "QB": [
           {
@@ -6571,16 +6571,16 @@
             "macabets_rating": 78.85
           },
           {
-            "name": "Matt Haack",
-            "position": "P",
-            "overall": 73.0,
-            "macabets_rating": 75.75
-          },
-          {
             "name": "Jake Moody",
             "position": "K",
             "overall": 68.0,
             "macabets_rating": 71.0
+          },
+          {
+            "name": "Tyler Ott",
+            "position": "LS",
+            "overall": 73.0,
+            "macabets_rating": 70.0
           }
         ]
       },
@@ -6789,11 +6789,11 @@
       "qb2": "Davis Mills",
       "count_qb": 3,
       "count_rb": 4,
-      "count_wr_te": 13,
+      "count_wr_te": 14,
       "count_ol": 12,
       "count_dl_edge": 14,
       "count_lb": 10,
-      "count_secondary": 15,
+      "count_secondary": 14,
       "count_st": 3
     },
     {
@@ -6928,17 +6928,17 @@
       "team": "NE",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 71,
+      "rated_players": 72,
       "qb1": "Drake Maye",
       "qb2": "Tommy DeVito",
       "count_qb": 3,
       "count_rb": 6,
-      "count_wr_te": 12,
+      "count_wr_te": 11,
       "count_ol": 12,
       "count_dl_edge": 15,
       "count_lb": 6,
-      "count_secondary": 14,
-      "count_st": 3
+      "count_secondary": 15,
+      "count_st": 4
     },
     {
       "team": "NO",
@@ -7088,7 +7088,7 @@
       "team": "WAS",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 73,
       "qb1": "Jayden Daniels",
       "qb2": "Marcus Mariota",
       "count_qb": 4,
@@ -7098,7 +7098,7 @@
       "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
-      "count_st": 4
+      "count_st": 3
     }
   ]
 }
