@@ -2655,6 +2655,33 @@ st.markdown("""
 .macabets-home-winner-name {
     color: #0f5f31; font-size: 1.28rem; line-height: 1.25; font-weight: 850;
 }
+.macabets-home-reasoning {
+    margin-top: .95rem; padding: 1rem 1.1rem; border-radius: .8rem;
+    border: 1px solid #d7dde7; background: #f8fafc;
+}
+.macabets-home-reasoning.is-value {
+    border-color: #bfe5cd; background: linear-gradient(135deg, #eefaf2 0%, #f8fcf9 100%);
+}
+.macabets-home-reasoning.is-pass {
+    border-color: #ead7aa; background: linear-gradient(135deg, #fff8e9 0%, #fffdf8 100%);
+}
+.macabets-home-reasoning-label {
+    font-size: .73rem; font-weight: 850; letter-spacing: .055em; text-transform: uppercase;
+    color: #475467; margin-bottom: .35rem;
+}
+.macabets-home-reasoning-title {
+    font-size: 1.02rem; line-height: 1.35; font-weight: 800; color: #172033; margin-bottom: .35rem;
+}
+.macabets-home-reasoning-price {
+    font-size: .94rem; line-height: 1.45; color: #172033; margin-bottom: .45rem;
+}
+.macabets-home-reasoning-text {
+    font-size: .98rem; line-height: 1.6; color: #344054;
+}
+.macabets-home-reasoning-foot {
+    margin-top: .55rem; padding-top: .55rem; border-top: 1px solid rgba(71, 84, 103, .15);
+    font-size: .86rem; line-height: 1.5; color: #667085;
+}
 .macabets-home-vs {font-size: .75rem; font-weight: 800; color: #98a2b3;}
 @media (max-width: 900px) {
     .macabets-edge-top, .macabets-score-row {grid-template-columns: 1fr;}
@@ -3121,20 +3148,36 @@ if active_top_page == "Dashboard":
                 w1.metric("Macabets Fair Line", win_fair_line)
                 w2.metric("Market Line", format_american(win_market_odds) if win_market_odds is not None else "—")
                 w3.metric("Verdict", win_verdict)
-                if win_verdict in {"Pass", "Complete Pass"}:
-                    st.markdown("**Why is the highest-probability winner still a Pass?**")
-                else:
-                    st.markdown(f"**Why the {win_verdict} verdict?**")
-                st.caption(win_explanation)
-                if win_verdict in {"Pass", "Complete Pass"}:
-                    st.caption(
-                        "Macabets can still believe this is the most likely winner on the board while refusing the bet because the sportsbook price is worse than the model's fair value."
-                    )
+                is_pass_verdict = win_verdict in {"Pass", "Complete Pass"}
+                reasoning_class = "is-pass" if is_pass_verdict else "is-value"
+                reasoning_label = "Price Check" if is_pass_verdict else "Value Check"
+                reasoning_title = (
+                    "Why Macabets passes despite the highest win probability"
+                    if is_pass_verdict
+                    else f"Why Macabets says {win_verdict}"
+                )
+                reasoning_foot = (
+                    "Most likely winner does not automatically mean a good bet. Macabets can project the winner correctly and still refuse a sportsbook price that is worse than its fair value."
+                    if is_pass_verdict
+                    else "The winner projection and the price decision agree here: Macabets likes the player to win and the market is offering a price the model considers playable."
+                )
+                st.markdown(
+                    f"""
+                    <div class="macabets-home-reasoning {reasoning_class}">
+                        <div class="macabets-home-reasoning-label">{html.escape(reasoning_label)}</div>
+                        <div class="macabets-home-reasoning-title">{html.escape(reasoning_title)}</div>
+                        <div class="macabets-home-reasoning-price">Macabets fair: <strong>{html.escape(win_fair_line)}</strong> &nbsp;·&nbsp; Market: <strong>{html.escape(format_american(win_market_odds) if win_market_odds is not None else "—")}</strong></div>
+                        <div class="macabets-home-reasoning-text">{html.escape(win_explanation)}</div>
+                        <div class="macabets-home-reasoning-foot">{html.escape(reasoning_foot)}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
         else:
             st.info("No saved analysis with a valid win probability is available for today yet.")
 
     st.write("")
-    quick, status = st.columns([1.15, 1])
+    quick, glance = st.columns([1.15, 1])
     with quick:
         with st.container(border=True):
             st.markdown("### ⚡ Quick Actions")
@@ -3149,33 +3192,27 @@ if active_top_page == "Dashboard":
             if q4.button("Archive", key="home_quick_archive", use_container_width=True):
                 _queue_top_level_tab("Archive", "Analysis Log")
 
-    with status:
+    with glance:
         with st.container(border=True):
-            st.markdown("### 🛡️ Macabets Status")
-            status_left, status_right = st.columns(2)
-            with status_left:
-                st.markdown(
-                    f"{'✅' if TENNIS_ENGINE_AVAILABLE else '⚪'} **Tennis** · "
-                    f"{'Ready' if TENNIS_ENGINE_AVAILABLE else 'Unavailable'}"
+            st.markdown("### 📊 Today at a Glance")
+            strong_bets_today = sum(_analysis_verdict(row) == "Strong Bet" for row in today_rows)
+            worth_betting_today = sum(_analysis_verdict(row) == "Worth Betting" for row in today_rows)
+            g1, g2 = st.columns(2)
+            g1.metric("Analyzed", len(today_rows))
+            g2.metric("Actionable", len(actionable_today))
+            g3, g4 = st.columns(2)
+            g3.metric("Strong Bets", strong_bets_today)
+            g4.metric("Worth Betting", worth_betting_today)
+            if highest_probability:
+                glance_prediction = str(highest_probability.get("prediction") or "—")
+                glance_probability = _dashboard_number(highest_probability.get("predicted_probability"))
+                glance_verdict = _analysis_verdict(highest_probability)
+                probability_text = f"{glance_probability:.1%}" if glance_probability is not None else "—"
+                st.caption(
+                    f"Highest win probability: {glance_prediction} · {probability_text} · {glance_verdict}"
                 )
-                st.markdown(
-                    f"{'✅' if NFL_ENGINE_AVAILABLE else '⚪'} **NFL** · "
-                    f"{'Ready' if NFL_ENGINE_AVAILABLE else 'Unavailable'}"
-                )
-                st.markdown(
-                    f"{'✅' if UFC_ENGINE_AVAILABLE else '⚪'} **UFC** · "
-                    f"{'Ready' if UFC_ENGINE_AVAILABLE else 'Unavailable'}"
-                )
-            with status_right:
-                st.markdown(
-                    f"✅ **Daily Slate** · "
-                    f"{'Loaded (' + str(slate_count) + ')' if slate_count else 'Ready'}"
-                )
-                st.markdown(
-                    f"{'✅' if analysis_db_configured() else '⚪'} **Analysis Log** · "
-                    f"{'Connected' if analysis_db_configured() else 'Not configured'}"
-                )
-            st.caption("Uses existing app state only — no background polling.")
+            else:
+                st.caption("No valid win-probability analysis has been saved today yet.")
 
 if active_top_page == "Analysis Engine":
     if st.session_state.get("macabets_analysis_page") not in ANALYSIS_PAGES:
@@ -8613,6 +8650,35 @@ if active_top_page == "Settings":
             step=500.0,
             key="settings_target_profit",
         )
+
+    with st.expander("Macabets Status", expanded=False):
+        st.caption("Operational status lives here instead of on the Dashboard.")
+        status_left, status_right = st.columns(2)
+        with status_left:
+            st.markdown(
+                f"{'✅' if TENNIS_ENGINE_AVAILABLE else '⚪'} **Tennis** · "
+                f"{'Ready' if TENNIS_ENGINE_AVAILABLE else 'Unavailable'}"
+            )
+            st.markdown(
+                f"{'✅' if NFL_ENGINE_AVAILABLE else '⚪'} **NFL** · "
+                f"{'Ready' if NFL_ENGINE_AVAILABLE else 'Unavailable'}"
+            )
+            st.markdown(
+                f"{'✅' if UFC_ENGINE_AVAILABLE else '⚪'} **UFC** · "
+                f"{'Ready' if UFC_ENGINE_AVAILABLE else 'Unavailable'}"
+            )
+        with status_right:
+            current_slate = normalize_slate(st.session_state.daily_slate)
+            current_slate_count = len(current_slate)
+            st.markdown(
+                f"✅ **Daily Slate** · "
+                f"{'Loaded (' + str(current_slate_count) + ')' if current_slate_count else 'Ready'}"
+            )
+            st.markdown(
+                f"{'✅' if analysis_db_configured() else '⚪'} **Analysis Log** · "
+                f"{'Connected' if analysis_db_configured() else 'Not configured'}"
+            )
+        st.caption("Uses existing app state only — no background polling.")
 
     with st.expander("Restore / Import", expanded=False):
         uploaded = st.file_uploader("Upload a prior bets CSV", type=["csv"], key="bets_restore")
