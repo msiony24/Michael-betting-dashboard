@@ -307,3 +307,87 @@ def test_persist_links_no_links_does_not_call_update(monkeypatch):
     result = persist_links(row, market_link=None, result_link=None)
     assert calls == []
     assert result == row
+
+
+# --- latest_close / apply_close_fields: no fake CLV, no leakage -----------
+
+class _FakeSnapshotList:
+    def __init__(self, snapshots):
+        self._snapshots = snapshots
+
+    def __call__(self, table, params=None):
+        return self._snapshots
+
+
+def test_latest_close_returns_none_with_no_snapshots(monkeypatch):
+    import settle_results as sr
+    monkeypatch.setattr(sr, "list_table_records", _FakeSnapshotList([]))
+    row = {"id": "row1", "scheduled_start": "2026-09-10T18:00:00Z"}
+    assert sr.latest_close(row) is None
+
+
+def test_latest_close_excludes_snapshots_captured_after_kickoff(monkeypatch):
+    # Leakage guard: a snapshot captured after the game already started must
+    # never be treated as the "closing" line.
+    import settle_results as sr
+    snapshots = [
+        {"bookmaker": "BookA", "participant": "Home", "american_odds": -150,
+         "captured_at": "2026-09-10T19:30:00Z"},  # after kickoff -- must be excluded
+    ]
+    monkeypatch.setattr(sr, "list_table_records", _FakeSnapshotList(snapshots))
+    row = {"id": "row1", "scheduled_start": "2026-09-10T18:00:00Z",
+           "prediction": "Home", "participant_a": "Home", "participant_b": "Away"}
+    assert sr.latest_close(row) is None
+
+
+def test_latest_close_uses_the_latest_pregame_snapshot(monkeypatch):
+    import settle_results as sr
+    snapshots = [
+        {"bookmaker": "BookA", "participant": "Home", "american_odds": -160,
+         "captured_at": "2026-09-10T12:00:00Z"},
+        {"bookmaker": "BookA", "participant": "Away", "american_odds": 140,
+         "captured_at": "2026-09-10T12:00:00Z"},
+        {"bookmaker": "BookA", "participant": "Home", "american_odds": -150,
+         "captured_at": "2026-09-10T17:00:00Z"},  # more recent, still pregame
+        {"bookmaker": "BookA", "participant": "Away", "american_odds": 130,
+         "captured_at": "2026-09-10T17:00:00Z"},
+    ]
+    monkeypatch.setattr(sr, "list_table_records", _FakeSnapshotList(snapshots))
+    row = {"id": "row1", "scheduled_start": "2026-09-10T18:00:00Z",
+           "prediction": "Home", "participant_a": "Home", "participant_b": "Away"}
+    result = sr.latest_close(row)
+    assert result is not None
+    assert result["closing_odds_prediction"] == -150  # the 17:00 snapshot, not the earlier 12:00 one
+
+
+def test_apply_close_fields_adds_nothing_when_no_close_available(monkeypatch):
+    # This is the actual "no fake CLV" guarantee: with no real closing
+    # snapshot, apply_close_fields must return the changes dict completely
+    # untouched -- no clv_probability, no closing_odds_prediction, nothing.
+    import settle_results as sr
+    monkeypatch.setattr(sr, "list_table_records", _FakeSnapshotList([]))
+    row = {"id": "row1", "scheduled_start": "2026-09-10T18:00:00Z"}
+    changes = {"status": "Won"}
+    result = sr.apply_close_fields(row, changes)
+    assert result == {"status": "Won"}
+    assert "clv_probability" not in result
+    assert "closing_odds_prediction" not in result
+
+
+def test_apply_close_fields_populates_clv_when_close_is_real(monkeypatch):
+    import settle_results as sr
+    snapshots = [
+        {"bookmaker": "BookA", "participant": "Home", "american_odds": -170,
+         "captured_at": "2026-09-10T17:00:00Z"},
+        {"bookmaker": "BookA", "participant": "Away", "american_odds": 150,
+         "captured_at": "2026-09-10T17:00:00Z"},
+    ]
+    monkeypatch.setattr(sr, "list_table_records", _FakeSnapshotList(snapshots))
+    row = {
+        "id": "row1", "scheduled_start": "2026-09-10T18:00:00Z",
+        "prediction": "Home", "participant_a": "Home", "participant_b": "Away",
+        "market_odds_a": -150, "market_odds_b": 130, "predicted_probability": 0.62,
+    }
+    result = sr.apply_close_fields(row, {"status": "Won"})
+    assert result["closing_odds_prediction"] == -170
+    assert result["clv_probability"] is not None
