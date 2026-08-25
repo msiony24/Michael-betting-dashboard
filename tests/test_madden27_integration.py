@@ -10,13 +10,13 @@ from engine import nfl_ratings_loader
 
 
 def test_default_paths_point_to_madden_27():
-    assert loader.DEFAULT_CSV_PATH.name == "madden_27_players.csv"
+    assert loader.DEFAULT_EA_CSV_PATH.name == "madden_27_players_ea.csv"
     assert loader.DEFAULT_RAW_PATH.name == "madden_27_raw.json"
     assert loader.DEFAULT_METADATA_PATH.name == "madden_27_metadata.json"
     assert builder.DEFAULT_PLAYERS_PATH.name == "madden_27_players.csv"
     assert builder.DEFAULT_OUTPUT_PATH.name == "madden_27_team_ratings.json"
     assert nfl_rating_engine.DEFAULT_MADDEN_PATH.name == "madden_27_players.csv"
-    assert nfl_ratings_loader.DEFAULT_MADDEN_RATINGS_PATH.name == "madden_27_team_ratings.json"
+    assert nfl_ratings_loader.DEFAULT_MADDEN_RATINGS_PATH.name == "team_ratings_auto.json"
 
 
 def test_builder_labels_source_as_madden_27():
@@ -37,7 +37,12 @@ def test_builder_labels_source_as_madden_27():
     assert ratings["Buffalo Bills"]["units"]["quarterback"]["starter_grade"] == 95.0
 
 
-def test_normalize_players_keeps_detailed_attributes(monkeypatch):
+def test_normalize_players_keeps_detailed_attributes():
+    # NOTE: normalize_players() returns a plain DataFrame (not a tuple), and
+    # its stat columns are the loader's own snake_case names (e.g.
+    # "throw_power"), not the raw "stats_throwPower_value" nesting -- the
+    # previous version of this test assumed both an older return signature
+    # and older column-naming convention.
     records = [{
         "firstName": "Test",
         "lastName": "Quarterback",
@@ -50,9 +55,8 @@ def test_normalize_players_keeps_detailed_attributes(monkeypatch):
             "throwUnderPressure": {"value": 89},
         },
     }]
-    monkeypatch.setattr(loader, "enrich_player_identities", lambda frame: (frame, {"fully_resolved": len(frame)}))
-    frame, _ = loader.normalize_players(records)
+    frame = loader.normalize_players(records)
     assert frame.iloc[0]["overall"] == 90
-    assert frame.iloc[0]["stats_throwPower_value"] == 95
-    assert frame.iloc[0]["stats_throwAccuracyDeep_value"] == 91
-    assert frame.iloc[0]["stats_throwUnderPressure_value"] == 89
+    assert frame.iloc[0]["throw_power"] == 95
+    assert frame.iloc[0]["throw_accuracy_deep"] == 91
+    assert frame.iloc[0]["throw_under_pressure"] == 89
