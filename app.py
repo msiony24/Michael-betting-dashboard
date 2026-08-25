@@ -144,6 +144,59 @@ st.set_page_config(
     layout="wide",
 )
 
+# --- Login gate -----------------------------------------------------------
+# Blocks the entire app behind a username/password check before anything
+# else renders. Credentials are never stored in the code or the repo -- they
+# live in Streamlit secrets (configured in the Streamlit Cloud dashboard, or
+# in a local .streamlit/secrets.toml that must stay out of git). The
+# password itself is never compared or stored in plain text, only its hash.
+import hashlib
+import hmac
+
+
+def _hash_password(raw_password: str) -> str:
+    return hashlib.sha256(raw_password.encode("utf-8")).hexdigest()
+
+
+def _require_login() -> None:
+    if st.session_state.get("authenticated", False):
+        return
+
+    try:
+        expected_username = str(st.secrets["auth"]["username"])
+        expected_password_hash = str(st.secrets["auth"]["password_hash"])
+    except Exception:
+        st.error(
+            "Login isn't configured yet. Add an [auth] section with "
+            "'username' and 'password_hash' to this app's Streamlit secrets."
+        )
+        st.stop()
+
+    st.title("Macabets")
+    st.caption("Sign in to continue.")
+    with st.form("login_form"):
+        entered_username = st.text_input("Username")
+        entered_password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign in", use_container_width=True)
+
+    if submitted:
+        entered_hash = _hash_password(entered_password)
+        # hmac.compare_digest avoids leaking timing information about how
+        # much of the entered value matched -- cheap to do, no downside.
+        username_ok = hmac.compare_digest(entered_username.strip(), expected_username)
+        password_ok = hmac.compare_digest(entered_hash, expected_password_hash)
+        if username_ok and password_ok:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect username or password.")
+
+    st.stop()
+
+
+_require_login()
+# --- End login gate ---------------------------------------------------------
+
 SPORTS = ["NFL", "College Football", "NBA", "Tennis", "UFC", "Boxing"]
 STATUSES = ["Pending", "Won", "Lost", "Void", "Cashed Out"]
 BET_TYPES = ["Moneyline", "Spread", "Total", "Prop", "Parlay", "Live"]
