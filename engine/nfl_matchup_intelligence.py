@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PLAYER_STATS_METADATA = PROJECT_ROOT / "data" / "nfl" / "player_weekly_stats_metadata.json"
 
 MODEL_REFINEMENT_CAP = 1.25
+PERSONNEL_ADJUSTMENT_CAP = 1.5  # matches the cap already enforced in engine/nfl_personnel_matchup.py
 
 CATEGORY_WEIGHTS = {
     "Quarterback": 0.22,
@@ -295,7 +296,18 @@ def build_matchup_intelligence(
     personnel_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     personnel = dict(personnel_context or {})
-    matchup_adjustment = _num(personnel.get("home_margin_adjustment"), 0.0)
+    # nfl_personnel_matchup.py already caps this at +/-1.5 before it gets here,
+    # but this function must not rely on that alone -- every other input below
+    # is defended by MODEL_REFINEMENT_CAP even though its one real caller
+    # (nfl_game_quality.py) already returns 0.0 on every path. This is that
+    # same defense-in-depth applied to matchup_adjustment: if the upstream cap
+    # in nfl_personnel_matchup.py were ever broken by a future edit, this
+    # function would otherwise pass an unbounded value straight through to
+    # the final predicted margin with nothing catching it.
+    matchup_adjustment = max(
+        -PERSONNEL_ADJUSTMENT_CAP,
+        min(PERSONNEL_ADJUSTMENT_CAP, _num(personnel.get("home_margin_adjustment"), 0.0)),
+    )
 
     # One coherent football edge. Base power already contains team-level performance;
     # only the opponent-specific personnel mismatch adjustment is added on top.
