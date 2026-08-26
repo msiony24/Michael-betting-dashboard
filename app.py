@@ -2704,6 +2704,17 @@ st.markdown("""
     .macabets-edge-top, .macabets-score-row {grid-template-columns: 1fr;}
     .macabets-edge-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}
 }
+.stTabs [data-baseweb="tab-list"] {gap: 4px;}
+.stTabs [data-baseweb="tab"] {
+    height: 46px;
+    padding: 0 1.1rem;
+    font-size: 1.02rem;
+    font-weight: 650;
+    color: #667085;
+}
+.stTabs [aria-selected="true"] {
+    color: #172033;
+}
 </style>
 """, unsafe_allow_html=True)
 
