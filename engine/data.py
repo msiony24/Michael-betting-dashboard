@@ -3,7 +3,21 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-import streamlit as st
+
+# Streamlit is only needed for its caching decorator below -- everything else
+# in this file is pure logic that should be importable and testable without
+# Streamlit installed at all. Falling back to a no-op decorator when it isn't
+# available keeps that true, at the cost of losing cross-rerun caching only
+# in a non-Streamlit context (tests, scripts) where that caching was never
+# doing anything useful anyway.
+try:
+    import streamlit as st
+    _cache_data = st.cache_data
+except ImportError:
+    def _cache_data(*args, **kwargs):
+        def _decorator(func):
+            return func
+        return _decorator
 
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -23,7 +37,7 @@ def _match_file_signature() -> tuple[tuple[str, int, int], ...]:
     return tuple(signature)
 
 
-@st.cache_data(show_spinner=False)
+@_cache_data(show_spinner=False)
 def _load_matches_cached(
     file_signature: tuple[tuple[str, int, int], ...],
 ) -> tuple[pd.DataFrame, list[str]]:
