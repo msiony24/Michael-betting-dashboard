@@ -3887,589 +3887,600 @@ if active_top_page == "Analysis Engine":
                     st.divider()
                     st.markdown(f"### {analyzed_a} vs {analyzed_b}")
 
-                    st.markdown("#### Match Context")
-                    cx1, cx2, cx3, cx4, cx5 = st.columns(5)
-                    cx1.metric("Category", result.get("tournament_category", "—"))
-                    cx2.metric("Round", result.get("round", "—"))
-                    cx3.metric("Surface", result.get("surface", "—"))
-                    cx4.metric("Environment", result.get("environment", "—"))
-                    cx5.metric("Format", result.get("match_format", "—"))
 
-                    # Decision summary: separate the likely winner from the quality of the price.
-                    # This is rendered directly after Match Context, before H2H / Matchup
-                    # Intelligence / everything else, because it's the answer someone opens
-                    # this page for -- the rest is supporting detail, not the headline.
-                    projected_winner = analyzed_a if model_probability >= probability_b else analyzed_b
-                    projected_winner_probability = max(model_probability, probability_b)
-                    projected_winner_fair_odds = fair_odds if projected_winner == analyzed_a else fair_odds_b
-
-                    winner_market_odds = listed_a if projected_winner == analyzed_a else listed_b
-                    projected_price_report = moneyline_price_quality(
-                        projected_winner_probability,
-                        winner_market_odds,
-                        analysis_confidence["overall"],
+                    verdict_tab, matchup_tab, confidence_tab, notes_tab = st.tabs(
+                        ["Verdict", "Matchup Breakdown", "Confidence & Risk", "Your Notes"]
                     )
-                    if active_challenge and active_challenge.get("proposed_verdict"):
-                        challenged_verdict = cap_verdict_by_probability(
-                            str(active_challenge["proposed_verdict"]),
+
+                    with verdict_tab:
+                        st.markdown("#### Match Context")
+                        cx1, cx2, cx3, cx4, cx5 = st.columns(5)
+                        cx1.metric("Category", result.get("tournament_category", "—"))
+                        cx2.metric("Round", result.get("round", "—"))
+                        cx3.metric("Surface", result.get("surface", "—"))
+                        cx4.metric("Environment", result.get("environment", "—"))
+                        cx5.metric("Format", result.get("match_format", "—"))
+
+                        # Decision summary: separate the likely winner from the quality of the price.
+                        # This is rendered directly after Match Context, before H2H / Matchup
+                        # Intelligence / everything else, because it's the answer someone opens
+                        # this page for -- the rest is supporting detail, not the headline.
+                        projected_winner = analyzed_a if model_probability >= probability_b else analyzed_b
+                        projected_winner_probability = max(model_probability, probability_b)
+                        projected_winner_fair_odds = fair_odds if projected_winner == analyzed_a else fair_odds_b
+
+                        winner_market_odds = listed_a if projected_winner == analyzed_a else listed_b
+                        projected_price_report = moneyline_price_quality(
                             projected_winner_probability,
+                            winner_market_odds,
+                            analysis_confidence["overall"],
                         )
-                        projected_price_report["verdict"] = challenged_verdict
-                        projected_price_report["recommendation"] = challenged_verdict
-                    price_assessment = projected_price_report["price_assessment"]
+                        if active_challenge and active_challenge.get("proposed_verdict"):
+                            challenged_verdict = cap_verdict_by_probability(
+                                str(active_challenge["proposed_verdict"]),
+                                projected_winner_probability,
+                            )
+                            projected_price_report["verdict"] = challenged_verdict
+                            projected_price_report["recommendation"] = challenged_verdict
+                        price_assessment = projected_price_report["price_assessment"]
 
-                    original_probability_b = 1 - original_model_probability
-                    original_projected_winner = (
-                        analyzed_a if original_model_probability >= original_probability_b else analyzed_b
-                    )
-                    original_projected_probability = max(original_model_probability, original_probability_b)
-                    original_market_odds = (
-                        listed_a if original_projected_winner == analyzed_a else listed_b
-                    )
-                    original_price_report = moneyline_price_quality(
-                        original_projected_probability,
-                        original_market_odds,
-                        original_effective_confidence,
-                    )
+                        original_probability_b = 1 - original_model_probability
+                        original_projected_winner = (
+                            analyzed_a if original_model_probability >= original_probability_b else analyzed_b
+                        )
+                        original_projected_probability = max(original_model_probability, original_probability_b)
+                        original_market_odds = (
+                            listed_a if original_projected_winner == analyzed_a else listed_b
+                        )
+                        original_price_report = moneyline_price_quality(
+                            original_projected_probability,
+                            original_market_odds,
+                            original_effective_confidence,
+                        )
 
-                    st.markdown("#### Macabets Verdict")
-                    verdict1, verdict2, verdict3, verdict4 = st.columns(4)
-                    verdict1.metric("Projected Winner", projected_winner)
-                    verdict2.metric(
-                        "Win Probability",
-                        f"{projected_winner_probability:.1%}",
-                        f"Fair {format_american(projected_winner_fair_odds)}",
-                    )
-                    verdict3.metric("Verdict", projected_price_report["verdict"])
-                    verdict4.metric(
-                        "Price Assessment",
-                        price_assessment,
-                        f"Market {format_american(winner_market_odds)}",
-                    )
-                    st.info(
-                        f"Macabets picks {projected_winner}. The {format_american(winner_market_odds)} "
-                        f"market line is {price_assessment.lower()}, producing a final verdict of "
-                        f"{projected_price_report['verdict']}."
-                    )
-                    # This verdict is driven by a numeric analytical-confidence score (data
-                    # quality, sample size, model separation, context clarity) -- a different
-                    # figure from the "Model Confidence" band shown further down the page,
-                    # which is deliberately capped by how close this specific matchup is and
-                    # can look "Low" even when this underlying score is solid. Both are real
-                    # and correct; they're just answering different questions, so showing the
-                    # actual number here keeps them from reading as contradictory.
-                    st.caption(
-                        f"Analytical confidence behind this verdict: {int(analysis_confidence['overall'])}/100. "
-                        "The separate \"Model Confidence\" band shown later reflects how close this specific "
-                        "matchup is, not how much data supports this number -- a close match can show a low "
-                        "band here even with a solid analytical score."
-                    )
-                    if active_challenge:
+                        st.markdown("#### Macabets Verdict")
+                        verdict1, verdict2, verdict3, verdict4 = st.columns(4)
+                        verdict1.metric("Projected Winner", projected_winner)
+                        verdict2.metric(
+                            "Win Probability",
+                            f"{projected_winner_probability:.1%}",
+                            f"Fair {format_american(projected_winner_fair_odds)}",
+                        )
+                        verdict3.metric("Verdict", projected_price_report["verdict"])
+                        verdict4.metric(
+                            "Price Assessment",
+                            price_assessment,
+                            f"Market {format_american(winner_market_odds)}",
+                        )
+                        st.info(
+                            f"Macabets picks {projected_winner}. The {format_american(winner_market_odds)} "
+                            f"market line is {price_assessment.lower()}, producing a final verdict of "
+                            f"{projected_price_report['verdict']}."
+                        )
+                        # This verdict is driven by a numeric analytical-confidence score (data
+                        # quality, sample size, model separation, context clarity) -- a different
+                        # figure from the "Model Confidence" band shown further down the page,
+                        # which is deliberately capped by how close this specific matchup is and
+                        # can look "Low" even when this underlying score is solid. Both are real
+                        # and correct; they're just answering different questions, so showing the
+                        # actual number here keeps them from reading as contradictory.
                         st.caption(
-                            "Challenge revision applied for this matchup only. "
-                            f"Original: {original_projected_winner} — "
-                            f"{original_projected_probability:.1%}, "
-                            f"{original_effective_confidence}/100 confidence, "
-                            f"{original_price_report['verdict']}."
+                            f"Analytical confidence behind this verdict: {int(analysis_confidence['overall'])}/100. "
+                            "The separate \"Model Confidence\" band shown later reflects how close this specific "
+                            "matchup is, not how much data supports this number -- a close match can show a low "
+                            "band here even with a solid analytical score."
                         )
-
-                    st.divider()
-                    st.markdown("#### Supporting Detail")
-
-                    render_head_to_head_summary(
-                        matches, analyzed_a, analyzed_b, result.get("surface", surface)
-                    )
-
-                    # Matchup Intelligence: curated playing-style comparison. This is
-                    # explanation-only (see ui/matchup_engine_ui.py's own docstring) --
-                    # it reads from the same player_traits.json database, and cannot
-                    # change probabilities, fair odds, ROI, confidence, or the betting
-                    # verdict. Wiring this in was the whole point of building the
-                    # player-traits database out this week; without this call the
-                    # database had no path to ever actually being shown.
-                    try:
-                        from ui.matchup_engine_ui import render_matchup_engine_report
-                        render_matchup_engine_report(
-                            analyzed_a,
-                            analyzed_b,
-                            result.get("tournament", tournament),
-                            result.get("surface", surface),
-                            result.get("environment", "Outdoor"),
-                        )
-                    except Exception as exc:
-                        st.caption(f"Matchup intelligence unavailable this run: {exc}")
-
-                    try:
-                        verified_recent_evidence = build_tennis_evidence_packet(
-                            matches,
-                            analyzed_a,
-                            analyzed_b,
-                            market_snapshot.get("match_date", match_date.isoformat()),
-                            result.get("surface", surface),
-                            tournament=result.get("tournament", tournament),
-                            lookback=20,
-                        )
-                    except Exception as evidence_exc:
-                        verified_recent_evidence = {
-                            "source": "Macabets local ATP match database",
-                            "status": "evidence_packet_error",
-                            "error": str(evidence_exc),
-                        }
-
-                    challenge_context = {
-                        "sport": "Tennis",
-                        "event_name": f"{analyzed_a} vs {analyzed_b}",
-                        "event_date": market_snapshot.get("match_date"),
-                        "player_a": analyzed_a,
-                        "player_b": analyzed_b,
-                        "tournament": result.get("tournament", tournament),
-                        "round": result.get("round", round_name),
-                        "surface": result.get("surface", surface),
-                        "environment": result.get("environment", environment),
-                        "match_format": result.get("match_format", match_format),
-                        "market": {
-                            "odds_a": listed_a,
-                            "odds_b": listed_b,
-                            "no_vig_probability_a": round(no_vig_a, 4),
-                            "no_vig_probability_b": round(no_vig_b, 4),
-                        },
-                        "original_opinion": {
-                            "projected_winner": original_projected_winner,
-                            "probability_a": round(original_model_probability, 4),
-                            "confidence": original_effective_confidence,
-                            "verdict": original_price_report["verdict"],
-                            "fair_odds_a": probability_to_american(original_model_probability),
-                            "fair_odds_b": probability_to_american(original_probability_b),
-                        },
-                        "current_opinion": {
-                            "projected_winner": projected_winner,
-                            "probability_a": round(model_probability, 4),
-                            "confidence": int(analysis_confidence["overall"]),
-                            "verdict": projected_price_report["verdict"],
-                            "fair_odds_a": fair_odds,
-                            "fair_odds_b": fair_odds_b,
-                            "price_assessment": price_assessment,
-                        },
-                        "head_to_head": h2h_context,
-                        "matchup_context": matchup_context,
-                        "match_intelligence": result.get("match_intelligence", {}),
-                        "verified_recent_evidence": verified_recent_evidence,
-                        # Deterministic model evidence: Challenge Macabets should reason from
-                        # the same recent-resume and fatigue inputs as the prediction engine
-                        # before reaching for web search or constructing a narrative.
-                        "recent_resume_comparison": result.get("recent_resume_comparison", {}),
-                        "fatigue_profile_a": result.get("fatigue_profile_a", {}),
-                        "fatigue_profile_b": result.get("fatigue_profile_b", {}),
-                        "fatigue_resilience_a": result.get("fatigue_resilience_a", 0.0),
-                        "fatigue_resilience_b": result.get("fatigue_resilience_b", 0.0),
-                        "player_intelligence_a": intelligence_a,
-                        "player_intelligence_b": intelligence_b,
-                        "factors": [
-                            {
-                                "name": str(factor.get("name", "")),
-                                "impact": float(factor.get("impact", 0.0)),
-                                "reason": str(factor.get("reason", "")),
-                            }
-                            for factor in result.get("factors", [])[:12]
-                        ],
-                    }
-                    _render_challenge_macabets(challenge_match_key, challenge_context)
-
-                    st.markdown("#### Matchup Context")
-                    st.markdown("**Macabets Take**")
-                    if matchup_context["active"]:
-                        st.info(matchup_context["message"])
-                    elif h2h_context["meetings"] == 0:
-                        st.info(
-                            "These players have no previous meetings in the available Macabets data. "
-                            "The evaluation is driven by current form, surface performance, playing style "
-                            "and overall player strength."
-                        )
-                    elif h2h_context["meetings"] < 4:
-                        st.info(
-                            f"These players have met only {h2h_context['meetings']} time"
-                            f"{'s' if h2h_context['meetings'] != 1 else ''}, so Macabets places very little weight "
-                            "on the head-to-head record. Current form and underlying performance remain "
-                            "the primary drivers of the prediction."
-                        )
-                    else:
-                        st.info(
-                            "The available head-to-head history does not show a strong enough persistent "
-                            "matchup advantage to materially influence the evaluation. Macabets therefore "
-                            "relies primarily on current form, surface performance and overall player strength."
-                        )
-
-                    match_intelligence = result.get("match_intelligence", {})
-                    if match_intelligence:
-                        st.markdown("#### Matchup Stability & Volatility")
-                        stability_band = str(match_intelligence.get("stability_band", "—"))
-                        volatility_band = str(match_intelligence.get("volatility_band", "—"))
-                        st.info(
-                            f"Matchup stability: **{stability_band}** · Volatility: **{volatility_band}**. "
-                            "Macabets uses the underlying scores internally; the bands are the decision-useful takeaway."
-                        )
-
-                        drivers = match_intelligence.get("drivers", []) or []
-                        if drivers:
-                            st.markdown("**Primary volatility drivers**")
-                            for driver in drivers:
-                                st.markdown(f"- {driver.capitalize()}")
-
-                        st.markdown(f"#### Upset Paths for {match_intelligence.get('underdog', 'the underdog')}")
-                        for path in match_intelligence.get("upset_paths", []):
-                            st.markdown(f"- {path}")
-
-                        with st.expander("Audit stability and volatility scores", expanded=False):
-                            intel1, intel2, intel3 = st.columns(3)
-                            intel1.metric("Matchup Stability", f"{match_intelligence.get('stability_score', 0)}/100")
-                            intel2.metric("Volatility", f"{match_intelligence.get('volatility_score', 0)}/100")
-                            intel3.metric(
-                                "Factor Consensus",
-                                f"{match_intelligence.get('factor_consensus', 0):.0%}",
-                                f"{match_intelligence.get('supporting_factors', 0)} support / "
-                                f"{match_intelligence.get('opposing_factors', 0)} oppose",
-                            )
+                        if active_challenge:
                             st.caption(
-                                "Stability measures how repeatable the projected edge appears. Volatility measures "
-                                "how easily tiebreaks, close-set variance, health, fatigue or conflicting matchup "
-                                "signals could disrupt the prediction. Neither score considers the sportsbook price."
+                                "Challenge revision applied for this matchup only. "
+                                f"Original: {original_projected_winner} — "
+                                f"{original_projected_probability:.1%}, "
+                                f"{original_effective_confidence}/100 confidence, "
+                                f"{original_price_report['verdict']}."
                             )
 
-                    st.markdown("#### Objective Match Price")
-                    m1, m2 = st.columns(2)
-                    m1.metric(
-                        f"{analyzed_a} probability",
-                        f"{model_probability:.1%}",
-                        f"Fair {format_american(fair_odds)}",
-                    )
-                    m2.metric(
-                        f"{analyzed_b} probability",
-                        f"{probability_b:.1%}",
-                        f"Fair {format_american(fair_odds_b)}",
-                    )
-                    # NOTE: "Model Confidence" used to also render here as a third
-                    # metric, duplicating the exact same value shown two sections
-                    # below in "#### Confidence" with its full explanation. Removed
-                    # here rather than there, since the version below has the
-                    # context that explains what the number actually means.
 
-                    comparison = pd.DataFrame(
-                        {
-                            "Player": [analyzed_a, analyzed_b],
-                            "Market": [f"{no_vig_a:.1%}", f"{no_vig_b:.1%}"],
-                            "Macabets": [f"{model_probability:.1%}", f"{probability_b:.1%}"],
-                        }
-                    )
-                    with st.expander("Audit Macabets vs. market probabilities", expanded=False):
-                        st.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
-                        st.dataframe(comparison, use_container_width=True, hide_index=True)
-
-                    if abs(no_vig_edge) < 0.03:
-                        st.info(
-                            "Macabets is largely in agreement with the betting market on this matchup."
-                        )
-                    else:
-                        model_favored_player = analyzed_a if no_vig_edge > 0 else analyzed_b
-                        market_favored_player = analyzed_b if no_vig_edge > 0 else analyzed_a
-                        st.info(
-                            f"Macabets is substantially more bullish on {model_favored_player} than the "
-                            f"betting market. The market is comparatively higher on {market_favored_player}. "
-                            f"The difference is {abs(no_vig_edge):.1%}."
-                        )
-
-                    st.markdown("#### Confidence")
-                    confidence_col1, confidence_col2 = st.columns(2)
-                    with confidence_col1:
-                        st.markdown("**Model Confidence**")
-                        st.write(f"**{analysis_confidence['band']}**")
-                        st.caption(
-                            "Win probability sets the confidence ceiling. Data quality, sample size, "
-                            "health/context clarity and conflicting matchup evidence can only lower it."
-                        )
-
-                    with confidence_col2:
-                        if considered_player and bet_confidence:
-                            st.markdown(
-                                f"**Confidence in Your {considered_player} Bet**"
-                            )
-                            st.write(f"**{bet_confidence['band']}**")
-                            st.caption(
-                                "This is a secondary price/edge label. Win probability remains the primary signal."
-                            )
-                        else:
-                            st.markdown("**Confidence in a Specific Bet**")
-                            st.info(
-                                "Select a player before analyzing to receive a separate bet-confidence label."
-                            )
-
-                    matchup_analysis = build_matchup_analysis(result, considered_player)
-
-                    # Compact decision summary for the moneyline evaluator.
-                    if considered_player:
-                        st.markdown(f"#### Moneyline Evaluation: {considered_player}")
-                        bet1, bet2, bet3, bet4 = st.columns(4)
-                        bet1.metric("Market Price", format_american(considered_market_odds))
-                        bet2.metric("Macabets Fair Price", format_american(considered_fair_odds))
-                        bet3.metric("Expected ROI", f"{considered_roi:+.1%}")
-                        bet4.metric("Decision", decision)
-
-                        if decision == "BET":
-                            st.success(decision_reason)
-                        elif decision == "WATCH":
-                            st.warning(decision_reason)
-                        else:
-                            st.info(decision_reason)
-
-                    # Show only the strongest decision-useful advantages.
-                    raw_factors = [
-                        {
-                            "name": str(factor.get("name", "Matchup factor")),
-                            "impact_a": float(factor.get("impact", 0.0)),
-                            "reason": str(factor.get("reason", "")),
-                        }
-                        for factor in result.get("factors", [])
-                        if str(factor.get("name", "")).strip() != "Fatigue 2.0"
-                    ]
-
-                    st.markdown("#### Decisive Factors")
-                    advantage_rows = []
-                    for factor in raw_factors:
-                        impact = factor["impact_a"]
-                        if abs(impact) < 0.001:
-                            continue
-                        leader = analyzed_a if impact > 0 else analyzed_b
-                        advantage_rows.append((abs(impact), leader, factor["name"]))
-                    advantage_rows.sort(reverse=True)
-
-                    if advantage_rows:
-                        for _, leader, factor_name in advantage_rows[:6]:
-                            st.markdown(f"- **{leader}:** {factor_name}")
-                    else:
-                        st.caption("Macabets does not identify a clear matchup advantage for either player.")
-
-                    st.markdown("#### Why Each Player Can Win")
-                    why_a, why_b = st.columns(2)
-                    with why_a:
-                        st.markdown(f"**Why {analyzed_a} can win**")
-                        for point in matchup_analysis.get("player_a_reasons", []):
-                            st.markdown(f"- {point}")
-                    with why_b:
-                        st.markdown(f"**Why {analyzed_b} can win**")
-                        for point in matchup_analysis.get("player_b_reasons", []):
-                            st.markdown(f"- {point}")
-
-                    simulation = result["simulation"]
-
-                    # Reconcile the exact format distribution with the final matchup-adjusted verdict.
-                    # Preserve the format engine's conditional set-score distribution for each
-                    # player, while forcing each side's exact scores to sum to the same
-                    # headline win probability shown everywhere else in the report.
-                    raw_set_scores = {
-                        str(score): float(probability)
-                        for score, probability in simulation.get("set_scores", {}).items()
-                    }
-                    raw_a_total = 0.0
-                    raw_b_total = 0.0
-                    parsed_scores = {}
-
-                    for raw_score, probability in raw_set_scores.items():
                         try:
-                            a_sets, b_sets = (
-                                int(value) for value in raw_score.split("-", 1)
+                            verified_recent_evidence = build_tennis_evidence_packet(
+                                matches,
+                                analyzed_a,
+                                analyzed_b,
+                                market_snapshot.get("match_date", match_date.isoformat()),
+                                result.get("surface", surface),
+                                tournament=result.get("tournament", tournament),
+                                lookback=20,
                             )
-                        except (TypeError, ValueError):
-                            continue
-                        parsed_scores[raw_score] = (a_sets, b_sets)
-                        if a_sets > b_sets:
-                            raw_a_total += probability
-                        elif b_sets > a_sets:
-                            raw_b_total += probability
+                        except Exception as evidence_exc:
+                            verified_recent_evidence = {
+                                "source": "Macabets local ATP match database",
+                                "status": "evidence_packet_error",
+                                "error": str(evidence_exc),
+                            }
 
-                    synchronized_set_scores = {}
-                    for raw_score, probability in raw_set_scores.items():
-                        parsed = parsed_scores.get(raw_score)
-                        if parsed is None:
-                            synchronized_set_scores[raw_score] = probability
-                            continue
 
-                        a_sets, b_sets = parsed
-                        if a_sets > b_sets:
-                            synchronized_set_scores[raw_score] = (
-                                probability / raw_a_total * model_probability
-                                if raw_a_total > 0 else 0.0
-                            )
-                        elif b_sets > a_sets:
-                            synchronized_set_scores[raw_score] = (
-                                probability / raw_b_total * probability_b
-                                if raw_b_total > 0 else 0.0
-                            )
-                        else:
-                            synchronized_set_scores[raw_score] = 0.0
-
-                    straight_sets_a = sum(
-                        probability
-                        for raw_score, probability in synchronized_set_scores.items()
-                        if raw_score in parsed_scores
-                        and parsed_scores[raw_score][0] > parsed_scores[raw_score][1]
-                        and parsed_scores[raw_score][1] == 0
-                    )
-                    straight_sets_b = sum(
-                        probability
-                        for raw_score, probability in synchronized_set_scores.items()
-                        if raw_score in parsed_scores
-                        and parsed_scores[raw_score][1] > parsed_scores[raw_score][0]
-                        and parsed_scores[raw_score][0] == 0
-                    )
-                    deciding_set_probability = sum(
-                        probability
-                        for raw_score, probability in synchronized_set_scores.items()
-                        if raw_score in parsed_scores
-                        and abs(parsed_scores[raw_score][0] - parsed_scores[raw_score][1]) == 1
-                        and max(parsed_scores[raw_score]) >= 2
-                    )
-
-                    st.markdown("#### Outcome Shape")
-                    if straight_sets_a > straight_sets_b and straight_sets_a >= deciding_set_probability:
-                        shape_take = f"The most likely clean match shape is {analyzed_a} winning in straight sets."
-                    elif straight_sets_b > straight_sets_a and straight_sets_b >= deciding_set_probability:
-                        shape_take = f"The most likely clean match shape is {analyzed_b} winning in straight sets."
-                    else:
-                        shape_take = "Macabets sees a meaningful path to a deciding set; the match shape is less clean than the headline winner probability."
-                    st.info(shape_take)
-                    with st.expander("Show simulation probabilities and exact set scores", expanded=False):
-                        win_col_a, win_col_b = st.columns(2)
-                        win_col_a.metric(f"{analyzed_a} wins", f"{model_probability:.1%}")
-                        win_col_b.metric(f"{analyzed_b} wins", f"{probability_b:.1%}")
-
-                        s1, s2, s3 = st.columns(3)
-                        s1.metric(f"{analyzed_a} straight sets", f"{straight_sets_a:.1%}")
-                        s2.metric(f"{analyzed_b} straight sets", f"{straight_sets_b:.1%}")
-                        s3.metric("Deciding set", f"{deciding_set_probability:.1%}")
-
-                        st.markdown("#### Exact Set Score")
-                        set_score_results = []
-                        for raw_score, probability in synchronized_set_scores.items():
-                            try:
-                                a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
-                            except (TypeError, ValueError):
-                                # Defensive fallback in case the simulation format changes later.
-                                set_score_results.append({
-                                    "label": str(raw_score),
-                                    "probability": probability,
-                                    "winner_order": 2,
-                                    "loser_sets": 99,
-                                })
-                                continue
-
-                            if a_sets > b_sets:
-                                winner = analyzed_a
-                                winner_sets, loser_sets = a_sets, b_sets
-                                winner_order = 0
-                            else:
-                                winner = analyzed_b
-                                winner_sets, loser_sets = b_sets, a_sets
-                                winner_order = 1
-
-                            set_score_results.append({
-                                "label": f"{winner} wins {winner_sets}-{loser_sets}",
-                                "probability": probability,
-                                "winner_order": winner_order,
-                                "loser_sets": loser_sets,
-                            })
-
-                        # Keep each player's possible wins together and show the most decisive score first.
-                        set_score_results.sort(
-                            key=lambda item: (item["winner_order"], item["loser_sets"])
-                        )
-
-                        cards_per_row = 4 if len(set_score_results) <= 4 else 3
-                        for row_start in range(0, len(set_score_results), cards_per_row):
-                            row_results = set_score_results[row_start:row_start + cards_per_row]
-                            score_columns = st.columns(len(row_results))
-                            for column, score_result in zip(score_columns, row_results):
-                                column.metric(
-                                    score_result["label"],
-                                    f"{score_result['probability']:.1%}",
-                                )
-
-                    st.markdown("#### Pre-Match Decision Record")
-                    d1, d2 = st.columns(2)
-                    prediction = d1.text_area(
-                        "Why Player A wins",
-                        value=(
-                            f"Macabets gives {analyzed_a} a {model_probability:.1%} win probability, "
-                            f"with a fair line of {format_american(fair_odds)}."
-                        ),
-                        key="auto_prediction",
-                    )
-                    upset_path = d2.text_area(
-                        "Why Player B wins",
-                        key="auto_upset_path",
-                    )
-                    d3, d4 = st.columns(2)
-                    biggest_risk = d3.text_area("Biggest risk", key="auto_biggest_risk")
-                    assumptions = d4.text_area("Key assumptions", key="auto_assumptions")
-                    analysis_notes = st.text_area("Additional notes", key="auto_analysis_notes")
-
-                    if st.button(
-                        "Save Automatic Analysis",
-                        type="primary",
-                        use_container_width=True,
-                    ):
-                        analyses = st.session_state.analyses.copy()
-                        next_analysis_id = int(analyses["analysis_id"].max()) + 1 if not analyses.empty else 1
-                        row = {
-                            "analysis_id": next_analysis_id,
-                            "created_at": datetime.now().isoformat(timespec="seconds"),
-                            "match_date": str(market_snapshot.get("match_date", date.today().isoformat())),
-                            "tournament": result["tournament"],
-                            "surface": result["surface"],
-                            "round": result["round"],
+                        challenge_context = {
+                            "sport": "Tennis",
+                            "event_name": f"{analyzed_a} vs {analyzed_b}",
+                            "event_date": market_snapshot.get("match_date"),
                             "player_a": analyzed_a,
                             "player_b": analyzed_b,
-                            "market_odds_a": listed_a,
-                            "market_odds_b": listed_b,
-                            "model_probability_a": model_probability,
-                            "fair_odds_a": fair_odds,
-                            "no_vig_probability_a": no_vig_a,
-                            "no_vig_edge": no_vig_edge,
-                            "decision": decision,
-                            "minimum_acceptable_odds_a": minimum_price_a,
-                            "estimated_roi": expected_roi,
-                            "confidence": confidence,
-                            "prediction": prediction.strip(),
-                            "upset_path": upset_path.strip(),
-                            "biggest_risk": biggest_risk.strip(),
-                            "assumptions": assumptions.strip(),
-                            "notes": (
-                                (
-                                    f"Considering bet: {considered_player} at "
-                                    f"{format_american(considered_market_odds)}. "
-                                    f"Side-specific decision: {decision}. "
-                                    f"Side-specific estimated ROI: {considered_roi:+.1%}. "
-                                    if considered_player else
-                                    "No betting side selected. "
-                                )
-                                + analysis_notes.strip()
-                            ).strip(),
-                            "result": "Pending",
-                            "closing_odds_a": np.nan,
-                            "prediction_correct": "",
-                            "closing_line_value": np.nan,
-                            "review": "",
-                            "lesson": "",
+                            "tournament": result.get("tournament", tournament),
+                            "round": result.get("round", round_name),
+                            "surface": result.get("surface", surface),
+                            "environment": result.get("environment", environment),
+                            "match_format": result.get("match_format", match_format),
+                            "market": {
+                                "odds_a": listed_a,
+                                "odds_b": listed_b,
+                                "no_vig_probability_a": round(no_vig_a, 4),
+                                "no_vig_probability_b": round(no_vig_b, 4),
+                            },
+                            "original_opinion": {
+                                "projected_winner": original_projected_winner,
+                                "probability_a": round(original_model_probability, 4),
+                                "confidence": original_effective_confidence,
+                                "verdict": original_price_report["verdict"],
+                                "fair_odds_a": probability_to_american(original_model_probability),
+                                "fair_odds_b": probability_to_american(original_probability_b),
+                            },
+                            "current_opinion": {
+                                "projected_winner": projected_winner,
+                                "probability_a": round(model_probability, 4),
+                                "confidence": int(analysis_confidence["overall"]),
+                                "verdict": projected_price_report["verdict"],
+                                "fair_odds_a": fair_odds,
+                                "fair_odds_b": fair_odds_b,
+                                "price_assessment": price_assessment,
+                            },
+                            "head_to_head": h2h_context,
+                            "matchup_context": matchup_context,
+                            "match_intelligence": result.get("match_intelligence", {}),
+                            "verified_recent_evidence": verified_recent_evidence,
+                            # Deterministic model evidence: Challenge Macabets should reason from
+                            # the same recent-resume and fatigue inputs as the prediction engine
+                            # before reaching for web search or constructing a narrative.
+                            "recent_resume_comparison": result.get("recent_resume_comparison", {}),
+                            "fatigue_profile_a": result.get("fatigue_profile_a", {}),
+                            "fatigue_profile_b": result.get("fatigue_profile_b", {}),
+                            "fatigue_resilience_a": result.get("fatigue_resilience_a", 0.0),
+                            "fatigue_resilience_b": result.get("fatigue_resilience_b", 0.0),
+                            "player_intelligence_a": intelligence_a,
+                            "player_intelligence_b": intelligence_b,
+                            "factors": [
+                                {
+                                    "name": str(factor.get("name", "")),
+                                    "impact": float(factor.get("impact", 0.0)),
+                                    "reason": str(factor.get("reason", "")),
+                                }
+                                for factor in result.get("factors", [])[:12]
+                            ],
                         }
-                        st.session_state.analyses = normalize_analyses(
-                            pd.concat([analyses, pd.DataFrame([row])], ignore_index=True)
-                        )
-                        st.success("Automatic analysis saved to the archive.")
+                        _render_challenge_macabets(challenge_match_key, challenge_context)
 
-                    st.caption(
-                        f"Model base probability: {result['base_probability']:.1%}. "
-                        f"Final pre-format model: {result['model_probability']:.1%}. "
-                        "Best-of-3 / best-of-5 format probability is calculated exactly "
-                        "with no Monte Carlo noise."
-                    )
+
+                    with matchup_tab:
+                        render_head_to_head_summary(
+                            matches, analyzed_a, analyzed_b, result.get("surface", surface)
+                        )
+
+                        # Matchup Intelligence: curated playing-style comparison. This is
+                        # explanation-only (see ui/matchup_engine_ui.py's own docstring) --
+                        # it reads from the same player_traits.json database, and cannot
+                        # change probabilities, fair odds, ROI, confidence, or the betting
+                        # verdict. Wiring this in was the whole point of building the
+                        # player-traits database out this week; without this call the
+                        # database had no path to ever actually being shown.
+                        try:
+                            from ui.matchup_engine_ui import render_matchup_engine_report
+                            render_matchup_engine_report(
+                                analyzed_a,
+                                analyzed_b,
+                                result.get("tournament", tournament),
+                                result.get("surface", surface),
+                                result.get("environment", "Outdoor"),
+                            )
+                        except Exception as exc:
+                            st.caption(f"Matchup intelligence unavailable this run: {exc}")
+
+
+                        st.markdown("**Why this much weight on head-to-head**")
+                        if matchup_context["active"]:
+                            st.info(matchup_context["message"])
+                        elif h2h_context["meetings"] == 0:
+                            st.info(
+                                "These players have no previous meetings in the available Macabets data. "
+                                "The evaluation is driven by current form, surface performance, playing style "
+                                "and overall player strength."
+                            )
+                        elif h2h_context["meetings"] < 4:
+                            st.info(
+                                f"These players have met only {h2h_context['meetings']} time"
+                                f"{'s' if h2h_context['meetings'] != 1 else ''}, so Macabets places very little weight "
+                                "on the head-to-head record. Current form and underlying performance remain "
+                                "the primary drivers of the prediction."
+                            )
+                        else:
+                            st.info(
+                                "The available head-to-head history does not show a strong enough persistent "
+                                "matchup advantage to materially influence the evaluation. Macabets therefore "
+                                "relies primarily on current form, surface performance and overall player strength."
+                            )
+
+
+                    with confidence_tab:
+                        match_intelligence = result.get("match_intelligence", {})
+                        if match_intelligence:
+                            st.markdown("#### Matchup Stability & Volatility")
+                            stability_band = str(match_intelligence.get("stability_band", "—"))
+                            volatility_band = str(match_intelligence.get("volatility_band", "—"))
+                            st.info(
+                                f"Matchup stability: **{stability_band}** · Volatility: **{volatility_band}**. "
+                                "Macabets uses the underlying scores internally; the bands are the decision-useful takeaway."
+                            )
+
+                            drivers = match_intelligence.get("drivers", []) or []
+                            if drivers:
+                                st.markdown("**Primary volatility drivers**")
+                                for driver in drivers:
+                                    st.markdown(f"- {driver.capitalize()}")
+
+                            st.markdown(f"#### Upset Paths for {match_intelligence.get('underdog', 'the underdog')}")
+                            for path in match_intelligence.get("upset_paths", []):
+                                st.markdown(f"- {path}")
+
+                            with st.expander("Audit stability and volatility scores", expanded=False):
+                                intel1, intel2, intel3 = st.columns(3)
+                                intel1.metric("Matchup Stability", f"{match_intelligence.get('stability_score', 0)}/100")
+                                intel2.metric("Volatility", f"{match_intelligence.get('volatility_score', 0)}/100")
+                                intel3.metric(
+                                    "Factor Consensus",
+                                    f"{match_intelligence.get('factor_consensus', 0):.0%}",
+                                    f"{match_intelligence.get('supporting_factors', 0)} support / "
+                                    f"{match_intelligence.get('opposing_factors', 0)} oppose",
+                                )
+                                st.caption(
+                                    "Stability measures how repeatable the projected edge appears. Volatility measures "
+                                    "how easily tiebreaks, close-set variance, health, fatigue or conflicting matchup "
+                                    "signals could disrupt the prediction. Neither score considers the sportsbook price."
+                                )
+
+                        st.markdown("#### Objective Match Price")
+                        m1, m2 = st.columns(2)
+                        m1.metric(
+                            f"{analyzed_a} probability",
+                            f"{model_probability:.1%}",
+                            f"Fair {format_american(fair_odds)}",
+                        )
+                        m2.metric(
+                            f"{analyzed_b} probability",
+                            f"{probability_b:.1%}",
+                            f"Fair {format_american(fair_odds_b)}",
+                        )
+                        # NOTE: "Model Confidence" used to also render here as a third
+                        # metric, duplicating the exact same value shown two sections
+                        # below in "#### Confidence" with its full explanation. Removed
+                        # here rather than there, since the version below has the
+                        # context that explains what the number actually means.
+
+                        comparison = pd.DataFrame(
+                            {
+                                "Player": [analyzed_a, analyzed_b],
+                                "Market": [f"{no_vig_a:.1%}", f"{no_vig_b:.1%}"],
+                                "Macabets": [f"{model_probability:.1%}", f"{probability_b:.1%}"],
+                            }
+                        )
+                        with st.expander("Audit Macabets vs. market probabilities", expanded=False):
+                            st.metric("Sportsbook hold", f"{sportsbook_hold:.1%}")
+                            st.dataframe(comparison, use_container_width=True, hide_index=True)
+
+                        if abs(no_vig_edge) < 0.03:
+                            st.info(
+                                "Macabets is largely in agreement with the betting market on this matchup."
+                            )
+                        else:
+                            model_favored_player = analyzed_a if no_vig_edge > 0 else analyzed_b
+                            market_favored_player = analyzed_b if no_vig_edge > 0 else analyzed_a
+                            st.info(
+                                f"Macabets is substantially more bullish on {model_favored_player} than the "
+                                f"betting market. The market is comparatively higher on {market_favored_player}. "
+                                f"The difference is {abs(no_vig_edge):.1%}."
+                            )
+
+                        st.markdown("#### Confidence")
+                        confidence_col1, confidence_col2 = st.columns(2)
+                        with confidence_col1:
+                            st.markdown("**Model Confidence**")
+                            st.write(f"**{analysis_confidence['band']}**")
+                            st.caption(
+                                "Win probability sets the confidence ceiling. Data quality, sample size, "
+                                "health/context clarity and conflicting matchup evidence can only lower it."
+                            )
+
+                        with confidence_col2:
+                            if considered_player and bet_confidence:
+                                st.markdown(
+                                    f"**Confidence in Your {considered_player} Bet**"
+                                )
+                                st.write(f"**{bet_confidence['band']}**")
+                                st.caption(
+                                    "This is a secondary price/edge label. Win probability remains the primary signal."
+                                )
+                            else:
+                                st.markdown("**Confidence in a Specific Bet**")
+                                st.info(
+                                    "Select a player before analyzing to receive a separate bet-confidence label."
+                                )
+
+                        matchup_analysis = build_matchup_analysis(result, considered_player)
+
+                        # Compact decision summary for the moneyline evaluator.
+                        if considered_player:
+                            st.markdown(f"#### Moneyline Evaluation: {considered_player}")
+                            bet1, bet2, bet3, bet4 = st.columns(4)
+                            bet1.metric("Market Price", format_american(considered_market_odds))
+                            bet2.metric("Macabets Fair Price", format_american(considered_fair_odds))
+                            bet3.metric("Expected ROI", f"{considered_roi:+.1%}")
+                            bet4.metric("Decision", decision)
+
+                            if decision == "BET":
+                                st.success(decision_reason)
+                            elif decision == "WATCH":
+                                st.warning(decision_reason)
+                            else:
+                                st.info(decision_reason)
+
+                        # Show only the strongest decision-useful advantages.
+                        raw_factors = [
+                            {
+                                "name": str(factor.get("name", "Matchup factor")),
+                                "impact_a": float(factor.get("impact", 0.0)),
+                                "reason": str(factor.get("reason", "")),
+                            }
+                            for factor in result.get("factors", [])
+                            if str(factor.get("name", "")).strip() != "Fatigue 2.0"
+                        ]
+
+                        st.markdown("#### Decisive Factors")
+                        advantage_rows = []
+                        for factor in raw_factors:
+                            impact = factor["impact_a"]
+                            if abs(impact) < 0.001:
+                                continue
+                            leader = analyzed_a if impact > 0 else analyzed_b
+                            advantage_rows.append((abs(impact), leader, factor["name"]))
+                        advantage_rows.sort(reverse=True)
+
+                        if advantage_rows:
+                            for _, leader, factor_name in advantage_rows[:6]:
+                                st.markdown(f"- **{leader}:** {factor_name}")
+                        else:
+                            st.caption("Macabets does not identify a clear matchup advantage for either player.")
+
+                        st.markdown("#### Why Each Player Can Win")
+                        why_a, why_b = st.columns(2)
+                        with why_a:
+                            st.markdown(f"**Why {analyzed_a} can win**")
+                            for point in matchup_analysis.get("player_a_reasons", []):
+                                st.markdown(f"- {point}")
+                        with why_b:
+                            st.markdown(f"**Why {analyzed_b} can win**")
+                            for point in matchup_analysis.get("player_b_reasons", []):
+                                st.markdown(f"- {point}")
+
+                        simulation = result["simulation"]
+
+                        # Reconcile the exact format distribution with the final matchup-adjusted verdict.
+                        # Preserve the format engine's conditional set-score distribution for each
+                        # player, while forcing each side's exact scores to sum to the same
+                        # headline win probability shown everywhere else in the report.
+                        raw_set_scores = {
+                            str(score): float(probability)
+                            for score, probability in simulation.get("set_scores", {}).items()
+                        }
+                        raw_a_total = 0.0
+                        raw_b_total = 0.0
+                        parsed_scores = {}
+
+                        for raw_score, probability in raw_set_scores.items():
+                            try:
+                                a_sets, b_sets = (
+                                    int(value) for value in raw_score.split("-", 1)
+                                )
+                            except (TypeError, ValueError):
+                                continue
+                            parsed_scores[raw_score] = (a_sets, b_sets)
+                            if a_sets > b_sets:
+                                raw_a_total += probability
+                            elif b_sets > a_sets:
+                                raw_b_total += probability
+
+                        synchronized_set_scores = {}
+                        for raw_score, probability in raw_set_scores.items():
+                            parsed = parsed_scores.get(raw_score)
+                            if parsed is None:
+                                synchronized_set_scores[raw_score] = probability
+                                continue
+
+                            a_sets, b_sets = parsed
+                            if a_sets > b_sets:
+                                synchronized_set_scores[raw_score] = (
+                                    probability / raw_a_total * model_probability
+                                    if raw_a_total > 0 else 0.0
+                                )
+                            elif b_sets > a_sets:
+                                synchronized_set_scores[raw_score] = (
+                                    probability / raw_b_total * probability_b
+                                    if raw_b_total > 0 else 0.0
+                                )
+                            else:
+                                synchronized_set_scores[raw_score] = 0.0
+
+                        straight_sets_a = sum(
+                            probability
+                            for raw_score, probability in synchronized_set_scores.items()
+                            if raw_score in parsed_scores
+                            and parsed_scores[raw_score][0] > parsed_scores[raw_score][1]
+                            and parsed_scores[raw_score][1] == 0
+                        )
+                        straight_sets_b = sum(
+                            probability
+                            for raw_score, probability in synchronized_set_scores.items()
+                            if raw_score in parsed_scores
+                            and parsed_scores[raw_score][1] > parsed_scores[raw_score][0]
+                            and parsed_scores[raw_score][0] == 0
+                        )
+                        deciding_set_probability = sum(
+                            probability
+                            for raw_score, probability in synchronized_set_scores.items()
+                            if raw_score in parsed_scores
+                            and abs(parsed_scores[raw_score][0] - parsed_scores[raw_score][1]) == 1
+                            and max(parsed_scores[raw_score]) >= 2
+                        )
+
+                        st.markdown("#### Outcome Shape")
+                        if straight_sets_a > straight_sets_b and straight_sets_a >= deciding_set_probability:
+                            shape_take = f"The most likely clean match shape is {analyzed_a} winning in straight sets."
+                        elif straight_sets_b > straight_sets_a and straight_sets_b >= deciding_set_probability:
+                            shape_take = f"The most likely clean match shape is {analyzed_b} winning in straight sets."
+                        else:
+                            shape_take = "Macabets sees a meaningful path to a deciding set; the match shape is less clean than the headline winner probability."
+                        st.info(shape_take)
+                        with st.expander("Show simulation probabilities and exact set scores", expanded=False):
+                            win_col_a, win_col_b = st.columns(2)
+                            win_col_a.metric(f"{analyzed_a} wins", f"{model_probability:.1%}")
+                            win_col_b.metric(f"{analyzed_b} wins", f"{probability_b:.1%}")
+
+                            s1, s2, s3 = st.columns(3)
+                            s1.metric(f"{analyzed_a} straight sets", f"{straight_sets_a:.1%}")
+                            s2.metric(f"{analyzed_b} straight sets", f"{straight_sets_b:.1%}")
+                            s3.metric("Deciding set", f"{deciding_set_probability:.1%}")
+
+                            st.markdown("#### Exact Set Score")
+                            set_score_results = []
+                            for raw_score, probability in synchronized_set_scores.items():
+                                try:
+                                    a_sets, b_sets = (int(value) for value in raw_score.split("-", 1))
+                                except (TypeError, ValueError):
+                                    # Defensive fallback in case the simulation format changes later.
+                                    set_score_results.append({
+                                        "label": str(raw_score),
+                                        "probability": probability,
+                                        "winner_order": 2,
+                                        "loser_sets": 99,
+                                    })
+                                    continue
+
+                                if a_sets > b_sets:
+                                    winner = analyzed_a
+                                    winner_sets, loser_sets = a_sets, b_sets
+                                    winner_order = 0
+                                else:
+                                    winner = analyzed_b
+                                    winner_sets, loser_sets = b_sets, a_sets
+                                    winner_order = 1
+
+                                set_score_results.append({
+                                    "label": f"{winner} wins {winner_sets}-{loser_sets}",
+                                    "probability": probability,
+                                    "winner_order": winner_order,
+                                    "loser_sets": loser_sets,
+                                })
+
+                            # Keep each player's possible wins together and show the most decisive score first.
+                            set_score_results.sort(
+                                key=lambda item: (item["winner_order"], item["loser_sets"])
+                            )
+
+                            cards_per_row = 4 if len(set_score_results) <= 4 else 3
+                            for row_start in range(0, len(set_score_results), cards_per_row):
+                                row_results = set_score_results[row_start:row_start + cards_per_row]
+                                score_columns = st.columns(len(row_results))
+                                for column, score_result in zip(score_columns, row_results):
+                                    column.metric(
+                                        score_result["label"],
+                                        f"{score_result['probability']:.1%}",
+                                    )
+
+                            st.caption(
+                                f"Model base probability: {result['base_probability']:.1%}. "
+                                f"Final pre-format model: {result['model_probability']:.1%}. "
+                                "Best-of-3 / best-of-5 format probability is calculated exactly "
+                                "with no Monte Carlo noise."
+                            )
+
+
+                    with notes_tab:
+                        st.markdown("#### Pre-Match Decision Record")
+                        d1, d2 = st.columns(2)
+                        prediction = d1.text_area(
+                            "Why Player A wins",
+                            value=(
+                                f"Macabets gives {analyzed_a} a {model_probability:.1%} win probability, "
+                                f"with a fair line of {format_american(fair_odds)}."
+                            ),
+                            key="auto_prediction",
+                        )
+                        upset_path = d2.text_area(
+                            "Why Player B wins",
+                            key="auto_upset_path",
+                        )
+                        d3, d4 = st.columns(2)
+                        biggest_risk = d3.text_area("Biggest risk", key="auto_biggest_risk")
+                        assumptions = d4.text_area("Key assumptions", key="auto_assumptions")
+                        analysis_notes = st.text_area("Additional notes", key="auto_analysis_notes")
+
+                        if st.button(
+                            "Save Automatic Analysis",
+                            type="primary",
+                            use_container_width=True,
+                        ):
+                            analyses = st.session_state.analyses.copy()
+                            next_analysis_id = int(analyses["analysis_id"].max()) + 1 if not analyses.empty else 1
+                            row = {
+                                "analysis_id": next_analysis_id,
+                                "created_at": datetime.now().isoformat(timespec="seconds"),
+                                "match_date": str(market_snapshot.get("match_date", date.today().isoformat())),
+                                "tournament": result["tournament"],
+                                "surface": result["surface"],
+                                "round": result["round"],
+                                "player_a": analyzed_a,
+                                "player_b": analyzed_b,
+                                "market_odds_a": listed_a,
+                                "market_odds_b": listed_b,
+                                "model_probability_a": model_probability,
+                                "fair_odds_a": fair_odds,
+                                "no_vig_probability_a": no_vig_a,
+                                "no_vig_edge": no_vig_edge,
+                                "decision": decision,
+                                "minimum_acceptable_odds_a": minimum_price_a,
+                                "estimated_roi": expected_roi,
+                                "confidence": confidence,
+                                "prediction": prediction.strip(),
+                                "upset_path": upset_path.strip(),
+                                "biggest_risk": biggest_risk.strip(),
+                                "assumptions": assumptions.strip(),
+                                "notes": (
+                                    (
+                                        f"Considering bet: {considered_player} at "
+                                        f"{format_american(considered_market_odds)}. "
+                                        f"Side-specific decision: {decision}. "
+                                        f"Side-specific estimated ROI: {considered_roi:+.1%}. "
+                                        if considered_player else
+                                        "No betting side selected. "
+                                    )
+                                    + analysis_notes.strip()
+                                ).strip(),
+                                "result": "Pending",
+                                "closing_odds_a": np.nan,
+                                "prediction_correct": "",
+                                "closing_line_value": np.nan,
+                                "review": "",
+                                "lesson": "",
+                            }
+                            st.session_state.analyses = normalize_analyses(
+                                pd.concat([analyses, pd.DataFrame([row])], ignore_index=True)
+                            )
+                            st.success("Automatic analysis saved to the archive.")
 
     if analysis_page == "NFL Analysis":
         st.subheader("NFL Matchup Analysis")
