@@ -3882,6 +3882,25 @@ if active_top_page == "Analysis Engine":
                         matches, analyzed_a, analyzed_b, result.get("surface", surface)
                     )
 
+                    # Matchup Intelligence: curated playing-style comparison. This is
+                    # explanation-only (see ui/matchup_engine_ui.py's own docstring) --
+                    # it reads from the same player_traits.json database, and cannot
+                    # change probabilities, fair odds, ROI, confidence, or the betting
+                    # verdict. Wiring this in was the whole point of building the
+                    # player-traits database out this week; without this call the
+                    # database had no path to ever actually being shown.
+                    try:
+                        from ui.matchup_engine_ui import render_matchup_engine_report
+                        render_matchup_engine_report(
+                            analyzed_a,
+                            analyzed_b,
+                            result.get("tournament", tournament),
+                            result.get("surface", surface),
+                            result.get("environment", "Outdoor"),
+                        )
+                    except Exception as exc:
+                        st.caption(f"Matchup intelligence unavailable this run: {exc}")
+
                     # Decision summary: separate the likely winner from the quality of the price.
                     projected_winner = analyzed_a if model_probability >= probability_b else analyzed_b
                     projected_winner_probability = max(model_probability, probability_b)
