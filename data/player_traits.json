@@ -70,7 +70,7 @@
       "net_play"
     ],
     "ranking_snapshot": "2026-07-27",
-    "coverage": "ATP top 150 snapshot plus previously curated players, plus a growing batch toward top 300"
+    "coverage": "Complete ATP Top 150 snapshot plus previously curated players"
   },
   "players": {
     "Jannik Sinner": {
@@ -3939,6 +3939,271 @@
       "signature_traits": [
         "Flat Ball Striking",
         "Relentless Defender"
+      ]
+    },
+    "Zhizhen Zhang": {
+      "aliases": [
+        "Zhang Zhizhen",
+        "Z. Zhang"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "First Strike Tennis"
+      ]
+    },
+    "Taro Daniel": {
+      "aliases": [
+        "Daniel",
+        "T. Daniel"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Point Construction",
+        "Relentless Defender"
+      ]
+    },
+    "Emil Ruusuvuori": {
+      "aliases": [
+        "Ruusuvuori",
+        "E. Ruusuvuori"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 4,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Server",
+        "First Strike Tennis"
+      ]
+    },
+    "Albert Ramos-Vinolas": {
+      "aliases": [
+        "Ramos-Vinolas",
+        "A. Ramos-Vinolas",
+        "A. Ramos"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Relentless Defender"
+      ]
+    },
+    "Juan Pablo Varillas": {
+      "aliases": [
+        "Varillas",
+        "J.P. Varillas"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Defensive Retrieval",
+        "Slice Variety"
+      ]
+    },
+    "Jay Clarke": {
+      "aliases": [
+        "Clarke",
+        "J. Clarke"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 4
+      },
+      "signature_traits": [
+        "Net Rushing",
+        "Transition Game"
+      ]
+    },
+    "Dominic Stricker": {
+      "aliases": [
+        "Stricker",
+        "D. Stricker"
+      ],
+      "playing_style": "All-Court Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Transition Game",
+        "Slice Variety"
+      ]
+    },
+    "Elias Ymer": {
+      "aliases": [
+        "Ymer",
+        "E. Ymer"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "First Strike Tennis",
+        "Big Forehand"
+      ]
+    },
+    "Martin Klizan": {
+      "aliases": [
+        "Klizan",
+        "M. Klizan"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 2,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Big Forehand"
+      ]
+    },
+    "Lorenzo Giustino": {
+      "aliases": [
+        "Giustino",
+        "L. Giustino"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 4,
+        "movement": 3,
+        "variety": 4,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Slice Variety",
+        "Point Construction",
+        "Relentless Defender"
+      ]
+    },
+    "Gregoire Barrere": {
+      "aliases": [
+        "Barrere",
+        "G. Barrere"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "First Strike Tennis"
+      ]
+    },
+    "Zdenek Kolar": {
+      "aliases": [
+        "Kolar",
+        "Z. Kolar"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Point Construction"
       ]
     }
   }
