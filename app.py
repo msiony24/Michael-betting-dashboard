@@ -3878,30 +3878,10 @@ if active_top_page == "Analysis Engine":
                     cx4.metric("Environment", result.get("environment", "—"))
                     cx5.metric("Format", result.get("match_format", "—"))
 
-                    render_head_to_head_summary(
-                        matches, analyzed_a, analyzed_b, result.get("surface", surface)
-                    )
-
-                    # Matchup Intelligence: curated playing-style comparison. This is
-                    # explanation-only (see ui/matchup_engine_ui.py's own docstring) --
-                    # it reads from the same player_traits.json database, and cannot
-                    # change probabilities, fair odds, ROI, confidence, or the betting
-                    # verdict. Wiring this in was the whole point of building the
-                    # player-traits database out this week; without this call the
-                    # database had no path to ever actually being shown.
-                    try:
-                        from ui.matchup_engine_ui import render_matchup_engine_report
-                        render_matchup_engine_report(
-                            analyzed_a,
-                            analyzed_b,
-                            result.get("tournament", tournament),
-                            result.get("surface", surface),
-                            result.get("environment", "Outdoor"),
-                        )
-                    except Exception as exc:
-                        st.caption(f"Matchup intelligence unavailable this run: {exc}")
-
                     # Decision summary: separate the likely winner from the quality of the price.
+                    # This is rendered directly after Match Context, before H2H / Matchup
+                    # Intelligence / everything else, because it's the answer someone opens
+                    # this page for -- the rest is supporting detail, not the headline.
                     projected_winner = analyzed_a if model_probability >= probability_b else analyzed_b
                     projected_winner_probability = max(model_probability, probability_b)
                     projected_winner_fair_odds = fair_odds if projected_winner == analyzed_a else fair_odds_b
@@ -3954,6 +3934,19 @@ if active_top_page == "Analysis Engine":
                         f"market line is {price_assessment.lower()}, producing a final verdict of "
                         f"{projected_price_report['verdict']}."
                     )
+                    # This verdict is driven by a numeric analytical-confidence score (data
+                    # quality, sample size, model separation, context clarity) -- a different
+                    # figure from the "Model Confidence" band shown further down the page,
+                    # which is deliberately capped by how close this specific matchup is and
+                    # can look "Low" even when this underlying score is solid. Both are real
+                    # and correct; they're just answering different questions, so showing the
+                    # actual number here keeps them from reading as contradictory.
+                    st.caption(
+                        f"Analytical confidence behind this verdict: {int(analysis_confidence['overall'])}/100. "
+                        "The separate \"Model Confidence\" band shown later reflects how close this specific "
+                        "matchup is, not how much data supports this number -- a close match can show a low "
+                        "band here even with a solid analytical score."
+                    )
                     if active_challenge:
                         st.caption(
                             "Challenge revision applied for this matchup only. "
@@ -3962,6 +3955,32 @@ if active_top_page == "Analysis Engine":
                             f"{original_effective_confidence}/100 confidence, "
                             f"{original_price_report['verdict']}."
                         )
+
+                    st.divider()
+                    st.markdown("#### Supporting Detail")
+
+                    render_head_to_head_summary(
+                        matches, analyzed_a, analyzed_b, result.get("surface", surface)
+                    )
+
+                    # Matchup Intelligence: curated playing-style comparison. This is
+                    # explanation-only (see ui/matchup_engine_ui.py's own docstring) --
+                    # it reads from the same player_traits.json database, and cannot
+                    # change probabilities, fair odds, ROI, confidence, or the betting
+                    # verdict. Wiring this in was the whole point of building the
+                    # player-traits database out this week; without this call the
+                    # database had no path to ever actually being shown.
+                    try:
+                        from ui.matchup_engine_ui import render_matchup_engine_report
+                        render_matchup_engine_report(
+                            analyzed_a,
+                            analyzed_b,
+                            result.get("tournament", tournament),
+                            result.get("surface", surface),
+                            result.get("environment", "Outdoor"),
+                        )
+                    except Exception as exc:
+                        st.caption(f"Matchup intelligence unavailable this run: {exc}")
 
                     try:
                         verified_recent_evidence = build_tennis_evidence_packet(
