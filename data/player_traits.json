@@ -70,7 +70,7 @@
       "net_play"
     ],
     "ranking_snapshot": "2026-07-27",
-    "coverage": "Complete ATP Top 150 snapshot plus previously curated players"
+    "coverage": "ATP top 150 snapshot plus previously curated players, plus a growing batch toward top 300"
   },
   "players": {
     "Jannik Sinner": {
@@ -3714,6 +3714,231 @@
         "First Strike Tennis",
         "Baseline Pressure",
         "Net Rushing"
+      ]
+    },
+    "Bernard Tomic": {
+      "aliases": [
+        "Tomic",
+        "B. Tomic"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 4,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Flat Ball Striking",
+        "Point Construction",
+        "Slice Variety"
+      ]
+    },
+    "Dusan Lajovic": {
+      "aliases": [
+        "Lajovic",
+        "D. Lajovic"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Relentless Defender",
+        "Defensive Retrieval"
+      ]
+    },
+    "Marco Cecchinato": {
+      "aliases": [
+        "Cecchinato",
+        "M. Cecchinato"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium-Long",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Slice Variety",
+        "Point Construction"
+      ]
+    },
+    "Michael Mmoh": {
+      "aliases": [
+        "Mmoh",
+        "M. Mmoh"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 2,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "First Strike Tennis"
+      ]
+    },
+    "Thiago Seyboth Wild": {
+      "aliases": [
+        "Seyboth Wild",
+        "T. Seyboth Wild"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Big Forehand"
+      ]
+    },
+    "Liam Broady": {
+      "aliases": [
+        "Broady",
+        "L. Broady"
+      ],
+      "playing_style": "Serve-Dominant Attacker",
+      "court_position": "All Court",
+      "preferred_rally": "Short",
+      "skills": {
+        "serve": 4,
+        "return": 2,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 3,
+        "net_play": 3
+      },
+      "signature_traits": [
+        "Big Server",
+        "Net Rushing",
+        "Varied Serving Patterns"
+      ]
+    },
+    "J.J. Wolf": {
+      "aliases": [
+        "Wolf",
+        "J. Wolf"
+      ],
+      "playing_style": "Aggressive Baseliner",
+      "court_position": "Aggressive Baseline",
+      "preferred_rally": "Short-Medium",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 4,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Big Forehand",
+        "First Strike Tennis"
+      ]
+    },
+    "Radu Albot": {
+      "aliases": [
+        "Albot",
+        "R. Albot"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Relentless Defender",
+        "Defensive Retrieval",
+        "Excellent Passing Shots"
+      ]
+    },
+    "Pedro Cachin": {
+      "aliases": [
+        "Cachin",
+        "P. Cachin"
+      ],
+      "playing_style": "Heavy Topspin Baseliner",
+      "court_position": "Baseline",
+      "preferred_rally": "Long",
+      "skills": {
+        "serve": 3,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 3,
+        "variety": 2,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Heavy Topspin",
+        "Relentless Defender"
+      ]
+    },
+    "Ricardas Berankis": {
+      "aliases": [
+        "Berankis",
+        "R. Berankis"
+      ],
+      "playing_style": "Counterpuncher",
+      "court_position": "Baseline",
+      "preferred_rally": "Medium",
+      "skills": {
+        "serve": 2,
+        "return": 3,
+        "forehand": 3,
+        "backhand": 3,
+        "movement": 4,
+        "variety": 3,
+        "net_play": 2
+      },
+      "signature_traits": [
+        "Flat Ball Striking",
+        "Relentless Defender"
       ]
     }
   }
