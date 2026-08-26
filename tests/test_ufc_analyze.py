@@ -129,7 +129,13 @@ def test_analyze_low_confidence_shrinks_baseline_toward_50_50(monkeypatch):
 def test_analyze_high_confidence_barely_shrinks_baseline(monkeypatch):
     _patch_all_layers(monkeypatch)
     ratings = pd.DataFrame([
-        _ratings_row("Alpha", macabets_rating=1700.0, ranking_confidence=100.0),
+        # NOTE: this must stay a moderate rating gap, not extreme -- with the
+        # calibrated elo_scale (34.9, fit against real fight outcomes) a large
+        # gap now legitimately hits the 0.08-0.92 safety clip, which is the
+        # clip correctly doing its job and a separate property from the one
+        # this test checks. A 20-point gap stays comfortably inside the clip
+        # while still being large enough to meaningfully test the shrinkage.
+        _ratings_row("Alpha", macabets_rating=1520.0, ranking_confidence=100.0),
         _ratings_row("Bravo", macabets_rating=1500.0, ranking_confidence=100.0),
     ])
     result = ufc.analyze("Alpha", "Bravo", ratings=ratings, fights=_base_fights())
