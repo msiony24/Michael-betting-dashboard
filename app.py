@@ -2385,6 +2385,23 @@ def _apply_revision_to_analysis(analysis_id, context, revision, base_snapshot=No
         price_assessment = (context.get("current_opinion") or {}).get("price_assessment", "—")
 
     snapshot = dict(base_snapshot or {})
+
+    # Permanently preserve the pre-challenge prediction before anything below
+    # overwrites it. This must only ever be set once per analysis: if a match
+    # gets challenged more than once, "original" has to keep meaning the very
+    # first thing Macabets predicted, not the state right before the most
+    # recent challenge -- otherwise repeated challenges would quietly erase
+    # the true original a little further with each revision.
+    if "original_prediction_record" not in snapshot:
+        prior_opinion = context.get("current_opinion") or {}
+        snapshot["original_prediction_record"] = {
+            "prediction": snapshot.get("prediction") or prior_opinion.get("prediction"),
+            "predicted_probability": snapshot.get("probability_a", prior_opinion.get("probability_a")),
+            "confidence": snapshot.get("analysis_confidence", {}).get("overall", prior_opinion.get("confidence")),
+            "verdict": snapshot.get("verdict") or prior_opinion.get("verdict"),
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+        }
+
     snapshot.update({
         "probability_a": probability_a,
         "probability_b": probability_b,
@@ -4119,7 +4136,7 @@ if active_top_page == "Analysis Engine":
                             )
 
                     st.markdown("#### Objective Match Price")
-                    m1, m2, m3 = st.columns(3)
+                    m1, m2 = st.columns(2)
                     m1.metric(
                         f"{analyzed_a} probability",
                         f"{model_probability:.1%}",
@@ -4130,10 +4147,11 @@ if active_top_page == "Analysis Engine":
                         f"{probability_b:.1%}",
                         f"Fair {format_american(fair_odds_b)}",
                     )
-                    m3.metric(
-                        "Model Confidence",
-                        analysis_confidence["band"],
-                    )
+                    # NOTE: "Model Confidence" used to also render here as a third
+                    # metric, duplicating the exact same value shown two sections
+                    # below in "#### Confidence" with its full explanation. Removed
+                    # here rather than there, since the version below has the
+                    # context that explains what the number actually means.
 
                     comparison = pd.DataFrame(
                         {
