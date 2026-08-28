@@ -30,6 +30,7 @@ player_key,alias,canonical_name
 103843,A. Bazderova,A. Bazderova
 6551,A. Beck,A. Beck
 67560,A. Berge,A. Berge
+67560,A. Berge Nourescu,A. Berge
 55372,A. Bergeron,A. Bergeron
 106846,A. Bergomi,A. Bergomi
 49425,A. Berrut,A. Berrut
@@ -1510,6 +1511,7 @@ player_key,alias,canonical_name
 104519,Behar/ Salisbury,Behar/ Salisbury
 105306,Behar/ Tirante,Behar/ Tirante
 107385,Behr/ Tumbas Kajgo,Behr/ Tumbas Kajgo
+107643,Behrmann/ Behrmann,Behrmann/ Behrmann
 89323,Behrmann/ Thomas,Behrmann/ Thomas
 107073,Behrmann/ Zimmer,Behrmann/ Zimmer
 107612,Bekeni/ Held,Bekeni/ Held
@@ -1596,6 +1598,7 @@ player_key,alias,canonical_name
 107398,Berenz/ Wagner,Berenz/ Wagner
 106012,Beretta/ Fiorentini,Beretta/ Fiorentini
 104937,Berezina/ Cvetkovic,Berezina/ Cvetkovic
+107644,Berge Nourescu/ Sucu,Berge Nourescu/ Sucu
 107581,Berge/ Sucu,Berge/ Sucu
 105468,Bergen/ Maslenkova,Bergen/ Maslenkova
 106402,Bergen/ Shubina,Bergen/ Shubina
@@ -3468,6 +3471,7 @@ player_key,alias,canonical_name
 28615,M. Dodig,Dodig M.
 28615,Matej Dodig,Dodig M.
 104978,Dodig/ Merino,Dodig/ Merino
+107645,Doerfler/ Spoolder,Doerfler/ Spoolder
 104740,Doig/ Jestin,Doig/ Jestin
 95248,Doig/ Kisimov,Doig/ Kisimov
 105548,Doig/ Vorwerk,Doig/ Vorwerk
@@ -11243,6 +11247,7 @@ player_key,alias,canonical_name
 11095,Uzbekistan,Uzbekistan
 13788,Uzbekistan W,Uzbekistan W
 105712,Uzhylovskyi/ Vandermeersch,Uzhylovskyi/ Vandermeersch
+36744,V. Adkar,V. Adkar
 39035,V. Adkar,V. Adkar
 56783,V. Ahti,V. Ahti
 71438,V. Allen,V. Allen
