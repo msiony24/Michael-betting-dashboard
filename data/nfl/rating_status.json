@@ -1,9 +1,9 @@
 {
-  "availability_definitively_unavailable": 173,
-  "availability_players": 3250,
+  "availability_definitively_unavailable": 171,
+  "availability_players": 3251,
   "availability_source": "Sleeper",
-  "availability_uncertain": 262,
-  "availability_updated_at_utc": "2026-08-28T21:11:56+00:00",
+  "availability_uncertain": 278,
+  "availability_updated_at_utc": "2026-08-29T15:05:34+00:00",
   "depth_chart_file": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/depth_charts.csv",
   "depth_chart_source": "nflverse automatic depth chart",
   "engine_version": "1.4-auto-depth-chart",
@@ -16,5 +16,5 @@
   "prediction_influence_enabled": false,
   "schema_version": "1.4",
   "teams_rated": 32,
-  "updated_at_utc": "2026-08-28T21:12:08+00:00"
+  "updated_at_utc": "2026-08-29T15:05:46+00:00"
 }
