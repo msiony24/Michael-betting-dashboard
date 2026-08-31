@@ -7445,6 +7445,9 @@ if active_top_page == "Daily Slate":
                             # information at all (just teams/time/price), so there is nothing
                             # to detect the round from. Land on an explicit placeholder rather
                             # than silently asserting a specific round that's usually wrong.
+                            # Keep the Analysis Engine prefilled too, so if the user does
+                            # open that tab later for the full breakdown, it already shows
+                            # this exact matchup instead of empty/default fields.
                             st.session_state.pending_fair_line_prefill = {
                                 "fle_date": event_date,
                                 "fle_tournament": tournament_name,
@@ -7468,8 +7471,95 @@ if active_top_page == "Daily Slate":
                                 "auto_market_b": odds_b_value,
                                 "auto_simulations": 20000,
                             }
-                            st.session_state.run_analysis_from_daily_slate = True
-                            st.rerun()
+
+                            # Run the model right here instead of just queuing a flag for
+                            # the Analysis Engine tab to pick up later -- that queuing
+                            # approach required the user to actually visit that tab before
+                            # anything happened. This runs immediately and shows the result
+                            # inline, and also seeds automatic_match_result/market so the
+                            # full breakdown is already sitting there if the user does open
+                            # the Analysis Engine tab afterward.
+                            with st.spinner("Macabets is analyzing the matchup..."):
+                                try:
+                                    daily_slate_result = analyze_tennis_match(
+                                        matches=slate_matches,
+                                        player_a=player_a_name,
+                                        player_b=player_b_name,
+                                        tournament=tournament_name,
+                                        round_label=TENNIS_ROUND_NOT_DETECTED,
+                                        surface=inferred_surface,
+                                        event_date=event_date,
+                                        simulations=20000,
+                                        tournament_category_label=inferred_category,
+                                        environment="Outdoor",
+                                        match_format=inferred_format,
+                                    )
+                                    st.session_state.automatic_match_result = daily_slate_result
+                                    st.session_state.automatic_match_market = {
+                                        "market_odds_a": odds_a_value,
+                                        "market_odds_b": odds_b_value,
+                                        "match_date": event_date.isoformat(),
+                                        "considering_bet": "Just analyze",
+                                        "tournament_category": inferred_category,
+                                        "environment": "Outdoor",
+                                        "match_format": inferred_format,
+                                    }
+                                    st.session_state["tennis_analysis_log_pending"] = _analysis_event_token(
+                                        "Tennis",
+                                        {
+                                            "player_a": player_a_name, "player_b": player_b_name,
+                                            "match_date": event_date.isoformat(),
+                                            "market_odds_a": odds_a_value,
+                                            "market_odds_b": odds_b_value,
+                                        },
+                                    )
+                                    st.session_state.daily_slate_last_result = {
+                                        "event_index": selected_event_index,
+                                        "player_a": player_a_name,
+                                        "player_b": player_b_name,
+                                        "market_odds_a": odds_a_value,
+                                        "market_odds_b": odds_b_value,
+                                        "model_win_probability_a": float(daily_slate_result["win_probability"]),
+                                        "fair_line_a": daily_slate_result["fair_line"],
+                                        "confidence": daily_slate_result.get("confidence"),
+                                    }
+                                    st.toast(
+                                        f"✅ Analysis complete: {player_a_name} vs {player_b_name}. "
+                                        "Pick your next matchup above.",
+                                        icon="✅",
+                                    )
+                                except Exception as exc:
+                                    st.session_state.pop("daily_slate_last_result", None)
+                                    st.error(f"Analysis failed: {exc}")
+                                    st.exception(exc)
+
+                    last_result = st.session_state.get("daily_slate_last_result")
+                    # Only show the result panel while it still matches the currently
+                    # selected event -- once the user picks a different matchup from the
+                    # dropdown above, the stale result clears itself automatically instead
+                    # of sitting there looking like it applies to the new selection.
+                    if last_result and last_result.get("event_index") == selected_event_index:
+                        model_prob_a = last_result["model_win_probability_a"]
+                        market_prob_a, market_prob_b, _ = no_vig_probabilities(
+                            last_result["market_odds_a"], last_result["market_odds_b"]
+                        )
+                        edge_a = model_prob_a - market_prob_a
+                        st.success(
+                            f"✅ Analyzed: {last_result['player_a']} vs {last_result['player_b']} — "
+                            "done. Select a different matchup above to analyze the next one."
+                        )
+                        r1, r2, r3 = st.columns(3)
+                        r1.metric(
+                            f"Model win % — {last_result['player_a']}",
+                            f"{model_prob_a:.1%}",
+                            f"{edge_a:+.1%} vs market",
+                        )
+                        r2.metric("Macabets fair line", f"{last_result['fair_line_a']:+d}")
+                        r3.metric("Confidence", f"{last_result['confidence']}")
+                        st.caption(
+                            "Full breakdown (factors, H2H, data validation, Challenge Macabets) "
+                            "is ready under Analysis Engine → Tennis Analysis if you want to dig deeper."
+                        )
 
                     if add_col.button("Add Event to Manual Slate", use_container_width=True):
                         if pd.isna(selected_event["odds_a"]) or pd.isna(selected_event["odds_b"]):
