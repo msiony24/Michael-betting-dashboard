@@ -1245,15 +1245,16 @@ def fetch_sport_odds(api_key, sport_key):
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def fetch_api_tennis_today():
-    """Load today's ATP/WTA fixtures from API-Tennis without consuming Odds API credits."""
+def fetch_api_tennis_today(target_date=None):
+    """Load ATP/WTA fixtures from API-Tennis for the given date (defaults to today), without consuming Odds API credits."""
     if not API_TENNIS_AVAILABLE or APITennisClient is None:
         return [], {"source": "unavailable", "error": API_TENNIS_IMPORT_ERROR or "API-Tennis client unavailable"}
+    query_date = target_date or datetime.now(EASTERN_TZ).date()
     try:
         client = APITennisClient()
         response = client.get_fixtures(
-            datetime.now(EASTERN_TZ).date(),
-            datetime.now(EASTERN_TZ).date(),
+            query_date,
+            query_date,
             timezone_name="America/New_York",
         )
         return response.result, {"source": response.source, "fetched_at": response.fetched_at, "error": ""}
@@ -1262,24 +1263,24 @@ def fetch_api_tennis_today():
 
 
 @st.cache_data(ttl=1200, show_spinner=False)
-def fetch_api_tennis_odds_today():
-    """Load today's API-Tennis pre-match moneyline markets as a fallback source."""
+def fetch_api_tennis_odds_today(target_date=None):
+    """Load API-Tennis pre-match moneyline markets for the given date (defaults to today), as a fallback source."""
     if not API_TENNIS_AVAILABLE or APITennisClient is None:
         return {}, {"source": "unavailable", "error": API_TENNIS_IMPORT_ERROR or "API-Tennis client unavailable"}
+    query_date = target_date or datetime.now(EASTERN_TZ).date()
     try:
         client = APITennisClient()
-        today = datetime.now(EASTERN_TZ).date()
-        response = client.get_odds(today, today)
+        response = client.get_odds(query_date, query_date)
         normalized = normalize_prematch_odds(response.result)
         return normalized, {"source": response.source, "fetched_at": response.fetched_at, "error": ""}
     except Exception as exc:
         return {}, {"source": "unavailable", "fetched_at": None, "error": str(exc)}
 
 
-def normalize_api_tennis_schedule(fixtures, api_tennis_odds=None):
+def normalize_api_tennis_schedule(fixtures, api_tennis_odds=None, target_date=None):
     """Normalize API-Tennis fixtures into the same basic columns as the automatic slate."""
     rows = []
-    today_eastern = datetime.now(EASTERN_TZ).date()
+    schedule_date = target_date or datetime.now(EASTERN_TZ).date()
     for event in fixtures or []:
         event_type = str(event.get("event_type_type") or "").strip().lower()
         if "atp singles" not in event_type and "wta singles" not in event_type:
@@ -1292,7 +1293,7 @@ def normalize_api_tennis_schedule(fixtures, api_tennis_odds=None):
                 event_date = datetime.strptime(raw_date, "%Y-%m-%d").date()
             except Exception:
                 continue
-        if event_date != today_eastern:
+        if event_date != schedule_date:
             continue
         player_a = str(event.get("event_first_player") or "").strip()
         player_b = str(event.get("event_second_player") or "").strip()
@@ -1384,7 +1385,7 @@ def discover_active_tennis_sports(active_sports):
     return sorted(discovered, key=lambda item: str(item.get("title", item.get("key", ""))))
 
 
-def combine_tennis_slate(api_key, tennis_items):
+def combine_tennis_slate(api_key, tennis_items, target_date=None):
     """Fetch every active ATP/WTA market without one failed tour breaking the slate."""
     frames = []
     errors = []
@@ -1396,7 +1397,7 @@ def combine_tennis_slate(api_key, tennis_items):
             api_events, usage = fetch_sport_odds(api_key, item["key"])
             remaining = usage.get("remaining", remaining)
             used = usage.get("used", used)
-            frame = normalize_api_slate(api_events, event_title)
+            frame = normalize_api_slate(api_events, event_title, target_date=target_date)
             if not frame.empty:
                 frames.append(frame)
         except Exception as exc:
@@ -1413,16 +1414,16 @@ def combine_tennis_slate(api_key, tennis_items):
     return combined, {"remaining": remaining, "used": used}, errors
 
 
-def normalize_api_slate(events, sport_title):
+def normalize_api_slate(events, sport_title, target_date=None):
     rows = []
-    today_eastern = datetime.now(EASTERN_TZ).date()
+    schedule_date = target_date or datetime.now(EASTERN_TZ).date()
     for event in events:
         try:
             start_utc = datetime.fromisoformat(str(event.get("commence_time", "")).replace("Z", "+00:00"))
             start_et = start_utc.astimezone(EASTERN_TZ)
         except (TypeError, ValueError):
             continue
-        if start_et.date() != today_eastern:
+        if start_et.date() != schedule_date:
             continue
 
         home = str(event.get("home_team", "")).strip()
@@ -7248,8 +7249,25 @@ if active_top_page == "Daily Slate":
     if analysis_ready_message:
         st.success(analysis_ready_message)
     st.caption(
-        "Automatically load today's market card without changing the existing manual slate or Analysis Engine."
+        "Automatically load a market card without changing the existing manual slate or Analysis Engine. "
+        "Pick a future date below to line up analysis ahead of time."
     )
+
+    slate_today = datetime.now(EASTERN_TZ).date()
+    slate_selected_date = st.date_input(
+        "Slate date",
+        value=slate_today,
+        min_value=slate_today,
+        max_value=slate_today + timedelta(days=6),
+        key="daily_slate_target_date",
+        help="Odds this far out can still move before match day -- treat early analysis as a preview, "
+             "and re-run it closer to game time if the market line shifts.",
+    )
+    if slate_selected_date != slate_today:
+        st.info(
+            f"Showing the market card for {slate_selected_date.strftime('%A, %B %d')}. "
+            "Not every book posts odds this far ahead, so some matches may still be missing until closer to the day."
+        )
 
     st.markdown("### Automatic Slate Preview")
     api_key = _odds_api_key()
@@ -7299,14 +7317,18 @@ if active_top_page == "Daily Slate":
                     fetch_api_tennis_today.clear()
                     fetch_api_tennis_odds_today.clear()
 
-                with st.spinner("Loading today's market slate..."):
+                with st.spinner(f"Loading the market slate for {slate_selected_date.strftime('%b %d')}..."):
                     tennis_load_errors = []
                     if available_choices[selected_label] == "__all_tennis__":
-                        api_tennis_fixtures, api_tennis_status = fetch_api_tennis_today()
-                        api_tennis_odds, api_tennis_odds_status = fetch_api_tennis_odds_today()
-                        api_tennis_schedule = normalize_api_tennis_schedule(api_tennis_fixtures, api_tennis_odds)
+                        api_tennis_fixtures, api_tennis_status = fetch_api_tennis_today(slate_selected_date)
+                        api_tennis_odds, api_tennis_odds_status = fetch_api_tennis_odds_today(slate_selected_date)
+                        api_tennis_schedule = normalize_api_tennis_schedule(
+                            api_tennis_fixtures, api_tennis_odds, target_date=slate_selected_date
+                        )
                         if tennis_items:
-                            odds_api_slate, usage, tennis_load_errors = combine_tennis_slate(api_key, tennis_items)
+                            odds_api_slate, usage, tennis_load_errors = combine_tennis_slate(
+                                api_key, tennis_items, target_date=slate_selected_date
+                            )
                         else:
                             odds_api_slate = pd.DataFrame()
                             usage = sports_usage
@@ -7315,12 +7337,12 @@ if active_top_page == "Daily Slate":
                         automatic_slate = merge_tennis_schedule_with_market(api_tennis_schedule, odds_api_slate)
                     else:
                         api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
-                        automatic_slate = normalize_api_slate(api_events, selected_label)
+                        automatic_slate = normalize_api_slate(api_events, selected_label, target_date=slate_selected_date)
 
                 if available_choices[selected_label] == "__all_tennis__":
                     with st.expander("Tennis API diagnostics", expanded=automatic_slate.empty):
                         schedule_count = len(api_tennis_schedule) if 'api_tennis_schedule' in locals() else 0
-                        st.write(f"API-Tennis fixtures scheduled today: **{schedule_count}**")
+                        st.write(f"API-Tennis fixtures scheduled for {slate_selected_date.strftime('%b %d')}: **{schedule_count}**")
                         if 'api_tennis_status' in locals():
                             if api_tennis_status.get("error"):
                                 st.caption(f"API-Tennis schedule status: {api_tennis_status.get('error')}")
@@ -7368,16 +7390,17 @@ if active_top_page == "Daily Slate":
                             st.caption(message)
 
                 if automatic_slate.empty:
+                    slate_date_label = slate_selected_date.strftime('%b %d')
                     if available_choices[selected_label] == "__all_tennis__":
                         if 'api_tennis_status' in locals() and api_tennis_status.get("error"):
                             st.info(
-                                "Macabets could not load today's tennis schedule from API-Tennis or live prices from The Odds API. "
+                                f"Macabets could not load the {slate_date_label} tennis schedule from API-Tennis or live prices from The Odds API. "
                                 "Open diagnostics above for the provider errors."
                             )
                         else:
-                            st.info("API-Tennis is not reporting any ATP/WTA singles fixtures scheduled today.")
+                            st.info(f"API-Tennis is not reporting any ATP/WTA singles fixtures scheduled for {slate_date_label} yet.")
                     else:
-                        st.info(f"No {selected_label} events with US moneyline odds are scheduled today.")
+                        st.info(f"No {selected_label} events with US moneyline odds are scheduled for {slate_date_label} yet.")
                 else:
                     if available_choices[selected_label] == "__all_tennis__":
                         tournament_count = automatic_slate["sport"].nunique()
