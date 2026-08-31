@@ -2026,6 +2026,27 @@ def _analysis_market_line(row):
         return str(odds) if odds not in (None, "") else "—"
 
 
+def _analysis_market_line_numeric(row):
+    """Return the raw numeric actual market moneyline, or None if unavailable."""
+    prediction = str(row.get("prediction", ""))
+    if prediction and prediction == str(row.get("participant_a", "")):
+        odds = row.get("market_odds_a")
+    elif prediction and prediction == str(row.get("participant_b", "")):
+        odds = row.get("market_odds_b")
+    else:
+        odds = row.get("market_line")
+    try:
+        return float(odds) if odds is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _analysis_is_core_zone(row):
+    """Core Zone matches your usual betting range: -250 to -450 favorites."""
+    odds = _analysis_market_line_numeric(row)
+    return odds is not None and -450 <= odds <= -250
+
+
 def _analysis_pricing_report(row):
     """Recalculate pricing with current thresholds, including older saved analyses."""
     snapshot = row.get("analysis_snapshot") or {}
@@ -8325,7 +8346,9 @@ if active_top_page == "Archive":
                 )
                 day_bet = day_summary["bet"]
                 day_pass = day_summary["pass"]
-                day1, day2, day3, day4, day5 = st.columns(5)
+                day_core_rows = [row for row in selected_day_rows if _analysis_is_core_zone(row)]
+                day_core = summarize_rows(day_core_rows, verdict_getter=_analysis_verdict)
+                day1, day2, day3, day4, day5, day6 = st.columns(6)
                 day1.metric("Day Record", f"{day_summary['correct']}-{day_summary['incorrect']}")
                 day2.metric(
                     "Day Accuracy",
@@ -8334,6 +8357,11 @@ if active_top_page == "Archive":
                 day3.metric("BET Record", f"{day_bet['correct']}-{day_bet['incorrect']}")
                 day4.metric("PASS Record", f"{day_pass['correct']}-{day_pass['incorrect']}")
                 day5.metric("Pending", day_summary["pending"])
+                day6.metric(
+                    "Core Zone (-250/-450)",
+                    f"{day_core['correct']}-{day_core['incorrect']}",
+                    f"{day_core['accuracy']:.1%}" if day_core["accuracy"] is not None else "No graded picks",
+                )
                 st.caption(
                     f"Showing {day_summary['total']} analyses saved for the selected date. Open any one below to mark it Correct, Incorrect or Pending."
                 )
