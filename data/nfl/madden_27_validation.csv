@@ -1,31 +1,31 @@
 team,status,madden_players,rated_players,qb1,qb2,count_qb,count_rb,count_wr_te,count_ol,count_dl_edge,count_lb,count_secondary,count_st
-ARI,PASS,74,74,Jacoby Brissett,Gardner Minshew,3,5,13,14,16,6,14,3
-ATL,PASS,73,75,Tua Tagovailoa,Michael Penix Jr,3,4,8,16,14,9,17,4
-BAL,PASS,74,74,Lamar Jackson,Tyler Huntley,4,4,13,13,15,6,16,3
+ARI,PASS,74,73,Jacoby Brissett,Gardner Minshew,3,5,13,13,16,6,14,3
+ATL,PASS,73,73,Tua Tagovailoa,Michael Penix Jr,3,4,8,16,13,9,16,4
+BAL,PASS,74,72,Lamar Jackson,Tyler Huntley,4,4,13,12,14,6,16,3
 BUF,PASS,74,73,Josh Allen,Kyle Allen,3,5,14,13,16,6,12,4
 CAR,PASS,74,74,Bryce Young,Kenny Pickett,3,4,15,14,15,6,14,3
 CHI,PASS,74,74,Caleb Williams,Case Keenum,3,5,13,13,13,10,14,3
-CIN,PASS,74,74,Joe Burrow,Joe Flacco,4,5,14,12,16,7,13,3
-CLE,PASS,74,74,Shedeur Sanders,Deshaun Watson,4,4,15,15,12,8,13,3
-DAL,PASS,74,74,Dak Prescott,Joe Milton,3,6,14,12,14,5,17,3
+CIN,PASS,74,75,Joe Burrow,Joe Flacco,4,5,14,13,16,7,13,3
+CLE,PASS,74,75,Shedeur Sanders,Deshaun Watson,4,4,15,15,12,8,14,3
+DAL,PASS,74,75,Dak Prescott,Joe Milton,3,6,14,13,14,5,17,3
 DEN,PASS,74,74,Bo Nix,Jarrett Stidham,3,7,15,13,14,7,12,3
 DET,PASS,74,74,Jared Goff,Teddy Bridgewater,3,4,13,14,13,9,15,3
 GB,PASS,74,74,Jordan Love,Tyrod Taylor,3,5,13,14,16,6,14,3
 HOU,PASS,74,74,C.J. Stroud,Davis Mills,3,4,14,12,14,10,14,3
-IND,PASS,72,72,Daniel Jones,Anthony Richardson Sr,4,3,14,13,13,6,15,4
-JAX,PASS,74,76,Trevor Lawrence,Joey Aguilar,4,5,14,14,14,8,14,3
-KC,PASS,74,74,Patrick Mahomes,Justin Fields,4,5,14,14,13,7,14,3
-LA,PASS,74,74,Matthew Stafford,Ty Simpson,3,5,14,14,15,7,13,3
+IND,PASS,72,71,Daniel Jones,Anthony Richardson Sr,4,3,14,13,13,6,14,4
+JAX,PASS,74,77,Trevor Lawrence,Quinn Ewers,5,5,14,14,14,8,14,3
+KC,PASS,74,76,Patrick Mahomes,Justin Fields,4,5,14,16,13,7,14,3
+LA,PASS,74,74,Matthew Stafford,Ty Simpson,3,4,15,14,15,7,13,3
 LAC,PASS,73,73,Justin Herbert,Trey Lance,2,5,13,14,16,6,14,3
 LV,PASS,74,73,Fernando Mendoza,Kirk Cousins,3,3,16,13,16,6,13,3
-MIA,PASS,74,75,Malik Willis,Quinn Ewers,4,5,13,13,13,7,16,4
-MIN,PASS,73,72,Kyler Murray,J.J. McCarthy,4,6,10,14,14,7,14,3
+MIA,PASS,74,74,Malik Willis,Mark Gronowski,3,6,12,13,13,7,16,4
+MIN,PASS,73,72,Kyler Murray,J.J. McCarthy,4,5,10,14,15,7,14,3
 NE,PASS,73,72,Drake Maye,Tommy DeVito,3,6,11,12,15,6,15,4
 NO,PASS,74,74,Tyler Shough,Spencer Rattler,3,6,16,13,15,5,13,3
-NYG,PASS,74,73,Jaxson Dart,Jameis Winston,3,5,16,12,15,6,13,3
-NYJ,PASS,74,74,Geno Smith,Cade Klubnik,4,5,11,12,15,5,18,4
-PHI,PASS,74,75,Jalen Hurts,Andy Dalton,4,6,14,16,14,5,13,3
-PIT,PASS,74,74,Aaron Rodgers,Drew Allar,4,6,14,12,15,6,14,3
+NYG,PASS,74,73,Jaxson Dart,Jameis Winston,3,5,16,11,16,6,13,3
+NYJ,PASS,74,75,Geno Smith,Cade Klubnik,4,5,11,12,15,5,19,4
+PHI,PASS,74,76,Jalen Hurts,Andy Dalton,4,7,14,16,14,5,13,3
+PIT,PASS,74,73,Aaron Rodgers,Drew Allar,4,6,14,11,15,6,14,3
 SEA,PASS,74,74,Sam Darnold,Jalen Milroe,3,6,12,14,14,6,16,3
 SF,PASS,74,74,Brock Purdy,Mac Jones,3,6,15,13,12,8,14,3
 TB,PASS,74,74,Baker Mayfield,Jake Browning,3,4,13,14,14,7,15,4
