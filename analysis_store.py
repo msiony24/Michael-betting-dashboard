@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import urllib.error
 import urllib.parse
@@ -52,6 +53,25 @@ def is_configured() -> bool:
     return bool(base_url and api_key)
 
 
+def _json_safe(value: Any) -> Any:
+    """Recursively replace NaN/Infinity with None.
+
+    Python's json.dumps happily emits the literal tokens NaN/Infinity/-Infinity for
+    those float values, but that is not valid JSON per the spec -- PostgREST's strict
+    parser rejects the *entire* request body the moment one appears anywhere in it,
+    surfacing as an opaque "Empty or invalid json" (PGRST102) with no indication of
+    which field caused it. Scrubbing them here, once, for every save, prevents any
+    single stray NaN deep in a nested snapshot from silently losing the whole record.
+    """
+    if isinstance(value, float):
+        return None if (math.isnan(value) or math.isinf(value)) else value
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    return value
+
+
 def _request(
     method: str,
     path: str,
@@ -85,7 +105,7 @@ def _request(
 
     payload = None
     if body is not None:
-        payload = json.dumps(body, default=str).encode("utf-8")
+        payload = json.dumps(_json_safe(body), default=str).encode("utf-8")
 
     request = urllib.request.Request(url, data=payload, headers=headers, method=method)
     try:
