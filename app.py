@@ -7561,20 +7561,40 @@ if active_top_page == "Daily Slate":
                         )
                     else:
                         st.caption("Schedule source: API-Tennis. Odds sources checked: The Odds API and API-Tennis.")
-                    automatic_display = automatic_slate[
-                        ["time_et", "sport", "participant_a", "odds_a", "book_a", "participant_b", "odds_b", "book_b"]
-                    ].copy()
-                    automatic_display.columns = [
-                        "Time (ET)", "League", "Participant A", "Best Odds A", "Book A",
-                        "Participant B", "Best Odds B", "Book B"
-                    ]
-                    st.dataframe(automatic_display, use_container_width=True, hide_index=True)
-
-                    st.markdown("#### Send an Event to the Existing Manual Slate")
-                    event_options = automatic_slate.index.tolist()
                     slate_analyzed_pairs = _analyzed_pairs_for_date(
                         slate_selected_date, _cached_universal_analysis_rows()
                     )
+
+                    automatic_display = automatic_slate[
+                        ["time_et", "sport", "participant_a", "odds_a", "book_a", "participant_b", "odds_b", "book_b"]
+                    ].copy()
+                    automatic_display.insert(0, "Analyzed", [
+                        "✓" if frozenset((
+                            str(a).strip().lower(), str(b).strip().lower()
+                        )) in slate_analyzed_pairs else ""
+                        for a, b in zip(automatic_slate["participant_a"], automatic_slate["participant_b"])
+                    ])
+                    automatic_display.columns = [
+                        "Analyzed", "Time (ET)", "League", "Participant A", "Best Odds A", "Book A",
+                        "Participant B", "Best Odds B", "Book B"
+                    ]
+                    if is_tennis_event := (available_choices[selected_label] == "__all_tennis__"):
+                        automatic_display.insert(0, "Select", False)
+                        edited_slate = st.data_editor(
+                            automatic_display,
+                            use_container_width=True,
+                            hide_index=True,
+                            disabled=[c for c in automatic_display.columns if c != "Select"],
+                            key="daily_slate_select_editor",
+                        )
+                        st.caption("Check the matches you want, then hit \"Analyze Selected\" below.")
+                        selected_rows = edited_slate[edited_slate["Select"]]
+                    else:
+                        st.dataframe(automatic_display, use_container_width=True, hide_index=True)
+                        selected_rows = automatic_display.iloc[0:0]
+
+                    st.markdown("#### Send an Event to the Existing Manual Slate")
+                    event_options = automatic_slate.index.tolist()
 
                     def _slate_event_label(idx):
                         row = automatic_slate.loc[idx]
@@ -7593,7 +7613,6 @@ if active_top_page == "Daily Slate":
                         help="✓ marks matches already analyzed and logged for this date.",
                     )
                     selected_event = automatic_slate.loc[selected_event_index]
-                    is_tennis_event = available_choices[selected_label] == "__all_tennis__"
                     analyze_col, analyze_all_col, add_col = st.columns(3)
 
                     if analyze_col.button(
@@ -7675,29 +7694,24 @@ if active_top_page == "Daily Slate":
                                     st.exception(exc)
 
                     if analyze_all_col.button(
-                        "Analyze All (skip already-done)",
+                        f"Analyze Selected ({len(selected_rows)})",
                         use_container_width=True,
-                        disabled=not is_tennis_event,
-                        help="Runs and logs every unanalyzed match currently on this slate. Already-✓ matches are skipped.",
+                        disabled=not is_tennis_event or len(selected_rows) == 0,
+                        help="Runs and logs every match checked in the table above.",
                     ):
                         try:
                             slate_matches, _ = load_matches()
                         except Exception:
                             slate_matches = pd.DataFrame()
                         to_run = []
-                        for idx, row in automatic_slate.iterrows():
+                        for idx in selected_rows.index:
+                            row = automatic_slate.loc[idx]
                             if pd.isna(row["odds_a"]) or pd.isna(row["odds_b"]):
-                                continue
-                            pair_key = frozenset((
-                                str(row["participant_a"]).strip().lower(),
-                                str(row["participant_b"]).strip().lower(),
-                            ))
-                            if pair_key in slate_analyzed_pairs:
                                 continue
                             to_run.append((idx, row))
 
                         if not to_run:
-                            st.info("Nothing left to analyze -- every priced match on this slate is already logged.")
+                            st.info("None of the checked matches have both-side moneyline odds yet.")
                         else:
                             progress = st.progress(0.0, text=f"Analyzing 0 of {len(to_run)}...")
                             batch_results = []
