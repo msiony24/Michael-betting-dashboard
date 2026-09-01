@@ -2389,6 +2389,11 @@ def _run_and_log_daily_slate_tennis_analysis(
     fair_line = format_american(
         result["fair_line"] if projected_winner == player_a_name else probability_to_american(probability_b)
     )
+    # Match the same probability+reliability blended band the Analysis Engine page
+    # stores, so the displayed "Confidence" label always agrees with the verdict
+    # math (both must be driven by the same confidence score, not two different
+    # calculations landing on two different answers).
+    confidence_band = tennis_probability_confidence_band(projected_probability, confidence)
 
     token = _analysis_event_token(
         "Tennis",
@@ -2425,6 +2430,7 @@ def _run_and_log_daily_slate_tennis_analysis(
             "probability_b": probability_b,
             "price_assessment": price_report["price_assessment"],
             "verdict": price_report["verdict"],
+            "analysis_confidence": {"overall": confidence, "band": confidence_band},
             "source": "Daily Slate quick analysis",
         },
     })
