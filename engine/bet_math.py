@@ -218,15 +218,23 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     # requires the model's own expected_roi to be non-negative. High confidence
     # alone can no longer promote a price the model itself considers -EV into
     # a betting recommendation.
-    if expected_roi >= 0.08 and confidence_score >= 75 and probability >= 0.65:
+    # Verdict tiers are edge-based (model probability vs. market-implied
+    # probability), matching the price_assessment label above -- not raw
+    # expected ROI. ROI compresses at short prices and expands at plus-money
+    # prices for the *same* probability edge, so an ROI-based gate was
+    # inconsistently easy to clear for underdogs and inconsistently hard to
+    # clear for short favorites, even when the genuine edge was identical.
+    # expected_roi is kept as a hard floor on every tier so a large edge can
+    # never promote a price the model itself sees as -EV (or barely +EV)
+    # into a recommendation -- this preserves the original "no Worth Betting
+    # on negative EV" fix while removing the price-direction bias.
+    if edge >= 0.08 and confidence_score >= 75 and probability >= 0.65 and expected_roi >= 0.0:
         verdict = "Strong Bet"
-    elif expected_roi >= 0.025 and confidence_score >= 62:
+    elif edge >= 0.02 and confidence_score >= 62 and expected_roi >= -0.02:
         verdict = "Worth Betting"
-    elif expected_roi >= 0.0 and confidence_score >= 82:
-        verdict = "Worth Betting"
-    elif expected_roi >= -0.075 and confidence_score >= 78:
+    elif edge >= -0.01 and confidence_score >= 78 and expected_roi >= -0.05:
         verdict = "Lean"
-    elif expected_roi <= -0.12 or (expected_roi <= -0.08 and confidence_score < 78):
+    elif edge <= -0.08 or (edge <= -0.06 and confidence_score < 78):
         verdict = "Complete Pass"
     else:
         verdict = "Pass"
