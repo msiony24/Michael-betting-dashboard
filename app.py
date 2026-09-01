@@ -3346,6 +3346,35 @@ if active_top_page == "Dashboard":
 
     st.write("")
     with st.container(border=True):
+        st.markdown("### 📋 Core Zone Rankings Today")
+        st.caption("Every actionable pick priced -250 to -450 today, ranked in the order Macabets likes them best.")
+        if core_zone_actionable_today:
+            ranked_core_zone = sorted(core_zone_actionable_today, key=_home_core_zone_rank, reverse=True)
+            ranking_rows = []
+            for rank_position, row in enumerate(ranked_core_zone, start=1):
+                probability = _dashboard_number(row.get("predicted_probability"))
+                market_odds = _dashboard_market_odds(row)
+                market_implied = implied_probability(int(market_odds)) if market_odds not in (None, 0) else None
+                edge = probability - market_implied if probability is not None and market_implied is not None else None
+                ranking_rows.append({
+                    "#": rank_position,
+                    "Matchup": str(row.get("event_name") or f"{row.get('participant_a', '')} vs {row.get('participant_b', '')}"),
+                    "Sport": str(row.get("sport") or ""),
+                    "Prediction": str(row.get("prediction") or "—"),
+                    "Model Prob.": f"{probability:.1%}" if probability is not None else "—",
+                    "Edge": f"{edge:+.1%}" if edge is not None else "—",
+                    "Odds": format_american(market_odds) if market_odds is not None else "—",
+                    "Confidence": _analysis_confidence_label(row),
+                    "Verdict": _analysis_verdict(row),
+                })
+            st.dataframe(pd.DataFrame(ranking_rows), use_container_width=True, hide_index=True)
+            if st.button("View Full Analysis Log →", key="home_core_zone_rankings", use_container_width=True):
+                _queue_top_level_tab("Archive", "Analysis Log")
+        else:
+            st.info("No actionable Core Zone picks (-250 to -450) analyzed yet today.")
+
+    st.write("")
+    with st.container(border=True):
         st.markdown("### 🏆 Highest Win Probability Today")
         if highest_probability:
             win_prediction = str(highest_probability.get("prediction") or "—")
@@ -8278,6 +8307,20 @@ if active_top_page == "Archive":
                     "Shadow-mode diagnostic only -- this does not change any live prediction. "
                     "It measures, bucket by bucket, whether the model's stated confidence matches what actually happened."
                 )
+                with st.expander("What am I looking at? (plain English)"):
+                    st.markdown(
+                        "- **Confidence bucket**: group of picks where Macabets said it was roughly this sure "
+                        "(e.g. \"70-75%\" = every pick where it gave the winner a 70-75% chance).\n"
+                        "- **Model said (avg)**: the average confidence Macabets stated across that group.\n"
+                        "- **Actually won**: of those picks, the percentage that actually won.\n"
+                        "- **Gap**: actual minus model. A negative number means the model was **too confident** "
+                        "in that range -- it's winning less often than it claimed. A positive number means it's "
+                        "**underselling itself** -- winning more than it claimed.\n"
+                        "- **Reliable?**: whether there's enough graded picks in that bucket (15+) to trust the "
+                        "number. A bucket with 2 or 3 picks can show a huge gap just from bad luck -- that's not "
+                        "a real pattern yet, it's noise. Only trust \"Yes\" rows."
+                    )
+
                 MIN_CALIBRATION_SAMPLE = 15
                 calibration_source = graded.dropna(subset=["Predicted Probability"]).copy()
                 if calibration_source.empty:
@@ -8322,6 +8365,24 @@ if active_top_page == "Archive":
                         if not reliable.empty:
                             chart_frame = reliable.set_index("Confidence bucket")[["Model said (avg)", "Actually won"]]
                             st.bar_chart(chart_frame)
+
+                            worst = reliable.loc[reliable["Gap (actual - model)"].abs().idxmax()]
+                            gap_pts = worst["Gap (actual - model)"] * 100
+                            if abs(gap_pts) >= 5:
+                                direction = "too confident" if gap_pts < 0 else "underselling itself"
+                                st.warning(
+                                    f"**In plain terms:** the clearest pattern right now is the **{worst['Confidence bucket']}** "
+                                    f"bucket. Macabets said it was about {worst['Model said (avg)']:.1%} sure there, but those "
+                                    f"picks have actually won {worst['Actually won']:.1%} of the time ({int(worst['Sample size'])} "
+                                    f"graded picks) -- meaning the model has been **{direction}** in that range, by "
+                                    f"{abs(gap_pts):.1f} percentage points. This is a real, measured pattern, not one bad loss."
+                                )
+                            else:
+                                st.success(
+                                    "**In plain terms:** across every bucket with enough sample to trust, Macabets' stated "
+                                    "confidence is tracking pretty close to what's actually happening. No band is standing "
+                                    "out as meaningfully over- or under-confident yet."
+                                )
                         st.caption(
                             f"Minimum sample per bucket to call it reliable: {MIN_CALIBRATION_SAMPLE} graded predictions, "
                             "per the Layer 3 rule in MACABETS_LEARNING_ARCHITECTURE.md. A negative gap means the model "
