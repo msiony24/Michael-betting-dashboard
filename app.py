@@ -3143,6 +3143,9 @@ if active_top_page == "Dashboard":
     highest_actionable = max(actionable_today, key=_home_actionable_rank) if actionable_today else None
 
     def _home_core_zone_rank(row):
+        # Ranked for a flat-stake bettor: since every pick risks the same unit
+        # regardless of price, win probability -- not dollar-efficiency-per-bet
+        # (expected ROI) -- is the number that actually matters after verdict tier.
         pricing = _analysis_pricing_report(row)
         expected_roi = _dashboard_number(pricing.get("expected_roi"), -999.0)
         probability = _dashboard_number(row.get("predicted_probability"), -1.0)
@@ -3151,8 +3154,9 @@ if active_top_page == "Dashboard":
         edge = probability - market_implied if probability is not None and market_implied is not None else -1.0
         return (
             verdict_rank.get(str(pricing.get("verdict") or ""), 0),
-            expected_roi,
+            probability,
             edge,
+            expected_roi,
             confidence_rank.get(_analysis_confidence_label(row), 0),
         )
 
@@ -3242,7 +3246,7 @@ if active_top_page == "Dashboard":
     with center:
         with st.container(border=True):
             st.markdown("### 🎯 Best Core Zone Pick Today")
-            st.caption("Best actionable play priced in your usual -250 to -450 range -- ranked by edge, not just raw confidence.")
+            st.caption("Best actionable play priced in your usual -250 to -450 range -- ranked by win probability within its verdict tier, for flat-stake betting.")
             if best_core_zone_pick:
                 highest = best_core_zone_pick
                 participant_a = str(highest.get("participant_a") or "Participant A")
@@ -3349,8 +3353,9 @@ if active_top_page == "Dashboard":
     with st.container(border=True):
         st.markdown("### 📋 Core Zone Rankings Today")
         st.caption(
-            "Every match priced -250 to -450 analyzed today, ranked in the order Macabets likes them best -- "
-            "including Passes, so you can see if one just barely missed the cut."
+            "Every match priced -250 to -450 analyzed today, ranked by win probability within each verdict tier "
+            "(Strong Bet / Worth Betting / Lean / Pass) -- built for flat-stake betting, where hit rate matters "
+            "more than dollar-efficiency-per-bet."
         )
         if core_zone_all_today:
             ranked_core_zone = sorted(core_zone_all_today, key=_home_core_zone_rank, reverse=True)
