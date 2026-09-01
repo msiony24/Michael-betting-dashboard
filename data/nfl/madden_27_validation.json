@@ -6,7 +6,7 @@
     "rated_player_rows": 2362,
     "rated_teams": 32,
     "expected_teams": 32,
-    "players_with_nflverse_performance": 483,
+    "players_with_nflverse_performance": 482,
     "critical_error_count": 0,
     "warning_count": 0,
     "validation_passed": true
@@ -14,23 +14,23 @@
   "critical_errors": [],
   "warnings": [],
   "rating_source_counts": {
-    "Madden 27 baseline": 1879,
-    "Madden 27 + nflverse performance": 483
+    "Madden 27 baseline": 1880,
+    "Madden 27 + nflverse performance": 482
   },
   "teams": {
     "ARI": {
       "team": "ARI",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Jacoby Brissett",
       "qb2": "Gardner Minshew",
       "count_qb": 3,
       "count_rb": 5,
-      "count_wr_te": 13,
-      "count_ol": 13,
+      "count_wr_te": 14,
+      "count_ol": 14,
       "count_dl_edge": 16,
-      "count_lb": 6,
+      "count_lb": 5,
       "count_secondary": 14,
       "count_st": 3,
       "top_by_unit": {
@@ -225,16 +225,16 @@
       "team": "ATL",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 73,
+      "rated_players": 76,
       "qb1": "Tua Tagovailoa",
       "qb2": "Michael Penix Jr",
       "count_qb": 3,
       "count_rb": 4,
       "count_wr_te": 8,
-      "count_ol": 16,
-      "count_dl_edge": 13,
-      "count_lb": 9,
-      "count_secondary": 16,
+      "count_ol": 17,
+      "count_dl_edge": 15,
+      "count_lb": 10,
+      "count_secondary": 15,
       "count_st": 4,
       "top_by_unit": {
         "QB": [
@@ -343,6 +343,12 @@
         ],
         "DL_EDGE": [
           {
+            "name": "Gervon Dexter Sr",
+            "position": "DT",
+            "overall": 79.0,
+            "macabets_rating": 79.34
+          },
+          {
             "name": "Jalon Walker",
             "position": "EDGE",
             "overall": 79.0,
@@ -353,12 +359,6 @@
             "position": "EDGE",
             "overall": 79.0,
             "macabets_rating": 78.16
-          },
-          {
-            "name": "Samson Ebukam",
-            "position": "EDGE",
-            "overall": 76.0,
-            "macabets_rating": 76.52
           }
         ],
         "LB": [
@@ -428,13 +428,13 @@
       "team": "BAL",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 72,
+      "rated_players": 71,
       "qb1": "Lamar Jackson",
       "qb2": "Tyler Huntley",
       "count_qb": 4,
       "count_rb": 4,
       "count_wr_te": 13,
-      "count_ol": 12,
+      "count_ol": 11,
       "count_dl_edge": 14,
       "count_lb": 6,
       "count_secondary": 16,
@@ -637,16 +637,16 @@
       "team": "BUF",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Josh Allen",
       "qb2": "Kyle Allen",
       "count_qb": 3,
       "count_rb": 5,
       "count_wr_te": 14,
-      "count_ol": 13,
-      "count_dl_edge": 16,
+      "count_ol": 12,
+      "count_dl_edge": 17,
       "count_lb": 6,
-      "count_secondary": 12,
+      "count_secondary": 11,
       "count_st": 4,
       "top_by_unit": {
         "QB": [
@@ -847,8 +847,8 @@
       "count_rb": 4,
       "count_wr_te": 15,
       "count_ol": 14,
-      "count_dl_edge": 15,
-      "count_lb": 6,
+      "count_dl_edge": 16,
+      "count_lb": 5,
       "count_secondary": 14,
       "count_st": 3,
       "top_by_unit": {
@@ -984,16 +984,16 @@
             "macabets_rating": 86.28
           },
           {
-            "name": "Trevin Wallace",
-            "position": "LB",
-            "overall": 74.0,
-            "macabets_rating": 74.95
-          },
-          {
             "name": "Claudin Cherelus",
             "position": "LB",
             "overall": 69.0,
             "macabets_rating": 69.96
+          },
+          {
+            "name": "Jackson Kuwatch",
+            "position": "LB",
+            "overall": 65.0,
+            "macabets_rating": 66.9
           }
         ],
         "SECONDARY": [
@@ -1050,9 +1050,9 @@
       "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 13,
-      "count_dl_edge": 13,
+      "count_dl_edge": 12,
       "count_lb": 10,
-      "count_secondary": 14,
+      "count_secondary": 15,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -1173,10 +1173,10 @@
             "macabets_rating": 80.61
           },
           {
-            "name": "Gervon Dexter Sr",
-            "position": "DT",
-            "overall": 79.0,
-            "macabets_rating": 79.34
+            "name": "Dayo Odeyingbo",
+            "position": "EDGE",
+            "overall": 73.0,
+            "macabets_rating": 74.03
           }
         ],
         "LB": [
@@ -1455,7 +1455,7 @@
       "team": "CLE",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 76,
       "qb1": "Shedeur Sanders",
       "qb2": "Deshaun Watson",
       "count_qb": 4,
@@ -1464,7 +1464,7 @@
       "count_ol": 15,
       "count_dl_edge": 12,
       "count_lb": 8,
-      "count_secondary": 14,
+      "count_secondary": 15,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -1664,16 +1664,16 @@
       "team": "DAL",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 74,
       "qb1": "Dak Prescott",
       "qb2": "Joe Milton",
       "count_qb": 3,
-      "count_rb": 6,
+      "count_rb": 7,
       "count_wr_te": 14,
-      "count_ol": 13,
+      "count_ol": 12,
       "count_dl_edge": 14,
       "count_lb": 5,
-      "count_secondary": 17,
+      "count_secondary": 16,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -1867,16 +1867,16 @@
       "team": "DEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "Bo Nix",
       "qb2": "Jarrett Stidham",
       "count_qb": 3,
       "count_rb": 7,
-      "count_wr_te": 15,
+      "count_wr_te": 14,
       "count_ol": 13,
       "count_dl_edge": 14,
       "count_lb": 7,
-      "count_secondary": 12,
+      "count_secondary": 11,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -2273,14 +2273,14 @@
       "team": "GB",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 73,
       "qb1": "Jordan Love",
       "qb2": "Tyrod Taylor",
-      "count_qb": 3,
-      "count_rb": 5,
+      "count_qb": 2,
+      "count_rb": 6,
       "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 16,
+      "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3,
@@ -2297,12 +2297,6 @@
             "position": "QB",
             "overall": 69.0,
             "macabets_rating": 71.97
-          },
-          {
-            "name": "Kyle McCord",
-            "position": "QB",
-            "overall": 65.0,
-            "macabets_rating": 68.0
           }
         ],
         "RB": [
@@ -2313,16 +2307,16 @@
             "macabets_rating": 90.3
           },
           {
+            "name": "Kaleb Johnson",
+            "position": "HB",
+            "overall": 74.0,
+            "macabets_rating": 76.5
+          },
+          {
             "name": "MarShawn Lloyd",
             "position": "HB",
             "overall": 72.0,
             "macabets_rating": 74.8
-          },
-          {
-            "name": "Damien Martinez",
-            "position": "HB",
-            "overall": 70.0,
-            "macabets_rating": 73.0
           }
         ],
         "WR_TE": [
@@ -2476,13 +2470,13 @@
       "team": "HOU",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "C.J. Stroud",
       "qb2": "Davis Mills",
       "count_qb": 3,
       "count_rb": 4,
       "count_wr_te": 14,
-      "count_ol": 12,
+      "count_ol": 10,
       "count_dl_edge": 14,
       "count_lb": 10,
       "count_secondary": 14,
@@ -2679,17 +2673,17 @@
       "team": "IND",
       "status": "PASS",
       "madden_players": 72,
-      "rated_players": 71,
+      "rated_players": 70,
       "qb1": "Daniel Jones",
       "qb2": "Anthony Richardson Sr",
       "count_qb": 4,
       "count_rb": 3,
       "count_wr_te": 14,
-      "count_ol": 13,
-      "count_dl_edge": 13,
+      "count_ol": 14,
+      "count_dl_edge": 12,
       "count_lb": 6,
       "count_secondary": 14,
-      "count_st": 4,
+      "count_st": 3,
       "top_by_unit": {
         "QB": [
           {
@@ -2875,10 +2869,10 @@
             "macabets_rating": 77.0
           },
           {
-            "name": "Blake Grupe",
-            "position": "K",
-            "overall": 73.0,
-            "macabets_rating": 76.0
+            "name": "Luke Rhodes",
+            "position": "LS",
+            "overall": 77.0,
+            "macabets_rating": 74.0
           }
         ]
       },
@@ -2888,15 +2882,15 @@
       "team": "JAX",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 77,
+      "rated_players": 74,
       "qb1": "Trevor Lawrence",
       "qb2": "Quinn Ewers",
       "count_qb": 5,
       "count_rb": 5,
-      "count_wr_te": 14,
+      "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 14,
-      "count_lb": 8,
+      "count_dl_edge": 13,
+      "count_lb": 7,
       "count_secondary": 14,
       "count_st": 3,
       "top_by_unit": {
@@ -3103,14 +3097,14 @@
       "team": "KC",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 76,
+      "rated_players": 74,
       "qb1": "Patrick Mahomes",
       "qb2": "Justin Fields",
       "count_qb": 4,
-      "count_rb": 5,
+      "count_rb": 4,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 13,
+      "count_dl_edge": 12,
       "count_lb": 7,
       "count_secondary": 14,
       "count_st": 3,
@@ -3155,10 +3149,10 @@
             "macabets_rating": 76.38
           },
           {
-            "name": "Emari Demercado",
+            "name": "Emmett Johnson",
             "position": "HB",
-            "overall": 70.0,
-            "macabets_rating": 73.01
+            "overall": 68.0,
+            "macabets_rating": 71.0
           }
         ],
         "WR_TE": [
@@ -3312,11 +3306,11 @@
       "team": "LA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 75,
       "qb1": "Matthew Stafford",
       "qb2": "Ty Simpson",
       "count_qb": 3,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 15,
       "count_ol": 14,
       "count_dl_edge": 15,
@@ -3358,10 +3352,10 @@
             "macabets_rating": 79.86
           },
           {
-            "name": "Dean Connors",
+            "name": "Jarquez Hunter",
             "position": "HB",
-            "overall": 66.0,
-            "macabets_rating": 69.0
+            "overall": 72.0,
+            "macabets_rating": 74.74
           }
         ],
         "WR_TE": [
@@ -3515,14 +3509,14 @@
       "team": "LAC",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Justin Herbert",
       "qb2": "Trey Lance",
       "count_qb": 2,
       "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 16,
+      "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3,
@@ -3712,16 +3706,16 @@
       "team": "LV",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Fernando Mendoza",
       "qb2": "Kirk Cousins",
       "count_qb": 3,
       "count_rb": 3,
       "count_wr_te": 16,
-      "count_ol": 13,
+      "count_ol": 12,
       "count_dl_edge": 16,
       "count_lb": 6,
-      "count_secondary": 13,
+      "count_secondary": 15,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -3822,10 +3816,10 @@
             "macabets_rating": 74.1
           },
           {
-            "name": "Jordan Meredith",
-            "position": "C",
+            "name": "DJ Glaze",
+            "position": "RT",
             "overall": 72.0,
-            "macabets_rating": 73.73
+            "macabets_rating": 73.35
           }
         ],
         "DL_EDGE": [
@@ -3915,16 +3909,16 @@
       "team": "MIA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 80,
       "qb1": "Malik Willis",
-      "qb2": "Mark Gronowski",
-      "count_qb": 3,
-      "count_rb": 6,
-      "count_wr_te": 12,
-      "count_ol": 13,
+      "qb2": "Kyle McCord",
+      "count_qb": 5,
+      "count_rb": 5,
+      "count_wr_te": 13,
+      "count_ol": 14,
       "count_dl_edge": 13,
       "count_lb": 7,
-      "count_secondary": 16,
+      "count_secondary": 19,
       "count_st": 4,
       "top_by_unit": {
         "QB": [
@@ -3933,6 +3927,18 @@
             "position": "QB",
             "overall": 74.0,
             "macabets_rating": 75.95
+          },
+          {
+            "name": "Kyle McCord",
+            "position": "QB",
+            "overall": 65.0,
+            "macabets_rating": 68.0
+          },
+          {
+            "name": "Brady Cook",
+            "position": "QB",
+            "overall": 63.0,
+            "macabets_rating": 66.1
           },
           {
             "name": "Mark Gronowski",
@@ -4118,13 +4124,13 @@
       "team": "MIN",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 72,
+      "rated_players": 74,
       "qb1": "Kyler Murray",
       "qb2": "J.J. McCarthy",
       "count_qb": 4,
-      "count_rb": 5,
+      "count_rb": 6,
       "count_wr_te": 10,
-      "count_ol": 14,
+      "count_ol": 15,
       "count_dl_edge": 15,
       "count_lb": 7,
       "count_secondary": 14,
@@ -4334,10 +4340,10 @@
       "count_rb": 6,
       "count_wr_te": 11,
       "count_ol": 12,
-      "count_dl_edge": 15,
-      "count_lb": 6,
-      "count_secondary": 15,
-      "count_st": 4,
+      "count_dl_edge": 16,
+      "count_lb": 7,
+      "count_secondary": 14,
+      "count_st": 3,
       "top_by_unit": {
         "QB": [
           {
@@ -4517,10 +4523,10 @@
             "macabets_rating": 77.0
           },
           {
-            "name": "Matt Haack",
-            "position": "P",
-            "overall": 73.0,
-            "macabets_rating": 75.75
+            "name": "Julian Ashby",
+            "position": "LS",
+            "overall": 65.0,
+            "macabets_rating": 62.0
           }
         ]
       },
@@ -4537,9 +4543,9 @@
       "count_rb": 6,
       "count_wr_te": 16,
       "count_ol": 13,
-      "count_dl_edge": 15,
+      "count_dl_edge": 16,
       "count_lb": 5,
-      "count_secondary": 13,
+      "count_secondary": 12,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -4733,7 +4739,7 @@
       "team": "NYG",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Jaxson Dart",
       "qb2": "Jameis Winston",
       "count_qb": 3,
@@ -4741,7 +4747,7 @@
       "count_wr_te": 16,
       "count_ol": 11,
       "count_dl_edge": 16,
-      "count_lb": 6,
+      "count_lb": 5,
       "count_secondary": 13,
       "count_st": 3,
       "top_by_unit": {
@@ -4936,17 +4942,17 @@
       "team": "NYJ",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 76,
       "qb1": "Geno Smith",
       "qb2": "Cade Klubnik",
-      "count_qb": 4,
+      "count_qb": 3,
       "count_rb": 5,
       "count_wr_te": 11,
-      "count_ol": 12,
+      "count_ol": 13,
       "count_dl_edge": 15,
-      "count_lb": 5,
-      "count_secondary": 19,
-      "count_st": 4,
+      "count_lb": 6,
+      "count_secondary": 18,
+      "count_st": 5,
       "top_by_unit": {
         "QB": [
           {
@@ -4966,12 +4972,6 @@
             "position": "QB",
             "overall": 64.0,
             "macabets_rating": 67.0
-          },
-          {
-            "name": "Brady Cook",
-            "position": "QB",
-            "overall": 63.0,
-            "macabets_rating": 66.1
           }
         ],
         "RB": [
@@ -5052,10 +5052,10 @@
             "macabets_rating": 76.0
           },
           {
-            "name": "Josh Myers",
+            "name": "Jordan Meredith",
             "position": "C",
             "overall": 72.0,
-            "macabets_rating": 73.62
+            "macabets_rating": 73.73
           }
         ],
         "DL_EDGE": [
@@ -5092,10 +5092,10 @@
             "macabets_rating": 76.97
           },
           {
-            "name": "Mykal Walker",
+            "name": "Trevin Wallace",
             "position": "LB",
-            "overall": 70.0,
-            "macabets_rating": 71.22
+            "overall": 74.0,
+            "macabets_rating": 74.95
           }
         ],
         "SECONDARY": [
@@ -5126,16 +5126,16 @@
             "macabets_rating": 80.0
           },
           {
-            "name": "Austin McNamara",
-            "position": "P",
+            "name": "Blake Grupe",
+            "position": "K",
             "overall": 73.0,
             "macabets_rating": 76.0
           },
           {
-            "name": "Cade York",
-            "position": "K",
-            "overall": 70.0,
-            "macabets_rating": 73.0
+            "name": "Austin McNamara",
+            "position": "P",
+            "overall": 73.0,
+            "macabets_rating": 76.0
           }
         ]
       },
@@ -5145,14 +5145,14 @@
       "team": "PHI",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 76,
+      "rated_players": 73,
       "qb1": "Jalen Hurts",
       "qb2": "Andy Dalton",
       "count_qb": 4,
       "count_rb": 7,
       "count_wr_te": 14,
-      "count_ol": 16,
-      "count_dl_edge": 14,
+      "count_ol": 14,
+      "count_dl_edge": 13,
       "count_lb": 5,
       "count_secondary": 13,
       "count_st": 3,
@@ -5354,11 +5354,11 @@
       "team": "PIT",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Aaron Rodgers",
       "qb2": "Drew Allar",
       "count_qb": 4,
-      "count_rb": 6,
+      "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 11,
       "count_dl_edge": 15,
@@ -5406,10 +5406,10 @@
             "macabets_rating": 85.05
           },
           {
-            "name": "Kaleb Johnson",
+            "name": "Eli Heidenreich",
             "position": "HB",
-            "overall": 74.0,
-            "macabets_rating": 76.5
+            "overall": 69.0,
+            "macabets_rating": 72.0
           }
         ],
         "WR_TE": [
@@ -5563,15 +5563,15 @@
       "team": "SEA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "Sam Darnold",
       "qb2": "Jalen Milroe",
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 12,
       "count_ol": 14,
-      "count_dl_edge": 14,
-      "count_lb": 6,
+      "count_dl_edge": 13,
+      "count_lb": 5,
       "count_secondary": 16,
       "count_st": 3,
       "top_by_unit": {
@@ -5772,10 +5772,10 @@
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 15,
-      "count_ol": 13,
+      "count_ol": 14,
       "count_dl_edge": 12,
       "count_lb": 8,
-      "count_secondary": 14,
+      "count_secondary": 13,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -5876,10 +5876,10 @@
             "macabets_rating": 77.05
           },
           {
-            "name": "Robert Jones",
+            "name": "Jarrett Patterson",
             "position": "RG",
             "overall": 70.0,
-            "macabets_rating": 71.48
+            "macabets_rating": 71.67
           }
         ],
         "DL_EDGE": [
@@ -6172,16 +6172,16 @@
       "team": "TEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 78,
       "qb1": "Cam Ward",
       "qb2": "Will Levis",
       "count_qb": 4,
-      "count_rb": 6,
+      "count_rb": 5,
       "count_wr_te": 14,
-      "count_ol": 14,
-      "count_dl_edge": 15,
-      "count_lb": 6,
-      "count_secondary": 12,
+      "count_ol": 15,
+      "count_dl_edge": 17,
+      "count_lb": 7,
+      "count_secondary": 13,
       "count_st": 3,
       "top_by_unit": {
         "QB": [
@@ -6224,10 +6224,10 @@
             "macabets_rating": 79.27
           },
           {
-            "name": "Michael Carter",
+            "name": "Nick Singleton",
             "position": "HB",
-            "overall": 71.0,
-            "macabets_rating": 74.28
+            "overall": 69.0,
+            "macabets_rating": 72.0
           }
         ],
         "WR_TE": [
@@ -6381,7 +6381,7 @@
       "team": "WAS",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 75,
       "qb1": "Jayden Daniels",
       "qb2": "Marcus Mariota",
       "count_qb": 4,
@@ -6389,9 +6389,9 @@
       "count_wr_te": 13,
       "count_ol": 13,
       "count_dl_edge": 15,
-      "count_lb": 6,
+      "count_lb": 7,
       "count_secondary": 14,
-      "count_st": 3,
+      "count_st": 4,
       "top_by_unit": {
         "QB": [
           {
@@ -6571,16 +6571,16 @@
             "macabets_rating": 78.85
           },
           {
+            "name": "Matt Haack",
+            "position": "P",
+            "overall": 73.0,
+            "macabets_rating": 75.75
+          },
+          {
             "name": "Jake Moody",
             "position": "K",
             "overall": 68.0,
             "macabets_rating": 71.0
-          },
-          {
-            "name": "Tyler Ott",
-            "position": "LS",
-            "overall": 73.0,
-            "macabets_rating": 70.0
           }
         ]
       },
@@ -6592,15 +6592,15 @@
       "team": "ARI",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Jacoby Brissett",
       "qb2": "Gardner Minshew",
       "count_qb": 3,
       "count_rb": 5,
-      "count_wr_te": 13,
-      "count_ol": 13,
+      "count_wr_te": 14,
+      "count_ol": 14,
       "count_dl_edge": 16,
-      "count_lb": 6,
+      "count_lb": 5,
       "count_secondary": 14,
       "count_st": 3
     },
@@ -6608,29 +6608,29 @@
       "team": "ATL",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 73,
+      "rated_players": 76,
       "qb1": "Tua Tagovailoa",
       "qb2": "Michael Penix Jr",
       "count_qb": 3,
       "count_rb": 4,
       "count_wr_te": 8,
-      "count_ol": 16,
-      "count_dl_edge": 13,
-      "count_lb": 9,
-      "count_secondary": 16,
+      "count_ol": 17,
+      "count_dl_edge": 15,
+      "count_lb": 10,
+      "count_secondary": 15,
       "count_st": 4
     },
     {
       "team": "BAL",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 72,
+      "rated_players": 71,
       "qb1": "Lamar Jackson",
       "qb2": "Tyler Huntley",
       "count_qb": 4,
       "count_rb": 4,
       "count_wr_te": 13,
-      "count_ol": 12,
+      "count_ol": 11,
       "count_dl_edge": 14,
       "count_lb": 6,
       "count_secondary": 16,
@@ -6640,16 +6640,16 @@
       "team": "BUF",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Josh Allen",
       "qb2": "Kyle Allen",
       "count_qb": 3,
       "count_rb": 5,
       "count_wr_te": 14,
-      "count_ol": 13,
-      "count_dl_edge": 16,
+      "count_ol": 12,
+      "count_dl_edge": 17,
       "count_lb": 6,
-      "count_secondary": 12,
+      "count_secondary": 11,
       "count_st": 4
     },
     {
@@ -6663,8 +6663,8 @@
       "count_rb": 4,
       "count_wr_te": 15,
       "count_ol": 14,
-      "count_dl_edge": 15,
-      "count_lb": 6,
+      "count_dl_edge": 16,
+      "count_lb": 5,
       "count_secondary": 14,
       "count_st": 3
     },
@@ -6679,9 +6679,9 @@
       "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 13,
-      "count_dl_edge": 13,
+      "count_dl_edge": 12,
       "count_lb": 10,
-      "count_secondary": 14,
+      "count_secondary": 15,
       "count_st": 3
     },
     {
@@ -6704,7 +6704,7 @@
       "team": "CLE",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 76,
       "qb1": "Shedeur Sanders",
       "qb2": "Deshaun Watson",
       "count_qb": 4,
@@ -6713,39 +6713,39 @@
       "count_ol": 15,
       "count_dl_edge": 12,
       "count_lb": 8,
-      "count_secondary": 14,
+      "count_secondary": 15,
       "count_st": 3
     },
     {
       "team": "DAL",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 74,
       "qb1": "Dak Prescott",
       "qb2": "Joe Milton",
       "count_qb": 3,
-      "count_rb": 6,
+      "count_rb": 7,
       "count_wr_te": 14,
-      "count_ol": 13,
+      "count_ol": 12,
       "count_dl_edge": 14,
       "count_lb": 5,
-      "count_secondary": 17,
+      "count_secondary": 16,
       "count_st": 3
     },
     {
       "team": "DEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "Bo Nix",
       "qb2": "Jarrett Stidham",
       "count_qb": 3,
       "count_rb": 7,
-      "count_wr_te": 15,
+      "count_wr_te": 14,
       "count_ol": 13,
       "count_dl_edge": 14,
       "count_lb": 7,
-      "count_secondary": 12,
+      "count_secondary": 11,
       "count_st": 3
     },
     {
@@ -6768,14 +6768,14 @@
       "team": "GB",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 73,
       "qb1": "Jordan Love",
       "qb2": "Tyrod Taylor",
-      "count_qb": 3,
-      "count_rb": 5,
+      "count_qb": 2,
+      "count_rb": 6,
       "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 16,
+      "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3
@@ -6784,13 +6784,13 @@
       "team": "HOU",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "C.J. Stroud",
       "qb2": "Davis Mills",
       "count_qb": 3,
       "count_rb": 4,
       "count_wr_te": 14,
-      "count_ol": 12,
+      "count_ol": 10,
       "count_dl_edge": 14,
       "count_lb": 10,
       "count_secondary": 14,
@@ -6800,31 +6800,31 @@
       "team": "IND",
       "status": "PASS",
       "madden_players": 72,
-      "rated_players": 71,
+      "rated_players": 70,
       "qb1": "Daniel Jones",
       "qb2": "Anthony Richardson Sr",
       "count_qb": 4,
       "count_rb": 3,
       "count_wr_te": 14,
-      "count_ol": 13,
-      "count_dl_edge": 13,
+      "count_ol": 14,
+      "count_dl_edge": 12,
       "count_lb": 6,
       "count_secondary": 14,
-      "count_st": 4
+      "count_st": 3
     },
     {
       "team": "JAX",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 77,
+      "rated_players": 74,
       "qb1": "Trevor Lawrence",
       "qb2": "Quinn Ewers",
       "count_qb": 5,
       "count_rb": 5,
-      "count_wr_te": 14,
+      "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 14,
-      "count_lb": 8,
+      "count_dl_edge": 13,
+      "count_lb": 7,
       "count_secondary": 14,
       "count_st": 3
     },
@@ -6832,14 +6832,14 @@
       "team": "KC",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 76,
+      "rated_players": 74,
       "qb1": "Patrick Mahomes",
       "qb2": "Justin Fields",
       "count_qb": 4,
-      "count_rb": 5,
+      "count_rb": 4,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 13,
+      "count_dl_edge": 12,
       "count_lb": 7,
       "count_secondary": 14,
       "count_st": 3
@@ -6848,11 +6848,11 @@
       "team": "LA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 75,
       "qb1": "Matthew Stafford",
       "qb2": "Ty Simpson",
       "count_qb": 3,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 15,
       "count_ol": 14,
       "count_dl_edge": 15,
@@ -6864,14 +6864,14 @@
       "team": "LAC",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Justin Herbert",
       "qb2": "Trey Lance",
       "count_qb": 2,
       "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 14,
-      "count_dl_edge": 16,
+      "count_dl_edge": 15,
       "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3
@@ -6880,45 +6880,45 @@
       "team": "LV",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Fernando Mendoza",
       "qb2": "Kirk Cousins",
       "count_qb": 3,
       "count_rb": 3,
       "count_wr_te": 16,
-      "count_ol": 13,
+      "count_ol": 12,
       "count_dl_edge": 16,
       "count_lb": 6,
-      "count_secondary": 13,
+      "count_secondary": 15,
       "count_st": 3
     },
     {
       "team": "MIA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 80,
       "qb1": "Malik Willis",
-      "qb2": "Mark Gronowski",
-      "count_qb": 3,
-      "count_rb": 6,
-      "count_wr_te": 12,
-      "count_ol": 13,
+      "qb2": "Kyle McCord",
+      "count_qb": 5,
+      "count_rb": 5,
+      "count_wr_te": 13,
+      "count_ol": 14,
       "count_dl_edge": 13,
       "count_lb": 7,
-      "count_secondary": 16,
+      "count_secondary": 19,
       "count_st": 4
     },
     {
       "team": "MIN",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 72,
+      "rated_players": 74,
       "qb1": "Kyler Murray",
       "qb2": "J.J. McCarthy",
       "count_qb": 4,
-      "count_rb": 5,
+      "count_rb": 6,
       "count_wr_te": 10,
-      "count_ol": 14,
+      "count_ol": 15,
       "count_dl_edge": 15,
       "count_lb": 7,
       "count_secondary": 14,
@@ -6935,10 +6935,10 @@
       "count_rb": 6,
       "count_wr_te": 11,
       "count_ol": 12,
-      "count_dl_edge": 15,
-      "count_lb": 6,
-      "count_secondary": 15,
-      "count_st": 4
+      "count_dl_edge": 16,
+      "count_lb": 7,
+      "count_secondary": 14,
+      "count_st": 3
     },
     {
       "team": "NO",
@@ -6951,16 +6951,16 @@
       "count_rb": 6,
       "count_wr_te": 16,
       "count_ol": 13,
-      "count_dl_edge": 15,
+      "count_dl_edge": 16,
       "count_lb": 5,
-      "count_secondary": 13,
+      "count_secondary": 12,
       "count_st": 3
     },
     {
       "team": "NYG",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Jaxson Dart",
       "qb2": "Jameis Winston",
       "count_qb": 3,
@@ -6968,7 +6968,7 @@
       "count_wr_te": 16,
       "count_ol": 11,
       "count_dl_edge": 16,
-      "count_lb": 6,
+      "count_lb": 5,
       "count_secondary": 13,
       "count_st": 3
     },
@@ -6976,30 +6976,30 @@
       "team": "NYJ",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 75,
+      "rated_players": 76,
       "qb1": "Geno Smith",
       "qb2": "Cade Klubnik",
-      "count_qb": 4,
+      "count_qb": 3,
       "count_rb": 5,
       "count_wr_te": 11,
-      "count_ol": 12,
+      "count_ol": 13,
       "count_dl_edge": 15,
-      "count_lb": 5,
-      "count_secondary": 19,
-      "count_st": 4
+      "count_lb": 6,
+      "count_secondary": 18,
+      "count_st": 5
     },
     {
       "team": "PHI",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 76,
+      "rated_players": 73,
       "qb1": "Jalen Hurts",
       "qb2": "Andy Dalton",
       "count_qb": 4,
       "count_rb": 7,
       "count_wr_te": 14,
-      "count_ol": 16,
-      "count_dl_edge": 14,
+      "count_ol": 14,
+      "count_dl_edge": 13,
       "count_lb": 5,
       "count_secondary": 13,
       "count_st": 3
@@ -7008,11 +7008,11 @@
       "team": "PIT",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 72,
       "qb1": "Aaron Rodgers",
       "qb2": "Drew Allar",
       "count_qb": 4,
-      "count_rb": 6,
+      "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 11,
       "count_dl_edge": 15,
@@ -7024,15 +7024,15 @@
       "team": "SEA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 72,
       "qb1": "Sam Darnold",
       "qb2": "Jalen Milroe",
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 12,
       "count_ol": 14,
-      "count_dl_edge": 14,
-      "count_lb": 6,
+      "count_dl_edge": 13,
+      "count_lb": 5,
       "count_secondary": 16,
       "count_st": 3
     },
@@ -7046,10 +7046,10 @@
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 15,
-      "count_ol": 13,
+      "count_ol": 14,
       "count_dl_edge": 12,
       "count_lb": 8,
-      "count_secondary": 14,
+      "count_secondary": 13,
       "count_st": 3
     },
     {
@@ -7072,23 +7072,23 @@
       "team": "TEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 78,
       "qb1": "Cam Ward",
       "qb2": "Will Levis",
       "count_qb": 4,
-      "count_rb": 6,
+      "count_rb": 5,
       "count_wr_te": 14,
-      "count_ol": 14,
-      "count_dl_edge": 15,
-      "count_lb": 6,
-      "count_secondary": 12,
+      "count_ol": 15,
+      "count_dl_edge": 17,
+      "count_lb": 7,
+      "count_secondary": 13,
       "count_st": 3
     },
     {
       "team": "WAS",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 75,
       "qb1": "Jayden Daniels",
       "qb2": "Marcus Mariota",
       "count_qb": 4,
@@ -7096,9 +7096,9 @@
       "count_wr_te": 13,
       "count_ol": 13,
       "count_dl_edge": 15,
-      "count_lb": 6,
+      "count_lb": 7,
       "count_secondary": 14,
-      "count_st": 3
+      "count_st": 4
     }
   ]
 }
