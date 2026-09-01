@@ -228,7 +228,7 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     # never promote a price the model itself sees as -EV (or barely +EV)
     # into a recommendation -- this preserves the original "no Worth Betting
     # on negative EV" fix while removing the price-direction bias.
-    if edge >= 0.08 and confidence_score >= 75 and probability >= 0.65 and expected_roi >= 0.0:
+    if edge >= 0.08 and confidence_score >= 75 and probability >= 0.75 and expected_roi >= 0.0:
         verdict = "Strong Bet"
     elif edge >= 0.02 and confidence_score >= 62 and expected_roi >= -0.02:
         verdict = "Worth Betting"
