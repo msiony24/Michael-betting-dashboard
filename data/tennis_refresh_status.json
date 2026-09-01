@@ -1,28 +1,28 @@
 {
   "current_year": 2026,
-  "current_year_match_count": 2301,
-  "current_year_matches_with_serve_return_stats": 947,
+  "current_year_match_count": 2326,
+  "current_year_matches_with_serve_return_stats": 972,
   "failures": [],
   "latest_match_date": "2026-08-31",
   "live_refresh": {
-    "all_fixtures_received": 16556,
+    "all_fixtures_received": 16525,
     "chunk_days": 6,
-    "completed_atp_singles_imported": 738,
+    "completed_atp_singles_imported": 745,
     "failed_fixture_windows": [],
     "fixture_windows_attempted": 11,
     "fixture_windows_failed": 0,
     "fixture_windows_succeeded": 11,
-    "fixtures_fetched_at": "2026-08-31T17:41:44.600437+00:00",
+    "fixtures_fetched_at": "2026-09-01T15:03:44.587930+00:00",
     "fixtures_source": "chunked",
-    "matches_with_serve_return_stats": 736,
-    "player_identity_alias_count": 11911,
-    "player_identity_count": 9573,
+    "matches_with_serve_return_stats": 743,
+    "player_identity_alias_count": 12220,
+    "player_identity_count": 9861,
     "standings_error": "",
-    "standings_fetched_at": "2026-08-31T17:41:45.936824+00:00",
+    "standings_fetched_at": "2026-09-01T15:03:45.968581+00:00",
     "standings_source": "live",
-    "window_start": "2026-07-02",
-    "window_stop": "2026-08-31"
+    "window_start": "2026-07-03",
+    "window_stop": "2026-09-01"
   },
   "ok": true,
-  "updated_at_utc": "2026-08-31T17:41:52.117731+00:00"
+  "updated_at_utc": "2026-09-01T15:03:50.406197+00:00"
 }
