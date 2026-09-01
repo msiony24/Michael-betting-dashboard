@@ -3158,6 +3158,7 @@ if active_top_page == "Dashboard":
 
     core_zone_actionable_today = [row for row in actionable_today if _dashboard_is_core_zone(row)]
     best_core_zone_pick = max(core_zone_actionable_today, key=_home_core_zone_rank) if core_zone_actionable_today else None
+    core_zone_all_today = [row for row in today_rows if _dashboard_is_core_zone(row)]
 
     probability_today = [
         row for row in today_rows
@@ -3347,9 +3348,12 @@ if active_top_page == "Dashboard":
     st.write("")
     with st.container(border=True):
         st.markdown("### 📋 Core Zone Rankings Today")
-        st.caption("Every actionable pick priced -250 to -450 today, ranked in the order Macabets likes them best.")
-        if core_zone_actionable_today:
-            ranked_core_zone = sorted(core_zone_actionable_today, key=_home_core_zone_rank, reverse=True)
+        st.caption(
+            "Every match priced -250 to -450 analyzed today, ranked in the order Macabets likes them best -- "
+            "including Passes, so you can see if one just barely missed the cut."
+        )
+        if core_zone_all_today:
+            ranked_core_zone = sorted(core_zone_all_today, key=_home_core_zone_rank, reverse=True)
             ranking_rows = []
             for rank_position, row in enumerate(ranked_core_zone, start=1):
                 probability = _dashboard_number(row.get("predicted_probability"))
@@ -3371,7 +3375,7 @@ if active_top_page == "Dashboard":
             if st.button("View Full Analysis Log →", key="home_core_zone_rankings", use_container_width=True):
                 _queue_top_level_tab("Archive", "Analysis Log")
         else:
-            st.info("No actionable Core Zone picks (-250 to -450) analyzed yet today.")
+            st.info("No Core Zone picks (-250 to -450) analyzed yet today.")
 
     st.write("")
     with st.container(border=True):
