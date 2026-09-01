@@ -8126,6 +8126,7 @@ if active_top_page == "Archive":
                     "Market Implied %": implied_probability(odds) if odds not in (None, 0) else float("nan"),
                     "Fair Line": row.get("fair_line", ""),
                     "Confidence": confidence_label,
+                    "Predicted Probability": _dashboard_number(row.get("predicted_probability")),
                     "Price Assessment": _analysis_price_assessment(row),
                     "Verdict": _analysis_verdict(row),
                     "Prediction Result": result,
@@ -8253,6 +8254,61 @@ if active_top_page == "Archive":
                 c5.metric("Flat Units", f"{core_units:+.2f}u")
                 c6.metric("Flat ROI", f"{core_roi:+.1%}" if core_roi is not None else "—")
                 st.caption(f"Core Zone graded sample: {len(core_graded)}. Flat-unit ROI assumes a 1-unit stake on every graded prediction at the saved Actual Line.")
+
+                st.markdown("### Calibration Report")
+                st.caption(
+                    "Shadow-mode diagnostic only -- this does not change any live prediction. "
+                    "It measures, bucket by bucket, whether the model's stated confidence matches what actually happened."
+                )
+                MIN_CALIBRATION_SAMPLE = 15
+                calibration_source = graded.dropna(subset=["Predicted Probability"]).copy()
+                if calibration_source.empty:
+                    st.info("No graded predictions with a stored predicted probability yet -- nothing to calibrate against.")
+                else:
+                    bucket_edges = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.001]
+                    bucket_labels = [
+                        f"{int(bucket_edges[i]*100)}-{int(bucket_edges[i+1]*100) if bucket_edges[i+1] <= 1 else 100}%"
+                        for i in range(len(bucket_edges) - 1)
+                    ]
+                    calibration_source["Bucket"] = pd.cut(
+                        calibration_source["Predicted Probability"], bins=bucket_edges,
+                        labels=bucket_labels, right=False, include_lowest=True,
+                    )
+                    calib_rows = []
+                    for label in bucket_labels:
+                        bucket_df = calibration_source[calibration_source["Bucket"] == label]
+                        n = len(bucket_df)
+                        if n == 0:
+                            continue
+                        predicted_avg = bucket_df["Predicted Probability"].mean()
+                        actual_rate = (bucket_df["Prediction Result"] == "Correct").mean()
+                        calib_rows.append({
+                            "Confidence bucket": label,
+                            "Sample size": n,
+                            "Model said (avg)": predicted_avg,
+                            "Actually won": actual_rate,
+                            "Gap (actual - model)": actual_rate - predicted_avg,
+                            "Reliable?": "Yes" if n >= MIN_CALIBRATION_SAMPLE else f"Too small (<{MIN_CALIBRATION_SAMPLE})",
+                        })
+                    if not calib_rows:
+                        st.info("Not enough graded, probability-tagged predictions yet to build any bucket.")
+                    else:
+                        calib_df = pd.DataFrame(calib_rows)
+                        display_calib = calib_df.copy()
+                        display_calib["Model said (avg)"] = display_calib["Model said (avg)"].map(lambda v: f"{v:.1%}")
+                        display_calib["Actually won"] = display_calib["Actually won"].map(lambda v: f"{v:.1%}")
+                        display_calib["Gap (actual - model)"] = display_calib["Gap (actual - model)"].map(lambda v: f"{v:+.1%}")
+                        st.dataframe(display_calib, use_container_width=True, hide_index=True)
+
+                        reliable = calib_df[calib_df["Sample size"] >= MIN_CALIBRATION_SAMPLE]
+                        if not reliable.empty:
+                            chart_frame = reliable.set_index("Confidence bucket")[["Model said (avg)", "Actually won"]]
+                            st.bar_chart(chart_frame)
+                        st.caption(
+                            f"Minimum sample per bucket to call it reliable: {MIN_CALIBRATION_SAMPLE} graded predictions, "
+                            "per the Layer 3 rule in MACABETS_LEARNING_ARCHITECTURE.md. A negative gap means the model "
+                            "is overconfident in that band; a positive gap means it's underselling itself."
+                        )
 
                 ufc_derivative_rows = []
                 for _, ufc_row in pc_filtered.loc[pc_filtered["Sport"] == "UFC"].iterrows():
