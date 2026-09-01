@@ -3142,6 +3142,23 @@ if active_top_page == "Dashboard":
 
     highest_actionable = max(actionable_today, key=_home_actionable_rank) if actionable_today else None
 
+    def _home_core_zone_rank(row):
+        pricing = _analysis_pricing_report(row)
+        expected_roi = _dashboard_number(pricing.get("expected_roi"), -999.0)
+        probability = _dashboard_number(row.get("predicted_probability"), -1.0)
+        market_odds = _dashboard_market_odds(row)
+        market_implied = implied_probability(int(market_odds)) if market_odds not in (None, 0) else None
+        edge = probability - market_implied if probability is not None and market_implied is not None else -1.0
+        return (
+            verdict_rank.get(str(pricing.get("verdict") or ""), 0),
+            expected_roi,
+            edge,
+            confidence_rank.get(_analysis_confidence_label(row), 0),
+        )
+
+    core_zone_actionable_today = [row for row in actionable_today if _dashboard_is_core_zone(row)]
+    best_core_zone_pick = max(core_zone_actionable_today, key=_home_core_zone_rank) if core_zone_actionable_today else None
+
     probability_today = [
         row for row in today_rows
         if (_dashboard_number(row.get("predicted_probability")) or 0) > 0
@@ -3223,9 +3240,10 @@ if active_top_page == "Dashboard":
 
     with center:
         with st.container(border=True):
-            st.markdown("### Highest Confidence Today")
-            if highest_actionable:
-                highest = highest_actionable
+            st.markdown("### 🎯 Best Core Zone Pick Today")
+            st.caption("Best actionable play priced in your usual -250 to -450 range -- ranked by edge, not just raw confidence.")
+            if best_core_zone_pick:
+                highest = best_core_zone_pick
                 participant_a = str(highest.get("participant_a") or "Participant A")
                 participant_b = str(highest.get("participant_b") or "Participant B")
                 sport = str(highest.get("sport") or "Analysis")
@@ -3294,13 +3312,13 @@ if active_top_page == "Dashboard":
                 if st.button("View Analysis →", key="home_view_analysis", use_container_width=True):
                     _queue_top_level_tab("Archive", "Analysis Log")
             elif today_rows:
-                st.info("No actionable play qualifies for Highest Confidence Today.")
-                st.caption("Today's saved analyses are Pass / Complete Pass at the available prices, so Macabets will not feature one here as a betting recommendation.")
+                st.info("No actionable Core Zone play (-250 to -450) qualifies today.")
+                st.caption("Today's saved analyses are either outside -250 to -450, or Pass / Complete Pass at the available prices.")
                 if st.button("View Today's Analyses →", key="home_view_passes", use_container_width=True):
                     _queue_top_level_tab("Archive", "Analysis Log")
             else:
                 st.info("No matchup has been analyzed today yet.")
-                st.caption("The Dashboard will surface today's strongest saved analysis here without rerunning a model.")
+                st.caption("The Dashboard will surface today's strongest Core Zone analysis here without rerunning a model.")
                 if st.button("Analyze a Matchup →", key="home_analyze_empty", use_container_width=True):
                     _queue_top_level_tab("Analysis Engine")
 
