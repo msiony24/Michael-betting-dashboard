@@ -4,6 +4,7 @@ import math
 import json
 import re
 import html
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -2652,6 +2653,153 @@ def _run_and_log_daily_slate_nfl_analysis(
     }
 
 
+def _normalize_fighter_name(name):
+    """Fold a fighter name to a comparison key.
+
+    Books and the ratings file disagree on suffixes ("Khalil Rountree" vs
+    "Khalil Rountree Jr."), hyphenation and accents. This strips all three so the
+    same fighter matches either way. Normalizing at match time rather than editing
+    the CSVs matters because update_ufc_data.py regenerates those files.
+    """
+    text = unicodedata.normalize("NFKD", str(name))
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    text = text.replace("\u2019", "'").replace("\u2018", "'")
+    text = re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"[^a-z ]", " ", text.lower())
+    return " ".join(text.split())
+
+
+def _resolve_fighter_name(name, known_names):
+    """Map a bookmaker fighter name onto the ratings-file spelling.
+
+    Exact match wins. Otherwise a normalized match is accepted only when it lands
+    on exactly one fighter -- the ratings file contains near-duplicates (for
+    example "Waldo Cortes Acosta" and "Waldo Cortes-Acosta"), and silently picking
+    one of them would attach the wrong fight history to the analysis.
+    """
+    raw = str(name).strip()
+    exact = {str(candidate).strip(): str(candidate).strip() for candidate in known_names}
+    if raw in exact:
+        return exact[raw]
+
+    buckets = {}
+    for candidate in known_names:
+        buckets.setdefault(_normalize_fighter_name(candidate), []).append(str(candidate).strip())
+
+    matches = buckets.get(_normalize_fighter_name(raw), [])
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise ValueError(
+            f"'{raw}' matches more than one fighter in the ratings file "
+            f"({', '.join(sorted(matches))}). Pick the right one in Analysis Engine → UFC Analysis."
+        )
+    raise ValueError(
+        f"No rating profile for '{raw}'. The bookmaker spelling may differ from the "
+        "ratings file, or this fighter has no UFC record yet."
+    )
+
+
+def _run_and_log_daily_slate_ufc_analysis(
+    fighter_a, fighter_b, odds_a_value, odds_b_value, event_date, rounds=3
+):
+    """Run the UFC model for a Daily Slate fight and persist it to the real Analysis Log.
+
+    The moneyline feed carries no scheduled-rounds field, so `rounds` defaults to 3.
+    Main events and title fights are 5 -- rerun those in the Analysis Engine.
+    """
+    if not UFC_ENGINE_AVAILABLE:
+        raise RuntimeError(f"UFC engine is unavailable: {UFC_ENGINE_IMPORT_ERROR}")
+
+    ufc_ratings = load_ufc_ratings()
+    ufc_fights = load_ufc_fights()
+    known_fighters = list(ufc_fighter_names(ufc_ratings))
+    # Resolve to the ratings-file spelling before analyzing, so the engine looks up
+    # the right fight history even when the book spells the name differently.
+    fighter_a = _resolve_fighter_name(fighter_a, known_fighters)
+    fighter_b = _resolve_fighter_name(fighter_b, known_fighters)
+
+    result = analyze_ufc_match(
+        fighter_a,
+        fighter_b,
+        rounds=int(rounds),
+        market_odds_a=int(odds_a_value),
+        market_odds_b=int(odds_b_value),
+        ratings=ufc_ratings,
+        fights=ufc_fights,
+        fight_date=event_date,
+    )
+
+    probability_a = float(result["win_probability_a"])
+    projected_winner = str(result["projected_winner"])
+    projected_probability = float(result["projected_winner_probability"])
+    confidence = float(result["confidence"])
+    fair_moneyline_a = int(result["fair_moneyline_a"])
+    fair_moneyline_b = int(result["fair_moneyline_b"])
+    winner_fair_ml = fair_moneyline_a if projected_winner == fighter_a else fair_moneyline_b
+
+    market_block = result.get("market") or {}
+    if market_block.get("available"):
+        winner_side = "a" if projected_winner == fighter_a else "b"
+        verdict = str(market_block.get(f"verdict_{winner_side}") or "PASS")
+    else:
+        verdict = "Analysis"
+
+    inputs = {
+        "fighter_a": fighter_a, "fighter_b": fighter_b,
+        "fight_date": event_date.isoformat(),
+        "rounds": int(rounds),
+        "market_odds_a": int(odds_a_value),
+        "market_odds_b": int(odds_b_value),
+        "rounds_assumed": True,
+    }
+    saved = _save_universal_analysis({
+        "client_event_id": _analysis_event_token("UFC", inputs),
+        "event_date": event_date.isoformat(),
+        "sport": "UFC",
+        "model_version": str(result.get("model_version") or "Macabets UFC"),
+        "event_name": f"{fighter_a} vs {fighter_b}",
+        "participant_a": fighter_a, "participant_b": fighter_b,
+        "market_type": "Moneyline",
+        "market_odds_a": int(odds_a_value), "market_odds_b": int(odds_b_value),
+        "prediction": projected_winner,
+        "predicted_probability": projected_probability,
+        "fair_line": format_american(winner_fair_ml),
+        "confidence": confidence,
+        "recommendation": verdict,
+        "status": "Pending",
+        "input_snapshot": inputs,
+        "analysis_snapshot": {
+            "engine_result": result,
+            "projected_winner": projected_winner,
+            "projected_winner_probability": projected_probability,
+            "winner_fair_moneyline": winner_fair_ml,
+            "verdict": verdict,
+            "price_assessment": "—",
+            "source": "Daily Slate quick analysis (rounds assumed 3)",
+        },
+    })
+
+    market_prob_a, _market_prob_b, _ = no_vig_probabilities(
+        int(odds_a_value), int(odds_b_value)
+    )
+    return {
+        "player_a": fighter_a,
+        "player_b": fighter_b,
+        "market_odds_a": int(odds_a_value),
+        "market_odds_b": int(odds_b_value),
+        "model_win_probability_a": probability_a,
+        "edge_a": probability_a - market_prob_a,
+        "fair_line_a": fair_moneyline_a,
+        "confidence": confidence,
+        "projected_winner": projected_winner,
+        "price_assessment": "—",
+        "verdict": verdict,
+        "saved": bool(saved),
+        "result": result,
+    }
+
+
 def safe_float(value, default: float = 0.0) -> float:
     """Float coercion that survives None, empty strings and NaN from saved snapshots."""
     try:
@@ -2663,13 +2811,18 @@ def safe_float(value, default: float = 0.0) -> float:
     return result
 
 
-def _run_and_log_daily_slate_row(row, event_date, slate_matches, is_nfl):
+def _run_and_log_daily_slate_row(row, event_date, slate_matches, slate_sport):
     """Dispatch one Daily Slate row to the right sport engine."""
-    if is_nfl:
+    if slate_sport == "NFL":
         return _run_and_log_daily_slate_nfl_analysis(
             str(row["participant_a"]), str(row["participant_b"]),
             int(row["odds_a"]), int(row["odds_b"]), event_date,
             row.get("market_spread_home"), row.get("market_total"),
+        )
+    if slate_sport == "UFC":
+        return _run_and_log_daily_slate_ufc_analysis(
+            str(row["participant_a"]), str(row["participant_b"]),
+            int(row["odds_a"]), int(row["odds_b"]), event_date,
         )
     return _run_and_log_daily_slate_tennis_analysis(
         str(row["sport"]), str(row["participant_a"]), str(row["participant_b"]),
@@ -2677,11 +2830,11 @@ def _run_and_log_daily_slate_row(row, event_date, slate_matches, is_nfl):
     )
 
 
-def _slate_row_missing_inputs(row, is_nfl):
+def _slate_row_missing_inputs(row, slate_sport):
     """Human-readable reason a slate row cannot be analyzed yet, or None if it can."""
     if pd.isna(row.get("odds_a")) or pd.isna(row.get("odds_b")):
         return "both sides need moneyline odds"
-    if is_nfl:
+    if slate_sport == "NFL":
         if pd.isna(row.get("market_spread_home")) or pd.isna(row.get("market_total")):
             return "no market spread/total posted yet"
     return None
@@ -6393,6 +6546,9 @@ if active_top_page == "Analysis Engine":
 
     if analysis_page == "UFC Analysis":
         st.subheader("Analysis Engine — UFC")
+        reopened_ufc_notice = st.session_state.pop("reopened_analysis_notice", None)
+        if reopened_ufc_notice:
+            st.success(reopened_ufc_notice)
         st.caption(
             "Compare two UFC fighters using Strength v0.2, opponent-adjusted performance, style, round-cardio degradation, damage/durability risk, physical/context, simulation and derivative-market pricing. "
             "Historical Validation v0.1 now backtests the leakage-safe side baseline and fight-path calibration on prior UFC results."
@@ -7729,6 +7885,7 @@ if active_top_page == "Daily Slate":
                 "NFL": "americanfootball_nfl",
                 "College Football": "americanfootball_ncaaf",
                 "NBA": "basketball_nba",
+                "UFC / MMA": "mma_mixed_martial_arts",
             }
             tennis_items = discover_active_tennis_sports(active_sports)
             tennis_like_items = [
@@ -7878,12 +8035,29 @@ if active_top_page == "Daily Slate":
                     slate_sport_key = available_choices[selected_label]
                     is_tennis_event = slate_sport_key == "__all_tennis__"
                     is_nfl_event = slate_sport_key == "americanfootball_nfl"
-                    can_quick_analyze = is_tennis_event or is_nfl_event
+                    is_ufc_event = (
+                        slate_sport_key == "mma_mixed_martial_arts" and UFC_ENGINE_AVAILABLE
+                    )
+                    if is_nfl_event:
+                        slate_sport = "NFL"
+                    elif is_ufc_event:
+                        slate_sport = "UFC"
+                    else:
+                        slate_sport = "Tennis"
+                    can_quick_analyze = is_tennis_event or is_nfl_event or is_ufc_event
                     slate_analyzed_pairs = _analyzed_pairs_for_date(
                         slate_selected_date,
                         _cached_universal_analysis_rows(),
-                        sport="NFL" if is_nfl_event else "Tennis",
+                        sport=slate_sport,
                     )
+
+                    if is_ufc_event:
+                        st.warning(
+                            "The moneyline feed does not say how many rounds a fight is "
+                            "scheduled for, so quick analysis assumes **3 rounds**. Main "
+                            "events and title fights are 5 — rerun those in Analysis Engine "
+                            "→ UFC Analysis with the correct round count."
+                        )
 
                     display_columns = [
                         "time_et", "sport", "participant_a", "odds_a", "book_a",
@@ -7944,12 +8118,14 @@ if active_top_page == "Daily Slate":
                     analyze_col, analyze_all_col, add_col = st.columns(3)
 
                     if analyze_col.button(
-                        "Analyze This NFL Game" if is_nfl_event else "Analyze This Tennis Match",
+                        "Analyze This NFL Game" if is_nfl_event
+                        else "Analyze This Fight" if is_ufc_event
+                        else "Analyze This Tennis Match",
                         type="primary",
                         use_container_width=True,
                         disabled=not can_quick_analyze,
                     ):
-                        blocking_reason = _slate_row_missing_inputs(selected_event, is_nfl_event)
+                        blocking_reason = _slate_row_missing_inputs(selected_event, slate_sport)
                         if blocking_reason:
                             st.error(
                                 f"This event cannot be analyzed yet — {blocking_reason}. "
@@ -8010,7 +8186,7 @@ if active_top_page == "Daily Slate":
                             with st.spinner("Macabets is analyzing the matchup..."):
                                 try:
                                     outcome = _run_and_log_daily_slate_row(
-                                        selected_event, event_date, slate_matches, is_nfl_event,
+                                        selected_event, event_date, slate_matches, slate_sport,
                                     )
                                     st.session_state.automatic_match_result = outcome["result"]
                                     st.session_state.daily_slate_last_result = {
@@ -8049,7 +8225,7 @@ if active_top_page == "Daily Slate":
                         skipped = []
                         for idx in selected_rows.index:
                             row = automatic_slate.loc[idx]
-                            reason = _slate_row_missing_inputs(row, is_nfl_event)
+                            reason = _slate_row_missing_inputs(row, slate_sport)
                             if reason:
                                 skipped.append(
                                     f"{row['participant_a']} vs {row['participant_b']}: {reason}"
@@ -8071,7 +8247,7 @@ if active_top_page == "Daily Slate":
                             for i, (idx, row) in enumerate(to_run, start=1):
                                 try:
                                     outcome = _run_and_log_daily_slate_row(
-                                        row, row["start_time"].date(), slate_matches, is_nfl_event,
+                                        row, row["start_time"].date(), slate_matches, slate_sport,
                                     )
                                     batch_results.append(outcome)
                                 except Exception as exc:
@@ -8144,7 +8320,7 @@ if active_top_page == "Daily Slate":
                         st.caption(
                             f"{last_result['price_assessment']} · {last_result['verdict']}. "
                             "Full breakdown is ready under Analysis Engine → "
-                            f"{'NFL Analysis' if is_nfl_event else 'Tennis Analysis'} "
+                            f"{slate_sport} Analysis "
                             "if you want to dig deeper."
                         )
 
@@ -9280,13 +9456,72 @@ if active_top_page == "Archive":
                                     "The game has been rerun using the current Macabets model."
                                 )
                                 st.rerun()
+                    elif str(selected_row.get("sport", "")) == "UFC" and UFC_ENGINE_AVAILABLE:
+                        if st.button(
+                            "Open in UFC Analysis",
+                            type="primary",
+                            use_container_width=True,
+                            key=f"reopen_ufc_{selected_id}",
+                        ):
+                            original_inputs = selected_row.get("input_snapshot") or {}
+                            if not isinstance(original_inputs, dict):
+                                original_inputs = {}
+
+                            fight_date_value = (
+                                original_inputs.get("fight_date")
+                                or selected_row.get("event_date")
+                                or date.today()
+                            )
+                            try:
+                                fight_date_value = pd.to_datetime(fight_date_value).date()
+                            except Exception:
+                                fight_date_value = date.today()
+
+                            fighter_a_value = str(
+                                original_inputs.get("fighter_a")
+                                or selected_row.get("participant_a") or ""
+                            ).strip()
+                            fighter_b_value = str(
+                                original_inputs.get("fighter_b")
+                                or selected_row.get("participant_b") or ""
+                            ).strip()
+                            rounds_value = safe_int(original_inputs.get("rounds", 3), 3)
+
+                            st.session_state.pending_fair_line_prefill = {
+                                "ufc_fight_date": fight_date_value,
+                                "ufc_fighter_a": fighter_a_value,
+                                "ufc_fighter_b": fighter_b_value,
+                                "ufc_rounds": rounds_value if rounds_value in (3, 5) else 3,
+                                "ufc_market_a": safe_int(
+                                    original_inputs.get(
+                                        "market_odds_a", selected_row.get("market_odds_a", -150)
+                                    ), -150,
+                                ),
+                                "ufc_market_b": safe_int(
+                                    original_inputs.get(
+                                        "market_odds_b", selected_row.get("market_odds_b", 130)
+                                    ), 130,
+                                ),
+                            }
+                            st.session_state.open_analysis_engine_tab = True
+                            st.session_state.open_analysis_engine_subpage = "UFC Analysis"
+                            st.session_state.reopened_analysis_notice = (
+                                f"Reopened {fighter_a_value} vs {fighter_b_value} from the "
+                                "Analysis Log. Press Analyze to rerun it on the current model."
+                                + (
+                                    " This entry was quick-analyzed from the Daily Slate with "
+                                    "rounds assumed as 3 -- confirm that before rerunning."
+                                    if original_inputs.get("rounds_assumed") else ""
+                                )
+                            )
+                            st.rerun()
                     else:
                         st.button(
                             "Open in Analysis Engine",
                             use_container_width=True,
                             disabled=True,
                             key=f"reopen_disabled_{selected_id}",
-                            help="Direct reopening is available for Tennis and NFL analyses.",
+                            help="Direct reopening is available for Tennis, NFL and UFC analyses.",
                         )
                 with action_cols[1]:
                     with st.popover("View Frozen Snapshot", use_container_width=True):
