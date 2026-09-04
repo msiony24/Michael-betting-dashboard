@@ -27,7 +27,7 @@
       "error": "",
       "file": "data/nfl/rosters.csv",
       "name": "rosters",
-      "rows": 3118
+      "rows": 2946
     },
     {
       "available": true,
@@ -76,12 +76,12 @@
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 2204
+      "rows": 2189
     }
   ],
   "performance_season": 2025,
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 11,
-  "updated_at_utc": "2026-09-03T14:35:47+00:00"
+  "updated_at_utc": "2026-09-04T14:22:44+00:00"
 }
