@@ -1228,13 +1228,13 @@ def fetch_active_sports(api_key):
 
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def fetch_sport_odds(api_key, sport_key):
+def fetch_sport_odds(api_key, sport_key, markets="h2h"):
     payload, headers = _api_get_json(
         f"/sports/{sport_key}/odds",
         {
             "apiKey": api_key,
             "regions": "us",
-            "markets": "h2h",
+            "markets": markets,
             "oddsFormat": "american",
             "dateFormat": "iso",
         },
@@ -1362,6 +1362,40 @@ def _best_h2h_prices(event):
     return best, source
 
 
+def _consensus_spread_and_total(event, home_team):
+    """Median home spread and game total across books.
+
+    The NFL model needs a market spread and total, not just a moneyline. Unlike a
+    price, the "best" number is not what we want here -- the median across books is
+    the closest thing to the market's actual expectation. Returns (None, None) when
+    the feed only carried h2h.
+    """
+    home_spreads = []
+    game_totals = []
+    for bookmaker in event.get("bookmakers", []):
+        for market in bookmaker.get("markets", []):
+            market_key = market.get("key")
+            if market_key == "spreads":
+                for outcome in market.get("outcomes", []):
+                    if str(outcome.get("name", "")).strip() != home_team:
+                        continue
+                    try:
+                        home_spreads.append(float(outcome.get("point")))
+                    except (TypeError, ValueError):
+                        continue
+            elif market_key == "totals":
+                for outcome in market.get("outcomes", []):
+                    if str(outcome.get("name", "")).strip().lower() != "over":
+                        continue
+                    try:
+                        game_totals.append(float(outcome.get("point")))
+                    except (TypeError, ValueError):
+                        continue
+    spread = float(np.median(home_spreads)) if home_spreads else None
+    total = float(np.median(game_totals)) if game_totals else None
+    return spread, total
+
+
 def discover_active_tennis_sports(active_sports):
     """Return active ATP/WTA sport keys reported by The Odds API.
 
@@ -1432,6 +1466,7 @@ def normalize_api_slate(events, sport_title, target_date=None):
         if not home or not away:
             continue
         prices, sources = _best_h2h_prices(event)
+        spread_home, game_total = _consensus_spread_and_total(event, home)
         rows.append({
             "event_id": str(event.get("id", "")),
             "start_time": start_et,
@@ -1443,6 +1478,8 @@ def normalize_api_slate(events, sport_title, target_date=None):
             "odds_b": prices.get(home),
             "book_a": sources.get(away, "—"),
             "book_b": sources.get(home, "—"),
+            "market_spread_home": spread_home,
+            "market_total": game_total,
         })
     return pd.DataFrame(rows).sort_values("start_time") if rows else pd.DataFrame()
 
@@ -2070,12 +2107,12 @@ def _breakeven_accuracy_summary(rows):
     }
 
 
-def _analyzed_pairs_for_date(target_date, rows):
-    """Set of normalized player-pair keys already logged as Tennis analyses on a date."""
+def _analyzed_pairs_for_date(target_date, rows, sport="Tennis"):
+    """Set of normalized participant-pair keys already logged for a sport on a date."""
     date_str = target_date.isoformat() if hasattr(target_date, "isoformat") else str(target_date)
     pairs = set()
     for row in rows or []:
-        if str(row.get("sport", "")) != "Tennis":
+        if str(row.get("sport", "")) != sport:
             continue
         if str(row.get("event_date", ""))[:10] != date_str:
             continue
@@ -2451,6 +2488,187 @@ def _run_and_log_daily_slate_tennis_analysis(
         "saved": bool(saved),
         "result": result,
     }
+
+
+def _run_and_log_daily_slate_nfl_analysis(
+    away_team, home_team, odds_a_value, odds_b_value, event_date, market_spread_home, market_total
+):
+    """Run the NFL model for a Daily Slate game and persist it to the real Analysis Log.
+
+    The NFL equivalent of the tennis quick-analysis path. The engine needs a market
+    spread and total in addition to the moneyline, so both must already be present on
+    the slate row before this is called.
+    """
+    if not NFL_ENGINE_AVAILABLE:
+        raise RuntimeError(f"NFL engine is unavailable: {NFL_ENGINE_IMPORT_ERROR}")
+    if away_team not in NFL_TEAM_RATINGS or home_team not in NFL_TEAM_RATINGS:
+        raise ValueError(
+            f"No saved team ratings for '{away_team}' or '{home_team}'. "
+            "The market feed name did not match a Macabets team profile."
+        )
+
+    # Same rating stack the Analysis Engine builds: pipeline ratings first, Team
+    # Quality Engine ratings layered on top wherever the categories match.
+    away_overrides = dict(NFL_TEAM_RATINGS[away_team])
+    home_overrides = dict(NFL_TEAM_RATINGS[home_team])
+    away_quality_source = NFL_QUALITY_RATINGS.get(away_team, {})
+    home_quality_source = NFL_QUALITY_RATINGS.get(home_team, {})
+    for category in TEAM_RATING_WEIGHTS:
+        if category in away_quality_source:
+            away_overrides[category] = float(away_quality_source[category])
+        if category in home_quality_source:
+            home_overrides[category] = float(home_quality_source[category])
+
+    try:
+        weather_context = get_nfl_weather(
+            away_team=away_team, home_team=home_team, game_date=event_date
+        )
+    except Exception:
+        weather_context = {}
+    venue_lookup = str(weather_context.get("venue_type") or "outdoor").lower()
+    venue_type = (
+        "Dome" if venue_lookup == "dome"
+        else "Retractable roof" if "retract" in venue_lookup
+        else "Outdoor"
+    )
+    weather = str(weather_context.get("label") or "Normal")
+
+    result = analyze_nfl_match(
+        away_team=away_team,
+        home_team=home_team,
+        market_spread_home=float(market_spread_home),
+        market_moneyline_away=int(odds_a_value),
+        market_moneyline_home=int(odds_b_value),
+        market_total=float(market_total),
+        venue_type=venue_type,
+        weather=weather,
+        neutral_site=False,
+        away_rating_overrides=away_overrides,
+        home_rating_overrides=home_overrides,
+        home_field_points=1.7,
+        weather_context=weather_context,
+        game_date=event_date,
+        week=None,
+        season=int(getattr(event_date, "year", date.today().year)),
+    )
+
+    probability_away = float(result["away_win_probability"])
+    probability_home = float(result["home_win_probability"])
+    projected_winner = away_team if probability_away >= probability_home else home_team
+    projected_probability = max(probability_away, probability_home)
+    confidence = float(result["confidence"])
+    winner_market_ml = int(odds_a_value) if projected_winner == away_team else int(odds_b_value)
+    fair_moneyline_away = int(
+        result.get("fair_moneyline_away", probability_to_american(probability_away))
+    )
+    fair_moneyline_home = int(
+        result.get("fair_moneyline_home", probability_to_american(probability_home))
+    )
+    winner_fair_ml = fair_moneyline_away if projected_winner == away_team else fair_moneyline_home
+    price_report = moneyline_price_quality(projected_probability, winner_market_ml, confidence)
+
+    fair_spread_home = float(result["fair_spread_home"])
+    spread_difference = fair_spread_home - float(market_spread_home)
+    if spread_difference > 0.50:
+        spread_value_side = away_team
+    elif spread_difference < -0.50:
+        spread_value_side = home_team
+    else:
+        spread_value_side = None
+
+    token = _analysis_event_token(
+        "NFL",
+        {
+            "away_team": away_team, "home_team": home_team,
+            "game_date": event_date.isoformat(),
+            "market_spread_home": float(market_spread_home),
+            "market_total": float(market_total),
+        },
+    )
+    saved = _save_universal_analysis({
+        "client_event_id": token,
+        "event_date": event_date.isoformat(),
+        "sport": "NFL",
+        "model_version": str(result.get("model_version") or "Macabets NFL v0.23"),
+        "event_name": f"{away_team} at {home_team}",
+        "participant_a": away_team, "participant_b": home_team,
+        "market_type": "Moneyline",
+        "market_line": float(market_spread_home),
+        "market_odds_a": int(odds_a_value), "market_odds_b": int(odds_b_value),
+        "prediction": projected_winner,
+        "predicted_probability": projected_probability,
+        "fair_line": format_american(winner_fair_ml),
+        "confidence": confidence,
+        "recommendation": price_report["verdict"],
+        "status": "Pending",
+        "input_snapshot": {
+            "away_team": away_team, "home_team": home_team,
+            "game_date": event_date.isoformat(),
+            "market_spread_home": float(market_spread_home),
+            "market_total": float(market_total),
+            "market_moneyline_away": int(odds_a_value),
+            "market_moneyline_home": int(odds_b_value),
+            "venue_type": venue_type, "weather": weather,
+            "neutral_site": False, "home_field_points": 1.7,
+            "away_rating_overrides": away_overrides,
+            "home_rating_overrides": home_overrides,
+        },
+        "analysis_snapshot": {
+            "engine_result": result,
+            "probability_a": probability_away,
+            "probability_b": probability_home,
+            "fair_spread_home": fair_spread_home,
+            "spread_edge_points": spread_difference,
+            "spread_value_side": spread_value_side,
+            "winner_fair_moneyline": winner_fair_ml,
+            "price_assessment": price_report["price_assessment"],
+            "verdict": price_report["verdict"],
+            "source": "Daily Slate quick analysis",
+        },
+    })
+
+    market_prob_away, _market_prob_home, _ = no_vig_probabilities(
+        int(odds_a_value), int(odds_b_value)
+    )
+    return {
+        "player_a": away_team,
+        "player_b": home_team,
+        "market_odds_a": int(odds_a_value),
+        "market_odds_b": int(odds_b_value),
+        "model_win_probability_a": probability_away,
+        "edge_a": probability_away - market_prob_away,
+        "fair_line_a": fair_moneyline_away,
+        "confidence": confidence,
+        "projected_winner": projected_winner,
+        "price_assessment": price_report["price_assessment"],
+        "verdict": price_report["verdict"],
+        "saved": bool(saved),
+        "result": result,
+    }
+
+
+def _run_and_log_daily_slate_row(row, event_date, slate_matches, is_nfl):
+    """Dispatch one Daily Slate row to the right sport engine."""
+    if is_nfl:
+        return _run_and_log_daily_slate_nfl_analysis(
+            str(row["participant_a"]), str(row["participant_b"]),
+            int(row["odds_a"]), int(row["odds_b"]), event_date,
+            row.get("market_spread_home"), row.get("market_total"),
+        )
+    return _run_and_log_daily_slate_tennis_analysis(
+        str(row["sport"]), str(row["participant_a"]), str(row["participant_b"]),
+        int(row["odds_a"]), int(row["odds_b"]), event_date, slate_matches,
+    )
+
+
+def _slate_row_missing_inputs(row, is_nfl):
+    """Human-readable reason a slate row cannot be analyzed yet, or None if it can."""
+    if pd.isna(row.get("odds_a")) or pd.isna(row.get("odds_b")):
+        return "both sides need moneyline odds"
+    if is_nfl:
+        if pd.isna(row.get("market_spread_home")) or pd.isna(row.get("market_total")):
+            return "no market spread/total posted yet"
+    return None
 
 
 def _analysis_event_token(sport, inputs):
@@ -7537,7 +7755,16 @@ if active_top_page == "Daily Slate":
                         # overlays preferred US sportsbook prices wherever it has the same match.
                         automatic_slate = merge_tennis_schedule_with_market(api_tennis_schedule, odds_api_slate)
                     else:
-                        api_events, usage = fetch_sport_odds(api_key, available_choices[selected_label])
+                        # The NFL model needs a spread and a total, not just a moneyline,
+                        # so pull those extra markets for football feeds.
+                        slate_markets = (
+                            "h2h,spreads,totals"
+                            if available_choices[selected_label].startswith("americanfootball_")
+                            else "h2h"
+                        )
+                        api_events, usage = fetch_sport_odds(
+                            api_key, available_choices[selected_label], markets=slate_markets
+                        )
                         automatic_slate = normalize_api_slate(api_events, selected_label, target_date=slate_selected_date)
 
                 if available_choices[selected_label] == "__all_tennis__":
@@ -7623,13 +7850,23 @@ if active_top_page == "Daily Slate":
                         )
                     else:
                         st.caption("Schedule source: API-Tennis. Odds sources checked: The Odds API and API-Tennis.")
+                    slate_sport_key = available_choices[selected_label]
+                    is_tennis_event = slate_sport_key == "__all_tennis__"
+                    is_nfl_event = slate_sport_key == "americanfootball_nfl"
+                    can_quick_analyze = is_tennis_event or is_nfl_event
                     slate_analyzed_pairs = _analyzed_pairs_for_date(
-                        slate_selected_date, _cached_universal_analysis_rows()
+                        slate_selected_date,
+                        _cached_universal_analysis_rows(),
+                        sport="NFL" if is_nfl_event else "Tennis",
                     )
 
-                    automatic_display = automatic_slate[
-                        ["time_et", "sport", "participant_a", "odds_a", "book_a", "participant_b", "odds_b", "book_b"]
-                    ].copy()
+                    display_columns = [
+                        "time_et", "sport", "participant_a", "odds_a", "book_a",
+                        "participant_b", "odds_b", "book_b",
+                    ]
+                    if is_nfl_event:
+                        display_columns += ["market_spread_home", "market_total"]
+                    automatic_display = automatic_slate[display_columns].copy()
                     automatic_display.insert(0, "Analyzed", [
                         "✓" if frozenset((
                             str(a).strip().lower(), str(b).strip().lower()
@@ -7639,8 +7876,8 @@ if active_top_page == "Daily Slate":
                     automatic_display.columns = [
                         "Analyzed", "Time (ET)", "League", "Participant A", "Best Odds A", "Book A",
                         "Participant B", "Best Odds B", "Book B"
-                    ]
-                    if is_tennis_event := (available_choices[selected_label] == "__all_tennis__"):
+                    ] + (["Spread (Home)", "Total"] if is_nfl_event else [])
+                    if can_quick_analyze:
                         automatic_display.insert(0, "Select", False)
                         edited_slate = st.data_editor(
                             automatic_display,
@@ -7649,7 +7886,11 @@ if active_top_page == "Daily Slate":
                             disabled=[c for c in automatic_display.columns if c != "Select"],
                             key="daily_slate_select_editor",
                         )
-                        st.caption("Check the matches you want, then hit \"Analyze Selected\" below.")
+                        st.caption(
+                            "Check the games you want, then hit \"Analyze Selected\" below."
+                            if is_nfl_event else
+                            "Check the matches you want, then hit \"Analyze Selected\" below."
+                        )
                         selected_rows = edited_slate[edited_slate["Select"]]
                     else:
                         st.dataframe(automatic_display, use_container_width=True, hide_index=True)
@@ -7678,13 +7919,17 @@ if active_top_page == "Daily Slate":
                     analyze_col, analyze_all_col, add_col = st.columns(3)
 
                     if analyze_col.button(
-                        "Analyze This Tennis Match",
+                        "Analyze This NFL Game" if is_nfl_event else "Analyze This Tennis Match",
                         type="primary",
                         use_container_width=True,
-                        disabled=not is_tennis_event,
+                        disabled=not can_quick_analyze,
                     ):
-                        if pd.isna(selected_event["odds_a"]) or pd.isna(selected_event["odds_b"]):
-                            st.error("Both sides need moneyline odds before this matchup can be analyzed.")
+                        blocking_reason = _slate_row_missing_inputs(selected_event, is_nfl_event)
+                        if blocking_reason:
+                            st.error(
+                                f"This event cannot be analyzed yet — {blocking_reason}. "
+                                "Try Refresh Slate closer to game time."
+                            )
                         else:
                             tournament_name = str(selected_event["sport"])
                             try:
@@ -7702,24 +7947,35 @@ if active_top_page == "Daily Slate":
                             # exact matchup instead of empty/default fields. Round is left as
                             # an explicit placeholder -- the daily odds feed carries no round
                             # information to detect it from.
-                            st.session_state.pending_fair_line_prefill = {
-                                "fle_date": event_date,
-                                "fle_tournament": tournament_name,
-                                "fle_round": TENNIS_ROUND_NOT_DETECTED,
-                                "fle_favorite": player_a_name,
-                                "fle_opponent": player_b_name,
-                                "fle_market_a": odds_a_value,
-                                "fle_market_b": odds_b_value,
-                                "auto_match_date": event_date,
-                                "auto_tournament": tournament_name,
-                                "auto_round": TENNIS_ROUND_NOT_DETECTED,
-                                "auto_player_a": player_a_name,
-                                "auto_player_b": player_b_name,
-                                "auto_considering_bet": "Just analyze",
-                                "auto_market_a": odds_a_value,
-                                "auto_market_b": odds_b_value,
-                                "auto_simulations": 20000,
-                            }
+                            if is_nfl_event:
+                                st.session_state.pending_fair_line_prefill = {
+                                    "nfl_game_date": event_date,
+                                    "nfl_away_team": player_a_name,
+                                    "nfl_home_team": player_b_name,
+                                    "nfl_spread_home": float(selected_event["market_spread_home"]),
+                                    "nfl_total": float(selected_event["market_total"]),
+                                    "nfl_ml_away": odds_a_value,
+                                    "nfl_ml_home": odds_b_value,
+                                }
+                            else:
+                                st.session_state.pending_fair_line_prefill = {
+                                    "fle_date": event_date,
+                                    "fle_tournament": tournament_name,
+                                    "fle_round": TENNIS_ROUND_NOT_DETECTED,
+                                    "fle_favorite": player_a_name,
+                                    "fle_opponent": player_b_name,
+                                    "fle_market_a": odds_a_value,
+                                    "fle_market_b": odds_b_value,
+                                    "auto_match_date": event_date,
+                                    "auto_tournament": tournament_name,
+                                    "auto_round": TENNIS_ROUND_NOT_DETECTED,
+                                    "auto_player_a": player_a_name,
+                                    "auto_player_b": player_b_name,
+                                    "auto_considering_bet": "Just analyze",
+                                    "auto_market_a": odds_a_value,
+                                    "auto_market_b": odds_b_value,
+                                    "auto_simulations": 20000,
+                                }
 
                             # Run the model right here and log it to the real Analysis Log,
                             # instead of just queuing a flag for the Analysis Engine tab to
@@ -7728,9 +7984,8 @@ if active_top_page == "Daily Slate":
                             # got permanently saved until they did.
                             with st.spinner("Macabets is analyzing the matchup..."):
                                 try:
-                                    outcome = _run_and_log_daily_slate_tennis_analysis(
-                                        tournament_name, player_a_name, player_b_name,
-                                        odds_a_value, odds_b_value, event_date, slate_matches,
+                                    outcome = _run_and_log_daily_slate_row(
+                                        selected_event, event_date, slate_matches, is_nfl_event,
                                     )
                                     st.session_state.automatic_match_result = outcome["result"]
                                     st.session_state.daily_slate_last_result = {
@@ -7758,31 +8013,40 @@ if active_top_page == "Daily Slate":
                     if analyze_all_col.button(
                         f"Analyze Selected ({len(selected_rows)})",
                         use_container_width=True,
-                        disabled=not is_tennis_event or len(selected_rows) == 0,
-                        help="Runs and logs every match checked in the table above.",
+                        disabled=not can_quick_analyze or len(selected_rows) == 0,
+                        help="Runs and logs every event checked in the table above.",
                     ):
                         try:
                             slate_matches, _ = load_matches()
                         except Exception:
                             slate_matches = pd.DataFrame()
                         to_run = []
+                        skipped = []
                         for idx in selected_rows.index:
                             row = automatic_slate.loc[idx]
-                            if pd.isna(row["odds_a"]) or pd.isna(row["odds_b"]):
+                            reason = _slate_row_missing_inputs(row, is_nfl_event)
+                            if reason:
+                                skipped.append(
+                                    f"{row['participant_a']} vs {row['participant_b']}: {reason}"
+                                )
                                 continue
                             to_run.append((idx, row))
 
+                        if skipped:
+                            st.caption(f"Skipped {len(skipped)} event(s) missing market inputs:")
+                            for message in skipped:
+                                st.caption(message)
+
                         if not to_run:
-                            st.info("None of the checked matches have both-side moneyline odds yet.")
+                            st.info("None of the checked events have the market inputs they need yet.")
                         else:
                             progress = st.progress(0.0, text=f"Analyzing 0 of {len(to_run)}...")
                             batch_results = []
                             batch_errors = []
                             for i, (idx, row) in enumerate(to_run, start=1):
                                 try:
-                                    outcome = _run_and_log_daily_slate_tennis_analysis(
-                                        str(row["sport"]), str(row["participant_a"]), str(row["participant_b"]),
-                                        int(row["odds_a"]), int(row["odds_b"]), row["start_time"].date(), slate_matches,
+                                    outcome = _run_and_log_daily_slate_row(
+                                        row, row["start_time"].date(), slate_matches, is_nfl_event,
                                     )
                                     batch_results.append(outcome)
                                 except Exception as exc:
@@ -7854,8 +8118,9 @@ if active_top_page == "Daily Slate":
                         r3.metric("Confidence", f"{last_result['confidence']}")
                         st.caption(
                             f"{last_result['price_assessment']} · {last_result['verdict']}. "
-                            "Full breakdown (factors, H2H, data validation, Challenge Macabets) "
-                            "is ready under Analysis Engine → Tennis Analysis if you want to dig deeper."
+                            "Full breakdown is ready under Analysis Engine → "
+                            f"{'NFL Analysis' if is_nfl_event else 'Tennis Analysis'} "
+                            "if you want to dig deeper."
                         )
 
                     if add_col.button("Add Event to Manual Slate", use_container_width=True):
