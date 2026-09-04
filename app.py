@@ -2569,6 +2569,10 @@ def _run_and_log_daily_slate_nfl_analysis(
 
     fair_spread_home = float(result["fair_spread_home"])
     spread_difference = fair_spread_home - float(market_spread_home)
+    # The slate does not ask for a week number -- the engine resolves it from the
+    # game date. Capture what it resolved so reopening this entry from the Analysis
+    # Log restores the same week instead of falling back to the Week 1 default.
+    resolved_week = (result.get("schedule_context") or {}).get("week")
     if spread_difference > 0.50:
         spread_value_side = away_team
     elif spread_difference < -0.50:
@@ -2604,6 +2608,7 @@ def _run_and_log_daily_slate_nfl_analysis(
         "input_snapshot": {
             "away_team": away_team, "home_team": home_team,
             "game_date": event_date.isoformat(),
+            "week": resolved_week,
             "market_spread_home": float(market_spread_home),
             "market_total": float(market_total),
             "market_moneyline_away": int(odds_a_value),
@@ -2645,6 +2650,17 @@ def _run_and_log_daily_slate_nfl_analysis(
         "saved": bool(saved),
         "result": result,
     }
+
+
+def safe_float(value, default: float = 0.0) -> float:
+    """Float coercion that survives None, empty strings and NaN from saved snapshots."""
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+    if result != result:  # NaN
+        return float(default)
+    return result
 
 
 def _run_and_log_daily_slate_row(row, event_date, slate_matches, is_nfl):
@@ -3182,7 +3198,7 @@ if legacy_request and not queued_top:
 
 if st.session_state.pop("open_analysis_engine_tab", False):
     queued_top = "Analysis Engine"
-    queued_sub = "Tennis Analysis"
+    queued_sub = st.session_state.pop("open_analysis_engine_subpage", "Tennis Analysis")
 
 if queued_top in TOP_LEVEL_PAGES:
     st.session_state["macabets_top_page"] = queued_top
@@ -4936,6 +4952,9 @@ if active_top_page == "Analysis Engine":
 
     if analysis_page == "NFL Analysis":
         st.subheader("NFL Matchup Analysis")
+        reopened_nfl_notice = st.session_state.pop("reopened_analysis_notice", None)
+        if reopened_nfl_notice:
+            st.success(reopened_nfl_notice)
         st.caption(
             "Compare the Macabets fair line with Vegas, evaluate a specific wager and review "
             "the matchup's clearest category advantages."
@@ -5233,7 +5252,8 @@ if active_top_page == "Analysis Engine":
                         )
 
             run_nfl = st.button("Generate NFL Report", type="primary", use_container_width=True, key="run_nfl_analysis")
-            if run_nfl:
+            reopened_nfl_run = st.session_state.pop("run_nfl_from_archive", False)
+            if run_nfl or reopened_nfl_run:
                 try:
                     if manual_weather_override:
                         venue_type = manual_venue_type
@@ -5283,15 +5303,20 @@ if active_top_page == "Analysis Engine":
                     )
                     st.session_state["nfl_weather_context"] = weather_context
                     st.session_state.nfl_result = nfl_result
-                    st.session_state["nfl_analysis_log_pending"] = _analysis_event_token(
-                        "NFL",
-                        {
-                            "away_team": away_team, "home_team": home_team,
-                            "game_date": nfl_date.isoformat(),
-                            "market_spread_home": float(market_spread_home),
-                            "market_total": float(market_total),
-                        },
-                    )
+                    if st.session_state.pop("suppress_next_nfl_log", False):
+                        # Reopened from the Analysis Log for review. Rerun the model but
+                        # do not write a second entry for a game that is already logged.
+                        st.session_state.pop("nfl_analysis_log_pending", None)
+                    else:
+                        st.session_state["nfl_analysis_log_pending"] = _analysis_event_token(
+                            "NFL",
+                            {
+                                "away_team": away_team, "home_team": home_team,
+                                "game_date": nfl_date.isoformat(),
+                                "market_spread_home": float(market_spread_home),
+                                "market_total": float(market_total),
+                            },
+                        )
                 except Exception as exc:
                     st.error(f"Could not generate the NFL report: {exc}")
 
@@ -9178,13 +9203,90 @@ if active_top_page == "Archive":
                                 "The matchup has been rerun using the current Macabets model."
                             )
                             st.rerun()
+                    elif str(selected_row.get("sport", "")) == "NFL" and NFL_ENGINE_AVAILABLE:
+                        if st.button(
+                            "Open in NFL Analysis",
+                            type="primary",
+                            use_container_width=True,
+                            key=f"reopen_nfl_{selected_id}",
+                        ):
+                            original_inputs = selected_row.get("input_snapshot") or {}
+                            if not isinstance(original_inputs, dict):
+                                original_inputs = {}
+
+                            nfl_date_value = (
+                                original_inputs.get("game_date")
+                                or selected_row.get("event_date")
+                                or date.today()
+                            )
+                            try:
+                                nfl_date_value = pd.to_datetime(nfl_date_value).date()
+                            except Exception:
+                                nfl_date_value = date.today()
+
+                            away_value = str(
+                                original_inputs.get("away_team")
+                                or selected_row.get("participant_a")
+                                or ""
+                            ).strip()
+                            home_value = str(
+                                original_inputs.get("home_team")
+                                or selected_row.get("participant_b")
+                                or ""
+                            ).strip()
+
+                            if away_value not in NFL_TEAMS or home_value not in NFL_TEAMS:
+                                st.error(
+                                    f"Could not reopen: '{away_value}' or '{home_value}' is not a "
+                                    "recognized team name in the current ratings file."
+                                )
+                            else:
+                                nfl_prefill = {
+                                    "nfl_game_date": nfl_date_value,
+                                    "nfl_away_team": away_value,
+                                    "nfl_home_team": home_value,
+                                    "nfl_spread_home": safe_float(
+                                        original_inputs.get(
+                                            "market_spread_home", selected_row.get("market_line", -3.0)
+                                        ), -3.0,
+                                    ),
+                                    "nfl_total": safe_float(original_inputs.get("market_total", 45.5), 45.5),
+                                    "nfl_ml_away": safe_int(
+                                        original_inputs.get(
+                                            "market_moneyline_away", selected_row.get("market_odds_a", 140)
+                                        ), 140,
+                                    ),
+                                    "nfl_ml_home": safe_int(
+                                        original_inputs.get(
+                                            "market_moneyline_home", selected_row.get("market_odds_b", -165)
+                                        ), -165,
+                                    ),
+                                    "nfl_neutral_site": bool(original_inputs.get("neutral_site", False)),
+                                    "nfl_hfa": safe_float(original_inputs.get("home_field_points", 1.7), 1.7),
+                                }
+                                saved_week = original_inputs.get("week")
+                                if saved_week is not None:
+                                    nfl_prefill["nfl_week"] = safe_int(saved_week, 1)
+
+                                st.session_state.pending_fair_line_prefill = nfl_prefill
+                                # Reopening is for review only. Rerun the current model
+                                # without writing a second Analysis Log entry for the same game.
+                                st.session_state.suppress_next_nfl_log = True
+                                st.session_state.run_nfl_from_archive = True
+                                st.session_state.open_analysis_engine_tab = True
+                                st.session_state.open_analysis_engine_subpage = "NFL Analysis"
+                                st.session_state.reopened_analysis_notice = (
+                                    f"Reopened {away_value} at {home_value} from the Analysis Log. "
+                                    "The game has been rerun using the current Macabets model."
+                                )
+                                st.rerun()
                     else:
                         st.button(
                             "Open in Analysis Engine",
                             use_container_width=True,
                             disabled=True,
                             key=f"reopen_disabled_{selected_id}",
-                            help="Direct reopening is currently available for Tennis analyses.",
+                            help="Direct reopening is available for Tennis and NFL analyses.",
                         )
                 with action_cols[1]:
                     with st.popover("View Frozen Snapshot", use_container_width=True):
