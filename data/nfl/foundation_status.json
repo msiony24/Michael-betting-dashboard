@@ -27,7 +27,7 @@
       "error": "",
       "file": "data/nfl/rosters.csv",
       "name": "rosters",
-      "rows": 2954
+      "rows": 2955
     },
     {
       "available": true,
@@ -83,5 +83,5 @@
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 11,
-  "updated_at_utc": "2026-09-07T15:52:05+00:00"
+  "updated_at_utc": "2026-09-08T14:33:23+00:00"
 }
