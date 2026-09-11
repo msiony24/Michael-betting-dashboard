@@ -1,19 +1,19 @@
 {
-  "available_datasets": 10,
+  "available_datasets": 11,
   "datasets": [
     {
       "available": true,
       "error": "",
       "file": "data/nfl/team_snapshot.csv",
       "name": "team_performance",
-      "rows": 2
+      "rows": 4
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/scheme_tendencies.csv",
       "name": "scheme_tendencies",
-      "rows": 2
+      "rows": 4
     },
     {
       "available": true,
@@ -48,40 +48,40 @@
       "error": "",
       "file": "data/nfl/player_weekly_stats.csv",
       "name": "player_weekly_stats",
-      "rows": 67
+      "rows": 135
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/team_weekly_stats.csv",
       "name": "team_weekly_stats",
-      "rows": 2
+      "rows": 4
     },
     {
-      "available": false,
-      "error": "Failed to download https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2026.parquet: 404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_2026.parquet",
+      "available": true,
+      "error": "",
       "file": "data/nfl/snap_counts.csv",
       "name": "snap_counts",
-      "rows": 0
+      "rows": 93
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/injuries.csv",
       "name": "injuries",
-      "rows": 139
+      "rows": 167
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 2176
+      "rows": 2177
     }
   ],
   "performance_season": 2026,
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 11,
-  "updated_at_utc": "2026-09-10T14:27:21+00:00"
+  "updated_at_utc": "2026-09-11T14:26:58+00:00"
 }
