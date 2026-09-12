@@ -62,26 +62,26 @@
       "error": "",
       "file": "data/nfl/snap_counts.csv",
       "name": "snap_counts",
-      "rows": 93
+      "rows": 187
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/injuries.csv",
       "name": "injuries",
-      "rows": 167
+      "rows": 182
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 2177
+      "rows": 2169
     }
   ],
   "performance_season": 2026,
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 11,
-  "updated_at_utc": "2026-09-11T14:26:58+00:00"
+  "updated_at_utc": "2026-09-12T13:37:26+00:00"
 }
