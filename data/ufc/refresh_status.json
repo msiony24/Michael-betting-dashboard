@@ -1,7 +1,7 @@
 {
   "source": "UFCStats last-good cache",
   "source_url": "https://ufcstats.com/statistics/events/completed?page=all",
-  "refreshed_at_utc": "2026-09-06T14:25:46.090661+00:00",
+  "refreshed_at_utc": "2026-09-13T15:05:02.474086+00:00",
   "latest_event_date": "2026-08-08",
   "fighter_fight_rows": 15102,
   "unique_fights": 7551,
@@ -9,7 +9,7 @@
   "rating_model": "Macabets UFC Strength v0.2",
   "history_start": "2010-01-01",
   "rated_fighters": 2269,
-  "active_pool_fighters": 795,
+  "active_pool_fighters": 792,
   "data_mode": "cached_fallback",
   "live_source_error": "UFCStatsError: Unable to fetch UFCStats after 4 attempts: https://ufcstats.com/statistics/events/completed?page=all",
   "fighter_profile_data_mode": "mirror_fresh",
