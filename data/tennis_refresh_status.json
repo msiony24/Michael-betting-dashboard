@@ -5,24 +5,24 @@
   "failures": [],
   "latest_match_date": "2026-09-11",
   "live_refresh": {
-    "all_fixtures_received": 17078,
+    "all_fixtures_received": 16783,
     "chunk_days": 6,
-    "completed_atp_singles_imported": 751,
+    "completed_atp_singles_imported": 725,
     "failed_fixture_windows": [],
     "fixture_windows_attempted": 11,
     "fixture_windows_failed": 0,
     "fixture_windows_succeeded": 11,
-    "fixtures_fetched_at": "2026-09-12T13:41:40.869315+00:00",
+    "fixtures_fetched_at": "2026-09-13T14:32:42.514152+00:00",
     "fixtures_source": "chunked",
-    "matches_with_serve_return_stats": 749,
-    "player_identity_alias_count": 13192,
-    "player_identity_count": 10774,
+    "matches_with_serve_return_stats": 723,
+    "player_identity_alias_count": 13220,
+    "player_identity_count": 10801,
     "standings_error": "",
-    "standings_fetched_at": "2026-09-12T13:41:41.744829+00:00",
+    "standings_fetched_at": "2026-09-13T14:32:43.697234+00:00",
     "standings_source": "live",
-    "window_start": "2026-07-14",
-    "window_stop": "2026-09-12"
+    "window_start": "2026-07-15",
+    "window_stop": "2026-09-13"
   },
   "ok": true,
-  "updated_at_utc": "2026-09-12T13:41:49.602236+00:00"
+  "updated_at_utc": "2026-09-13T14:32:51.632268+00:00"
 }
