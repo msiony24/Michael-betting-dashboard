@@ -2422,8 +2422,17 @@ def _run_and_log_daily_slate_tennis_analysis(
     projected_winner = player_a_name if probability_a >= probability_b else player_b_name
     projected_probability = max(probability_a, probability_b)
     projected_market_odds = odds_a_value if projected_winner == player_a_name else odds_b_value
+    opponent_market_odds = odds_b_value if projected_winner == player_a_name else odds_a_value
     confidence = result.get("confidence")
-    price_report = moneyline_price_quality(projected_probability, projected_market_odds, confidence)
+    # Pass the other side so the market-implied probability is de-vigged.
+    # Without it a -500 price reads as 83.3% instead of ~80%, which silently
+    # erases several points of edge on every favorite.
+    price_report = moneyline_price_quality(
+        projected_probability,
+        projected_market_odds,
+        confidence,
+        opponent_odds=opponent_market_odds,
+    )
     fair_line = format_american(
         result["fair_line"] if projected_winner == player_a_name else probability_to_american(probability_b)
     )
@@ -2559,6 +2568,7 @@ def _run_and_log_daily_slate_nfl_analysis(
     projected_probability = max(probability_away, probability_home)
     confidence = float(result["confidence"])
     winner_market_ml = int(odds_a_value) if projected_winner == away_team else int(odds_b_value)
+    opponent_market_ml = int(odds_b_value) if projected_winner == away_team else int(odds_a_value)
     fair_moneyline_away = int(
         result.get("fair_moneyline_away", probability_to_american(probability_away))
     )
@@ -2566,7 +2576,10 @@ def _run_and_log_daily_slate_nfl_analysis(
         result.get("fair_moneyline_home", probability_to_american(probability_home))
     )
     winner_fair_ml = fair_moneyline_away if projected_winner == away_team else fair_moneyline_home
-    price_report = moneyline_price_quality(projected_probability, winner_market_ml, confidence)
+    price_report = moneyline_price_quality(
+        projected_probability, winner_market_ml, confidence,
+        opponent_odds=opponent_market_ml,
+    )
 
     fair_spread_home = float(result["fair_spread_home"])
     spread_difference = fair_spread_home - float(market_spread_home)
@@ -5564,8 +5577,12 @@ if active_top_page == "Analysis Engine":
 
                 # Decision-first moneyline report
                 winner_market_ml = int(market_ml_away) if projected_nfl_winner == nfl_result["away_team"] else int(market_ml_home)
+                opponent_market_ml = int(market_ml_home) if projected_nfl_winner == nfl_result["away_team"] else int(market_ml_away)
                 winner_fair_ml = fair_away_moneyline if projected_nfl_winner == nfl_result["away_team"] else int(nfl_result["fair_moneyline_home"])
-                price_report = moneyline_price_quality(projected_nfl_probability, winner_market_ml, nfl_result["confidence"])
+                price_report = moneyline_price_quality(
+                    projected_nfl_probability, winner_market_ml, nfl_result["confidence"],
+                    opponent_odds=opponent_market_ml,
+                )
 
                 nfl_log_token = st.session_state.pop("nfl_analysis_log_pending", None)
                 if nfl_log_token:
@@ -9161,15 +9178,33 @@ if active_top_page == "Archive":
             rows_by_day = group_rows_by_day(all_universal_rows)
             available_days = list(rows_by_day.keys())
             if available_days:
-                selected_day = st.selectbox(
+                ALL_DAYS_OPTION = "__all_days__"
+                selected_day_choice = st.selectbox(
                     "Choose analysis date",
-                    available_days,
-                    format_func=lambda value: pd.to_datetime(value).strftime("%A, %B %-d, %Y")
-                    if value else "Unknown date",
+                    [ALL_DAYS_OPTION] + available_days,
+                    format_func=lambda value: (
+                        "All dates" if value == ALL_DAYS_OPTION
+                        else (
+                            pd.to_datetime(value).strftime("%A, %B %-d, %Y")
+                            if value else "Unknown date"
+                        )
+                    ),
                     key="analysis_log_selected_day",
-                    help="Only analyses from this date will appear below.",
+                    help=(
+                        "Pick a single date, or 'All dates' to browse and export the "
+                        "entire log at once."
+                    ),
                 )
-                selected_day_rows = rows_by_day.get(selected_day, [])
+                showing_all_days = selected_day_choice == ALL_DAYS_OPTION
+                # Downstream code treats selected_day=None as "no day filter", and
+                # the CSV export writes whatever ends up in universal_rows -- so
+                # this is also what makes a full-history export possible.
+                selected_day = None if showing_all_days else selected_day_choice
+                selected_day_rows = (
+                    list(all_universal_rows) if showing_all_days
+                    else rows_by_day.get(selected_day, [])
+                )
+                day_scope_label = "All-Time" if showing_all_days else "Day"
                 day_summary = summarize_rows(
                     selected_day_rows,
                     verdict_getter=_analysis_verdict,
@@ -9179,9 +9214,9 @@ if active_top_page == "Archive":
                 day_core_rows = [row for row in selected_day_rows if _analysis_is_core_zone(row)]
                 day_core = summarize_rows(day_core_rows, verdict_getter=_analysis_verdict)
                 day1, day2, day3, day4, day5, day6 = st.columns(6)
-                day1.metric("Day Record", f"{day_summary['correct']}-{day_summary['incorrect']}")
+                day1.metric(f"{day_scope_label} Record", f"{day_summary['correct']}-{day_summary['incorrect']}")
                 day2.metric(
-                    "Day Accuracy",
+                    f"{day_scope_label} Accuracy",
                     f"{day_summary['accuracy']:.1%}" if day_summary["accuracy"] is not None else "—",
                 )
                 day3.metric("BET Record", f"{day_bet['correct']}-{day_bet['incorrect']}")
@@ -9208,7 +9243,10 @@ if active_top_page == "Archive":
                         )
                     st.caption("Breakeven check (accounts for the actual prices, not just win/loss count) — " + " · ".join(pieces))
                 st.caption(
-                    f"Showing {day_summary['total']} analyses saved for the selected date. Open any one below to mark it Correct, Incorrect or Pending."
+                    f"Showing {day_summary['total']} analyses "
+                    + ("across the entire log." if showing_all_days
+                       else "saved for the selected date.")
+                    + " Open any one below to mark it Correct, Incorrect or Pending."
                 )
             else:
                 selected_day = None
@@ -9591,8 +9629,10 @@ if active_top_page == "Archive":
                         st.error(f"Could not delete analysis: {exc}")
 
                 export_frame = pd.DataFrame(universal_rows)
+                # The export follows the filters above. With "All dates" selected
+                # and Sport/Result on "All", this is the complete history.
                 st.download_button(
-                    "Download Analysis Log CSV",
+                    f"Download Analysis Log CSV ({len(universal_rows)} rows)",
                     export_frame.to_csv(index=False).encode("utf-8"),
                     f"macabets_analysis_log_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     "text/csv", use_container_width=True,
