@@ -568,7 +568,50 @@ def run(*, limit: int = 500, dry_run: bool = False) -> list[dict[str, Any]]:
     if odds_client is None and tennis_client is None:
         raise RuntimeError("No settlement data provider is configured")
 
+    # Say out loud which providers came up. A missing key is swallowed in
+    # build_clients so one provider failing does not stop the other -- but that
+    # silence previously meant an entire sport could go unsettled for days while
+    # the workflow still reported success.
+    print(
+        "Providers configured: "
+        f"the_odds_api={'yes' if odds_client else 'NO (THE_ODDS_API_KEY missing or rejected)'}, "
+        f"api_tennis={'yes' if tennis_client else 'NO (API_TENNIS_KEY missing or rejected)'}"
+    )
+
     rows = list_analyses(limit, status="Pending")
+
+    pending_by_sport: dict[str, int] = {}
+    for row in rows:
+        sport = str(row.get("sport") or "Unknown")
+        pending_by_sport[sport] = pending_by_sport.get(sport, 0) + 1
+    if pending_by_sport:
+        print(
+            "Pending rows by sport: "
+            + ", ".join(f"{sport}={count}" for sport, count in sorted(pending_by_sport.items()))
+        )
+
+    if odds_client is None:
+        stranded = {
+            sport: count for sport, count in pending_by_sport.items() if sport != "Tennis"
+        }
+        if stranded:
+            print(
+                "WARNING: the Odds API client is not configured, so these pending rows "
+                "cannot be settled and will stay Pending: "
+                + ", ".join(f"{sport}={count}" for sport, count in sorted(stranded.items()))
+            )
+
+    unsupported = sorted(
+        sport for sport in pending_by_sport
+        if sport != "Tennis" and sport not in ODDS_SPORT_KEYS
+    )
+    if unsupported:
+        print(
+            "WARNING: no settlement sport key is mapped for: "
+            + ", ".join(unsupported)
+            + ". These rows can only be graded manually."
+        )
+
     results = []
     for row in rows:
         try:
@@ -598,6 +641,17 @@ def main() -> None:
 
     results = run(limit=args.limit, dry_run=args.dry_run)
     print(json.dumps(results, indent=2, default=str))
+
+    by_action: dict[str, int] = {}
+    for item in results:
+        action = str(item.get("action") or "none")
+        by_action[action] = by_action.get(action, 0) + 1
+    if by_action:
+        print(
+            "Settlement summary: "
+            + ", ".join(f"{action}={count}" for action, count in sorted(by_action.items()))
+        )
+
     errors = [row for row in results if row.get("action") == "error"]
     if errors:
         raise SystemExit(1)
