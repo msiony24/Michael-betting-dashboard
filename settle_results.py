@@ -399,7 +399,17 @@ def settle_odds_api_score(
         None,
     )
     if not event or not bool(event.get("completed")):
-        return None, event or {}
+        if not event:
+            return None, {}
+        # The provider event is NOT a column payload -- its top-level keys are
+        # id/sport_key/home_team/away_team/scores, none of which exist on
+        # analysis_log. Writing it directly is rejected with PGRST204. Return
+        # only real columns and keep the provider object nested where it belongs.
+        live_scores = event.get("scores") or []
+        return None, {
+            "event_status": "In progress" if live_scores else "Scheduled",
+            "provider_match_data": event,
+        }
 
     score_rows = event.get("scores") or []
     parsed = []
