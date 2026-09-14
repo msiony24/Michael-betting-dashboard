@@ -9179,11 +9179,13 @@ if active_top_page == "Archive":
             available_days = list(rows_by_day.keys())
             if available_days:
                 ALL_DAYS_OPTION = "__all_days__"
+                DATE_RANGE_OPTION = "__date_range__"
                 selected_day_choice = st.selectbox(
                     "Choose analysis date",
-                    [ALL_DAYS_OPTION] + available_days,
+                    [ALL_DAYS_OPTION, DATE_RANGE_OPTION] + available_days,
                     format_func=lambda value: (
                         "All dates" if value == ALL_DAYS_OPTION
+                        else "Date range..." if value == DATE_RANGE_OPTION
                         else (
                             pd.to_datetime(value).strftime("%A, %B %-d, %Y")
                             if value else "Unknown date"
@@ -9191,20 +9193,68 @@ if active_top_page == "Archive":
                     ),
                     key="analysis_log_selected_day",
                     help=(
-                        "Pick a single date, or 'All dates' to browse and export the "
-                        "entire log at once."
+                        "Pick a single date, a date range (for week-by-week review), "
+                        "or 'All dates' to browse and export the entire log at once."
                     ),
                 )
                 showing_all_days = selected_day_choice == ALL_DAYS_OPTION
+                showing_date_range = selected_day_choice == DATE_RANGE_OPTION
+
+                range_label = ""
+                if showing_date_range:
+                    # available_days is sorted newest-first and holds ISO YYYY-MM-DD
+                    # strings, so min/max over the parseable ones bounds the picker.
+                    dated_days = [value for value in available_days if value]
+                    log_latest = pd.to_datetime(max(dated_days)).date() if dated_days else date.today()
+                    log_earliest = pd.to_datetime(min(dated_days)).date() if dated_days else log_latest
+                    default_start = max(log_earliest, log_latest - timedelta(days=6))
+                    picked = st.date_input(
+                        "Date range",
+                        value=(default_start, log_latest),
+                        min_value=log_earliest,
+                        max_value=log_latest,
+                        key="analysis_log_date_range",
+                        help="Defaults to the last seven days of the log. Pick a start and end date.",
+                    )
+                    # Streamlit returns a 1-tuple while the user is mid-selection.
+                    if isinstance(picked, (list, tuple)):
+                        range_start = picked[0]
+                        range_end = picked[1] if len(picked) > 1 else picked[0]
+                    else:
+                        range_start = range_end = picked
+                    if range_start > range_end:
+                        range_start, range_end = range_end, range_start
+                    range_start_iso = range_start.isoformat()
+                    range_end_iso = range_end.isoformat()
+                    range_label = (
+                        f"{range_start.strftime('%b %-d')} - {range_end.strftime('%b %-d, %Y')}"
+                    )
+
                 # Downstream code treats selected_day=None as "no day filter", and
                 # the CSV export writes whatever ends up in universal_rows -- so
                 # this is also what makes a full-history export possible.
-                selected_day = None if showing_all_days else selected_day_choice
-                selected_day_rows = (
-                    list(all_universal_rows) if showing_all_days
-                    else rows_by_day.get(selected_day, [])
+                selected_day = (
+                    None if (showing_all_days or showing_date_range) else selected_day_choice
                 )
-                day_scope_label = "All-Time" if showing_all_days else "Day"
+                if showing_all_days:
+                    selected_day_rows = list(all_universal_rows)
+                elif showing_date_range:
+                    # Undated rows have no place in a range, so they are excluded
+                    # rather than silently swept in with the rest.
+                    selected_day_rows = [
+                        row for day, day_rows in rows_by_day.items() if day
+                        and range_start_iso <= day <= range_end_iso
+                        for row in day_rows
+                    ]
+                else:
+                    selected_day_rows = rows_by_day.get(selected_day, [])
+                # The day block always produces the scope, even when it is every row.
+                day_filter_active = True
+                day_scope_label = (
+                    "All-Time" if showing_all_days
+                    else "Range" if showing_date_range
+                    else "Day"
+                )
                 day_summary = summarize_rows(
                     selected_day_rows,
                     verdict_getter=_analysis_verdict,
@@ -9242,15 +9292,21 @@ if active_top_page == "Archive":
                             f"breakeven ({core_breakeven['delta_pts']:+.1f} pts, {core_breakeven['graded']} graded)"
                         )
                     st.caption("Breakeven check (accounts for the actual prices, not just win/loss count) — " + " · ".join(pieces))
+                if showing_all_days:
+                    scope_sentence = "across the entire log."
+                elif showing_date_range:
+                    span_days = (range_end - range_start).days + 1
+                    scope_sentence = f"from {range_label} ({span_days} days)."
+                else:
+                    scope_sentence = "saved for the selected date."
                 st.caption(
-                    f"Showing {day_summary['total']} analyses "
-                    + ("across the entire log." if showing_all_days
-                       else "saved for the selected date.")
+                    f"Showing {day_summary['total']} analyses " + scope_sentence
                     + " Open any one below to mark it Correct, Incorrect or Pending."
                 )
             else:
                 selected_day = None
                 selected_day_rows = []
+                day_filter_active = False
 
             st.divider()
             filter1, filter2, filter3 = st.columns([1, 1, 2])
@@ -9261,7 +9317,7 @@ if active_top_page == "Archive":
             )
             search_filter = filter3.text_input("Search", placeholder="Player, team, event, price assessment or verdict", key="analysis_log_search")
 
-            universal_rows = list(selected_day_rows if selected_day is not None else all_universal_rows)
+            universal_rows = list(selected_day_rows if day_filter_active else all_universal_rows)
             if sport_filter != "All":
                 universal_rows = [row for row in universal_rows if str(row.get("sport", "")) == sport_filter]
             if result_filter != "All":
