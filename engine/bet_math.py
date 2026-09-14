@@ -175,13 +175,37 @@ def cap_verdict_by_probability(verdict, model_probability):
     return verdict
 
 
-def moneyline_price_quality(model_probability, market_odds, confidence_score):
-    """Separate mathematical price value from the probability-capped verdict."""
+def moneyline_price_quality(
+    model_probability,
+    market_odds,
+    confidence_score=None,
+    *,
+    opponent_odds=None,
+):
+    """Separate mathematical price value from the probability-capped verdict.
+
+    CONFIDENCE IS NO LONGER A GATE. It used to appear in every verdict tier
+    alongside edge, which meant a genuine price edge could be vetoed by a
+    separate confidence score that was itself derived from the same model.
+    Worse, the tiers were inverted: "Lean" required confidence >= 78 while
+    "Worth Betting" required only 62, so mid-edge spots fell through to Pass
+    for no defensible reason. In the 2026 US Open log those Pass predictions
+    returned +6.3% ROI over 39 graded predictions -- value the gate threw away.
+
+    Conviction now comes from one place: the model's win probability, via
+    cap_verdict_by_probability(). Price value comes from edge and expected ROI.
+    confidence_score is still accepted so existing callers keep working, but it
+    is ignored.
+
+    opponent_odds (optional): the other side's American price. When supplied,
+    market-implied probability is de-vigged across both sides. Without it, the
+    raw single-side implied probability is used, which OVERSTATES what the
+    market thinks and therefore understates the model's edge -- badly on heavy
+    favorites, where a -500 price reads as 83.3% instead of roughly 80%. Pass
+    it wherever both prices are in scope.
+    """
     probability = min(max(float(model_probability), 0.0001), 0.9999)
     market_odds = int(market_odds)
-    confidence_score = float(confidence_score)
-    if confidence_score <= 10:
-        confidence_score *= 10
 
     expected_roi = probability * american_to_decimal(market_odds) - 1
 
@@ -194,7 +218,15 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     # a typical near-even-money price (-110) gets the identical label it
     # always did; the fix is that the same edge now means the same label at
     # every price, not just around -110.
-    market_implied_probability = implied_probability(market_odds)
+    if opponent_odds is not None:
+        market_implied_probability, _, vig = no_vig_probabilities(
+            market_odds, int(opponent_odds)
+        )
+        vig_removed = True
+    else:
+        market_implied_probability = implied_probability(market_odds)
+        vig = None
+        vig_removed = False
     edge = probability - market_implied_probability
 
     if edge >= 0.08:
@@ -228,13 +260,13 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
     # never promote a price the model itself sees as -EV (or barely +EV)
     # into a recommendation -- this preserves the original "no Worth Betting
     # on negative EV" fix while removing the price-direction bias.
-    if edge >= 0.08 and confidence_score >= 75 and probability >= 0.75 and expected_roi >= 0.0:
+    if edge >= 0.08 and probability >= 0.75 and expected_roi >= 0.0:
         verdict = "Strong Bet"
-    elif edge >= 0.02 and confidence_score >= 62 and expected_roi >= -0.02:
+    elif edge >= 0.02 and expected_roi >= -0.02:
         verdict = "Worth Betting"
-    elif edge >= -0.01 and confidence_score >= 78 and expected_roi >= -0.05:
+    elif edge >= -0.01 and expected_roi >= -0.05:
         verdict = "Lean"
-    elif edge <= -0.08 or (edge <= -0.06 and confidence_score < 78):
+    elif edge <= -0.06:
         verdict = "Complete Pass"
     else:
         verdict = "Pass"
@@ -248,6 +280,15 @@ def moneyline_price_quality(model_probability, market_odds, confidence_score):
         "quality": quality,
         "price_assessment": quality,
         "verdict": verdict,
+        # Raw numbers, so the analysis log can store the edge that drove the
+        # verdict instead of only the bucket label. Without these you cannot
+        # ask "what was the ROI at edges of 2-4 points vs 4-8?" after the fact.
+        "model_probability": probability,
+        "market_implied_probability": market_implied_probability,
+        "edge": edge,
+        "edge_points": edge * 100.0,
+        "vig_removed": vig_removed,
+        "market_vig": vig,
         # Backward compatibility for older display code and the existing DB column.
         "recommendation": verdict,
     }
@@ -269,30 +310,26 @@ def decision_label(expected_roi, confidence):
     is the source of truth and this should be updated to match it.
     """
     expected_roi = float(expected_roi)
-    confidence_score = float(confidence)
-    if confidence_score <= 10:
-        confidence_score *= 10
 
+    # Confidence is no longer a gate here either -- see moneyline_price_quality.
+    # The parameter is retained so existing callers keep working, and ignored.
+    #
     # This compatibility helper does not know the underlying model probability,
-    # so it must never manufacture a Strong Bet from ROI + confidence alone.
+    # so it must never manufacture a Strong Bet from ROI alone.
     # moneyline_price_quality() is the source of truth for that verdict
     # because it can enforce the win-probability floor.
-    if expected_roi >= 0.08 and confidence_score >= 70:
+    if expected_roi >= 0.025:
         verdict = "Worth Betting"
-    elif expected_roi >= 0.025 and confidence_score >= 62:
-        verdict = "Worth Betting"
-    elif expected_roi >= 0.0 and confidence_score >= 82:
-        verdict = "Worth Betting"
-    elif expected_roi >= -0.075 and confidence_score >= 78:
+    elif expected_roi >= -0.075:
         verdict = "Lean"
-    elif expected_roi <= -0.12 or (expected_roi <= -0.08 and confidence_score < 78):
+    elif expected_roi <= -0.12:
         verdict = "Complete Pass"
     else:
         verdict = "Pass"
 
     reason = (
         f"Macabets' final verdict is {verdict.lower()} after weighing the offered price "
-        "against the model edge and current model confidence."
+        "against the model edge."
     )
     return verdict, reason
 
