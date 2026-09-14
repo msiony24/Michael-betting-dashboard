@@ -1,0 +1,14 @@
+{
+  "purpose": "measure NFL_MARGIN_SD for engine/nfl.py; audit-only",
+  "seasons": [
+    2006,
+    2025
+  ],
+  "games": 5431,
+  "residual_mean": -0.0398,
+  "pooled_margin_sd": 13.185,
+  "recommended_NFL_MARGIN_SD": 13.2,
+  "season_sd_min": 11.504,
+  "season_sd_max": 14.448,
+  "note": "residual_mean should be near zero. A large non-zero mean means the spread sign convention is flipped or the sample is biased, and the SD should not be used until that is explained."
+}
