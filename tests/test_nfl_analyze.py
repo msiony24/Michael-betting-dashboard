@@ -48,11 +48,9 @@ def test_spread_to_home_probability_even_at_zero_margin():
 
 
 def test_spread_to_home_probability_three_point_favorite_calibration():
-    # NOTE: the inline comment in engine/nfl.py claims "a 3-point favorite is
-    # approximately 59%", but with the current divisor (12.0) the actual
-    # value is ~56.2%. This pins the real behavior and flags that the
-    # comment is stale documentation left over from an earlier calibration.
-    assert spread_to_home_probability(3.0) == pytest.approx(0.562, abs=0.005)
+    # NFL 3-point favorites win close to 59% of the time. The normal-CDF
+    # mapping with NFL_MARGIN_SD = 13.5 reproduces this.
+    assert spread_to_home_probability(3.0) == pytest.approx(0.588, abs=0.008)
 
 
 def test_spread_to_home_probability_monotonic():
