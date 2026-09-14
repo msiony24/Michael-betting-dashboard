@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import asdict, dataclass
+from statistics import NormalDist
 
 from engine.confidence import confidence_band, recommendation_from_edge
 from engine.nfl_data import NFL_DATA_STATUS, NFL_TEAM_RATINGS, TEAM_RATING_WEIGHTS
@@ -54,10 +55,32 @@ def team_power_score(team: str, overrides: dict | None = None) -> tuple[float, d
     return round(power_points, 2), components
 
 
+# Standard deviation, in points, of (actual final margin - pregame spread) for
+# NFL games. This is a MEASURED property of NFL scoring, not a free parameter to
+# be fit. Re-measure it with audit/measure_nfl_margin_sd.py and update this one
+# number; do not tune it to make the model agree with anything.
+#
+# History: this mapping previously used a logistic with divisor 12.0, chosen by
+# the Phase 2 grid search in audit/. That grid was run against the walk-forward
+# Elo proxy in audit/nfl_walk_forward_backtest.py, whose margins were inflated
+# (see audit/results_nfl_phase1/favorite_strength.csv: 86.6% predicted vs 76.9%
+# actual in the 80%+ bucket). The wide divisor absorbed that inflation. Applied
+# to production -- whose margins come from the team-state pipeline and are not
+# inflated -- it compressed every probability toward 50%, most severely on
+# favorites. A 7-point favorite came out at 64% instead of ~70%.
+NFL_MARGIN_SD = 13.5
+
+_NFL_MARGIN_DIST = NormalDist(0.0, NFL_MARGIN_SD)
+
+
 def spread_to_home_probability(home_margin: float) -> float:
-    # Calibratable logistic mapping. With the current divisor (12.0, set by
-    # the Phase 2 calibration audit) a 3-point favorite is approximately 56%.
-    return 1.0 / (1.0 + math.exp(-float(home_margin) / 12.0))
+    """Convert a projected home margin in points into a home win probability.
+
+    Models the game's final margin as normally distributed around the projected
+    margin with standard deviation NFL_MARGIN_SD. A 3-point favorite comes out
+    near 59%, a 7-point favorite near 70%, a 10-point favorite near 77%.
+    """
+    return _NFL_MARGIN_DIST.cdf(float(home_margin))
 
 
 
@@ -391,13 +414,20 @@ def analyze(
 
     # Confidence reflects model separation and data quality, not market disagreement.
     rating_gap = abs(projected_home_margin)
-    confidence = 50.0 + min(rating_gap, 12.0) * 2.2
+    # PROVISIONAL SCALE. The previous formula (50 + min(gap, 12) * 2.2, capped
+    # at 78.0) topped out at 76.4, which made the "Strong Bet" verdict in
+    # engine/confidence.py -- which requires confidence >= 80 -- mathematically
+    # unreachable for NFL, and "Good Bet" (>= 72) reachable only at margins the
+    # old probability mapping priced below the market anyway. This scale makes
+    # the existing ladder reachable. It is not yet validated against graded
+    # results; revisit once the NFL analysis_log has a real sample.
+    confidence = 50.0 + min(rating_gap, 14.0) * 2.5
     confidence -= weather_confidence_penalty
     confidence -= schedule_confidence_penalty
     confidence -= game_quality_confidence_penalty
     if not NFL_DATA_STATUS.get("available"):
         confidence -= 7.0
-    confidence = round(min(78.0, max(50.0, confidence)), 1)
+    confidence = round(min(88.0, max(50.0, confidence)), 1)
 
     recommendation_edge = moneyline_edge_home if projected_winner == home_team else -moneyline_edge_home
     recommendation = recommendation_from_edge(recommendation_edge * 100.0, confidence)
