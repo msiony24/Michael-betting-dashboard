@@ -1,0 +1,64 @@
+name: NFL Margin SD Measurement
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_season:
+        description: 'First season to include'
+        required: false
+        default: '2006'
+      end_season:
+        description: 'Last season to include'
+        required: false
+        default: '2025'
+  push:
+    paths:
+      - 'audit/measure_nfl_margin_sd.py'
+      - '.github/workflows/nfl_margin_sd.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy
+
+      - name: Measure NFL margin SD
+        run: |
+          python audit/measure_nfl_margin_sd.py \
+            --start "${{ github.event.inputs.start_season || '2006' }}" \
+            --end "${{ github.event.inputs.end_season || '2025' }}"
+
+      - name: Show summary in run log
+        run: cat audit/results_nfl_margin_sd/summary.json
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: nfl-margin-sd-results
+          path: audit/results_nfl_margin_sd/
+          if-no-files-found: error
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audit/results_nfl_margin_sd
+          if git diff --cached --quiet; then
+            echo "No result changes."
+          else
+            git commit -m "Store NFL margin SD measurement results"
+            git push
+          fi
