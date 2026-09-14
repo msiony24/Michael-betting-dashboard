@@ -1,0 +1,6 @@
+# rating_history.jsonl is append-only: one JSON object per line, one line per
+# rating build. Three workflows append to it (update-nfl-data,
+# update_nfl_player_stats, update_madden_data). Without a union merge, two runs
+# racing produces a rebase conflict and one run's history line is silently lost.
+# Union keeps both lines.
+data/nfl/rating_history.jsonl merge=union
