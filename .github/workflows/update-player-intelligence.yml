@@ -35,5 +35,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/player_intelligence_atp.json
-          git diff --cached --quiet || git commit -m "Update ATP player intelligence"
-          git push
+          if git diff --cached --quiet; then
+            echo "ATP player intelligence is already current."
+            exit 0
+          fi
+          git commit -m "Update ATP player intelligence"
+          branch="${GITHUB_REF_NAME:-main}"
+          for attempt in 1 2 3 4; do
+            if git push origin "HEAD:$branch"; then
+              exit 0
+            fi
+            # Another workflow pushed while this job was building. Replay this
+            # commit on top of theirs instead of failing the run.
+            git fetch origin "$branch"
+            git rebase "origin/$branch" || { git rebase --abort || true; exit 1; }
+            [ "$attempt" -lt 4 ] && sleep $((attempt * 5))
+          done
+          exit 1

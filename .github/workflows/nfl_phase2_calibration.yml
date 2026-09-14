@@ -45,5 +45,16 @@ jobs:
             echo "No result changes."
           else
             git commit -m "Store NFL Phase 2 calibration results"
-            git push
+          branch="${GITHUB_REF_NAME:-main}"
+          for attempt in 1 2 3 4; do
+            if git push origin "HEAD:$branch"; then
+              exit 0
+            fi
+            # Another workflow pushed while this job was building. Replay this
+            # commit on top of theirs instead of failing the run.
+            git fetch origin "$branch"
+            git rebase "origin/$branch" || { git rebase --abort || true; exit 1; }
+            [ "$attempt" -lt 4 ] && sleep $((attempt * 5))
+          done
+          exit 1
           fi
