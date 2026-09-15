@@ -28,7 +28,10 @@ from engine.nfl_availability import (
 from engine.nfl_qb_intelligence import apply_qb_replacement_adjustment
 
 from engine.nfl_depth_chart import (
+    AUTO_ROLE_MAP,
     AUTO_DEPTH_CHART_PATH,
+    _latest_auto_snapshot,
+    normalize_player_name,
     DEFAULT_DEPTH_CHART_PATH,
     depth_chart_team_assignments,
     load_depth_charts,
@@ -45,6 +48,26 @@ DEFAULT_TEAM_OUTPUT = DEFAULT_NFL_DIR / "team_ratings_auto.json"
 DEFAULT_STATUS_OUTPUT = DEFAULT_NFL_DIR / "rating_status.json"
 DEFAULT_HISTORY_OUTPUT = DEFAULT_NFL_DIR / "rating_history.jsonl"
 DEFAULT_DEPTH_CHART_OUTPUT = DEFAULT_NFL_DIR / "footballguys_depth_charts.csv"
+DEFAULT_PRIOR_MADDEN_PATH = PROJECT_ROOT / "data" / "madden_26_players.csv"
+DEFAULT_MANUAL_FALLBACK_PATH = PROJECT_ROOT / "data" / "nfl" / "manual_fallback_ratings.csv"
+
+# Depth-chart players missing from the current Madden file (signed after launch,
+# un-retired, undrafted, etc.) get a fallback baseline so their unit is graded
+# with them instead of silently skipping them.
+PRIOR_MADDEN_DECLINE = 2.0        # a year older and unsigned when the game launched
+REPLACEMENT_PERCENTILE = 0.25     # of current Madden players at the same position family
+BASELINE_CURRENT = "Madden 27"
+BASELINE_PRIOR = "Prior-year Madden -2"
+BASELINE_REPLACEMENT = "Replacement-level estimate"
+BASELINE_MANUAL = "Manual rating"
+ROLE_TO_POSITION = {
+    "QB": "QB", "RB": "HB", "FB": "FB", "WR": "WR", "TE": "TE",
+    "LT": "LT", "LG": "LG", "C": "C", "RG": "RG", "RT": "RT",
+    "LDE": "DE", "RDE": "DE", "LDT": "DT", "RDT": "DT", "NT": "DT",
+    "SLB": "OLB", "WLB": "OLB", "MLB": "MLB", "LILB": "MLB", "RILB": "MLB",
+    "LCB": "CB", "RCB": "CB", "SCB": "CB", "SS": "SS", "FS": "FS",
+    "PK": "K", "P": "P", "LS": "LS",
+}
 
 FULL_TO_ABBR = {full: abbr for abbr, full in TEAM_ALIASES.items() if len(abbr) <= 3}
 FULL_TO_ABBR.update({"Arizona Cardinals": "ARI", "Washington Commanders": "WAS", "Jacksonville Jaguars": "JAX", "Kansas City Chiefs": "KC", "Green Bay Packers": "GB", "New England Patriots": "NE", "New Orleans Saints": "NO", "San Francisco 49ers": "SF", "Tampa Bay Buccaneers": "TB", "Las Vegas Raiders": "LV", "Los Angeles Rams": "LA"})
@@ -536,10 +559,154 @@ def _fill_missing_ids_by_last_name(players: pd.DataFrame, roster_path: Path) -> 
     return out.drop(columns=["_last_key"])
 
 
+def _raw_depth_chart_ids(chart_path: Path) -> pd.DataFrame:
+    """Latest nflverse depth-chart rows with player IDs (empty for manual charts)."""
+    if not chart_path.exists():
+        return pd.DataFrame()
+    try:
+        raw = pd.read_csv(chart_path, dtype=str).fillna("")
+    except Exception:
+        return pd.DataFrame()
+    if not {"team", "player_name", "pos_abb", "gsis_id"}.issubset(raw.columns):
+        return pd.DataFrame()
+    raw, _ = _latest_auto_snapshot(raw)
+    return pd.DataFrame({
+        "team_abbr": raw["team"].astype(str).str.upper().str.strip(),
+        "depth_name": raw["player_name"].astype(str).str.strip(),
+        "depth_key": raw["player_name"].map(normalize_player_name),
+        "role": raw["pos_abb"].astype(str).str.upper().str.strip().replace(AUTO_ROLE_MAP),
+        "gsis_id": raw["gsis_id"].astype(str).str.strip(),
+    })
+
+
+def _load_prior_madden(path: Path | str | None) -> pd.DataFrame:
+    if path is None or not Path(path).exists():
+        return pd.DataFrame()
+    prior = pd.read_csv(path, low_memory=False)
+    if "player_name" not in prior.columns or "overall" not in prior.columns:
+        return pd.DataFrame()
+    prior = prior.copy()
+    prior["name_key"] = prior["player_name"].map(_name_key)
+    prior["overall"] = pd.to_numeric(prior["overall"], errors="coerce")
+    prior = prior[prior["name_key"].ne("") & prior["overall"].notna()]
+    # Same-name players cannot be told apart safely, so they get no carryover.
+    return prior[~prior.duplicated("name_key", keep=False)].set_index("name_key")
+
+
+def _load_manual_fallbacks(path: Path | str | None) -> dict[tuple[str, str], float]:
+    """Optional user file: player_name,team,overall[,note]. Only used for players
+    missing from the current Madden file; it never overrides a real Madden rating."""
+    if path is None or not Path(path).exists():
+        return {}
+    try:
+        frame = pd.read_csv(path, dtype=str).fillna("")
+    except Exception:
+        return {}
+    if not {"player_name", "team", "overall"}.issubset(frame.columns):
+        return {}
+    out = {}
+    for row in frame.itertuples(index=False):
+        rating = pd.to_numeric(row.overall, errors="coerce")
+        team = str(row.team).upper().strip()
+        team = FULL_TO_ABBR.get(str(row.team).strip(), team)
+        if pd.notna(rating) and str(row.player_name).strip():
+            out[(team, _name_key(row.player_name))] = float(max(0.0, min(99.0, rating)))
+    return out
+
+
+def _reconcile_depth_chart(
+    players: pd.DataFrame,
+    depth_charts: pd.DataFrame,
+    chart_path: Path,
+    prior_madden_path: Path | str | None,
+    manual_fallback_path: Path | str | None = None,
+) -> pd.DataFrame:
+    """Link depth-chart players to ratings by ID, and add fallback rows for the rest."""
+    players = players.copy()
+    players["depth_chart_alias"] = ""
+    players["depth_chart_verified_roles"] = ""
+    players["baseline_source"] = BASELINE_CURRENT
+    if depth_charts.empty:
+        return players
+
+    # 1) ID-verified links: nicknames and cross-position roles (e.g. a Madden CB listed at WR).
+    ids = _raw_depth_chart_ids(chart_path)
+    id_lookup: dict[tuple[str, str], tuple[str, str]] = {}
+    if not ids.empty:
+        gsis = players["gsis_id"].fillna("").astype(str).str.strip()
+        by_team_id = {(t, g): i for i, (t, g) in enumerate(zip(players["team_abbr"], gsis)) if g}
+        for row in ids.itertuples(index=False):
+            if row.gsis_id:
+                id_lookup[(row.team_abbr, row.depth_key)] = (row.gsis_id, row.role)
+            pos = by_team_id.get((row.team_abbr, row.gsis_id)) if row.gsis_id else None
+            if pos is None:
+                continue
+            idx = players.index[pos]
+            if row.depth_key != players.at[idx, "name_key"]:
+                aliases = set(filter(None, players.at[idx, "depth_chart_alias"].split("|"))) | {row.depth_name}
+                players.at[idx, "depth_chart_alias"] = "|".join(sorted(aliases))
+            roles = set(filter(None, players.at[idx, "depth_chart_verified_roles"].split("|"))) | {row.role}
+            players.at[idx, "depth_chart_verified_roles"] = "|".join(sorted(roles))
+
+    # 2) Anyone the unit builder would still miss gets a fallback baseline.
+    missing: dict[tuple[str, str], tuple[str, str]] = {}
+    for abbr, team_players in players.groupby("team_abbr"):
+        known = set(team_players["name_key"])
+        for alias_list in team_players["depth_chart_alias"]:
+            known |= {normalize_player_name(a) for a in alias_list.split("|") if a}
+        team_depth = team_depth_chart(depth_charts, str(abbr))
+        for unit in POSITION_GROUPS:
+            plan = unit_depth_plan(team_depth, unit)
+            for name, role in plan.get("starters", []) + plan.get("depth", []):
+                key = normalize_player_name(name)
+                if not key or key in known or (abbr, key) in missing:
+                    continue
+                matched, _ = match_depth_players(team_players, [(name, role)])
+                if matched.empty:
+                    missing[(str(abbr), key)] = (name, role)
+    if not missing:
+        return players
+
+    prior = _load_prior_madden(prior_madden_path)
+    manual = _load_manual_fallbacks(manual_fallback_path)
+    trait_pool = players.groupby("position_family")["trait_grade"]
+    replacement = trait_pool.quantile(REPLACEMENT_PERCENTILE).to_dict()
+    trait_columns = [c for c in ("speed", "strength", "agility", "change_of_direction", "injury", "awareness") if c in players.columns]
+    rows = []
+    for (abbr, key), (name, role) in missing.items():
+        position = ROLE_TO_POSITION.get(role, role)
+        family = _position_family(position)
+        row = {"player_name": name, "team": abbr, "team_abbr": abbr, "position": position,
+               "position_family": family, "name_key": _name_key(name),
+               "gsis_id": id_lookup.get((abbr, key), ("", ""))[0],
+               "depth_chart_team_override": False, "depth_chart_alias": "",
+               "depth_chart_verified_roles": role}
+        prior_row = prior.loc[row["name_key"]] if not prior.empty and row["name_key"] in prior.index else None
+        manual_rating = manual.get((abbr, row["name_key"]))
+        if manual_rating is not None:
+            row["overall"] = manual_rating
+            row["baseline_source"] = BASELINE_MANUAL
+            row["trait_grade"] = manual_rating
+        elif prior_row is not None:
+            row["overall"] = float(max(0.0, min(99.0, float(prior_row["overall"]) - PRIOR_MADDEN_DECLINE)))
+            for column in trait_columns:
+                row[column] = pd.to_numeric(prior_row.get(column), errors="coerce")
+            row["baseline_source"] = BASELINE_PRIOR
+            row["trait_grade"] = _weighted_trait_grade(pd.Series(row))
+        else:
+            row["overall"] = round(float(replacement.get(family, 60.0)), 2)
+            row["baseline_source"] = BASELINE_REPLACEMENT
+            row["trait_grade"] = row["overall"]
+        rows.append(row)
+    return pd.concat([players, pd.DataFrame(rows)], ignore_index=True, sort=False)
+
+
 def build_player_ratings(
     madden_path: Path | str = DEFAULT_MADDEN_PATH,
     nfl_dir: Path | str = DEFAULT_NFL_DIR,
     depth_chart_path: Path | str | None = None,
+    prior_madden_path: Path | str | None = DEFAULT_PRIOR_MADDEN_PATH,
+    manual_fallback_path: Path | str | None = DEFAULT_MANUAL_FALLBACK_PATH,
 ) -> pd.DataFrame:
     players = load_madden_players(madden_path).copy()
     players["name_key"] = players["player_name"].map(_name_key)
@@ -586,6 +753,7 @@ def build_player_ratings(
     if not roster_file.exists():
         roster_file = root / "rosters.csv"
     players = _fill_missing_ids_by_last_name(players, roster_file)
+    players = _reconcile_depth_chart(players, depth_charts, chart_path, prior_madden_path, manual_fallback_path)
 
     legacy_model = _using_legacy_model()
     weekly = _aggregate_weekly_stats(root / "player_weekly_stats.csv")
@@ -740,13 +908,17 @@ def build_player_ratings(
     players["availability_adjustment"] = 0.0
     players["macabets_rating"] = players["base_rating"].clip(0, 99).round(2)
     players["rating_confidence"] = np.where(players["performance_weight"] > .35, "high", np.where(players["performance_weight"] > .10, "medium", "baseline"))
-    players["rating_source"] = np.where(players["performance_weight"] > 0, "Madden 27 + nflverse performance", "Madden 27 baseline")
+    baseline = players["baseline_source"].fillna(BASELINE_CURRENT).astype(str)
+    players["rating_source"] = np.where(
+        players["performance_weight"] > 0, baseline + " + nflverse performance", baseline + " baseline"
+    )
 
     keep = ["player_name", "team_abbr", "position", "position_family", "overall", "trait_grade",
             "performance_grade", "performance_weight", "availability_adjustment", "macabets_rating",
             "rating_confidence", "rating_source", "roster_status", "injury_status", "gsis_id",
             "depth_chart_team_override", "availability_state", "definitively_unavailable",
-            "practice_participation", "availability_updated_at_utc", "availability_source"]
+            "practice_participation", "availability_updated_at_utc", "availability_source",
+            "depth_chart_alias", "depth_chart_verified_roles"]
     return players[keep].sort_values(["team_abbr", "macabets_rating"], ascending=[True, False]).reset_index(drop=True)
 
 
@@ -1102,6 +1274,23 @@ def _write_json(path: Path, payload: Any) -> None:
     temp.replace(path)
 
 
+def _fallback_summary(player_ratings: pd.DataFrame) -> dict[str, Any]:
+    source = player_ratings.get("rating_source", pd.Series("", index=player_ratings.index)).fillna("").astype(str)
+    prior = player_ratings[source.str.startswith(BASELINE_PRIOR)]
+    replacement = player_ratings[source.str.startswith(BASELINE_REPLACEMENT)]
+    manual = player_ratings[source.str.startswith(BASELINE_MANUAL)]
+    def listing(frame: pd.DataFrame) -> list[str]:
+        return [f"{r.player_name} ({r.team_abbr} {r.position}) {float(r.macabets_rating):.1f}" for r in frame.itertuples()]
+    return {
+        "manual": int(len(manual)),
+        "manual_players": listing(manual),
+        "prior_year_madden": int(len(prior)),
+        "replacement_level": int(len(replacement)),
+        "prior_year_madden_players": listing(prior),
+        "replacement_level_players": listing(replacement),
+    }
+
+
 def save_rating_outputs(
     player_ratings: pd.DataFrame,
     team_ratings: dict[str, Any],
@@ -1127,6 +1316,7 @@ def save_rating_outputs(
         "rating_model": RATING_MODEL, "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
+        "fallback_players": _fallback_summary(player_ratings),
         # These unit grades feed nfl_ratings_loader -> team power scores, so the
         # performance blend is live in NFL predictions.
         "prediction_influence_enabled": True,

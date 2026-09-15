@@ -273,6 +273,15 @@ def _name_parts(value: Any) -> tuple[str, str]:
     return parts[0], parts[-1]
 
 
+OL_ROLES = {"LT", "LG", "C", "RG", "RT"}
+OL_POSITIONS = {"LT", "LG", "C", "RG", "RT", "OL", "G", "T", "OT", "OG"}
+
+
+def _split_tokens(value: Any) -> set[str]:
+    text = "" if value is None or (isinstance(value, float) and pd.isna(value)) else str(value)
+    return {token.strip() for token in text.split("|") if token.strip()}
+
+
 def _role_compatible(position: Any, role: str) -> bool:
     pos = str(position or "").upper().strip()
     role = str(role or "").upper().strip()
@@ -280,9 +289,9 @@ def _role_compatible(position: Any, role: str) -> bool:
     if role == "RB": return pos in {"RB", "HB", "FB"}
     if role == "WR": return pos == "WR"
     if role == "TE": return pos == "TE"
-    if role in {"LG", "RG"}: return pos in {"LG", "RG", "OL", "G"}
-    if role in {"LT", "RT"}: return pos in {"LT", "RT", "OL", "T"}
-    if role == "C": return pos in {"C", "OL"}
+    # Linemen move between spots (a Madden "LG" starting at C is common), and the
+    # depth chart is the authority on where he plays, so any OL fits any OL role.
+    if role in OL_ROLES: return pos in OL_POSITIONS
     if role in {"LDE", "RDE", "LDT", "RDT", "NT"}: return pos in {"DE", "DT", "DL", "LE", "RE", "EDGE", "LEDG", "REDG"}
     if role in {"SLB", "WLB", "MLB", "LILB", "RILB"}: return pos in {"LB", "MLB", "ILB", "OLB", "LOLB", "ROLB", "MIKE", "WILL", "SAM", "EDGE", "LEDG", "REDG"}
     if role in {"LCB", "RCB", "SCB", "SS", "FS"}: return pos in {"CB", "DB", "FS", "SS", "S"}
@@ -324,10 +333,16 @@ def match_depth_players(team_players: pd.DataFrame, planned: list[tuple[str, str
     working = team_players.copy()
     working["_depth_name_key"] = working["player_name"].map(normalize_player_name)
     lookup = {}
+    verified_roles: dict[int, set[str]] = {}
     for idx, row in working.iterrows():
-        key = row["_depth_name_key"]
-        if key and key not in lookup:
-            lookup[key] = idx
+        # Optional columns written by the rating engine when the depth chart's
+        # player ID proves identity: extra names (nicknames) and roles this
+        # player is confirmed to fill even if his Madden position differs.
+        keys = [row["_depth_name_key"]] + [normalize_player_name(a) for a in _split_tokens(row.get("depth_chart_alias"))]
+        for key in keys:
+            if key and key not in lookup:
+                lookup[key] = idx
+        verified_roles[idx] = {r.upper() for r in _split_tokens(row.get("depth_chart_verified_roles"))}
 
     matched_rows = []
     unmatched = []
@@ -341,7 +356,11 @@ def match_depth_players(team_players: pd.DataFrame, planned: list[tuple[str, str
         # the name match would silently attach the wrong player's rating
         # profile to the slot. Require role compatibility here too, exactly
         # as the fuzzy fallback path already does below.
-        if idx is not None and not _role_compatible(working.loc[idx].get("position"), role):
+        if (
+            idx is not None
+            and not _role_compatible(working.loc[idx].get("position"), role)
+            and str(role).upper() not in verified_roles.get(idx, set())
+        ):
             idx = None
         if idx is None or idx in used:
             idx = _fallback_name_match(working, name, role, used)
