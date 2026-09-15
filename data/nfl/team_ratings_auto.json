@@ -4,13 +4,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 77.03,
+    "defense_rating": 77.01,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 78.72,
-    "overall_rating": 77.66,
+    "offense_rating": 78.73,
+    "overall_rating": 77.65,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 74,
+    "player_count": 75,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "ARI",
@@ -190,23 +190,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.09,
+        "availability_grade_delta": -0.05,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 66.09,
-        "grade": 77.39,
-        "healthy_grade": 78.11,
+        "depth_count": 4,
+        "depth_grade": 66.69,
+        "grade": 77.41,
+        "healthy_grade": 78.1,
         "healthy_starter_grade": 78.65,
         "performance_grade": 75.73,
         "performance_grade_raw": 75.73,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 78.02,
+        "roster_grade": 78.05,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -270,24 +270,24 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Jayden Williams",
-            "position": "RT",
-            "rating": 67.17,
-            "role": "RT",
+            "name": "Hayden Conner",
+            "position": "C",
+            "rating": 65.35,
+            "role": "LG",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jon Gaines II",
+            "position": "LG",
+            "rating": 69.24,
+            "role": "C",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Hayden Conner",
-            "role": "LG"
-          },
-          {
-            "name": "Jon Gaines II",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -488,17 +488,17 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 71.19,
-        "grade": 76.77,
-        "healthy_grade": 77.83,
+        "depth_count": 3,
+        "depth_grade": 70.11,
+        "grade": 76.73,
+        "healthy_grade": 77.77,
         "healthy_starter_grade": 78.05,
         "performance_grade": 74.32,
         "performance_grade_raw": 74.32,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 77.7,
+        "roster_grade": 77.65,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -560,6 +560,15 @@
             "starter": false
           },
           {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Kalen King",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "SCB",
+            "starter": false
+          },
+          {
             "availability": "Questionable",
             "injury_status": "Questionable",
             "name": "Kitan Crawford",
@@ -570,12 +579,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Kalen King",
-            "role": "SCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -630,13 +634,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 77.67,
+    "defense_rating": 77.22,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 75.08,
-    "overall_rating": 76.06,
+    "overall_rating": 75.89,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 76,
+    "player_count": 80,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "ATL",
@@ -647,24 +651,24 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 3,
         "depth_grade": 68.09,
-        "grade": 74.39,
-        "healthy_grade": 74.66,
-        "healthy_starter_grade": 74.92,
+        "grade": 73.14,
+        "healthy_grade": 72.93,
+        "healthy_starter_grade": 73.1,
         "performance_grade": 73.9,
         "performance_grade_raw": 73.9,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 74.58,
+        "roster_grade": 72.85,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 74.92,
+        "starter_count": 5,
+        "starter_grade": 73.1,
         "top_players": [
           {
             "availability": "Active",
@@ -705,6 +709,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Za'Darius Smith",
+            "position": "OLB",
+            "rating": 65.85,
+            "role": "WLB",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Maason Smith",
             "position": "DT",
             "rating": 70.9,
@@ -731,12 +744,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Za'Darius Smith",
-            "role": "WLB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": -0.18,
@@ -913,12 +921,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 0,
-        "depth_grade": 67.63,
+        "depth_count": 1,
+        "depth_grade": 66.0,
         "grade": 65.7,
         "healthy_grade": 75.36,
         "healthy_starter_grade": 75.36,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {
           "contextual_rating_drop": 7.73,
           "effective_rating_drop": 7.73,
@@ -947,6 +955,15 @@
             "rating": 67.63,
             "role": "QB",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jack Strand",
+            "position": "QB",
+            "rating": 66.0,
+            "role": "QB",
+            "starter": false
           }
         ],
         "unavailable_starters": [
@@ -957,12 +974,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jack Strand",
-            "role": "QB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "receiving_weapons": {
         "availability_grade_delta": 0.0,
@@ -971,12 +983,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 71.51,
-        "grade": 79.46,
-        "healthy_grade": 79.46,
+        "depth_count": 4,
+        "depth_grade": 71.3,
+        "grade": 79.45,
+        "healthy_grade": 79.45,
         "healthy_starter_grade": 79.88,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -1031,6 +1043,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Chris Blair",
+            "position": "WR",
+            "rating": 70.67,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Charlie Woerner",
             "position": "TE",
             "rating": 66.37,
@@ -1048,12 +1069,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Chris Blair",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -1094,12 +1110,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Trey Sermon",
-            "role": "RB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "secondary": {
         "availability_grade_delta": -0.23,
@@ -1473,7 +1484,7 @@
         "depth_count": 3,
         "depth_grade": 71.72,
         "grade": 76.54,
-        "healthy_grade": 77.87,
+        "healthy_grade": 77.86,
         "healthy_starter_grade": 78.19,
         "performance_grade": 73.02,
         "performance_grade_raw": 73.02,
@@ -1561,12 +1572,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Emery Jones Jr.",
-            "role": "RG"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -1896,7 +1902,7 @@
     "offense_rating": 86.54,
     "overall_rating": 82.27,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 71,
+    "player_count": 72,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "BUF",
@@ -1916,17 +1922,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 75.03,
-        "grade": 76.04,
-        "healthy_grade": 78.92,
+        "depth_count": 4,
+        "depth_grade": 74.77,
+        "grade": 76.03,
+        "healthy_grade": 78.91,
         "healthy_starter_grade": 79.12,
         "performance_grade": 68.06,
         "performance_grade_raw": 68.06,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 79.06,
+        "roster_grade": 79.05,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -1981,6 +1987,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Greg Gaines",
+            "position": "DT",
+            "rating": 74.0,
+            "role": "NT",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "DeWayne Carter",
             "position": "DT",
             "rating": 71.72,
@@ -1995,15 +2010,6 @@
             "rating": 77.79,
             "role": "SLB",
             "starter": false
-          },
-          {
-            "availability": "Active",
-            "injury_status": "",
-            "name": "Michael Hoecht",
-            "position": "EDGE",
-            "rating": 75.57,
-            "role": "WLB",
-            "starter": false
           }
         ],
         "unavailable_starters": [
@@ -2014,12 +2020,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Greg Gaines",
-            "role": "NT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -2518,20 +2519,20 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 74.09,
+    "defense_rating": 73.79,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 79.24,
-    "overall_rating": 77.07,
+    "offense_rating": 79.28,
+    "overall_rating": 76.97,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 78,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "CAR",
     "unavailable_starters": 1,
     "units": {
       "defensive_front": {
-        "availability_grade_delta": -0.33,
+        "availability_grade_delta": -0.31,
         "availability_promotions": [
           {
             "in": "Trevis Gipson",
@@ -2544,17 +2545,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 68.69,
-        "grade": 72.89,
-        "healthy_grade": 78.85,
+        "depth_count": 3,
+        "depth_grade": 68.77,
+        "grade": 72.9,
+        "healthy_grade": 78.84,
         "healthy_starter_grade": 79.32,
         "performance_grade": 58.04,
         "performance_grade_raw": 58.04,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 78.52,
+        "roster_grade": 78.53,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -2609,6 +2610,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Aaron Hall",
+            "position": "DE",
+            "rating": 68.92,
+            "role": "LDE",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "TeRah Edwards",
             "position": "DT",
             "rating": 64.26,
@@ -2633,36 +2643,31 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Aaron Hall",
-            "role": "LDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 2,
         "depth_grade": 68.43,
-        "grade": 80.58,
-        "healthy_grade": 85.39,
-        "healthy_starter_grade": 86.28,
+        "grade": 79.29,
+        "healthy_grade": 83.89,
+        "healthy_starter_grade": 84.7,
         "performance_grade": 50.41,
         "performance_grade_raw": 50.41,
         "performance_weight": 0.138,
-        "player_count": 3,
+        "player_count": 4,
         "qb_replacement_context": {},
-        "roster_grade": 85.39,
+        "roster_grade": 83.89,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "86% roster + 14% NFL team-defense proxy",
-        "starter_count": 1,
-        "starter_grade": 86.28,
+        "starter_count": 2,
+        "starter_grade": 84.7,
         "top_players": [
           {
             "availability": "Active",
@@ -2671,6 +2676,15 @@
             "position": "LB",
             "rating": 86.28,
             "role": "LILB",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Bobby Okereke",
+            "position": "MLB",
+            "rating": 83.13,
+            "role": "RILB",
             "starter": true
           },
           {
@@ -2693,12 +2707,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Bobby Okereke",
-            "role": "RILB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "offensive_line": {
         "availability_grade_delta": 0.0,
@@ -2854,12 +2863,12 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 69.8,
-        "grade": 77.47,
-        "healthy_grade": 77.47,
+        "depth_count": 4,
+        "depth_grade": 72.38,
+        "grade": 77.6,
+        "healthy_grade": 77.6,
         "healthy_starter_grade": 77.87,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -2928,15 +2937,19 @@
             "rating": 69.47,
             "role": "TE",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Darren Waller",
+            "position": "TE",
+            "rating": 80.1,
+            "role": "TE",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Darren Waller",
-            "role": "TE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -3137,21 +3150,21 @@
     }
   },
   "Chicago Bears": {
-    "availability_promotions": 0,
+    "availability_promotions": 1,
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 73.5,
+    "defense_rating": 72.84,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 84.07,
-    "overall_rating": 80.15,
+    "overall_rating": 79.92,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 73,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "CHI",
-    "unavailable_starters": 0,
+    "unavailable_starters": 1,
     "units": {
       "defensive_front": {
         "availability_grade_delta": 0.0,
@@ -3465,12 +3478,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Miller Moss",
-            "role": "QB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "receiving_weapons": {
         "availability_grade_delta": 0.0,
@@ -3618,9 +3626,16 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": 0.0,
-        "availability_promotions": [],
-        "availability_source": "",
+        "availability_grade_delta": -2.45,
+        "availability_promotions": [
+          {
+            "in": "Skyler Thomas",
+            "out": "Xavier Woods",
+            "replacement_rating": 67.93,
+            "role": "FS"
+          }
+        ],
+        "availability_source": "Sleeper",
         "availability_uncertainty": [
           {
             "name": "Tyrique Stevenson",
@@ -3628,24 +3643,24 @@
             "status": "Questionable"
           }
         ],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 4,
         "depth_grade": 70.79,
-        "grade": 73.61,
-        "healthy_grade": 79.34,
-        "healthy_starter_grade": 79.79,
+        "grade": 71.97,
+        "healthy_grade": 79.53,
+        "healthy_starter_grade": 80.02,
         "performance_grade": 58.5,
         "performance_grade_raw": 58.5,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 79.34,
+        "roster_grade": 77.08,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 79.79,
+        "starter_count": 5,
+        "starter_grade": 77.42,
         "top_players": [
           {
             "availability": "Active",
@@ -3686,6 +3701,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Skyler Thomas",
+            "position": "FS",
+            "rating": 67.93,
+            "role": "FS",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Josh Blackwell",
             "position": "CB",
             "rating": 66.45,
@@ -3709,28 +3733,17 @@
             "rating": 71.19,
             "role": "SCB",
             "starter": false
-          },
-          {
-            "availability": "Active",
-            "injury_status": "",
-            "name": "Elijah Hicks",
-            "position": "FS",
-            "rating": 69.4,
-            "role": "SS",
-            "starter": false
           }
         ],
-        "unavailable_starters": [],
-        "unmatched_depth_chart": [
+        "unavailable_starters": [
           {
+            "injury_status": "Out",
             "name": "Xavier Woods",
-            "role": "FS"
-          },
-          {
-            "name": "Skyler Thomas",
-            "role": "FS"
+            "role": "FS",
+            "status": "Out"
           }
-        ]
+        ],
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -3789,9 +3802,9 @@
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 85.03,
-    "overall_rating": 81.68,
+    "overall_rating": 81.67,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 77,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "CIN",
@@ -3962,23 +3975,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.04,
+        "availability_grade_delta": -0.03,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 68.66,
-        "grade": 75.19,
-        "healthy_grade": 75.62,
+        "depth_count": 3,
+        "depth_grade": 67.86,
+        "grade": 75.16,
+        "healthy_grade": 75.57,
         "healthy_starter_grade": 75.95,
         "performance_grade": 74.14,
         "performance_grade_raw": 74.14,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 75.58,
+        "roster_grade": 75.54,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -4047,19 +4060,19 @@
             "rating": 68.36,
             "role": "LG",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jacob Bayer",
+            "position": "RG",
+            "rating": 66.25,
+            "role": "RG",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jacob Bayer",
-            "role": "RG"
-          },
-          {
-            "name": "Myles Hinton",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -4109,12 +4122,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 69.97,
-        "grade": 83.27,
-        "healthy_grade": 83.27,
+        "depth_count": 4,
+        "depth_grade": 70.14,
+        "grade": 83.28,
+        "healthy_grade": 83.28,
         "healthy_starter_grade": 83.97,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -4169,6 +4182,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Dohnte Meyers",
+            "position": "WR",
+            "rating": 70.65,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Drew Sample",
             "position": "TE",
             "rating": 69.03,
@@ -4186,12 +4208,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Dohnte Meyers",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -4392,17 +4409,17 @@
     }
   },
   "Cleveland Browns": {
-    "availability_promotions": 0,
+    "availability_promotions": 1,
     "availability_source": "Sleeper",
     "availability_uncertain": 0,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 71.99,
+    "defense_rating": 72.0,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 74.93,
-    "overall_rating": 74.07,
+    "offense_rating": 74.65,
+    "overall_rating": 73.91,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 78,
+    "player_count": 79,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "CLE",
@@ -4415,17 +4432,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 71.23,
-        "grade": 73.75,
-        "healthy_grade": 79.05,
+        "depth_count": 4,
+        "depth_grade": 71.92,
+        "grade": 73.77,
+        "healthy_grade": 79.08,
         "healthy_starter_grade": 79.46,
         "performance_grade": 59.77,
         "performance_grade_raw": 59.77,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 79.05,
+        "roster_grade": 79.08,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -4471,6 +4488,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Derek Barnett",
+            "position": "DE",
+            "rating": 74.0,
+            "role": "LDE",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Adin Huntington",
             "position": "DT",
             "rating": 67.08,
@@ -4497,12 +4523,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Derek Barnett",
-            "role": "LDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": -0.0,
@@ -4578,28 +4599,35 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.55,
-        "availability_promotions": [],
+        "availability_grade_delta": -0.88,
+        "availability_promotions": [
+          {
+            "in": "Austin Barber",
+            "out": "Teven Jenkins",
+            "replacement_rating": 73.31,
+            "role": "RG"
+          }
+        ],
         "availability_source": "Sleeper",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 2,
         "depth_grade": 70.65,
-        "grade": 73.4,
-        "healthy_grade": 79.59,
+        "grade": 72.39,
+        "healthy_grade": 79.63,
         "healthy_starter_grade": 80.09,
         "performance_grade": 55.62,
         "performance_grade_raw": 55.62,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 7,
         "qb_replacement_context": {},
-        "roster_grade": 80.14,
+        "roster_grade": 78.75,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 80.64,
+        "starter_count": 5,
+        "starter_grade": 79.18,
         "top_players": [
           {
             "availability": "Active",
@@ -4626,6 +4654,15 @@
             "position": "C",
             "rating": 83.83,
             "role": "C",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Austin Barber",
+            "position": "RT",
+            "rating": 73.31,
+            "role": "RG",
             "starter": true
           },
           {
@@ -4664,12 +4701,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Austin Barber",
-            "role": "RG"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -5004,10 +5036,10 @@
     "defense_rating": 74.22,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 84.59,
+    "offense_rating": 84.58,
     "overall_rating": 80.54,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 73,
+    "player_count": 75,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "DAL",
@@ -5020,17 +5052,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 74.74,
-        "grade": 75.05,
-        "healthy_grade": 79.42,
+        "depth_count": 4,
+        "depth_grade": 76.66,
+        "grade": 75.12,
+        "healthy_grade": 79.52,
         "healthy_starter_grade": 79.67,
         "performance_grade": 63.53,
         "performance_grade_raw": 63.53,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 79.42,
+        "roster_grade": 79.52,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -5111,12 +5143,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Von Miller",
-            "role": "WLB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -5189,23 +5216,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.0,
+        "availability_grade_delta": 0.03,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 71.13,
-        "grade": 77.84,
-        "healthy_grade": 75.58,
+        "depth_count": 4,
+        "depth_grade": 70.46,
+        "grade": 77.82,
+        "healthy_grade": 75.52,
         "healthy_starter_grade": 75.82,
         "performance_grade": 83.81,
         "performance_grade_raw": 83.81,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 75.58,
+        "roster_grade": 75.55,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -5269,28 +5296,24 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Broderick Jones",
-            "position": "LT",
-            "rating": 72.33,
-            "role": "RT",
+            "name": "Nick Leverett",
+            "position": "C",
+            "rating": 69.13,
+            "role": "LG",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "T.J. Bass",
+            "position": "RG",
+            "rating": 70.45,
+            "role": "C",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Nick Leverett",
-            "role": "LG"
-          },
-          {
-            "name": "T.J. Bass",
-            "role": "C"
-          },
-          {
-            "name": "Ajani Cornelius",
-            "role": "RG"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -5470,7 +5493,7 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": -0.67,
+        "availability_grade_delta": -0.68,
         "availability_promotions": [
           {
             "in": "P.J. Locke",
@@ -5483,17 +5506,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 72.5,
-        "grade": 73.54,
-        "healthy_grade": 81.14,
+        "depth_count": 3,
+        "depth_grade": 70.98,
+        "grade": 73.48,
+        "healthy_grade": 81.07,
         "healthy_starter_grade": 81.56,
         "performance_grade": 55.27,
         "performance_grade_raw": 55.27,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 80.47,
+        "roster_grade": 80.39,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -5557,6 +5580,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Ameer Speed",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "RCB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Markquese Bell",
             "position": "SS",
             "rating": 72.03,
@@ -5572,12 +5604,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Ameer Speed",
-            "role": "RCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -5635,7 +5662,7 @@
     "defense_rating": 77.98,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 80.23,
+    "offense_rating": 80.24,
     "overall_rating": 79.43,
     "personnel_matchup_influence_enabled": true,
     "player_count": 72,
@@ -5809,23 +5836,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.06,
+        "availability_grade_delta": -0.03,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.12,
-        "grade": 76.4,
-        "healthy_grade": 84.68,
+        "depth_count": 3,
+        "depth_grade": 69.93,
+        "grade": 76.43,
+        "healthy_grade": 84.7,
         "healthy_starter_grade": 85.44,
         "performance_grade": 54.74,
         "performance_grade_raw": 54.74,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 84.62,
+        "roster_grade": 84.66,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -5894,15 +5921,19 @@
             "rating": 69.4,
             "role": "C",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Alex Palczewski",
+            "position": "RG",
+            "rating": 71.55,
+            "role": "RT",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Alex Palczewski",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -6252,10 +6283,10 @@
     "defense_rating": 76.69,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 84.53,
-    "overall_rating": 81.35,
+    "offense_rating": 84.55,
+    "overall_rating": 81.36,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 74,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "DET",
@@ -6448,17 +6479,17 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 71.69,
-        "grade": 77.08,
-        "healthy_grade": 78.48,
+        "depth_count": 4,
+        "depth_grade": 72.99,
+        "grade": 77.13,
+        "healthy_grade": 78.54,
         "healthy_starter_grade": 78.89,
         "performance_grade": 73.27,
         "performance_grade_raw": 73.27,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 78.53,
+        "roster_grade": 78.59,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -6522,29 +6553,24 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Miles Frazier",
+            "name": "Tate Ratledge",
             "position": "RG",
-            "rating": 70.24,
-            "role": "RG",
+            "rating": 76.89,
+            "role": "C",
             "starter": false
           },
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Larry Borom",
-            "position": "RT",
-            "rating": 71.83,
-            "role": "RT",
+            "name": "Miles Frazier",
+            "position": "RG",
+            "rating": 70.24,
+            "role": "RG",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Tate Ratledge",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -6553,12 +6579,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 0,
-        "depth_grade": 87.28,
+        "depth_count": 1,
+        "depth_grade": 68.22,
         "grade": 87.28,
         "healthy_grade": 87.28,
         "healthy_starter_grade": 87.28,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -6573,15 +6599,19 @@
             "rating": 87.28,
             "role": "QB",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Joshua Dobbs",
+            "position": "QB",
+            "rating": 68.22,
+            "role": "QB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Joshua Dobbs",
-            "role": "QB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "receiving_weapons": {
         "availability_grade_delta": 0.0,
@@ -6590,12 +6620,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 69.52,
-        "grade": 83.84,
-        "healthy_grade": 83.84,
+        "depth_count": 4,
+        "depth_grade": 69.81,
+        "grade": 83.86,
+        "healthy_grade": 83.86,
         "healthy_starter_grade": 84.6,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -6650,6 +6680,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Tay Martin",
+            "position": "WR",
+            "rating": 70.67,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Brock Wright",
             "position": "TE",
             "rating": 66.54,
@@ -6667,12 +6706,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Tay Martin",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -6880,17 +6914,17 @@
     "defense_rating": 77.16,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 77.49,
-    "overall_rating": 77.31,
+    "offense_rating": 77.21,
+    "overall_rating": 77.14,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 72,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "GB",
     "unavailable_starters": 1,
     "units": {
       "defensive_front": {
-        "availability_grade_delta": -0.4,
+        "availability_grade_delta": -0.35,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
@@ -6899,7 +6933,7 @@
         "depth_count": 2,
         "depth_grade": 66.28,
         "grade": 76.09,
-        "healthy_grade": 75.41,
+        "healthy_grade": 75.35,
         "healthy_starter_grade": 75.47,
         "performance_grade": 78.93,
         "performance_grade_raw": 78.93,
@@ -6978,12 +7012,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Anthony Campbell",
-            "role": "LDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.27,
@@ -7041,7 +7070,7 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -2.45,
+        "availability_grade_delta": -1.56,
         "availability_promotions": [
           {
             "in": "Donovan Jennings",
@@ -7052,24 +7081,24 @@
         ],
         "availability_source": "Sleeper",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 0,
-        "depth_grade": 70.43,
-        "grade": 65.53,
-        "healthy_grade": 72.88,
-        "healthy_starter_grade": 73.25,
+        "depth_count": 3,
+        "depth_grade": 69.66,
+        "grade": 64.44,
+        "healthy_grade": 70.48,
+        "healthy_starter_grade": 70.57,
         "performance_grade": 52.63,
         "performance_grade_raw": 52.63,
         "performance_weight": 0.275,
-        "player_count": 3,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 70.43,
+        "roster_grade": 68.92,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 3,
-        "starter_grade": 70.43,
+        "starter_count": 5,
+        "starter_grade": 68.88,
         "top_players": [
           {
             "availability": "Active",
@@ -7097,6 +7126,51 @@
             "rating": 71.65,
             "role": "C",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jacob Monk",
+            "position": "C",
+            "rating": 66.86,
+            "role": "RG",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Zach Bako-Bewele",
+            "position": "RT",
+            "rating": 66.25,
+            "role": "RT",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "John Williams",
+            "position": "LG",
+            "rating": 65.09,
+            "role": "LT",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jager Burton",
+            "position": "RG",
+            "rating": 70.78,
+            "role": "C",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Anthony Belton",
+            "position": "RG",
+            "rating": 73.1,
+            "role": "RT",
+            "starter": false
           }
         ],
         "unavailable_starters": [
@@ -7107,28 +7181,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jacob Monk",
-            "role": "RG"
-          },
-          {
-            "name": "Zach Bako-Bewele",
-            "role": "RT"
-          },
-          {
-            "name": "John Williams",
-            "role": "LT"
-          },
-          {
-            "name": "Jager Burton",
-            "role": "C"
-          },
-          {
-            "name": "Anthony Belton",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -7189,12 +7242,12 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 72.29,
-        "grade": 80.28,
-        "healthy_grade": 80.28,
+        "depth_count": 4,
+        "depth_grade": 73.85,
+        "grade": 80.36,
+        "healthy_grade": 80.36,
         "healthy_starter_grade": 80.7,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -7256,6 +7309,15 @@
             "starter": false
           },
           {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jonnu Smith",
+            "position": "TE",
+            "rating": 78.55,
+            "role": "TE",
+            "starter": false
+          },
+          {
             "availability": "Questionable",
             "injury_status": "Questionable",
             "name": "Josh Whyle",
@@ -7266,12 +7328,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jonnu Smith",
-            "role": "TE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -7333,7 +7390,7 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": 0.0,
+        "availability_grade_delta": 0.05,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [
@@ -7348,7 +7405,7 @@
         "depth_count": 4,
         "depth_grade": 73.12,
         "grade": 76.94,
-        "healthy_grade": 78.6,
+        "healthy_grade": 78.55,
         "healthy_starter_grade": 78.89,
         "performance_grade": 72.56,
         "performance_grade_raw": 72.56,
@@ -7436,12 +7493,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Trey Dean III",
-            "role": "SS"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -7499,10 +7551,10 @@
     "defense_rating": 76.91,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 78.73,
-    "overall_rating": 77.96,
+    "offense_rating": 78.59,
+    "overall_rating": 77.88,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 73,
+    "player_count": 75,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "HOU",
@@ -7688,28 +7740,28 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.01,
+        "availability_grade_delta": 0.09,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 3,
         "depth_grade": 74.52,
-        "grade": 74.01,
-        "healthy_grade": 76.5,
-        "healthy_starter_grade": 76.62,
+        "grade": 73.53,
+        "healthy_grade": 75.74,
+        "healthy_starter_grade": 75.91,
         "performance_grade": 67.43,
         "performance_grade_raw": 67.43,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 76.51,
+        "roster_grade": 75.84,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 3,
-        "starter_grade": 76.62,
+        "starter_count": 5,
+        "starter_grade": 75.91,
         "top_players": [
           {
             "availability": "Active",
@@ -7718,6 +7770,24 @@
             "position": "LT",
             "rating": 72.48,
             "role": "LT",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Keylan Rutledge",
+            "position": "C",
+            "rating": 75.49,
+            "role": "LG",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Evan Brown",
+            "position": "LG",
+            "rating": 74.19,
+            "role": "C",
             "starter": true
           },
           {
@@ -7767,20 +7837,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Keylan Rutledge",
-            "role": "LG"
-          },
-          {
-            "name": "Evan Brown",
-            "role": "C"
-          },
-          {
-            "name": "Nate Thomas",
-            "role": "LT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -7830,12 +7887,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 70.83,
+        "depth_count": 4,
+        "depth_grade": 70.78,
         "grade": 81.58,
         "healthy_grade": 81.58,
         "healthy_starter_grade": 82.14,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -7890,6 +7947,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Jared Wayne",
+            "position": "WR",
+            "rating": 70.64,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Foster Moreau",
             "position": "TE",
             "rating": 72.07,
@@ -7907,12 +7973,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jared Wayne",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -8117,13 +8178,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 73.56,
+    "defense_rating": 73.52,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 81.72,
-    "overall_rating": 78.57,
+    "overall_rating": 78.55,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 69,
+    "player_count": 73,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "IND",
@@ -8136,17 +8197,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 71.45,
-        "grade": 76.38,
-        "healthy_grade": 81.9,
+        "depth_count": 4,
+        "depth_grade": 72.38,
+        "grade": 76.41,
+        "healthy_grade": 81.94,
         "healthy_starter_grade": 82.44,
         "performance_grade": 61.84,
         "performance_grade_raw": 61.84,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 81.9,
+        "roster_grade": 81.94,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -8192,6 +8253,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "JT Tuimoloau",
+            "position": "EDGE",
+            "rating": 75.16,
+            "role": "LDE",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Jerry Tillery",
             "position": "DT",
             "rating": 71.87,
@@ -8218,31 +8288,26 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jaylahn Tuimoloau",
-            "role": "LDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
-        "availability_grade_delta": 0.18,
+        "availability_grade_delta": 0.05,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 1,
-        "depth_grade": 74.63,
-        "grade": 69.01,
-        "healthy_grade": 71.43,
+        "depth_count": 2,
+        "depth_grade": 70.24,
+        "grade": 68.82,
+        "healthy_grade": 71.34,
         "healthy_starter_grade": 71.45,
         "performance_grade": 52.73,
         "performance_grade_raw": 52.73,
         "performance_weight": 0.138,
-        "player_count": 4,
+        "player_count": 5,
         "qb_replacement_context": {},
-        "roster_grade": 71.61,
+        "roster_grade": 71.39,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "86% roster + 14% NFL team-defense proxy",
@@ -8284,15 +8349,19 @@
             "rating": 74.63,
             "role": "SLB",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Tahj Chambers",
+            "position": "OLB",
+            "rating": 65.85,
+            "role": "WLB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Tahj Chambers",
-            "role": "WLB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "offensive_line": {
         "availability_grade_delta": 0.02,
@@ -8446,18 +8515,18 @@
             "status": "Questionable"
           }
         ],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 4,
         "depth_grade": 70.47,
         "grade": 81.62,
         "healthy_grade": 81.62,
         "healthy_starter_grade": 82.2,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
-        "starter_count": 3,
+        "starter_count": 4,
         "starter_grade": 82.2,
         "top_players": [
           {
@@ -8475,6 +8544,15 @@
             "name": "Josh Downs",
             "position": "WR",
             "rating": 80.67,
+            "role": "WR",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Keenan Allen",
+            "position": "WR",
+            "rating": 82.21,
             "role": "WR",
             "starter": true
           },
@@ -8525,12 +8603,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Keenan Allen",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -8574,23 +8647,23 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": -0.2,
+        "availability_grade_delta": -0.13,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.12,
-        "grade": 73.75,
-        "healthy_grade": 81.34,
+        "depth_count": 4,
+        "depth_grade": 68.53,
+        "grade": 73.73,
+        "healthy_grade": 81.24,
         "healthy_starter_grade": 81.77,
         "performance_grade": 54.28,
         "performance_grade_raw": 54.28,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 81.14,
+        "roster_grade": 81.11,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -8645,33 +8718,33 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Hunter Wohler",
-            "position": "SS",
-            "rating": 66.6,
-            "role": "SS",
+            "name": "Kenneth Harris",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "LCB",
             "starter": false
           },
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Jonathan Owens",
-            "position": "FS",
-            "rating": 71.64,
-            "role": "FS",
+            "name": "Kapena Gushiken",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "SCB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Hunter Wohler",
+            "position": "SS",
+            "rating": 66.6,
+            "role": "SS",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Kenneth Harris",
-            "role": "LCB"
-          },
-          {
-            "name": "Kapena Gushiken",
-            "role": "SCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -8726,13 +8799,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 2,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 77.67,
+    "defense_rating": 77.72,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 80.43,
-    "overall_rating": 79.34,
+    "offense_rating": 80.48,
+    "overall_rating": 79.39,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 74,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "JAX",
@@ -8845,23 +8918,23 @@
         "unmatched_depth_chart": []
       },
       "linebackers": {
-        "availability_grade_delta": 0.0,
+        "availability_grade_delta": 0.06,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 1,
-        "depth_grade": 64.02,
-        "grade": 75.79,
-        "healthy_grade": 76.01,
+        "depth_count": 2,
+        "depth_grade": 69.16,
+        "grade": 76.01,
+        "healthy_grade": 76.21,
         "healthy_starter_grade": 76.64,
         "performance_grade": 74.39,
         "performance_grade_raw": 74.39,
         "performance_weight": 0.138,
-        "player_count": 4,
+        "player_count": 5,
         "qb_replacement_context": {},
-        "roster_grade": 76.01,
+        "roster_grade": 76.27,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "86% roster + 14% NFL team-defense proxy",
@@ -8903,19 +8976,19 @@
             "rating": 64.02,
             "role": "MLB",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jahlani Tavai",
+            "position": "OLB",
+            "rating": 74.3,
+            "role": "WLB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jared Bartlett",
-            "role": "SLB"
-          },
-          {
-            "name": "Jahlani Tavai",
-            "role": "WLB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "offensive_line": {
         "availability_grade_delta": -0.04,
@@ -9062,12 +9135,12 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 67.41,
-        "grade": 80.05,
-        "healthy_grade": 80.05,
+        "depth_count": 4,
+        "depth_grade": 71.41,
+        "grade": 80.25,
+        "healthy_grade": 80.25,
         "healthy_starter_grade": 80.72,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -9122,6 +9195,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Travis Hunter",
+            "position": "CB",
+            "rating": 83.43,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Nate Boerkircher",
             "position": "TE",
             "rating": 67.41,
@@ -9139,12 +9221,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Travis Hunter",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -9358,13 +9435,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 0,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 79.75,
+    "defense_rating": 79.73,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 84.51,
     "overall_rating": 82.81,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "KC",
@@ -9377,17 +9454,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 75.61,
-        "grade": 80.62,
-        "healthy_grade": 80.22,
+        "depth_count": 4,
+        "depth_grade": 73.94,
+        "grade": 80.56,
+        "healthy_grade": 80.14,
         "healthy_starter_grade": 80.47,
         "performance_grade": 81.67,
         "performance_grade_raw": 81.67,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 80.22,
+        "roster_grade": 80.14,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -9451,6 +9528,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Bryson Eason",
+            "position": "DT",
+            "rating": 68.92,
+            "role": "RDT",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "R Mason Thomas",
             "position": "EDGE",
             "rating": 77.31,
@@ -9459,12 +9545,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Bryson Eason",
-            "role": "RDT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -10000,36 +10081,36 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 78.75,
+    "defense_rating": 78.78,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 77.63,
-    "overall_rating": 78.21,
+    "offense_rating": 77.65,
+    "overall_rating": 78.23,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 73,
+    "player_count": 75,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "LV",
     "unavailable_starters": 1,
     "units": {
       "defensive_front": {
-        "availability_grade_delta": 0.01,
+        "availability_grade_delta": 0.02,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 69.71,
-        "grade": 79.56,
-        "healthy_grade": 77.08,
+        "depth_count": 4,
+        "depth_grade": 71.28,
+        "grade": 79.62,
+        "healthy_grade": 77.15,
         "healthy_starter_grade": 77.48,
         "performance_grade": 86.06,
         "performance_grade_raw": 86.06,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 77.09,
+        "roster_grade": 77.17,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -10093,29 +10174,24 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Patrick Johnson",
-            "position": "EDGE",
-            "rating": 66.46,
-            "role": "SLB",
+            "name": "Folorunso Fatukasi",
+            "position": "DE",
+            "rating": 76.0,
+            "role": "RDE",
             "starter": false
           },
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Malcolm Koonce",
+            "name": "Patrick Johnson",
             "position": "EDGE",
-            "rating": 75.59,
-            "role": "WLB",
+            "rating": 66.46,
+            "role": "SLB",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Folorunso Fatukasi",
-            "role": "RDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.16,
@@ -10179,17 +10255,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 71.36,
-        "grade": 78.94,
-        "healthy_grade": 79.54,
+        "depth_count": 3,
+        "depth_grade": 72.27,
+        "grade": 78.98,
+        "healthy_grade": 79.59,
         "healthy_starter_grade": 80.04,
         "performance_grade": 77.2,
         "performance_grade_raw": 77.2,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 79.6,
+        "roster_grade": 79.65,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -10258,15 +10334,19 @@
             "rating": 71.3,
             "role": "RG",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Trey Zuhn III",
+            "position": "LG",
+            "rating": 74.1,
+            "role": "RT",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Trey Zuhn III",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -10457,12 +10537,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Chris Collier",
-            "role": "RB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "secondary": {
         "availability_grade_delta": 0.04,
@@ -10623,13 +10698,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 3,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 73.92,
+    "defense_rating": 73.88,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 80.6,
-    "overall_rating": 78.03,
+    "offense_rating": 80.47,
+    "overall_rating": 77.94,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 72,
+    "player_count": 73,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "LAC",
@@ -10804,24 +10879,24 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 3,
         "depth_grade": 69.18,
-        "grade": 72.66,
-        "healthy_grade": 78.29,
-        "healthy_starter_grade": 78.74,
+        "grade": 72.2,
+        "healthy_grade": 77.64,
+        "healthy_starter_grade": 78.06,
         "performance_grade": 57.9,
         "performance_grade_raw": 57.9,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 78.26,
+        "roster_grade": 77.62,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 78.74,
+        "starter_count": 5,
+        "starter_grade": 78.06,
         "top_players": [
           {
             "availability": "Active",
@@ -10839,6 +10914,15 @@
             "position": "RG",
             "rating": 65.08,
             "role": "LG",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jake Slaughter",
+            "position": "LG",
+            "rating": 75.36,
+            "role": "C",
             "starter": true
           },
           {
@@ -10888,12 +10972,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jake Slaughter",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -11093,7 +11172,7 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": 0.13,
+        "availability_grade_delta": 0.06,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [
@@ -11105,17 +11184,17 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 76.28,
-        "grade": 75.3,
-        "healthy_grade": 81.12,
+        "depth_count": 3,
+        "depth_grade": 73.5,
+        "grade": 75.2,
+        "healthy_grade": 81.05,
         "healthy_starter_grade": 81.51,
         "performance_grade": 59.62,
         "performance_grade_raw": 59.62,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 81.25,
+        "roster_grade": 81.11,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -11170,6 +11249,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Rodney Shelley",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "LCB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Tony Jefferson",
             "position": "SS",
             "rating": 79.8,
@@ -11187,12 +11275,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Rodney Shelley",
-            "role": "LCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -11247,13 +11330,13 @@
     "availability_source": "",
     "availability_uncertain": 0,
     "availability_updated_at_utc": "",
-    "defense_rating": 75.02,
+    "defense_rating": 74.49,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 86.62,
-    "overall_rating": 82.03,
+    "overall_rating": 81.82,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 74,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "LA",
@@ -11264,24 +11347,24 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 5,
         "depth_grade": 73.55,
-        "grade": 70.96,
-        "healthy_grade": 79.29,
-        "healthy_starter_grade": 79.59,
+        "grade": 69.49,
+        "healthy_grade": 77.26,
+        "healthy_starter_grade": 77.46,
         "performance_grade": 49.01,
         "performance_grade_raw": 49.01,
         "performance_weight": 0.275,
-        "player_count": 9,
+        "player_count": 10,
         "qb_replacement_context": {},
-        "roster_grade": 79.29,
+        "roster_grade": 77.26,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 79.59,
+        "starter_count": 5,
+        "starter_grade": 77.46,
         "top_players": [
           {
             "availability": "Active",
@@ -11299,6 +11382,15 @@
             "position": "DT",
             "rating": 82.45,
             "role": "NT",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Aaron Donald",
+            "position": "DE",
+            "rating": 68.92,
+            "role": "RDE",
             "starter": true
           },
           {
@@ -11345,24 +11437,10 @@
             "rating": 80.21,
             "role": "RDE",
             "starter": false
-          },
-          {
-            "availability": "Active",
-            "injury_status": "",
-            "name": "Wesley Bailey",
-            "position": "LB",
-            "rating": 66.15,
-            "role": "SLB",
-            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Aaron Donald",
-            "role": "RDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -11535,12 +11613,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.98,
+        "depth_count": 3,
+        "depth_grade": 68.66,
         "grade": 95.35,
         "healthy_grade": 95.35,
         "healthy_starter_grade": 95.35,
-        "player_count": 3,
+        "player_count": 4,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -11573,15 +11651,19 @@
             "rating": 74.0,
             "role": "QB",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Matthew Caldwell",
+            "position": "QB",
+            "rating": 66.0,
+            "role": "QB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Matthew Caldwell",
-            "role": "QB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "receiving_weapons": {
         "availability_grade_delta": 0.0,
@@ -11881,13 +11963,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 72.69,
+    "defense_rating": 72.72,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 74.86,
-    "overall_rating": 74.17,
+    "overall_rating": 74.18,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 80,
+    "player_count": 83,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "MIA",
@@ -11900,17 +11982,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 65.75,
-        "grade": 71.81,
-        "healthy_grade": 75.55,
+        "depth_count": 4,
+        "depth_grade": 67.33,
+        "grade": 71.87,
+        "healthy_grade": 75.63,
         "healthy_starter_grade": 76.06,
         "performance_grade": 61.95,
         "performance_grade_raw": 61.95,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 75.55,
+        "roster_grade": 75.63,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -11956,6 +12038,24 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Malik Herring",
+            "position": "DE",
+            "rating": 68.92,
+            "role": "LDE",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Keith Cooper Jr.",
+            "position": "DT",
+            "rating": 68.92,
+            "role": "LDT",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Zeek Biggers",
             "position": "DT",
             "rating": 67.05,
@@ -11973,16 +12073,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Malik Herring",
-            "role": "LDE"
-          },
-          {
-            "name": "Keith Cooper Jr.",
-            "role": "LDT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": -0.07,
@@ -12064,7 +12155,7 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.0,
+        "availability_grade_delta": 0.02,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
@@ -12073,7 +12164,7 @@
         "depth_count": 3,
         "depth_grade": 67.77,
         "grade": 70.22,
-        "healthy_grade": 77.93,
+        "healthy_grade": 77.91,
         "healthy_starter_grade": 78.46,
         "performance_grade": 49.89,
         "performance_grade_raw": 49.89,
@@ -12161,12 +12252,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Chukwuebuka Godrick",
-            "role": "LT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -12434,12 +12520,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Kyle Louis",
-            "role": "SS"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -12494,13 +12575,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 77.44,
+    "defense_rating": 77.9,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
     "offense_rating": 75.88,
-    "overall_rating": 76.6,
+    "overall_rating": 76.56,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 74,
+    "player_count": 77,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "MIN",
@@ -12973,28 +13054,28 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": 0.08,
+        "availability_grade_delta": 0.11,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 2,
         "depth_grade": 71.62,
-        "grade": 75.56,
-        "healthy_grade": 77.79,
-        "healthy_starter_grade": 78.2,
+        "grade": 76.71,
+        "healthy_grade": 79.36,
+        "healthy_starter_grade": 79.88,
         "performance_grade": 69.47,
         "performance_grade_raw": 69.47,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 7,
         "qb_replacement_context": {},
-        "roster_grade": 77.87,
+        "roster_grade": 79.46,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 78.2,
+        "starter_count": 5,
+        "starter_grade": 79.88,
         "top_players": [
           {
             "availability": "Active",
@@ -13035,6 +13116,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Harrison Smith",
+            "position": "FS",
+            "rating": 86.58,
+            "role": "FS",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Jay Ward",
             "position": "FS",
             "rating": 72.4,
@@ -13052,40 +13142,31 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Harrison Smith",
-            "role": "FS"
-          },
-          {
-            "name": "Tyreek Chappell",
-            "role": "SCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 0,
-        "depth_grade": 85.0,
-        "grade": 82.51,
-        "healthy_grade": 85.0,
-        "healthy_starter_grade": 85.0,
+        "depth_grade": 78.0,
+        "grade": 77.43,
+        "healthy_grade": 78.0,
+        "healthy_starter_grade": 78.0,
         "performance_grade": 75.94,
         "performance_grade_raw": 75.94,
         "performance_weight": 0.275,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
-        "roster_grade": 85.0,
+        "roster_grade": 78.0,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 1,
-        "starter_grade": 85.0,
+        "starter_count": 2,
+        "starter_grade": 78.0,
         "top_players": [
           {
             "availability": "Active",
@@ -13095,15 +13176,19 @@
             "rating": 85.0,
             "role": "PK",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Brett Thorson",
+            "position": "P",
+            "rating": 71.0,
+            "role": "P",
+            "starter": true
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Brett Thorson",
-            "role": "P"
-          }
-        ]
+        "unmatched_depth_chart": []
       }
     }
   },
@@ -13115,10 +13200,10 @@
     "defense_rating": 77.25,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 82.38,
+    "offense_rating": 82.37,
     "overall_rating": 80.17,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 72,
+    "player_count": 79,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "NE",
@@ -13131,17 +13216,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 70.88,
-        "grade": 76.19,
-        "healthy_grade": 76.01,
+        "depth_count": 4,
+        "depth_grade": 73.59,
+        "grade": 76.29,
+        "healthy_grade": 76.14,
         "healthy_starter_grade": 76.28,
         "performance_grade": 76.68,
         "performance_grade_raw": 76.68,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 76.01,
+        "roster_grade": 76.14,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -13205,29 +13290,24 @@
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Gabe Jacas",
-            "position": "EDGE",
-            "rating": 76.56,
-            "role": "SLB",
+            "name": "DaQuan Jones",
+            "position": "DE",
+            "rating": 81.7,
+            "role": "RDE",
             "starter": false
           },
           {
             "availability": "Active",
             "injury_status": "",
-            "name": "Quintayvious Hutchins",
+            "name": "Gabe Jacas",
             "position": "EDGE",
-            "rating": 68.42,
-            "role": "WLB",
+            "rating": 76.56,
+            "role": "SLB",
             "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "DaQuan Jones",
-            "role": "RDE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -13236,17 +13316,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 1,
-        "depth_grade": 71.39,
-        "grade": 77.11,
-        "healthy_grade": 78.87,
+        "depth_count": 2,
+        "depth_grade": 68.62,
+        "grade": 76.99,
+        "healthy_grade": 78.73,
         "healthy_starter_grade": 79.26,
         "performance_grade": 66.09,
         "performance_grade_raw": 66.09,
         "performance_weight": 0.138,
-        "player_count": 3,
+        "player_count": 4,
         "qb_replacement_context": {},
-        "roster_grade": 78.87,
+        "roster_grade": 78.73,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "86% roster + 14% NFL team-defense proxy",
@@ -13279,34 +13359,38 @@
             "rating": 71.39,
             "role": "LILB",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Erick Hunter",
+            "position": "MLB",
+            "rating": 65.85,
+            "role": "RILB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Erick Hunter",
-            "role": "RILB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.09,
+        "availability_grade_delta": 0.14,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 72.34,
-        "grade": 75.66,
+        "depth_count": 3,
+        "depth_grade": 73.56,
+        "grade": 75.7,
         "healthy_grade": 80.7,
         "healthy_starter_grade": 81.23,
         "performance_grade": 62.16,
         "performance_grade_raw": 62.16,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 80.78,
+        "roster_grade": 80.84,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -13370,6 +13454,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Greg Van Roten",
+            "position": "LG",
+            "rating": 76.0,
+            "role": "LG",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Caleb Lomu",
             "position": "LT",
             "rating": 75.84,
@@ -13378,16 +13471,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Greg Van Roten",
-            "role": "LG"
-          },
-          {
-            "name": "Walter Rouse",
-            "role": "RG"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -13431,18 +13515,18 @@
         "unmatched_depth_chart": []
       },
       "receiving_weapons": {
-        "availability_grade_delta": -0.01,
+        "availability_grade_delta": -0.03,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 70.13,
-        "grade": 79.5,
-        "healthy_grade": 79.51,
+        "depth_count": 3,
+        "depth_grade": 68.35,
+        "grade": 79.41,
+        "healthy_grade": 79.44,
         "healthy_starter_grade": 80.0,
-        "player_count": 6,
+        "player_count": 7,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -13502,15 +13586,19 @@
             "rating": 65.27,
             "role": "TE",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Tanner Arkin",
+            "position": "TE",
+            "rating": 64.79,
+            "role": "TE",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Tanner Arkin",
-            "role": "TE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -13519,12 +13607,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 0,
-        "depth_grade": 80.59,
+        "depth_count": 1,
+        "depth_grade": 70.85,
         "grade": 80.59,
         "healthy_grade": 80.59,
         "healthy_starter_grade": 80.59,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -13539,19 +13627,19 @@
             "rating": 80.59,
             "role": "RB",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Corey Kiner",
+            "position": "HB",
+            "rating": 70.85,
+            "role": "RB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Corey Kiner",
-            "role": "RB"
-          },
-          {
-            "name": "Myles Montgomery",
-            "role": "RB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "secondary": {
         "availability_grade_delta": -0.01,
@@ -13560,17 +13648,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 68.96,
+        "depth_count": 4,
+        "depth_grade": 68.7,
         "grade": 78.28,
-        "healthy_grade": 85.37,
+        "healthy_grade": 85.36,
         "healthy_starter_grade": 86.23,
         "performance_grade": 59.62,
         "performance_grade_raw": 59.62,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 85.36,
+        "roster_grade": 85.35,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -13625,6 +13713,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Channing Canada",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "LCB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Charles Woods",
             "position": "CB",
             "rating": 67.55,
@@ -13639,24 +13736,10 @@
             "rating": 70.05,
             "role": "SS",
             "starter": false
-          },
-          {
-            "availability": "Active",
-            "injury_status": "",
-            "name": "Jaylen Reed",
-            "position": "FS",
-            "rating": 69.28,
-            "role": "FS",
-            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Channing Canada",
-            "role": "LCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": -2.0,
@@ -13709,20 +13792,20 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 0,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 75.09,
+    "defense_rating": 75.05,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 78.41,
-    "overall_rating": 76.88,
+    "offense_rating": 78.4,
+    "overall_rating": 76.83,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 77,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "NO",
     "unavailable_starters": 1,
     "units": {
       "defensive_front": {
-        "availability_grade_delta": -1.62,
+        "availability_grade_delta": -1.71,
         "availability_promotions": [
           {
             "in": "Vernon Broughton",
@@ -13735,17 +13818,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 76.01,
-        "grade": 72.57,
-        "healthy_grade": 77.32,
+        "depth_count": 3,
+        "depth_grade": 73.25,
+        "grade": 72.47,
+        "healthy_grade": 77.27,
         "healthy_starter_grade": 77.58,
         "performance_grade": 64.34,
         "performance_grade_raw": 64.34,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 75.7,
+        "roster_grade": 75.56,
         "scheme": "3-4",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -13809,6 +13892,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Myles Cole",
+            "position": "DT",
+            "rating": 67.73,
+            "role": "SLB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Anfernee Jennings",
             "position": "EDGE",
             "rating": 77.13,
@@ -13824,12 +13916,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Myles Cole",
-            "role": "SLB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -13896,23 +13983,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.07,
+        "availability_grade_delta": -0.06,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.31,
-        "grade": 74.55,
-        "healthy_grade": 79.6,
+        "depth_count": 3,
+        "depth_grade": 68.29,
+        "grade": 74.51,
+        "healthy_grade": 79.55,
         "healthy_starter_grade": 80.08,
         "performance_grade": 61.38,
         "performance_grade_raw": 61.38,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 79.54,
+        "roster_grade": 79.49,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -13981,15 +14068,19 @@
             "rating": 72.38,
             "role": "RG",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Mason Murphy",
+            "position": "RT",
+            "rating": 66.25,
+            "role": "RT",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Mason Murphy",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -14255,25 +14346,34 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 0,
-        "depth_grade": 78.0,
-        "grade": 70.86,
-        "healthy_grade": 78.0,
-        "healthy_starter_grade": 78.0,
+        "depth_grade": 77.0,
+        "grade": 70.13,
+        "healthy_grade": 77.0,
+        "healthy_starter_grade": 77.0,
         "performance_grade": 52.03,
         "performance_grade_raw": 52.03,
         "performance_weight": 0.275,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
-        "roster_grade": 78.0,
+        "roster_grade": 77.0,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 1,
-        "starter_grade": 78.0,
+        "starter_count": 2,
+        "starter_grade": 77.0,
         "top_players": [
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Daniel Carlson",
+            "position": "K",
+            "rating": 76.0,
+            "role": "PK",
+            "starter": true
+          },
           {
             "availability": "Active",
             "injury_status": "",
@@ -14285,12 +14385,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Daniel Carlson",
-            "role": "PK"
-          }
-        ]
+        "unmatched_depth_chart": []
       }
     }
   },
@@ -14302,10 +14397,10 @@
     "defense_rating": 74.85,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 78.92,
-    "overall_rating": 77.24,
+    "offense_rating": 78.9,
+    "overall_rating": 77.12,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 72,
+    "player_count": 77,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "NYG",
@@ -14476,23 +14571,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.02,
+        "availability_grade_delta": -0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.92,
-        "grade": 77.73,
-        "healthy_grade": 79.89,
+        "depth_count": 3,
+        "depth_grade": 68.7,
+        "grade": 77.68,
+        "healthy_grade": 79.85,
         "healthy_starter_grade": 80.44,
         "performance_grade": 71.96,
         "performance_grade_raw": 71.96,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 79.91,
+        "roster_grade": 79.85,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -14556,6 +14651,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Bryan Hudson",
+            "position": "C",
+            "rating": 66.25,
+            "role": "C",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Marcus Mbow",
             "position": "RT",
             "rating": 68.84,
@@ -14564,12 +14668,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Bryan Hudson",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -14613,7 +14712,7 @@
         "unmatched_depth_chart": []
       },
       "receiving_weapons": {
-        "availability_grade_delta": -0.03,
+        "availability_grade_delta": 0.09,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
@@ -14622,7 +14721,7 @@
         "depth_count": 2,
         "depth_grade": 75.08,
         "grade": 78.33,
-        "healthy_grade": 78.36,
+        "healthy_grade": 78.24,
         "healthy_starter_grade": 78.5,
         "player_count": 6,
         "qb_replacement_context": {},
@@ -14687,12 +14786,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Thomas Fidone II",
-            "role": "TE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -14742,15 +14836,10 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Najee Harris",
-            "role": "RB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": 0.04,
+        "availability_grade_delta": 0.15,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
@@ -14759,7 +14848,7 @@
         "depth_count": 3,
         "depth_grade": 77.2,
         "grade": 74.82,
-        "healthy_grade": 78.48,
+        "healthy_grade": 78.36,
         "healthy_starter_grade": 78.58,
         "performance_grade": 65.11,
         "performance_grade_raw": 65.11,
@@ -14847,37 +14936,41 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Nic Jones",
-            "role": "SCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 0,
-        "depth_grade": 79.0,
-        "grade": 74.68,
-        "healthy_grade": 79.0,
-        "healthy_starter_grade": 79.0,
+        "depth_grade": 75.0,
+        "grade": 71.78,
+        "healthy_grade": 75.0,
+        "healthy_starter_grade": 75.0,
         "performance_grade": 63.28,
         "performance_grade_raw": 63.28,
         "performance_weight": 0.275,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
-        "roster_grade": 79.0,
+        "roster_grade": 75.0,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 1,
-        "starter_grade": 79.0,
+        "starter_count": 2,
+        "starter_grade": 75.0,
         "top_players": [
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Dominic Zvada",
+            "position": "K",
+            "rating": 71.0,
+            "role": "PK",
+            "starter": true
+          },
           {
             "availability": "Active",
             "injury_status": "",
@@ -14889,12 +14982,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Dominic Zvada",
-            "role": "PK"
-          }
-        ]
+        "unmatched_depth_chart": []
       }
     }
   },
@@ -15530,17 +15618,17 @@
     }
   },
   "Philadelphia Eagles": {
-    "availability_promotions": 1,
+    "availability_promotions": 2,
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
     "defense_rating": 76.86,
     "depth_chart_rows": 26,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 82.4,
-    "overall_rating": 80.11,
+    "offense_rating": 81.58,
+    "overall_rating": 79.64,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 73,
+    "player_count": 74,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "PHI",
@@ -15680,28 +15768,35 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": 0.11,
-        "availability_promotions": [],
+        "availability_grade_delta": -3.96,
+        "availability_promotions": [
+          {
+            "in": "Willie Lampkin IV",
+            "out": "Landon Dickerson",
+            "replacement_rating": 63.61,
+            "role": "LG"
+          }
+        ],
         "availability_source": "Sleeper",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 71.0,
-        "grade": 78.14,
-        "healthy_grade": 84.43,
+        "depth_count": 3,
+        "depth_grade": 69.99,
+        "grade": 75.13,
+        "healthy_grade": 84.34,
         "healthy_starter_grade": 85.17,
         "performance_grade": 61.28,
         "performance_grade_raw": 61.28,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 84.54,
+        "roster_grade": 80.38,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 4,
-        "starter_grade": 85.26,
+        "starter_count": 5,
+        "starter_grade": 80.93,
         "top_players": [
           {
             "availability": "Active",
@@ -15710,6 +15805,15 @@
             "position": "LT",
             "rating": 91.08,
             "role": "LT",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Willie Lampkin IV",
+            "position": "C",
+            "rating": 63.61,
+            "role": "LG",
             "starter": true
           },
           {
@@ -15751,6 +15855,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Drew Kendall",
+            "position": "RG",
+            "rating": 67.96,
+            "role": "C",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Fred Johnson",
             "position": "LT",
             "rating": 67.53,
@@ -15766,16 +15879,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Willie Lampkin",
-            "role": "LG"
-          },
-          {
-            "name": "Drew Kendall",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -15819,18 +15923,18 @@
         "unmatched_depth_chart": []
       },
       "receiving_weapons": {
-        "availability_grade_delta": -0.18,
+        "availability_grade_delta": -0.06,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 1,
-        "depth_grade": 68.63,
-        "grade": 82.28,
-        "healthy_grade": 82.46,
+        "depth_count": 3,
+        "depth_grade": 70.83,
+        "grade": 82.39,
+        "healthy_grade": 82.45,
         "healthy_starter_grade": 83.0,
-        "player_count": 5,
+        "player_count": 7,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -15876,24 +15980,33 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Marquise Brown",
+            "position": "WR",
+            "rating": 79.07,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Johnny Mundt",
             "position": "TE",
             "rating": 68.63,
             "role": "TE",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "E.J. Jenkins",
+            "position": "TE",
+            "rating": 64.79,
+            "role": "TE",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Hollywood Brown",
-            "role": "WR"
-          },
-          {
-            "name": "E.J. Jenkins",
-            "role": "TE"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -16733,13 +16846,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 78.12,
+    "defense_rating": 78.11,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 85.42,
+    "offense_rating": 85.43,
     "overall_rating": 82.35,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 76,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "SF",
@@ -16752,17 +16865,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 71.58,
-        "grade": 75.84,
-        "healthy_grade": 79.3,
+        "depth_count": 4,
+        "depth_grade": 70.92,
+        "grade": 75.82,
+        "healthy_grade": 79.27,
         "healthy_starter_grade": 79.71,
         "performance_grade": 66.73,
         "performance_grade_raw": 66.73,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 79.3,
+        "roster_grade": 79.27,
         "scheme": "4-3",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -16826,6 +16939,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "James Thompson Jr.",
+            "position": "DT",
+            "rating": 68.92,
+            "role": "RDT",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Romello Height",
             "position": "EDGE",
             "rating": 75.76,
@@ -16834,12 +16956,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "James Thompson Jr.",
-            "role": "RDT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": -0.08,
@@ -16921,17 +17038,17 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 68.53,
-        "grade": 82.32,
-        "healthy_grade": 80.42,
+        "depth_count": 3,
+        "depth_grade": 69.58,
+        "grade": 82.36,
+        "healthy_grade": 80.47,
         "healthy_starter_grade": 81.04,
         "performance_grade": 87.33,
         "performance_grade_raw": 87.33,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 80.42,
+        "roster_grade": 80.47,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -17000,15 +17117,19 @@
             "rating": 68.68,
             "role": "LG",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jarrett Patterson",
+            "position": "RG",
+            "rating": 71.67,
+            "role": "C",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jarrett Patterson",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -17354,10 +17475,10 @@
     "defense_rating": 78.69,
     "depth_chart_rows": 28,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 72.86,
+    "offense_rating": 72.87,
     "overall_rating": 75.21,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 70,
+    "player_count": 71,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "SEA",
@@ -17688,18 +17809,18 @@
         "unmatched_depth_chart": []
       },
       "receiving_weapons": {
-        "availability_grade_delta": -0.12,
+        "availability_grade_delta": -0.09,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 69.41,
-        "grade": 83.14,
-        "healthy_grade": 83.27,
+        "depth_count": 3,
+        "depth_grade": 69.83,
+        "grade": 83.17,
+        "healthy_grade": 83.25,
         "healthy_starter_grade": 83.87,
-        "player_count": 6,
+        "player_count": 7,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -17745,6 +17866,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Montorie Foster Jr.",
+            "position": "WR",
+            "rating": 70.67,
+            "role": "WR",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Eric Saubert",
             "position": "TE",
             "rating": 67.79,
@@ -17762,12 +17892,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Montorie Foster Jr.",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -17974,13 +18099,13 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 1,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 76.35,
+    "defense_rating": 76.33,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 80.03,
+    "offense_rating": 80.06,
     "overall_rating": 78.78,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 77,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "TB",
@@ -18151,23 +18276,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.13,
+        "availability_grade_delta": -0.06,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 64.35,
-        "grade": 74.75,
-        "healthy_grade": 81.24,
+        "depth_count": 3,
+        "depth_grade": 66.51,
+        "grade": 74.83,
+        "healthy_grade": 81.28,
         "healthy_starter_grade": 81.99,
         "performance_grade": 57.97,
         "performance_grade_raw": 57.97,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 81.11,
+        "roster_grade": 81.22,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -18231,6 +18356,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Dan Feeney",
+            "position": "RG",
+            "rating": 70.82,
+            "role": "C",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Luke Haggard",
             "position": "RG",
             "rating": 66.25,
@@ -18239,12 +18373,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Dan Feeney",
-            "role": "C"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -18253,12 +18382,12 @@
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 0,
-        "depth_grade": 83.56,
+        "depth_count": 1,
+        "depth_grade": 66.0,
         "grade": 83.56,
         "healthy_grade": 83.56,
         "healthy_starter_grade": 83.56,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
@@ -18273,15 +18402,19 @@
             "rating": 83.56,
             "role": "QB",
             "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Jalon Daniels",
+            "position": "QB",
+            "rating": 66.0,
+            "role": "QB",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Jalon Daniels",
-            "role": "QB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "receiving_weapons": {
         "availability_grade_delta": -0.44,
@@ -18437,17 +18570,17 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 3,
-        "depth_grade": 72.07,
-        "grade": 76.92,
-        "healthy_grade": 80.89,
+        "depth_count": 4,
+        "depth_grade": 71.03,
+        "grade": 76.88,
+        "healthy_grade": 80.84,
         "healthy_starter_grade": 81.35,
         "performance_grade": 66.45,
         "performance_grade_raw": 66.45,
         "performance_weight": 0.275,
-        "player_count": 8,
+        "player_count": 9,
         "qb_replacement_context": {},
-        "roster_grade": 80.89,
+        "roster_grade": 80.84,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -18502,6 +18635,15 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Ayden Garnes",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "RCB",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Keionte Scott",
             "position": "CB",
             "rating": 73.96,
@@ -18516,24 +18658,10 @@
             "rating": 67.56,
             "role": "SS",
             "starter": false
-          },
-          {
-            "availability": "Active",
-            "injury_status": "",
-            "name": "Ifeatu Melifonwu",
-            "position": "SS",
-            "rating": 74.69,
-            "role": "FS",
-            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Ayden Garnes",
-            "role": "RCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
@@ -19210,20 +19338,20 @@
     "availability_source": "Sleeper",
     "availability_uncertain": 3,
     "availability_updated_at_utc": "2026-09-15T15:01:49+00:00",
-    "defense_rating": 75.92,
+    "defense_rating": 75.9,
     "depth_chart_rows": 27,
     "depth_chart_source": "nflverse automatic depth chart",
-    "offense_rating": 79.37,
-    "overall_rating": 78.0,
+    "offense_rating": 79.87,
+    "overall_rating": 78.16,
     "personnel_matchup_influence_enabled": true,
-    "player_count": 75,
+    "player_count": 80,
     "prediction_influence_enabled": true,
     "source": "Macabets automated rating engine 1.4.1-restored-weighting - nflverse automatic depth chart + Sleeper availability + audited Madden 27 baseline",
     "team_abbr": "WAS",
     "unavailable_starters": 1,
     "units": {
       "defensive_front": {
-        "availability_grade_delta": -0.87,
+        "availability_grade_delta": -0.81,
         "availability_promotions": [
           {
             "in": "K'Lavon Chaisson",
@@ -19239,7 +19367,7 @@
         "depth_count": 3,
         "depth_grade": 73.91,
         "grade": 76.01,
-        "healthy_grade": 77.76,
+        "healthy_grade": 77.71,
         "healthy_starter_grade": 77.95,
         "performance_grade": 73.65,
         "performance_grade_raw": 73.65,
@@ -19334,12 +19462,7 @@
             "status": "Out"
           }
         ],
-        "unmatched_depth_chart": [
-          {
-            "name": "Ricky Barber",
-            "role": "NT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "linebackers": {
         "availability_grade_delta": 0.0,
@@ -19417,23 +19540,23 @@
         "unmatched_depth_chart": []
       },
       "offensive_line": {
-        "availability_grade_delta": -0.65,
+        "availability_grade_delta": -0.29,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 1,
-        "depth_grade": 66.8,
-        "grade": 76.68,
-        "healthy_grade": 76.27,
+        "depth_count": 3,
+        "depth_grade": 69.59,
+        "grade": 76.79,
+        "healthy_grade": 76.05,
         "healthy_starter_grade": 76.08,
         "performance_grade": 79.49,
         "performance_grade_raw": 79.49,
         "performance_weight": 0.275,
-        "player_count": 6,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 75.62,
+        "roster_grade": 75.76,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -19488,24 +19611,33 @@
           {
             "availability": "Active",
             "injury_status": "",
+            "name": "Tanoa Togiai",
+            "position": "LG",
+            "rating": 66.25,
+            "role": "LG",
+            "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
             "name": "Matt Gulbin",
             "position": "C",
             "rating": 66.8,
             "role": "C",
             "starter": false
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Andrew Wylie",
+            "position": "RG",
+            "rating": 75.73,
+            "role": "RT",
+            "starter": false
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Tanoa Togiai",
-            "role": "LG"
-          },
-          {
-            "name": "Andrew Wylie",
-            "role": "RT"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "quarterback": {
         "availability_grade_delta": 0.0,
@@ -19553,19 +19685,19 @@
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 4,
         "depth_grade": 72.03,
-        "grade": 79.75,
-        "healthy_grade": 79.75,
-        "healthy_starter_grade": 80.16,
-        "player_count": 7,
+        "grade": 81.63,
+        "healthy_grade": 81.63,
+        "healthy_starter_grade": 82.14,
+        "player_count": 8,
         "qb_replacement_context": {},
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
-        "starter_count": 3,
-        "starter_grade": 80.16,
+        "starter_count": 4,
+        "starter_grade": 82.14,
         "top_players": [
           {
             "availability": "Active",
@@ -19573,6 +19705,15 @@
             "name": "Terry McLaurin",
             "position": "WR",
             "rating": 90.58,
+            "role": "WR",
+            "starter": true
+          },
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Stefon Diggs",
+            "position": "WR",
+            "rating": 88.09,
             "role": "WR",
             "starter": true
           },
@@ -19632,12 +19773,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Stefon Diggs",
-            "role": "WR"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "running_backs": {
         "availability_grade_delta": 0.0,
@@ -19690,7 +19826,7 @@
         "unmatched_depth_chart": []
       },
       "secondary": {
-        "availability_grade_delta": -0.1,
+        "availability_grade_delta": -0.09,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [
@@ -19702,17 +19838,17 @@
         ],
         "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
-        "depth_count": 2,
-        "depth_grade": 71.95,
-        "grade": 75.17,
-        "healthy_grade": 77.41,
+        "depth_count": 3,
+        "depth_grade": 70.61,
+        "grade": 75.12,
+        "healthy_grade": 77.33,
         "healthy_starter_grade": 77.59,
         "performance_grade": 69.54,
         "performance_grade_raw": 69.54,
         "performance_weight": 0.275,
-        "player_count": 7,
+        "player_count": 8,
         "qb_replacement_context": {},
-        "roster_grade": 77.31,
+        "roster_grade": 77.24,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
@@ -19765,6 +19901,15 @@
             "starter": true
           },
           {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Fabian Moreau",
+            "position": "CB",
+            "rating": 67.93,
+            "role": "RCB",
+            "starter": false
+          },
+          {
             "availability": "Questionable",
             "injury_status": "Questionable",
             "name": "Tyler Owens",
@@ -19784,37 +19929,41 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Fabian Moreau",
-            "role": "RCB"
-          }
-        ]
+        "unmatched_depth_chart": []
       },
       "special_teams": {
         "availability_grade_delta": 0.0,
         "availability_promotions": [],
         "availability_source": "",
         "availability_uncertainty": [],
-        "confidence": "limited",
+        "confidence": "high",
         "depth_chart_source": "nflverse automatic depth chart (2026-09-15T12:39:14+00:00)",
         "depth_count": 0,
-        "depth_grade": 78.85,
-        "grade": 76.12,
-        "healthy_grade": 78.85,
-        "healthy_starter_grade": 78.85,
+        "depth_grade": 74.92,
+        "grade": 73.27,
+        "healthy_grade": 74.92,
+        "healthy_starter_grade": 74.92,
         "performance_grade": 68.91,
         "performance_grade_raw": 68.91,
         "performance_weight": 0.275,
-        "player_count": 1,
+        "player_count": 2,
         "qb_replacement_context": {},
-        "roster_grade": 78.85,
+        "roster_grade": 74.92,
         "scheme": "base",
         "selection_source": "Footballguys depth chart",
         "source": "72% roster + 28% NFL performance",
-        "starter_count": 1,
-        "starter_grade": 78.85,
+        "starter_count": 2,
+        "starter_grade": 74.92,
         "top_players": [
+          {
+            "availability": "Active",
+            "injury_status": "",
+            "name": "Drew Stevens",
+            "position": "K",
+            "rating": 71.0,
+            "role": "PK",
+            "starter": true
+          },
           {
             "availability": "Active",
             "injury_status": "",
@@ -19826,12 +19975,7 @@
           }
         ],
         "unavailable_starters": [],
-        "unmatched_depth_chart": [
-          {
-            "name": "Drew Stevens",
-            "role": "PK"
-          }
-        ]
+        "unmatched_depth_chart": []
       }
     }
   }
