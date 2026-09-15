@@ -307,6 +307,7 @@ def _stats_with_cap(root: Path, cap: float) -> Path:
 class Variant:
     name: str
     engine: str = "current"          # "current" or "legacy"
+    model: str = "v1.5"              # current engine's RATING_MODEL for this variant
     player_cap: float = 0.80
     player_stability_mult: float = 1.0
     team_cap: float = current_engine.TEAM_PERFORMANCE_CAP
@@ -318,7 +319,8 @@ def default_variants(include_grid: bool = True) -> list[Variant]:
     variants = [
         Variant("madden_only", player_cap=0.0, team_cap=0.0),
         Variant("v1_4_legacy", engine="legacy"),
-        Variant("v1_5_current"),
+        Variant("current_engine", model=current_engine.RATING_MODEL),
+        Variant("v1_5_efficiency"),
     ]
     if include_grid:
         for mult in (0.5, 1.0, 2.0):
@@ -342,7 +344,8 @@ def _load_legacy_engine():
 @contextlib.contextmanager
 def _current_settings(variant: Variant) -> Iterator[None]:
     saved = (dict(current_engine.PERFORMANCE_STABILITY), current_engine.TEAM_PERFORMANCE_CAP,
-             current_engine.TEAM_PERFORMANCE_STABILITY)
+             current_engine.TEAM_PERFORMANCE_STABILITY, current_engine.RATING_MODEL)
+    current_engine.RATING_MODEL = variant.model
     current_engine.PERFORMANCE_STABILITY = {k: v * variant.player_stability_mult for k, v in saved[0].items()}
     current_engine.TEAM_PERFORMANCE_CAP = variant.team_cap
     current_engine.TEAM_PERFORMANCE_STABILITY = variant.team_stability
@@ -350,7 +353,7 @@ def _current_settings(variant: Variant) -> Iterator[None]:
         yield
     finally:
         (current_engine.PERFORMANCE_STABILITY, current_engine.TEAM_PERFORMANCE_CAP,
-         current_engine.TEAM_PERFORMANCE_STABILITY) = saved
+         current_engine.TEAM_PERFORMANCE_STABILITY, current_engine.RATING_MODEL) = saved
 
 
 @contextlib.contextmanager
@@ -396,7 +399,7 @@ class WeekRater:
                     self._player_cache[key] = self.legacy.build_player_ratings(madden, stats_dir, depth_chart_path=self.no_depth_chart)
                 teams = self.legacy.build_team_ratings(self._player_cache[key], snapshot, self.no_depth_chart)
         else:
-            key = (str(week_root), "current", variant.player_cap, variant.player_stability_mult)
+            key = (str(week_root), "current", variant.model, variant.player_cap, variant.player_stability_mult)
             with _current_settings(variant):
                 if key not in self._player_cache:
                     self._player_cache[key] = current_engine.build_player_ratings(madden, stats_dir, depth_chart_path=self.no_depth_chart)
@@ -548,7 +551,7 @@ def run_backtest(
     return predictions, week_log
 
 
-def summarize(predictions: pd.DataFrame, variants: list[Variant], reference: str = "v1_5_current") -> dict[str, Any]:
+def summarize(predictions: pd.DataFrame, variants: list[Variant], reference: str = "current_engine") -> dict[str, Any]:
     margin_cols = [f"margin__{v.name}" for v in variants]
     scored = predictions.dropna(subset=margin_cols).copy()
     y = scored["home_win"].to_numpy(dtype=float)
@@ -569,20 +572,22 @@ def summarize(predictions: pd.DataFrame, variants: list[Variant], reference: str
 
     comparisons = {}
     if reference in probs:
-        for other in ("madden_only", "v1_4_legacy"):
+        for other in ("madden_only", "v1_4_legacy", "v1_5_efficiency"):
             if other in probs:
                 comparisons[f"{reference}_vs_{other}"] = bootstrap_difference(probs[reference], probs[other], y)
         grid = table[table["group"].eq("grid")]
         if not grid.empty:
             best_grid = grid.iloc[0]["variant"]
             comparisons[f"best_grid_vs_{reference}"] = {"best_grid": best_grid, **bootstrap_difference(probs[best_grid], probs[reference], y)}
+            if "v1_4_legacy" in probs:
+                comparisons["best_grid_vs_v1_4_legacy"] = {"best_grid": best_grid, **bootstrap_difference(probs[best_grid], probs["v1_4_legacy"], y)}
 
     market = {}
     has_market = scored["market_home_prob"].notna().to_numpy()
     if has_market.sum() > 0:
         m_y = y[has_market]
         market = {"market_closing_moneyline": metrics(scored["market_home_prob"].to_numpy()[has_market], m_y)}
-        for name in ("madden_only", "v1_4_legacy", reference):
+        for name in ("madden_only", "v1_4_legacy", "v1_5_efficiency", reference):
             if name in probs:
                 market[f"{name}_same_games"] = metrics(probs[name][has_market], m_y)
 
@@ -590,7 +595,7 @@ def summarize(predictions: pd.DataFrame, variants: list[Variant], reference: str
         "table": table,
         "comparisons": comparisons,
         "market": market,
-        "calibration": {name: calibration_table(probs[name], y) for name in ("madden_only", "v1_4_legacy", reference) if name in probs},
+        "calibration": {name: calibration_table(probs[name], y) for name in ("madden_only", "v1_4_legacy", "v1_5_efficiency", reference) if name in probs},
         "games_scored": int(len(scored)),
         "weeks_scored": sorted(int(w) for w in scored["week"].unique()),
     }
@@ -620,6 +625,8 @@ def write_report(summary: dict[str, Any], meta: dict[str, Any], output_dir: Path
             "",
         ]
     lines += [
+        f"`current_engine` = the engine's live setting ({current_engine.RATING_MODEL}); the settings grid varies v1.5.",
+        "",
         "Lower log loss and Brier = better probabilities. Differences of ~0.005 in log loss are small;",
         "the 95% ranges below show whether a difference is distinguishable from luck.",
         "",
