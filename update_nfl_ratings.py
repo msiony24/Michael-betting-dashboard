@@ -8,7 +8,7 @@ def main() -> None:
     print(f"Players rated: {status['players_rated']}")
     print(f"Teams rated: {status['teams_rated']}")
     print(f"Players with nflverse performance: {status['players_with_performance_data']}")
-    print("Ratings feed NFL predictions (efficiency-based, sample-weighted performance blend).")
+    print(f"Rating model: {status.get('engine_version')} (these ratings feed NFL predictions).")
 
 
 if __name__ == "__main__":
