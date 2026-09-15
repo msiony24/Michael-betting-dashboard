@@ -133,6 +133,35 @@ STAT_ALIASES = {
     "performance_cap": ("macabets_performance_cap", "performance_cap"),
 }
 
+# Which performance-weighting model is live.
+#   "v1.4" (default): season-total percentile grades, weight ramps to 80%; team
+#          units ramp 20% + 7.5%/week to 80% on raw team-performance grades.
+#          The 2025 walk-forward backtest (audit/results_nfl_rating_backtest)
+#          scored this clearly better than v1.5 over the full season.
+#   "v1.5": efficiency grades on the Madden scale with slower, capped weights.
+#          Kept for backtesting and as the base for future versions.
+RATING_MODEL = "v1.4"
+ENGINE_VERSIONS = {"v1.4": "1.4.1-restored-weighting", "v1.5": "1.5-efficiency-weighting"}
+
+# Legacy (v1.4) player performance settings.
+LEGACY_SAMPLE_THRESHOLDS = {"QB": 500.0, "RB": 250.0, "WR": 150.0, "TE": 120.0}
+LEGACY_PERFORMANCE_FORMULAS = {
+    "QB": ({"passing_yards": .26, "passing_tds": .22, "attempts": .12,
+            "interceptions": -.18, "rushing_yards": .10, "rushing_tds": .08,
+            "sacks": -.04}, "attempts"),
+    "RB": ({"rushing_yards": .34, "rushing_tds": .20, "carries": .12,
+            "receiving_yards": .16, "receptions": .08, "receiving_tds": .10}, "carries"),
+    "WR": ({"receiving_yards": .38, "receiving_tds": .22, "targets": .18,
+            "receptions": .14, "rushing_yards": .08}, "targets"),
+    "TE": ({"receiving_yards": .34, "receiving_tds": .24, "targets": .18,
+            "receptions": .16, "rushing_yards": .08}, "targets"),
+}
+
+
+def _using_legacy_model() -> bool:
+    return str(RATING_MODEL).strip().lower() in {"v1.4", "1.4", "legacy"}
+
+
 # Player performance model (v1.5)
 # -------------------------------
 # Performance is graded on per-opportunity EFFICIENCY (EPA per play, plus a
@@ -258,6 +287,36 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     if without_id.empty:
         return with_id
     return pd.concat([with_id, without_id], ignore_index=True, sort=False)
+
+
+def _legacy_percentile_score(series: pd.Series) -> pd.Series:
+    numeric = pd.to_numeric(series, errors="coerce").fillna(0)
+    if len(numeric) <= 1 or numeric.nunique() <= 1:
+        return pd.Series(67.5, index=series.index)
+    return 45.0 + numeric.rank(pct=True) * 50.0
+
+
+def _legacy_performance_grades(stats: pd.DataFrame) -> pd.DataFrame:
+    """v1.4: position percentile of season totals (45-95 scale)."""
+    if stats.empty: return stats
+    out = stats.copy()
+    out["family"] = out["position"].map(_position_family)
+    out["performance_grade"] = np.nan
+    out["sample_size"] = 0.0
+    for family, (weights, sample_col) in LEGACY_PERFORMANCE_FORMULAS.items():
+        mask = out["family"].eq(family)
+        if not mask.any(): continue
+        score = pd.Series(0.0, index=out.index)
+        total_weight = 0.0
+        for col, weight in weights.items():
+            pct = _legacy_percentile_score(out.loc[mask, col])
+            if weight < 0:
+                pct = 140.0 - pct
+            score.loc[mask] += pct * abs(weight)
+            total_weight += abs(weight)
+        out.loc[mask, "performance_grade"] = score.loc[mask] / total_weight
+        out.loc[mask, "sample_size"] = pd.to_numeric(out.loc[mask, sample_col], errors="coerce").fillna(0)
+    return out
 
 
 def _opportunities(frame: pd.DataFrame, family: str) -> pd.Series:
@@ -528,9 +587,11 @@ def build_player_ratings(
         roster_file = root / "rosters.csv"
     players = _fill_missing_ids_by_last_name(players, roster_file)
 
-    stats = _performance_grades(_aggregate_weekly_stats(root / "player_weekly_stats.csv"))
+    legacy_model = _using_legacy_model()
+    weekly = _aggregate_weekly_stats(root / "player_weekly_stats.csv")
+    stats = _legacy_performance_grades(weekly) if legacy_model else _performance_grades(weekly)
     if not stats.empty:
-        perf_cols = ["performance_z", "sample_size"]
+        perf_cols = ["performance_grade", "sample_size"] if legacy_model else ["performance_z", "sample_size"]
         if "performance_cap" in stats.columns:
             perf_cols.append("performance_cap")
 
@@ -557,15 +618,17 @@ def build_player_ratings(
         players = players.merge(stats_lookup, on="_stats_identity", how="left").drop(columns=["_stats_identity"])
     else:
         players["performance_z"] = np.nan
+        players["performance_grade"] = np.nan
         players["sample_size"] = 0.0
         players["performance_cap"] = 0.0
 
-    # Translate efficiency z-scores onto the Madden starter scale for the position.
-    scale = _madden_position_scale(players)
-    z = pd.to_numeric(players["performance_z"], errors="coerce")
-    mu = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[0])
-    sd = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[1])
-    players["performance_grade"] = (mu + z * sd).clip(0, 99)
+    if not legacy_model:
+        # Translate efficiency z-scores onto the Madden starter scale for the position.
+        scale = _madden_position_scale(players)
+        z = pd.to_numeric(players["performance_z"], errors="coerce")
+        mu = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[0])
+        sd = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[1])
+        players["performance_grade"] = (mu + z * sd).clip(0, 99)
 
     # Madden 27's final player file is now pre-enriched from nflverse rosters and may
     # already contain roster_status / gsis_id. A second roster merge would create
@@ -653,8 +716,12 @@ def build_player_ratings(
         players["availability_source"] = np.where(players["injury_status"].fillna("").astype(str).str.strip().ne(""), "nflverse fallback", "")
 
     opportunities = pd.to_numeric(players["sample_size"], errors="coerce").fillna(0).clip(lower=0)
-    stability = players["position_family"].map(PERFORMANCE_STABILITY)
-    players["performance_confidence"] = (opportunities / (opportunities + stability)).fillna(0.0)
+    if legacy_model:
+        thresholds = players["position_family"].map(LEGACY_SAMPLE_THRESHOLDS)
+        players["performance_confidence"] = (opportunities / thresholds).clip(upper=1.0).fillna(0.0)
+    else:
+        stability = players["position_family"].map(PERFORMANCE_STABILITY)
+        players["performance_confidence"] = (opportunities / (opportunities + stability)).fillna(0.0)
     if "performance_cap" in players.columns:
         performance_cap = pd.to_numeric(players["performance_cap"], errors="coerce").fillna(0.80).clip(0.0, 0.80)
     else:
@@ -887,6 +954,25 @@ def team_performance_weight(season: Any, through_week: Any, *, current_year: int
     return 0.0
 
 
+LEGACY_TEAM_START_WEIGHT = 0.20
+LEGACY_TEAM_WEEKLY_STEP = 0.075
+LEGACY_TEAM_MAX_WEIGHT = 0.80
+
+
+def legacy_team_performance_weight(season: Any, through_week: Any, *, current_year: int | None = None) -> float:
+    """v1.4 schedule: current season 20% + 7.5%/week up to 80%; prior season 20%."""
+    season_num = pd.to_numeric(season, errors="coerce")
+    week_num = pd.to_numeric(through_week, errors="coerce")
+    row_season = int(season_num) if pd.notna(season_num) else 0
+    through = int(week_num) if pd.notna(week_num) else 0
+    year = current_year if current_year is not None else datetime.now(timezone.utc).year
+    if row_season == year:
+        return min(LEGACY_TEAM_MAX_WEIGHT, LEGACY_TEAM_START_WEIGHT + max(0, through) * LEGACY_TEAM_WEEKLY_STEP)
+    if row_season > 0:
+        return PRIOR_SEASON_TEAM_WEIGHT
+    return 0.0
+
+
 def _rescale_to_roster(
     values: dict[str, float], roster: dict[str, float]
 ) -> dict[str, float]:
@@ -939,18 +1025,27 @@ def build_team_ratings(
         rescaled[unit] = _rescale_to_roster(perf_values, roster_values)
 
     # Pass 2: blend and assemble.
+    legacy_model = _using_legacy_model()
+    weight_fn = legacy_team_performance_weight if legacy_model else team_performance_weight
+
+    def _performance_for(unit: str, col: str, abbr: str, row: Any) -> float | None:
+        if row is None or col not in row or pd.isna(pd.to_numeric(row[col], errors="coerce")):
+            return None
+        # v1.4 blends the raw team-performance grade; v1.5 rescales it first.
+        return float(row[col]) if legacy_model else rescaled.get(unit, {}).get(abbr)
+
     result = {}
     for abbr, units in team_units.items():
         team_players = team_frames[abbr]
         current_depth = team_depth[abbr]
         row = snap_by_abbr.get(abbr)
         perf_weight = (
-            team_performance_weight(row.get("season"), row.get("through_week"), current_year=current_season)
+            weight_fn(row.get("season"), row.get("through_week"), current_year=current_season)
             if row is not None else 0.0
         )
 
         for unit, col in TEAM_LIVE_MAP.items():
-            implied = rescaled.get(unit, {}).get(abbr)
+            implied = _performance_for(unit, col, abbr, row)
             if implied is not None and perf_weight > 0:
                 roster_grade = units[unit]["grade"]
                 units[unit]["roster_grade"] = roster_grade
@@ -964,7 +1059,7 @@ def build_team_ratings(
         # Linebacker play currently lacks a clean player-level weekly metric in this pipeline.
         # Use only a modest team-defense proxy; never apply generic offense to RB/WR/TE.
         indirect_weight = min(perf_weight * LINEBACKER_PROXY_SHARE, LINEBACKER_PROXY_MAX)
-        lb_implied = rescaled.get("linebackers", {}).get(abbr)
+        lb_implied = _performance_for("linebackers", "defense", abbr, row)
         if lb_implied is not None and indirect_weight > 0:
             units["linebackers"]["roster_grade"] = units["linebackers"]["grade"]
             units["linebackers"]["performance_grade_raw"] = round(float(row["defense"]), 2)
@@ -985,7 +1080,7 @@ def build_team_ratings(
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": f"Macabets automated rating engine v1.5 - {depth_source} + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": True,
+            "source": f"Macabets automated rating engine {ENGINE_VERSIONS.get(RATING_MODEL, RATING_MODEL)} - {depth_source} + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": True,
             "personnel_matchup_influence_enabled": True,
             "depth_chart_source": depth_source,
             "depth_chart_rows": int(len(current_depth)),
@@ -1028,7 +1123,8 @@ def save_rating_outputs(
     depth_source = ", ".join(depth_sources) if depth_sources else "Unavailable"
     resolved_depth_path = Path(depth_chart_path) if depth_chart_path is not None else None
     status = {
-        "schema_version": "1.5", "engine_version": "1.5-efficiency-weighting", "updated_at_utc": updated,
+        "schema_version": "1.5", "engine_version": ENGINE_VERSIONS.get(RATING_MODEL, str(RATING_MODEL)),
+        "rating_model": RATING_MODEL, "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
         # These unit grades feed nfl_ratings_loader -> team power scores, so the
