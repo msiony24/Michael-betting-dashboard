@@ -593,24 +593,50 @@ def _load_prior_madden(path: Path | str | None) -> pd.DataFrame:
     return prior[~prior.duplicated("name_key", keep=False)].set_index("name_key")
 
 
+MANUAL_COLUMNS = ["player_name", "team", "overall", "note"]
+LAST_MANUAL_FALLBACK_REPORT: dict[str, Any] = {}
+
+
 def _load_manual_fallbacks(path: Path | str | None) -> dict[tuple[str, str], float]:
     """Optional user file: player_name,team,overall[,note]. Only used for players
-    missing from the current Madden file; it never overrides a real Madden rating."""
+    missing from the current Madden file; it never overrides a real Madden rating.
+
+    Tolerant of hand edits: a missing header line, a byte-order mark, stray
+    spaces, blank lines and different header capitalization all still work.
+    """
+    report: dict[str, Any] = {"path": str(path) if path is not None else "", "found": False,
+                              "entries": [], "problems": []}
+    LAST_MANUAL_FALLBACK_REPORT.clear()
+    LAST_MANUAL_FALLBACK_REPORT.update(report)
     if path is None or not Path(path).exists():
         return {}
+    LAST_MANUAL_FALLBACK_REPORT["found"] = True
     try:
-        frame = pd.read_csv(path, dtype=str).fillna("")
-    except Exception:
+        text = Path(path).read_text(encoding="utf-8-sig")
+    except Exception as exc:
+        LAST_MANUAL_FALLBACK_REPORT["problems"].append(f"could not read file: {exc}")
         return {}
-    if not {"player_name", "team", "overall"}.issubset(frame.columns):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines:
         return {}
+    first = [cell.strip().lower() for cell in lines[0].split(",")]
+    if "player_name" in first:
+        header, body = first, lines[1:]
+    else:
+        header, body = MANUAL_COLUMNS, lines  # header line missing: assume the standard order
     out = {}
-    for row in frame.itertuples(index=False):
-        rating = pd.to_numeric(row.overall, errors="coerce")
-        team = str(row.team).upper().strip()
-        team = FULL_TO_ABBR.get(str(row.team).strip(), team)
-        if pd.notna(rating) and str(row.player_name).strip():
-            out[(team, _name_key(row.player_name))] = float(max(0.0, min(99.0, rating)))
+    for line in body:
+        cells = [cell.strip() for cell in line.split(",")]
+        row = dict(zip(header, cells + [""] * (len(header) - len(cells))))
+        name = row.get("player_name", "")
+        team_raw = row.get("team", "")
+        team = FULL_TO_ABBR.get(team_raw, team_raw.upper())
+        rating = pd.to_numeric(row.get("overall", ""), errors="coerce")
+        if not name or not team or pd.isna(rating):
+            LAST_MANUAL_FALLBACK_REPORT["problems"].append(f"skipped unreadable line: {line}")
+            continue
+        out[(team, _name_key(name))] = float(max(0.0, min(99.0, float(rating))))
+        LAST_MANUAL_FALLBACK_REPORT["entries"].append({"player_name": name, "team": team, "overall": float(rating)})
     return out
 
 
@@ -665,10 +691,23 @@ def _reconcile_depth_chart(
                 if matched.empty:
                     missing[(str(abbr), key)] = (name, role)
     if not missing:
+        _load_manual_fallbacks(manual_fallback_path)
+        for entry in LAST_MANUAL_FALLBACK_REPORT.get("entries", []):
+            entry["status"] = "ignored: no depth-chart player is missing from Madden 27"
         return players
 
     prior = _load_prior_madden(prior_madden_path)
     manual = _load_manual_fallbacks(manual_fallback_path)
+    missing_keys = {(abbr, _name_key(name)) for (abbr, _key), (name, _role) in missing.items()}
+    rated_keys = set(zip(players["team_abbr"].astype(str), players["name_key"].astype(str)))
+    for entry in LAST_MANUAL_FALLBACK_REPORT.get("entries", []):
+        key = (entry["team"], _name_key(entry["player_name"]))
+        if key in missing_keys:
+            entry["status"] = "applied"
+        elif key in rated_keys:
+            entry["status"] = "ignored: player already has a Madden 27 rating"
+        else:
+            entry["status"] = "ignored: no matching player on that team's depth chart"
     trait_pool = players.groupby("position_family")["trait_grade"]
     replacement = trait_pool.quantile(REPLACEMENT_PERCENTILE).to_dict()
     trait_columns = [c for c in ("speed", "strength", "agility", "change_of_direction", "injury", "awareness") if c in players.columns]
@@ -1283,6 +1322,7 @@ def _fallback_summary(player_ratings: pd.DataFrame) -> dict[str, Any]:
         return [f"{r.player_name} ({r.team_abbr} {r.position}) {float(r.macabets_rating):.1f}" for r in frame.itertuples()]
     return {
         "manual": int(len(manual)),
+        "manual_file": dict(LAST_MANUAL_FALLBACK_REPORT),
         "manual_players": listing(manual),
         "prior_year_madden": int(len(prior)),
         "replacement_level": int(len(replacement)),
