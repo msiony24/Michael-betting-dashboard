@@ -8,7 +8,7 @@ def main() -> None:
     print(f"Players rated: {status['players_rated']}")
     print(f"Teams rated: {status['teams_rated']}")
     print(f"Players with nflverse performance: {status['players_with_performance_data']}")
-    print("Prediction influence remains OFF until validation is complete.")
+    print("Ratings feed NFL predictions (efficiency-based, sample-weighted performance blend).")
 
 
 if __name__ == "__main__":
