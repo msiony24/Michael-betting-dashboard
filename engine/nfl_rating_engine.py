@@ -123,7 +123,8 @@ STAT_ALIASES = {
     "attempts": ("attempts", "passing_attempts"),
     "passing_yards": ("passing_yards",), "passing_tds": ("passing_tds",),
     "interceptions": ("interceptions", "passing_interceptions"),
-    "sacks": ("sacks", "sack_fumbles"), "carries": ("carries", "rushing_attempts"),
+    # "sack_fumbles" is fumbles on sacks, not sacks, so it is not a valid alias.
+    "sacks": ("sacks_suffered", "sacks"), "carries": ("carries", "rushing_attempts"),
     "rushing_yards": ("rushing_yards",), "rushing_tds": ("rushing_tds",),
     "targets": ("targets",), "receptions": ("receptions",),
     "receiving_yards": ("receiving_yards",), "receiving_tds": ("receiving_tds",),
@@ -310,6 +311,98 @@ def _load_injuries(path: Path) -> pd.DataFrame:
     return result.drop_duplicates(keys, keep="last")
 
 
+_NAME_SUFFIXES = {"jr", "sr", "ii", "iii", "iv", "v"}
+
+
+def _clean_text(value: Any) -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return ""
+    return unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode().lower()
+
+
+def _last_name_key(value: Any) -> str:
+    """Normalized last name with suffixes removed ("Ricky White III" -> "white")."""
+    text = _clean_text(value)
+    tokens = [re.sub(r"[^a-z0-9]", "", t) for t in text.replace("-", " ").split()]
+    tokens = [t for t in tokens if t and t not in _NAME_SUFFIXES]
+    return tokens[-1] if tokens else ""
+
+
+def _first_name_key(value: Any) -> str:
+    text = _clean_text(value)
+    tokens = [re.sub(r"[^a-z0-9]", "", t) for t in text.split()]
+    tokens = [t for t in tokens if t]
+    return tokens[0] if tokens else ""
+
+
+def _first_names_compatible(madden_first: str, roster_firsts: Iterable[str]) -> bool:
+    """Josh/Joshua, Chig/Chigoziem, Drew/Andrew are compatible; Cody/Ricky is not."""
+    if len(madden_first) < 2:
+        return False
+    for other in roster_firsts:
+        if len(other) >= 2 and (other in madden_first or madden_first in other):
+            return True
+    return False
+
+
+def _fill_missing_ids_by_last_name(players: pd.DataFrame, roster_path: Path) -> pd.DataFrame:
+    """Recover GSIS IDs for nickname mismatches (Joshua/Josh, Chigoziem/Chig).
+
+    Only players still missing a GSIS ID are considered, and a match is accepted
+    only when last name + team + position family is unique on BOTH sides and the
+    ID is not already used by another player. Anything ambiguous stays unmatched.
+    """
+    if not roster_path.exists():
+        return players
+    frame = pd.read_csv(roster_path)
+    name_col = _find_col(frame, ("full_name", "player_name", "name"))
+    team_col = _find_col(frame, ("team", "recent_team", "team_abbr"))
+    pos_col = _find_col(frame, ("position",))
+    id_col = _find_col(frame, ("gsis_id", "player_id"))
+    if not all((name_col, team_col, pos_col, id_col)):
+        return players
+
+    if "week" in frame.columns:
+        # Latest week last, so a mid-season trade resolves to the current team.
+        frame = frame.assign(_week=pd.to_numeric(frame["week"], errors="coerce")).sort_values("_week", kind="stable")
+    first_cols = [c for c in (name_col, _find_col(frame, ("first_name",)), _find_col(frame, ("football_name",))) if c]
+    roster = pd.DataFrame({
+        "firsts": [
+            tuple(sorted({_first_name_key(v) for v in vals if _first_name_key(v)}))
+            for vals in zip(*(frame[c] for c in first_cols))
+        ],
+        "last_key": frame[name_col].map(_last_name_key),
+        "team_abbr": frame[team_col].astype(str).str.upper().str.strip().replace({"AZ": "ARI", "LAR": "LA", "OAK": "LV"}),
+        "family": frame[pos_col].map(_position_family),
+        "gsis_id": frame[id_col].fillna("").astype(str).str.strip(),
+    })
+    roster = roster[roster["gsis_id"].ne("") & roster["last_key"].ne("") & roster["family"].ne("OTHER")]
+    roster = roster.drop_duplicates(["gsis_id"], keep="last")
+    keys = ["last_key", "team_abbr", "family"]
+    roster = roster[~roster.duplicated(keys, keep=False)]
+
+    out = players.copy()
+    out["_last_key"] = out["player_name"].map(_last_name_key)
+    current_ids = out["gsis_id"].fillna("").astype(str).str.strip()
+    unique_on_team = ~out.duplicated(["_last_key", "team_abbr", "position_family"], keep=False)
+    used_ids = set(current_ids[current_ids.ne("")])
+
+    lookup = {
+        (r.last_key, r.team_abbr, r.family): (r.gsis_id, r.firsts)
+        for r in roster.itertuples(index=False)
+        if r.gsis_id not in used_ids
+    }
+    for idx in out.index[current_ids.eq("") & unique_on_team]:
+        key = (out.at[idx, "_last_key"], out.at[idx, "team_abbr"], out.at[idx, "position_family"])
+        found, firsts = lookup.get(key, ("", ()))
+        if not _first_names_compatible(_first_name_key(out.at[idx, "player_name"]), firsts):
+            continue
+        if found and found not in used_ids:
+            out.at[idx, "gsis_id"] = found
+            used_ids.add(found)
+    return out.drop(columns=["_last_key"])
+
+
 def build_player_ratings(
     madden_path: Path | str = DEFAULT_MADDEN_PATH,
     nfl_dir: Path | str = DEFAULT_NFL_DIR,
@@ -354,6 +447,12 @@ def build_player_ratings(
         current_id = players["gsis_id"].fillna("").astype(str).str.strip()
         players["gsis_id"] = fresh_id.where(fresh_id.ne(""), current_id)
         players = players.drop(columns=["_identity_gsis_id"])
+
+    # Second pass for nickname / legal-name differences between Madden and nflverse.
+    roster_file = root / "weekly_rosters.csv"
+    if not roster_file.exists():
+        roster_file = root / "rosters.csv"
+    players = _fill_missing_ids_by_last_name(players, roster_file)
 
     stats = _performance_grades(_aggregate_weekly_stats(root / "player_weekly_stats.csv"))
     if not stats.empty:

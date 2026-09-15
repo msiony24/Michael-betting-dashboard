@@ -15,7 +15,10 @@ DEFAULT_METADATA = NFL_DATA_DIR / "player_weekly_stats_metadata.json"
 KEEP_COLUMNS = (
     "player_id", "player_display_name", "player_name", "position", "position_group",
     "recent_team", "team", "season", "week", "season_type",
-    "attempts", "completions", "passing_yards", "passing_tds", "interceptions", "sacks",
+    "attempts", "completions", "passing_yards", "passing_tds",
+    # nflverse renamed these in its newer stats release. Keep both the old and
+    # new names so QB interceptions/sacks are never silently dropped.
+    "interceptions", "passing_interceptions", "sacks", "sacks_suffered",
     "carries", "rushing_yards", "rushing_tds",
     "targets", "receptions", "receiving_yards", "receiving_tds",
     "passing_epa", "rushing_epa", "receiving_epa", "dakota",
