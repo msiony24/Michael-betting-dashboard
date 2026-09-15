@@ -6,14 +6,14 @@
       "error": "",
       "file": "data/nfl/team_snapshot.csv",
       "name": "team_performance",
-      "rows": 30
+      "rows": 32
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/scheme_tendencies.csv",
       "name": "scheme_tendencies",
-      "rows": 30
+      "rows": 32
     },
     {
       "available": true,
@@ -27,7 +27,7 @@
       "error": "",
       "file": "data/nfl/rosters.csv",
       "name": "rosters",
-      "rows": 2963
+      "rows": 2964
     },
     {
       "available": true,
@@ -41,28 +41,28 @@
       "error": "",
       "file": "data/nfl/weekly_rosters.csv",
       "name": "weekly_rosters",
-      "rows": 2963
+      "rows": 2969
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/player_weekly_stats.csv",
       "name": "player_weekly_stats",
-      "rows": 1041
+      "rows": 1118
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/team_weekly_stats.csv",
       "name": "team_weekly_stats",
-      "rows": 30
+      "rows": 32
     },
     {
       "available": true,
       "error": "",
       "file": "data/nfl/snap_counts.csv",
       "name": "snap_counts",
-      "rows": 1397
+      "rows": 1492
     },
     {
       "available": true,
@@ -76,12 +76,12 @@
       "error": "",
       "file": "data/nfl/depth_charts.csv",
       "name": "depth_charts",
-      "rows": 2232
+      "rows": 2211
     }
   ],
   "performance_season": 2026,
   "requested_season": 2026,
   "schema_version": "1.0",
   "total_datasets": 11,
-  "updated_at_utc": "2026-09-14T16:58:48+00:00"
+  "updated_at_utc": "2026-09-15T15:01:41+00:00"
 }
