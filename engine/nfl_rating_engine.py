@@ -908,7 +908,9 @@ def build_team_ratings(
     player_ratings: pd.DataFrame,
     snapshot_path: Path | str = DEFAULT_NFL_DIR / "team_snapshot.csv",
     depth_chart_path: Path | str = DEFAULT_DEPTH_CHART_PATH,
+    current_season: int | None = None,
 ) -> dict[str, dict[str, Any]]:
+    """current_season defaults to this calendar year; backtests pass the replayed season."""
     snapshot = pd.read_csv(snapshot_path) if Path(snapshot_path).exists() else pd.DataFrame()
     depth_charts = load_depth_charts(depth_chart_path)
     snap_by_abbr = {str(r["team_abbr"]): r for _, r in snapshot.iterrows()} if "team_abbr" in snapshot else {}
@@ -942,7 +944,10 @@ def build_team_ratings(
         team_players = team_frames[abbr]
         current_depth = team_depth[abbr]
         row = snap_by_abbr.get(abbr)
-        perf_weight = team_performance_weight(row.get("season"), row.get("through_week")) if row is not None else 0.0
+        perf_weight = (
+            team_performance_weight(row.get("season"), row.get("through_week"), current_year=current_season)
+            if row is not None else 0.0
+        )
 
         for unit, col in TEAM_LIVE_MAP.items():
             implied = rescaled.get(unit, {}).get(abbr)
