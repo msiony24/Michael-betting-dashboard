@@ -1215,6 +1215,7 @@ Kevin Dotson,LA,RG,OL,90.0,89.28,,0.0,0.0,89.28,baseline,Madden 27 baseline,ACT,
 Kyren Williams,LA,HB,RB,89.0,88.67,81.78804347826087,0.0352,0.0,88.43,baseline,Madden 27 + nflverse performance,ACT,,00-0037840,False,,False,,,,,PR|RB
 Alaric Jackson,LA,LT,OL,85.0,85.77,,0.0,0.0,85.77,baseline,Madden 27 baseline,ACT,,00-0036603,False,,False,,,,,LT
 Nate Landman,LA,LB,LB,86.0,85.48,,0.0,0.0,85.48,baseline,Madden 27 baseline,ACT,,00-0037587,False,,False,,,,,LILB
+Aaron Donald,LA,DE,DL,85.0,85.0,,0.0,0.0,85.0,baseline,Manual rating baseline,ACT,,00-0031388,False,,False,,,,,RDE
 Kobie Turner,LA,DT,DL,85.0,84.84,,0.0,0.0,84.84,baseline,Madden 27 baseline,ACT,,00-0039138,False,,False,,,,,LDE
 Byron Young,LA,EDGE,DL,84.0,83.71,,0.0,0.0,83.71,baseline,Madden 27 baseline,ACT,,00-0039137,False,,False,,,,,WLB
 Ethan Evans,LA,P,ST,80.0,83.0,,0.0,0.0,83.0,baseline,Madden 27 baseline,ACT,,00-0039059,False,,False,,,,,H|P
@@ -1252,7 +1253,6 @@ Shaun Dolac,LA,LB,LB,69.0,69.99,,0.0,0.0,69.99,baseline,Madden 27 baseline,ACT,,
 David Quessenberry,LA,RT,OL,68.0,69.79,,0.0,0.0,69.79,baseline,Madden 27 baseline,ACT,,00-0030097,False,,False,,,,,LT
 Dean Connors,LA,HB,RB,66.0,69.0,,0.0,0.0,69.0,baseline,Madden 27 baseline,DEV,,00-0041415,False,,False,,,,,
 Ronnie Rivers,LA,HB,RB,66.0,69.0,68.3586956521739,0.016,0.0,68.99,baseline,Madden 27 + nflverse performance,ACT,,00-0037557,False,,False,,,,,KR|RB
-Aaron Donald,LA,DE,DL,68.92,68.92,,0.0,0.0,68.92,baseline,Replacement-level estimate baseline,ACT,,00-0031388,False,,False,,,,,RDE
 Josh Wallace,LA,CB,DB,67.0,68.88,,0.0,0.0,68.88,baseline,Madden 27 baseline,ACT,,00-0039772,False,,False,,,,,SCB
 Larrell Murchison,LA,DT,DL,67.0,68.71,,0.0,0.0,68.71,baseline,Madden 27 baseline,DEV,,00-0036237,False,,False,,,,,
 Justin Dedich,LA,RG,OL,67.0,68.36,,0.0,0.0,68.36,baseline,Madden 27 baseline,RES,,00-0039784,False,,False,,,,,RG

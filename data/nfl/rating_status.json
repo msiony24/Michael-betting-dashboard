@@ -8,8 +8,23 @@
   "depth_chart_source": "nflverse automatic depth chart",
   "engine_version": "1.4.1-restored-weighting",
   "fallback_players": {
-    "manual": 0,
-    "manual_players": [],
+    "manual": 1,
+    "manual_file": {
+      "entries": [
+        {
+          "overall": 85.0,
+          "player_name": "Aaron Donald",
+          "status": "applied",
+          "team": "LA"
+        }
+      ],
+      "found": true,
+      "path": "/home/runner/work/Michael-betting-dashboard/Michael-betting-dashboard/data/nfl/manual_fallback_ratings.csv",
+      "problems": []
+    },
+    "manual_players": [
+      "Aaron Donald (LA DE) 85.0"
+    ],
     "prior_year_madden": 19,
     "prior_year_madden_players": [
       "Greg Gaines (BUF DT) 74.0",
@@ -32,7 +47,7 @@
       "Nic Jones (NYG CB) 65.0",
       "Stefon Diggs (WAS WR) 88.1"
     ],
-    "replacement_level": 48,
+    "replacement_level": 47,
     "replacement_level_players": [
       "Kalen King (ARI CB) 67.9",
       "Trey Sermon (ATL HB) 71.0",
@@ -56,7 +71,6 @@
       "Tahj Chambers (IND OLB) 65.8",
       "Jared Bartlett (JAX OLB) 65.8",
       "Bryson Eason (KC DT) 68.9",
-      "Aaron Donald (LA DE) 68.9",
       "Matthew Caldwell (LA QB) 66.0",
       "Rodney Shelley (LAC CB) 67.9",
       "Chris Collier (LV HB) 71.0",
@@ -94,5 +108,5 @@
   "rating_model": "v1.4",
   "schema_version": "1.5",
   "teams_rated": 32,
-  "updated_at_utc": "2026-09-15T19:45:00+00:00"
+  "updated_at_utc": "2026-09-15T19:54:08+00:00"
 }

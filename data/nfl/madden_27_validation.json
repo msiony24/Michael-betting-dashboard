@@ -16,10 +16,11 @@
   "rating_source_counts": {
     "Madden 27 baseline": 2066,
     "Madden 27 + nflverse performance": 296,
-    "Replacement-level estimate baseline": 45,
+    "Replacement-level estimate baseline": 44,
     "Prior-year Madden -2 baseline": 15,
     "Prior-year Madden -2 + nflverse performance": 4,
-    "Replacement-level estimate + nflverse performance": 3
+    "Replacement-level estimate + nflverse performance": 3,
+    "Manual rating baseline": 1
   },
   "teams": {
     "ARI": {
@@ -3458,16 +3459,16 @@
             "macabets_rating": 97.84
           },
           {
+            "name": "Aaron Donald",
+            "position": "DE",
+            "overall": 85.0,
+            "macabets_rating": 85.0
+          },
+          {
             "name": "Kobie Turner",
             "position": "DT",
             "overall": 85.0,
             "macabets_rating": 84.84
-          },
-          {
-            "name": "Byron Young",
-            "position": "EDGE",
-            "overall": 84.0,
-            "macabets_rating": 83.71
           }
         ],
         "LB": [
