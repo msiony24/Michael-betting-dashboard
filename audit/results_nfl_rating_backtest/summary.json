@@ -1,0 +1,214 @@
+{
+  "comparisons": {
+    "v1_5_current_vs_madden_only": {
+      "mean_difference": -0.00832,
+      "ci_low": -0.01409,
+      "ci_high": -0.00263,
+      "share_of_resamples_better": 0.998
+    },
+    "v1_5_current_vs_v1_4_legacy": {
+      "mean_difference": 0.02265,
+      "ci_low": 0.00527,
+      "ci_high": 0.03877,
+      "share_of_resamples_better": 0.004
+    },
+    "best_grid_vs_v1_5_current": {
+      "best_grid": "grid_pm0.5_tc0.8_tk3",
+      "mean_difference": -0.00315,
+      "ci_low": -0.00612,
+      "ci_high": -0.00023,
+      "share_of_resamples_better": 0.981
+    }
+  },
+  "market": {
+    "market_closing_moneyline": {
+      "games": 255,
+      "log_loss": 0.61253,
+      "brier": 0.2137,
+      "accuracy": 0.6471,
+      "mean_pick_confidence": 0.6751
+    },
+    "madden_only_same_games": {
+      "games": 255,
+      "log_loss": 0.6559,
+      "brier": 0.23195,
+      "accuracy": 0.6039,
+      "mean_pick_confidence": 0.5868
+    },
+    "v1_4_legacy_same_games": {
+      "games": 255,
+      "log_loss": 0.62493,
+      "brier": 0.21772,
+      "accuracy": 0.6353,
+      "mean_pick_confidence": 0.6102
+    },
+    "v1_5_current_same_games": {
+      "games": 255,
+      "log_loss": 0.64758,
+      "brier": 0.228,
+      "accuracy": 0.6275,
+      "mean_pick_confidence": 0.5822
+    }
+  },
+  "calibration": {
+    "madden_only": [
+      {
+        "bucket": "50-60%",
+        "games": 159,
+        "predicted": 0.548,
+        "actual": 0.541
+      },
+      {
+        "bucket": "60-70%",
+        "games": 82,
+        "predicted": 0.637,
+        "actual": 0.695
+      },
+      {
+        "bucket": "70-80%",
+        "games": 13,
+        "predicted": 0.728,
+        "actual": 0.769
+      },
+      {
+        "bucket": "80-100%",
+        "games": 1,
+        "predicted": 0.866,
+        "actual": 1.0
+      }
+    ],
+    "v1_4_legacy": [
+      {
+        "bucket": "50-60%",
+        "games": 141,
+        "predicted": 0.55,
+        "actual": 0.539
+      },
+      {
+        "bucket": "60-70%",
+        "games": 69,
+        "predicted": 0.642,
+        "actual": 0.71
+      },
+      {
+        "bucket": "70-80%",
+        "games": 40,
+        "predicted": 0.74,
+        "actual": 0.825
+      },
+      {
+        "bucket": "80-100%",
+        "games": 5,
+        "predicted": 0.847,
+        "actual": 0.8
+      }
+    ],
+    "v1_5_current": [
+      {
+        "bucket": "50-60%",
+        "games": 166,
+        "predicted": 0.547,
+        "actual": 0.554
+      },
+      {
+        "bucket": "60-70%",
+        "games": 78,
+        "predicted": 0.636,
+        "actual": 0.744
+      },
+      {
+        "bucket": "70-80%",
+        "games": 10,
+        "predicted": 0.721,
+        "actual": 0.9
+      },
+      {
+        "bucket": "80-100%",
+        "games": 1,
+        "predicted": 0.856,
+        "actual": 1.0
+      }
+    ]
+  },
+  "games_scored": 255,
+  "weeks_scored": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "meta": {
+    "season": 2025,
+    "generated_at_utc": "2026-09-15T18:53:53+00:00",
+    "madden_iteration": "Madden 26 2-week-1 (downloaded)"
+  },
+  "main_table": [
+    {
+      "variant": "v1_4_legacy",
+      "group": "main",
+      "games": 255,
+      "log_loss": 0.62493,
+      "brier": 0.21772,
+      "accuracy": 0.6353,
+      "mean_pick_confidence": 0.6102,
+      "log_loss_early_weeks": 0.6428,
+      "log_loss_late_weeks": 0.60576,
+      "best_margin_scale": 1.45,
+      "log_loss_at_best_scale": 0.61855,
+      "setting_engine": "legacy",
+      "setting_player_cap": 0.8,
+      "setting_player_stability_mult": 1.0,
+      "setting_team_cap": 0.6,
+      "setting_team_stability": 6.0
+    },
+    {
+      "variant": "v1_5_current",
+      "group": "main",
+      "games": 255,
+      "log_loss": 0.64758,
+      "brier": 0.228,
+      "accuracy": 0.6275,
+      "mean_pick_confidence": 0.5822,
+      "log_loss_early_weeks": 0.64587,
+      "log_loss_late_weeks": 0.64941,
+      "best_margin_scale": 1.7,
+      "log_loss_at_best_scale": 0.63923,
+      "setting_engine": "current",
+      "setting_player_cap": 0.8,
+      "setting_player_stability_mult": 1.0,
+      "setting_team_cap": 0.6,
+      "setting_team_stability": 6.0
+    },
+    {
+      "variant": "madden_only",
+      "group": "main",
+      "games": 255,
+      "log_loss": 0.6559,
+      "brier": 0.23195,
+      "accuracy": 0.6039,
+      "mean_pick_confidence": 0.5868,
+      "log_loss_early_weeks": 0.64863,
+      "log_loss_late_weeks": 0.6637,
+      "best_margin_scale": 1.35,
+      "log_loss_at_best_scale": 0.65357,
+      "setting_engine": "current",
+      "setting_player_cap": 0.0,
+      "setting_player_stability_mult": 1.0,
+      "setting_team_cap": 0.0,
+      "setting_team_stability": 6.0
+    }
+  ]
+}
