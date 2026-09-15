@@ -305,3 +305,67 @@ def test_v14_mode_matches_frozen_v14_engine(tmp_path):
     for unit in ("offensive_line", "defensive_front", "secondary", "special_teams", "linebackers"):
         assert abs(our_team["units"][unit]["grade"] - their_team["units"][unit]["grade"]) < 1e-6, unit
     assert abs(our_team["overall_rating"] - their_team["overall_rating"]) < 1e-6
+
+
+def _auto_depth_chart(path: Path, rows):
+    pd.DataFrame([
+        {"dt": "2026-09-15T12:00:00Z", "team": team, "player_name": name, "gsis_id": gsis,
+         "pos_abb": role, "pos_slot": 1, "pos_rank": rank}
+        for team, name, gsis, role, rank in rows
+    ]).to_csv(path, index=False)
+
+
+def test_missing_depth_chart_players_get_fallback_ratings(tmp_path):
+    madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
+    pd.DataFrame([
+        {"player_name": "Current Receiver", "team": "WAS", "position": "WR", "overall": 90, "speed": 90},
+        {"player_name": "Guard Man", "team": "WAS", "position": "LG", "overall": 75},
+        {"player_name": "Real Name", "team": "WAS", "position": "TE", "overall": 78},
+    ]).to_csv(madden, index=False)
+    prior = tmp_path / "prior.csv"
+    pd.DataFrame([{"player_name": "Veteran Receiver", "team": "", "position": "", "overall": 89, "speed": 88}]).to_csv(prior, index=False)
+    manual = tmp_path / "manual.csv"
+    pd.DataFrame([{"player_name": "Returning Legend", "team": "WAS", "overall": 85, "note": "user call"}]).to_csv(manual, index=False)
+    pd.DataFrame([
+        {"full_name": "Real Name", "team": "WAS", "position": "TE", "gsis_id": "00-TE"},
+        {"full_name": "Veteran Receiver", "team": "WAS", "position": "WR", "gsis_id": "00-VET"},
+    ]).to_csv(nfl / "rosters.csv", index=False)
+    chart = tmp_path / "depth.csv"
+    _auto_depth_chart(chart, [
+        ("WAS", "Current Receiver", "", "WR", 1),
+        ("WAS", "Veteran Receiver", "00-VET", "WR", 2),
+        ("WAS", "Guard Man", "", "C", 1),              # OL listed at another OL spot
+        ("WAS", "Nick Name", "00-TE", "TE", 1),         # nickname, proven by ID
+        ("WAS", "Unknown Rookie", "00-ROOK", "PK", 1),
+        ("WAS", "Returning Legend", "00-LEG", "RDE", 1),
+    ])
+    pd.DataFrame([{"player_id": "00-VET", "player_display_name": "Veteran Receiver", "team": "WAS",
+                   "position": "WR", "targets": 20, "receptions": 12, "receiving_yards": 150}]).to_csv(
+        nfl / "player_weekly_stats.csv", index=False)
+
+    players = build_player_ratings(madden, nfl, depth_chart_path=chart, prior_madden_path=prior,
+                                   manual_fallback_path=manual).set_index("player_name")
+    vet = players.loc["Veteran Receiver"]
+    assert vet.overall == 87 and vet.rating_source.startswith("Prior-year Madden -2")
+    assert vet.gsis_id == "00-VET" and vet.performance_weight > 0
+    assert players.loc["Unknown Rookie", "rating_source"].startswith("Replacement-level estimate")
+    assert players.loc["Returning Legend", "overall"] == 85
+    assert players.loc["Returning Legend", "rating_source"].startswith("Manual rating")
+    assert "Nick Name" not in players.index and players.loc["Real Name", "depth_chart_alias"] == "Nick Name"
+    assert "Guard Man" in players.index and len(players) == 6
+
+    teams = build_team_ratings(players.reset_index(), nfl / "none.csv", chart)
+    units = teams["Washington Commanders"]["units"]
+    assert sum(len(u["unmatched_depth_chart"]) for u in units.values()) == 0
+    assert units["offensive_line"]["starter_count"] == 1
+
+
+def test_manual_fallback_never_overrides_a_real_madden_rating(tmp_path):
+    madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
+    pd.DataFrame([{"player_name": "Star Player", "team": "WAS", "position": "WR", "overall": 90}]).to_csv(madden, index=False)
+    manual = tmp_path / "manual.csv"
+    pd.DataFrame([{"player_name": "Star Player", "team": "WAS", "overall": 50}]).to_csv(manual, index=False)
+    chart = tmp_path / "depth.csv"
+    _auto_depth_chart(chart, [("WAS", "Star Player", "", "WR", 1)])
+    players = build_player_ratings(madden, nfl, depth_chart_path=chart, manual_fallback_path=manual)
+    assert len(players) == 1 and players.iloc[0].overall == 90

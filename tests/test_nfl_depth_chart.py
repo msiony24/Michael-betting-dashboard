@@ -234,3 +234,26 @@ def test_match_depth_players_empty_inputs():
     matched, unmatched = match_depth_players(pd.DataFrame(), [("Josh Allen", "QB")])
     assert matched.empty
     assert unmatched == [{"name": "Josh Allen", "role": "QB"}]
+
+
+def test_match_depth_players_any_lineman_fits_any_line_role():
+    players = _players_frame([{"player_name": "Evan Brown", "position": "LG"}])
+    matched, unmatched = match_depth_players(players, [("Evan Brown", "C")])
+    assert len(matched) == 1 and unmatched == []
+
+
+def test_match_depth_players_id_verified_role_and_nickname():
+    players = _players_frame([
+        {"player_name": "Travis Hunter", "position": "CB", "depth_chart_verified_roles": "LCB|WR"},
+        {"player_name": "Marquise Brown", "position": "WR", "depth_chart_alias": "Hollywood Brown",
+         "depth_chart_verified_roles": "WR"},
+    ])
+    matched, unmatched = match_depth_players(players, [("Travis Hunter", "WR"), ("Hollywood Brown", "WR")])
+    assert sorted(matched["player_name"]) == ["Marquise Brown", "Travis Hunter"]
+    assert unmatched == []
+
+
+def test_match_depth_players_unverified_cross_family_still_rejected():
+    players = _players_frame([{"player_name": "Chris Jones", "position": "CB", "depth_chart_verified_roles": "LCB"}])
+    matched, unmatched = match_depth_players(players, [("Chris Jones", "QB")])
+    assert matched.empty
