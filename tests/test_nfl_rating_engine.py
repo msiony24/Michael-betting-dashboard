@@ -369,3 +369,16 @@ def test_manual_fallback_never_overrides_a_real_madden_rating(tmp_path):
     _auto_depth_chart(chart, [("WAS", "Star Player", "", "WR", 1)])
     players = build_player_ratings(madden, nfl, depth_chart_path=chart, manual_fallback_path=manual)
     assert len(players) == 1 and players.iloc[0].overall == 90
+
+
+def test_manual_fallback_file_tolerates_missing_header_and_bom(tmp_path):
+    from engine import nfl_rating_engine as engine
+
+    headerless = tmp_path / "headerless.csv"
+    headerless.write_text("Aaron Donald,LA,85,back from retirement", encoding="utf-8")
+    assert engine._load_manual_fallbacks(headerless) == {("LA", "aarondonald"): 85.0}
+
+    bom = tmp_path / "bom.csv"
+    bom.write_text("Player_Name,Team,Overall,Note\r\n Aaron Donald , la ,85,x\r\n\r\n", encoding="utf-8-sig")
+    assert engine._load_manual_fallbacks(bom) == {("LA", "aarondonald"): 85.0}
+    assert engine.LAST_MANUAL_FALLBACK_REPORT["found"] is True
