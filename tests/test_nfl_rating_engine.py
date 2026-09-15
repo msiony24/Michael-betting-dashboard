@@ -155,3 +155,24 @@ def test_nflverse_arizona_roster_abbreviation_resolves_gsis(tmp_path):
     assert row.team_abbr == "ARI"
     assert row.gsis_id == "00-0099999"
     assert row.performance_weight > 0
+
+
+def test_nickname_resolves_gsis_but_different_first_name_does_not(tmp_path):
+    from engine.nfl_rating_engine import _fill_missing_ids_by_last_name
+
+    players = pd.DataFrame([
+        {"player_name": "Joshua Palmer", "team_abbr": "BUF", "position_family": "WR", "gsis_id": ""},
+        {"player_name": "Chigoziem Okonkwo", "team_abbr": "WAS", "position_family": "TE", "gsis_id": ""},
+        {"player_name": "Cody White", "team_abbr": "SEA", "position_family": "WR", "gsis_id": ""},
+    ])
+    roster = tmp_path / "weekly_rosters.csv"
+    pd.DataFrame([
+        {"full_name": "Josh Palmer", "first_name": "Josh", "team": "BUF", "position": "WR", "gsis_id": "00-PALMER", "week": 1},
+        {"full_name": "Chig Okonkwo", "first_name": "Chigoziem", "team": "WAS", "position": "TE", "gsis_id": "00-OKONKWO", "week": 1},
+        {"full_name": "Ricky White III", "first_name": "Ricky", "team": "SEA", "position": "WR", "gsis_id": "00-RWHITE", "week": 1},
+    ]).to_csv(roster, index=False)
+
+    out = _fill_missing_ids_by_last_name(players, roster).set_index("player_name")
+    assert out.loc["Joshua Palmer", "gsis_id"] == "00-PALMER"
+    assert out.loc["Chigoziem Okonkwo", "gsis_id"] == "00-OKONKWO"
+    assert out.loc["Cody White", "gsis_id"] == ""

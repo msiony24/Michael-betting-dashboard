@@ -71,3 +71,20 @@ def test_refresh_player_weekly_switches_to_current_season_when_available(monkeyp
     assert not saved["macabets_is_fallback"].astype(bool).any()
     assert meta["active_season"] == 2026
     assert meta["fallback_prior"] is False
+
+
+def test_refresh_keeps_renamed_interception_and_sack_columns(monkeypatch, tmp_path: Path):
+    def fake_load(season: int):
+        frame = _frame(season, week=1).drop(columns=["interceptions"])
+        frame["passing_interceptions"] = [3]
+        frame["sacks_suffered"] = [4]
+        return frame
+
+    monkeypatch.setattr(nfl_player_weekly, "_load_one", fake_load)
+    output = tmp_path / "player_weekly_stats.csv"
+    nfl_player_weekly.refresh_player_weekly_stats(
+        2026, output_path=output, metadata_path=tmp_path / "meta.json"
+    )
+    saved = pd.read_csv(output)
+    assert saved.loc[0, "passing_interceptions"] == 3
+    assert saved.loc[0, "sacks_suffered"] == 4
