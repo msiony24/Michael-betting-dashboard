@@ -128,8 +128,27 @@ STAT_ALIASES = {
     "rushing_yards": ("rushing_yards",), "rushing_tds": ("rushing_tds",),
     "targets": ("targets",), "receptions": ("receptions",),
     "receiving_yards": ("receiving_yards",), "receiving_tds": ("receiving_tds",),
+    "passing_epa": ("passing_epa",), "rushing_epa": ("rushing_epa",),
+    "receiving_epa": ("receiving_epa",),
     "performance_cap": ("macabets_performance_cap", "performance_cap"),
 }
+
+# Player performance model (v1.5)
+# -------------------------------
+# Performance is graded on per-opportunity EFFICIENCY (EPA per play, plus a
+# yards/TD/turnover efficiency measure), never on season totals, so missing a
+# game or playing on a low-volume offense is not punished as "bad play".
+# Efficiency is converted to a z-score within the position and mapped onto the
+# Madden starter scale for that position, so an average season lands at an
+# average-starter rating instead of being dragged into the 60s.
+# Its weight grows with opportunities as n / (n + K) and is capped by the
+# season cap (0.80 current season, 0.20 prior-season fallback). K is the number
+# of opportunities at which performance and Madden are trusted equally (before
+# the cap), so one game can only nudge a rating.
+PERFORMANCE_STABILITY = {"QB": 500.0, "RB": 200.0, "WR": 100.0, "TE": 80.0}
+MADDEN_SCALE_POOL = {"QB": 32, "RB": 32, "WR": 96, "TE": 32}
+PERFORMANCE_Z_CLIP = 3.0
+MISSING_EPA_COLUMNS = ("passing_epa", "rushing_epa", "receiving_epa")
 
 
 def _name_key(value: Any) -> str:
@@ -196,6 +215,8 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
             data[key] = frame[col]
         elif key == "player_id":
             data[key] = ""
+        elif key in MISSING_EPA_COLUMNS:
+            data[key] = np.nan
         else:
             data[key] = 0
     clean = pd.DataFrame(data)
@@ -214,7 +235,11 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     clean["team"] = clean["team"].astype(str).str.upper()
     clean["position"] = clean["position"].astype(str).str.upper()
     numeric = [c for c in clean.columns if c not in {"player_id", "player_name", "name_key", "team", "position"}]
-    clean[numeric] = clean[numeric].apply(pd.to_numeric, errors="coerce").fillna(0)
+    clean[numeric] = clean[numeric].apply(pd.to_numeric, errors="coerce")
+    # Remember whether real EPA exists; a filled 0 must not look like "average EPA".
+    clean["epa_rows"] = clean[list(MISSING_EPA_COLUMNS)].notna().any(axis=1).astype(float)
+    clean[numeric] = clean[numeric].fillna(0)
+    numeric.append("epa_rows")
     agg = {c: "sum" for c in numeric}
     if "performance_cap" in agg:
         agg["performance_cap"] = "max"
@@ -235,45 +260,94 @@ def _aggregate_weekly_stats(path: Path) -> pd.DataFrame:
     return pd.concat([with_id, without_id], ignore_index=True, sort=False)
 
 
-def _percentile_score(series: pd.Series) -> pd.Series:
-    numeric = pd.to_numeric(series, errors="coerce").fillna(0)
-    if len(numeric) <= 1 or numeric.nunique() <= 1:
-        return pd.Series(67.5, index=series.index)
-    return 45.0 + numeric.rank(pct=True) * 50.0
+def _opportunities(frame: pd.DataFrame, family: str) -> pd.Series:
+    col = lambda name: pd.to_numeric(frame.get(name, 0), errors="coerce").fillna(0)
+    if family == "QB":
+        return col("attempts") + col("sacks") + col("carries")
+    if family == "RB":
+        return col("carries") + col("targets")
+    return col("targets") + col("carries")
+
+
+def _yards_efficiency(frame: pd.DataFrame, family: str, opportunities: pd.Series) -> pd.Series:
+    col = lambda name: pd.to_numeric(frame.get(name, 0), errors="coerce").fillna(0)
+    if family == "QB":
+        value = (col("passing_yards") + 20 * col("passing_tds") - 45 * col("interceptions")
+                 + col("rushing_yards") + 20 * col("rushing_tds"))
+    elif family == "RB":
+        value = (col("rushing_yards") + col("receiving_yards")
+                 + 20 * (col("rushing_tds") + col("receiving_tds")))
+    else:
+        value = (col("receiving_yards") + col("rushing_yards")
+                 + 20 * (col("receiving_tds") + col("rushing_tds")))
+    return value / opportunities.where(opportunities > 0)
+
+
+def _epa_efficiency(frame: pd.DataFrame, family: str, opportunities: pd.Series) -> pd.Series:
+    col = lambda name: pd.to_numeric(frame.get(name, 0), errors="coerce").fillna(0)
+    if family == "QB":
+        value = col("passing_epa") + col("rushing_epa")
+    elif family == "RB":
+        value = col("rushing_epa") + col("receiving_epa")
+    else:
+        value = col("receiving_epa") + col("rushing_epa")
+    has_epa = pd.to_numeric(frame.get("epa_rows", 0), errors="coerce").fillna(0) > 0
+    return (value / opportunities.where(opportunities > 0)).where(has_epa)
+
+
+def _weighted_z(values: pd.Series, weights: pd.Series) -> pd.Series:
+    """Opportunity-weighted z-score; tiny samples barely move the mean/SD."""
+    mask = values.notna() & (weights > 0)
+    if mask.sum() < 2:
+        return pd.Series(np.where(mask, 0.0, np.nan), index=values.index)
+    v, w = values[mask].astype(float), weights[mask].astype(float)
+    mean = float(np.average(v, weights=w))
+    sd = float(np.sqrt(np.average((v - mean) ** 2, weights=w)))
+    if not np.isfinite(sd) or sd <= 1e-9:
+        return pd.Series(np.where(mask, 0.0, np.nan), index=values.index)
+    return ((values - mean) / sd).clip(-PERFORMANCE_Z_CLIP, PERFORMANCE_Z_CLIP)
 
 
 def _performance_grades(stats: pd.DataFrame) -> pd.DataFrame:
+    """Attach efficiency z-scores (performance_z) and opportunity counts (sample_size).
+
+    performance_grade is filled later in build_player_ratings, once the Madden
+    starter scale for each position is known.
+    """
     if stats.empty: return stats
     out = stats.copy()
     out["family"] = out["position"].map(_position_family)
-    out["performance_grade"] = np.nan
+    out["performance_z"] = np.nan
     out["sample_size"] = 0.0
-
-    formulas = {
-        "QB": ({"passing_yards": .26, "passing_tds": .22, "attempts": .12,
-                "interceptions": -.18, "rushing_yards": .10, "rushing_tds": .08,
-                "sacks": -.04}, "attempts", 500),
-        "RB": ({"rushing_yards": .34, "rushing_tds": .20, "carries": .12,
-                "receiving_yards": .16, "receptions": .08, "receiving_tds": .10}, "carries", 250),
-        "WR": ({"receiving_yards": .38, "receiving_tds": .22, "targets": .18,
-                "receptions": .14, "rushing_yards": .08}, "targets", 150),
-        "TE": ({"receiving_yards": .34, "receiving_tds": .24, "targets": .18,
-                "receptions": .16, "rushing_yards": .08}, "targets", 120),
-    }
-    for family, (weights, sample_col, _) in formulas.items():
+    out["performance_grade"] = np.nan
+    for family in PERFORMANCE_STABILITY:
         mask = out["family"].eq(family)
-        if not mask.any(): continue
-        score = pd.Series(0.0, index=out.index)
-        total_weight = 0.0
-        for col, weight in weights.items():
-            pct = _percentile_score(out.loc[mask, col])
-            if weight < 0:
-                pct = 140.0 - pct
-            score.loc[mask] += pct * abs(weight)
-            total_weight += abs(weight)
-        out.loc[mask, "performance_grade"] = score.loc[mask] / total_weight
-        out.loc[mask, "sample_size"] = pd.to_numeric(out.loc[mask, sample_col], errors="coerce").fillna(0)
+        if not mask.any():
+            continue
+        group = out.loc[mask]
+        opps = _opportunities(group, family)
+        z_parts = [
+            _weighted_z(_epa_efficiency(group, family, opps), opps),
+            _weighted_z(_yards_efficiency(group, family, opps), opps),
+        ]
+        z = pd.concat(z_parts, axis=1).mean(axis=1, skipna=True)
+        out.loc[mask, "performance_z"] = z.where(opps > 0)
+        out.loc[mask, "sample_size"] = opps
     return out
+
+
+def _madden_position_scale(players: pd.DataFrame) -> dict[str, tuple[float, float]]:
+    """Mean/SD of each position's likely starters on the Madden trait-grade scale."""
+    scale: dict[str, tuple[float, float]] = {}
+    for family, pool in MADDEN_SCALE_POOL.items():
+        grades = pd.to_numeric(
+            players.loc[players["position_family"].eq(family), "trait_grade"], errors="coerce"
+        ).dropna().sort_values(ascending=False).head(pool)
+        if grades.empty:
+            continue
+        sd = float(grades.std(ddof=0)) if len(grades) > 1 else 0.0
+        scale[family] = (float(grades.mean()), sd if sd > 0 else 5.0)
+    return scale
 
 
 def _load_roster_status(path: Path) -> pd.DataFrame:
@@ -456,7 +530,7 @@ def build_player_ratings(
 
     stats = _performance_grades(_aggregate_weekly_stats(root / "player_weekly_stats.csv"))
     if not stats.empty:
-        perf_cols = ["performance_grade", "sample_size"]
+        perf_cols = ["performance_z", "sample_size"]
         if "performance_cap" in stats.columns:
             perf_cols.append("performance_cap")
 
@@ -482,9 +556,16 @@ def build_player_ratings(
         )
         players = players.merge(stats_lookup, on="_stats_identity", how="left").drop(columns=["_stats_identity"])
     else:
-        players["performance_grade"] = np.nan
+        players["performance_z"] = np.nan
         players["sample_size"] = 0.0
         players["performance_cap"] = 0.0
+
+    # Translate efficiency z-scores onto the Madden starter scale for the position.
+    scale = _madden_position_scale(players)
+    z = pd.to_numeric(players["performance_z"], errors="coerce")
+    mu = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[0])
+    sd = players["position_family"].map(lambda f: scale.get(f, (np.nan, np.nan))[1])
+    players["performance_grade"] = (mu + z * sd).clip(0, 99)
 
     # Madden 27's final player file is now pre-enriched from nflverse rosters and may
     # already contain roster_status / gsis_id. A second roster merge would create
@@ -571,10 +652,9 @@ def build_player_ratings(
         players["availability_updated_at_utc"] = ""
         players["availability_source"] = np.where(players["injury_status"].fillna("").astype(str).str.strip().ne(""), "nflverse fallback", "")
 
-    thresholds = {"QB": 500, "RB": 250, "WR": 150, "TE": 120}
-    players["performance_confidence"] = players.apply(
-        lambda r: min(1.0, float(r.get("sample_size", 0) or 0) / thresholds.get(r["position_family"], 999999)), axis=1
-    )
+    opportunities = pd.to_numeric(players["sample_size"], errors="coerce").fillna(0).clip(lower=0)
+    stability = players["position_family"].map(PERFORMANCE_STABILITY)
+    players["performance_confidence"] = (opportunities / (opportunities + stability)).fillna(0.0)
     if "performance_cap" in players.columns:
         performance_cap = pd.to_numeric(players["performance_cap"], errors="coerce").fillna(0.80).clip(0.0, 0.80)
     else:
@@ -769,6 +849,61 @@ def _unit_grade(team_players: pd.DataFrame, unit: str, team_depth: pd.DataFrame 
     }
 
 
+# Team-unit performance (v1.5)
+# ----------------------------
+# Team snapshot unit grades are single-number summaries of a small number of
+# games, and they live on a different scale (league mean ~68) than roster unit
+# grades (league mean ~79). They are first rescaled onto the roster scale by
+# z-score, then blended with a weight that grows with games played:
+#     weight = TEAM_PERFORMANCE_CAP * games / (games + TEAM_PERFORMANCE_STABILITY)
+# Week 1 ~9%, Week 4 ~24%, Week 8 ~34%, Week 17 ~44%.
+TEAM_PERFORMANCE_CAP = 0.60
+TEAM_PERFORMANCE_STABILITY = 6.0
+PRIOR_SEASON_TEAM_WEIGHT = 0.20
+LINEBACKER_PROXY_SHARE = 0.50
+LINEBACKER_PROXY_MAX = 0.30
+TEAM_LIVE_MAP = {
+    # QB/RB/WR/TE already receive player-level weekly performance in build_player_ratings.
+    # Do not blend the same evidence into those units a second time.
+    "offensive_line": "offensive_line",
+    "defensive_front": "defensive_line",
+    "secondary": "secondary",
+    "special_teams": "special_teams",
+}
+
+
+def team_performance_weight(season: Any, through_week: Any, *, current_year: int | None = None) -> float:
+    season_num = pd.to_numeric(season, errors="coerce")
+    week_num = pd.to_numeric(through_week, errors="coerce")
+    row_season = int(season_num) if pd.notna(season_num) else 0
+    games = max(0, int(week_num)) if pd.notna(week_num) else 0
+    year = current_year if current_year is not None else datetime.now(timezone.utc).year
+    if row_season == year:
+        if games <= 0:
+            return 0.0
+        return TEAM_PERFORMANCE_CAP * games / (games + TEAM_PERFORMANCE_STABILITY)
+    if 0 < row_season < year:
+        return PRIOR_SEASON_TEAM_WEIGHT
+    return 0.0
+
+
+def _rescale_to_roster(
+    values: dict[str, float], roster: dict[str, float]
+) -> dict[str, float]:
+    """Map performance grades onto the roster-grade scale via league z-scores."""
+    teams = [t for t in values if t in roster]
+    if len(teams) < 2:
+        return {t: roster[t] for t in teams}
+    perf = np.array([values[t] for t in teams], dtype=float)
+    base = np.array([roster[t] for t in teams], dtype=float)
+    perf_sd = float(perf.std())
+    base_mean, base_sd = float(base.mean()), float(base.std())
+    if perf_sd <= 1e-9:
+        return {t: base_mean for t in teams}
+    z = np.clip((perf - perf.mean()) / perf_sd, -PERFORMANCE_Z_CLIP, PERFORMANCE_Z_CLIP)
+    return {t: round(float(base_mean + zi * base_sd), 2) for t, zi in zip(teams, z)}
+
+
 def build_team_ratings(
     player_ratings: pd.DataFrame,
     snapshot_path: Path | str = DEFAULT_NFL_DIR / "team_snapshot.csv",
@@ -777,51 +912,61 @@ def build_team_ratings(
     snapshot = pd.read_csv(snapshot_path) if Path(snapshot_path).exists() else pd.DataFrame()
     depth_charts = load_depth_charts(depth_chart_path)
     snap_by_abbr = {str(r["team_abbr"]): r for _, r in snapshot.iterrows()} if "team_abbr" in snapshot else {}
-    result = {}
-    for abbr, team_players in player_ratings.groupby("team_abbr"):
-        current_depth = team_depth_chart(depth_charts, str(abbr))
-        units = {name: _unit_grade(team_players, name, current_depth) for name in POSITION_GROUPS}
-        row = snap_by_abbr.get(str(abbr))
-        # Team-unit performance gradually replaces the Madden roster prior as the
-        # current season accumulates. Previous-season snapshots are capped at 20%.
-        perf_weight = 0.0
-        if row is not None:
-            row_season = int(pd.to_numeric(row.get("season"), errors="coerce")) if pd.notna(pd.to_numeric(row.get("season"), errors="coerce")) else 0
-            through_week = int(pd.to_numeric(row.get("through_week"), errors="coerce")) if pd.notna(pd.to_numeric(row.get("through_week"), errors="coerce")) else 0
-            current_year = datetime.now(timezone.utc).year
-            if row_season == current_year:
-                perf_weight = min(0.80, 0.20 + max(0, through_week) * 0.075)
-            elif row_season > 0:
-                perf_weight = 0.20
 
-        live_map = {
-            # QB/RB/WR/TE already receive player-level weekly performance in build_player_ratings.
-            # Do not blend the same prior-season evidence into those units a second time.
-            "offensive_line": "offensive_line",
-            "defensive_front": "defensive_line",
-            "secondary": "secondary",
-            "special_teams": "special_teams",
-        }
-        for unit, col in live_map.items():
-            if row is not None and col in row and pd.notna(row[col]) and perf_weight > 0:
+    # Pass 1: roster-based unit grades for every team.
+    team_units: dict[str, dict[str, dict[str, Any]]] = {}
+    team_depth: dict[str, pd.DataFrame] = {}
+    team_frames: dict[str, pd.DataFrame] = {}
+    for abbr, team_players in player_ratings.groupby("team_abbr"):
+        abbr = str(abbr)
+        current_depth = team_depth_chart(depth_charts, abbr)
+        team_depth[abbr] = current_depth
+        team_frames[abbr] = team_players
+        team_units[abbr] = {name: _unit_grade(team_players, name, current_depth) for name in POSITION_GROUPS}
+
+    # League-wide rescaling of snapshot unit grades onto each unit's roster scale.
+    rescaled: dict[str, dict[str, float]] = {}
+    unit_sources = dict(TEAM_LIVE_MAP)
+    unit_sources["linebackers"] = "defense"
+    for unit, col in unit_sources.items():
+        perf_values: dict[str, float] = {}
+        for abbr, row in snap_by_abbr.items():
+            if abbr in team_units and col in row and pd.notna(pd.to_numeric(row[col], errors="coerce")):
+                perf_values[abbr] = float(row[col])
+        roster_values = {abbr: float(team_units[abbr][unit]["grade"]) for abbr in perf_values}
+        rescaled[unit] = _rescale_to_roster(perf_values, roster_values)
+
+    # Pass 2: blend and assemble.
+    result = {}
+    for abbr, units in team_units.items():
+        team_players = team_frames[abbr]
+        current_depth = team_depth[abbr]
+        row = snap_by_abbr.get(abbr)
+        perf_weight = team_performance_weight(row.get("season"), row.get("through_week")) if row is not None else 0.0
+
+        for unit, col in TEAM_LIVE_MAP.items():
+            implied = rescaled.get(unit, {}).get(abbr)
+            if implied is not None and perf_weight > 0:
                 roster_grade = units[unit]["grade"]
                 units[unit]["roster_grade"] = roster_grade
-                units[unit]["performance_grade"] = round(float(row[col]), 2)
-                units[unit]["grade"] = round(roster_grade * (1 - perf_weight) + float(row[col]) * perf_weight, 2)
+                units[unit]["performance_grade_raw"] = round(float(row[col]), 2)
+                units[unit]["performance_grade"] = round(implied, 2)
+                units[unit]["grade"] = round(roster_grade * (1 - perf_weight) + implied * perf_weight, 2)
                 units[unit]["performance_weight"] = round(perf_weight, 3)
                 units[unit]["source"] = f"{(1-perf_weight):.0%} roster + {perf_weight:.0%} NFL performance"
             else:
                 units[unit]["source"] = "Madden 27 roster rating"
         # Linebacker play currently lacks a clean player-level weekly metric in this pipeline.
         # Use only a modest team-defense proxy; never apply generic offense to RB/WR/TE.
-        indirect_weight = min(perf_weight * 0.50, 0.30)
-        if row is not None and "defense" in row and pd.notna(row["defense"]) and indirect_weight > 0:
+        indirect_weight = min(perf_weight * LINEBACKER_PROXY_SHARE, LINEBACKER_PROXY_MAX)
+        lb_implied = rescaled.get("linebackers", {}).get(abbr)
+        if lb_implied is not None and indirect_weight > 0:
             units["linebackers"]["roster_grade"] = units["linebackers"]["grade"]
-            units["linebackers"]["performance_grade"] = round(float(row["defense"]), 2)
-            units["linebackers"]["grade"] = round(units["linebackers"]["grade"] * (1-indirect_weight) + float(row["defense"]) * indirect_weight, 2)
+            units["linebackers"]["performance_grade_raw"] = round(float(row["defense"]), 2)
+            units["linebackers"]["performance_grade"] = round(lb_implied, 2)
+            units["linebackers"]["grade"] = round(units["linebackers"]["grade"] * (1-indirect_weight) + lb_implied * indirect_weight, 2)
             units["linebackers"]["performance_weight"] = round(indirect_weight, 3)
             units["linebackers"]["source"] = f"{(1-indirect_weight):.0%} roster + {indirect_weight:.0%} NFL team-defense proxy"
-
         overall = sum(units[u]["grade"] * w for u, w in TEAM_WEIGHTS.items())
         offense = units["quarterback"]["grade"] * .35 + units["running_backs"]["grade"] * .12 + units["receiving_weapons"]["grade"] * .25 + units["offensive_line"]["grade"] * .28
         defense = units["defensive_front"]["grade"] * .36 + units["linebackers"]["grade"] * .24 + units["secondary"]["grade"] * .40
@@ -835,7 +980,7 @@ def build_team_ratings(
         result[full_name] = {
             "team_abbr": str(abbr), "overall_rating": round(overall, 2), "offense_rating": round(offense, 2),
             "defense_rating": round(defense, 2), "player_count": int(len(team_players)), "units": units,
-            "source": f"Macabets automated rating engine v1.4 - {depth_source} + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": False,
+            "source": f"Macabets automated rating engine v1.5 - {depth_source} + Sleeper availability + audited Madden 27 baseline", "prediction_influence_enabled": True,
             "personnel_matchup_influence_enabled": True,
             "depth_chart_source": depth_source,
             "depth_chart_rows": int(len(current_depth)),
@@ -846,6 +991,8 @@ def build_team_ratings(
             "availability_uncertain": int(uncertain_count),
         }
     return dict(sorted(result.items()))
+
+
 
 
 def _write_json(path: Path, payload: Any) -> None:
@@ -876,10 +1023,12 @@ def save_rating_outputs(
     depth_source = ", ".join(depth_sources) if depth_sources else "Unavailable"
     resolved_depth_path = Path(depth_chart_path) if depth_chart_path is not None else None
     status = {
-        "schema_version": "1.4", "engine_version": "1.4-auto-depth-chart", "updated_at_utc": updated,
+        "schema_version": "1.5", "engine_version": "1.5-efficiency-weighting", "updated_at_utc": updated,
         "players_rated": int(len(player_ratings)), "teams_rated": int(len(team_ratings)),
         "players_with_performance_data": int((player_ratings["performance_weight"] > 0).sum()),
-        "prediction_influence_enabled": False,
+        # These unit grades feed nfl_ratings_loader -> team power scores, so the
+        # performance blend is live in NFL predictions.
+        "prediction_influence_enabled": True,
         "depth_chart_source": depth_source,
         "depth_chart_file": str(resolved_depth_path) if resolved_depth_path is not None else "",
         "availability_source": availability_status.get("source", "Sleeper snapshot not available"),
