@@ -6,7 +6,7 @@
     "rated_player_rows": 2362,
     "rated_teams": 32,
     "expected_teams": 32,
-    "players_with_nflverse_performance": 38,
+    "players_with_nflverse_performance": 293,
     "critical_error_count": 0,
     "warning_count": 0,
     "validation_passed": true
@@ -14,8 +14,8 @@
   "critical_errors": [],
   "warnings": [],
   "rating_source_counts": {
-    "Madden 27 baseline": 2324,
-    "Madden 27 + nflverse performance": 38
+    "Madden 27 baseline": 2069,
+    "Madden 27 + nflverse performance": 293
   },
   "teams": {
     "ARI": {
@@ -39,7 +39,7 @@
             "name": "Jacoby Brissett",
             "position": "QB",
             "overall": 72.0,
-            "macabets_rating": 74.71
+            "macabets_rating": 74.81
           },
           {
             "name": "Gardner Minshew",
@@ -59,13 +59,13 @@
             "name": "Jeremiyah Love",
             "position": "HB",
             "overall": 82.0,
-            "macabets_rating": 83.24
+            "macabets_rating": 83.11
           },
           {
             "name": "Tyler Allgeier",
             "position": "HB",
             "overall": 81.0,
-            "macabets_rating": 82.18
+            "macabets_rating": 81.99
           },
           {
             "name": "James Conner",
@@ -79,25 +79,25 @@
             "name": "Trey McBride",
             "position": "TE",
             "overall": 99.0,
-            "macabets_rating": 96.0
+            "macabets_rating": 95.63
           },
           {
             "name": "Michael Wilson",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 81.91
+            "macabets_rating": 81.85
           },
           {
             "name": "Marvin Harrison Jr",
             "position": "WR",
             "overall": 80.0,
-            "macabets_rating": 81.02
+            "macabets_rating": 80.86
           },
           {
             "name": "Kendrick Bourne",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.37
+            "macabets_rating": 78.59
           },
           {
             "name": "Devin Duvernay",
@@ -254,7 +254,7 @@
             "name": "Cooper Rush",
             "position": "QB",
             "overall": 65.0,
-            "macabets_rating": 68.0
+            "macabets_rating": 67.81
           }
         ],
         "RB": [
@@ -262,13 +262,13 @@
             "name": "Bijan Robinson",
             "position": "HB",
             "overall": 95.0,
-            "macabets_rating": 93.73
+            "macabets_rating": 93.27
           },
           {
             "name": "Brian Robinson Jr",
             "position": "HB",
             "overall": 78.0,
-            "macabets_rating": 79.48
+            "macabets_rating": 79.14
           },
           {
             "name": "Tyler Goodson",
@@ -282,25 +282,25 @@
             "name": "Drake London",
             "position": "WR",
             "overall": 92.0,
-            "macabets_rating": 91.24
+            "macabets_rating": 90.88
           },
           {
             "name": "Kyle Pitts Sr",
             "position": "TE",
             "overall": 81.0,
-            "macabets_rating": 79.09
+            "macabets_rating": 78.95
           },
           {
             "name": "Olamide Zaccheaus",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.97
+            "macabets_rating": 74.91
           },
           {
             "name": "Jahan Dotson",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.9
+            "macabets_rating": 74.79
           },
           {
             "name": "Zachariah Branch",
@@ -445,7 +445,7 @@
             "name": "Lamar Jackson",
             "position": "QB",
             "overall": 94.0,
-            "macabets_rating": 93.6
+            "macabets_rating": 92.95
           },
           {
             "name": "Tyler Huntley",
@@ -471,13 +471,13 @@
             "name": "Derrick Henry",
             "position": "HB",
             "overall": 93.0,
-            "macabets_rating": 91.53
+            "macabets_rating": 91.26
           },
           {
             "name": "Justice Hill",
             "position": "HB",
             "overall": 77.0,
-            "macabets_rating": 79.0
+            "macabets_rating": 78.81
           },
           {
             "name": "Rasheen Ali",
@@ -491,25 +491,25 @@
             "name": "Zay Flowers",
             "position": "WR",
             "overall": 88.0,
-            "macabets_rating": 87.57
+            "macabets_rating": 87.6
           },
           {
             "name": "Mark Andrews",
             "position": "TE",
             "overall": 90.0,
-            "macabets_rating": 87.3
+            "macabets_rating": 87.08
           },
           {
             "name": "Rashod Bateman",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.66
+            "macabets_rating": 78.55
           },
           {
             "name": "Chris Moore",
             "position": "WR",
             "overall": 72.0,
-            "macabets_rating": 74.09
+            "macabets_rating": 74.08
           },
           {
             "name": "Devontez Walker",
@@ -637,12 +637,12 @@
       "team": "BUF",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 71,
       "qb1": "Josh Allen",
       "qb2": "Kyle Allen",
       "count_qb": 3,
-      "count_rb": 5,
-      "count_wr_te": 15,
+      "count_rb": 4,
+      "count_wr_te": 14,
       "count_ol": 12,
       "count_dl_edge": 17,
       "count_lb": 6,
@@ -654,7 +654,7 @@
             "name": "Josh Allen",
             "position": "QB",
             "overall": 99.0,
-            "macabets_rating": 97.63
+            "macabets_rating": 96.87
           },
           {
             "name": "Kyle Allen",
@@ -674,13 +674,13 @@
             "name": "James Cook III",
             "position": "HB",
             "overall": 94.0,
-            "macabets_rating": 92.64
+            "macabets_rating": 92.05
           },
           {
             "name": "Ray Davis",
             "position": "HB",
             "overall": 75.0,
-            "macabets_rating": 77.66
+            "macabets_rating": 77.6
           },
           {
             "name": "Ty Johnson",
@@ -694,19 +694,19 @@
             "name": "DJ Moore",
             "position": "WR",
             "overall": 84.0,
-            "macabets_rating": 84.56
+            "macabets_rating": 84.76
           },
           {
             "name": "Khalil Shakir",
             "position": "WR",
             "overall": 83.0,
-            "macabets_rating": 83.4
+            "macabets_rating": 83.23
           },
           {
             "name": "Dalton Kincaid",
             "position": "TE",
             "overall": 81.0,
-            "macabets_rating": 79.39
+            "macabets_rating": 79.6
           },
           {
             "name": "Joshua Palmer",
@@ -718,7 +718,7 @@
             "name": "Keon Coleman",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.87
+            "macabets_rating": 76.79
           }
         ],
         "OL": [
@@ -840,7 +840,7 @@
       "team": "CAR",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 75,
       "qb1": "Bryce Young",
       "qb2": "Kenny Pickett",
       "count_qb": 3,
@@ -848,7 +848,7 @@
       "count_wr_te": 15,
       "count_ol": 14,
       "count_dl_edge": 16,
-      "count_lb": 5,
+      "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3,
       "top_by_unit": {
@@ -857,13 +857,13 @@
             "name": "Bryce Young",
             "position": "QB",
             "overall": 78.0,
-            "macabets_rating": 80.09
+            "macabets_rating": 80.33
           },
           {
             "name": "Kenny Pickett",
             "position": "QB",
             "overall": 67.0,
-            "macabets_rating": 70.0
+            "macabets_rating": 69.98
           },
           {
             "name": "Haynes King",
@@ -877,19 +877,19 @@
             "name": "Chuba Hubbard",
             "position": "HB",
             "overall": 81.0,
-            "macabets_rating": 82.5
+            "macabets_rating": 82.61
           },
           {
             "name": "Jonathon Brooks",
             "position": "HB",
             "overall": 76.0,
-            "macabets_rating": 78.15
+            "macabets_rating": 78.05
           },
           {
             "name": "A.J. Dillon",
             "position": "HB",
             "overall": 74.0,
-            "macabets_rating": 76.11
+            "macabets_rating": 75.95
           }
         ],
         "WR_TE": [
@@ -897,19 +897,19 @@
             "name": "Tetairoa McMillan",
             "position": "WR",
             "overall": 85.0,
-            "macabets_rating": 85.58
+            "macabets_rating": 85.46
           },
           {
             "name": "Jalen Coker",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 77.8
+            "macabets_rating": 78.47
           },
           {
             "name": "Xavier Legette",
             "position": "WR",
             "overall": 74.0,
-            "macabets_rating": 75.44
+            "macabets_rating": 75.27
           },
           {
             "name": "John Metchie III",
@@ -984,16 +984,16 @@
             "macabets_rating": 86.28
           },
           {
+            "name": "Tyrel Dodson",
+            "position": "LB",
+            "overall": 77.0,
+            "macabets_rating": 77.52
+          },
+          {
             "name": "Claudin Cherelus",
             "position": "LB",
             "overall": 69.0,
             "macabets_rating": 69.96
-          },
-          {
-            "name": "Jackson Kuwatch",
-            "position": "LB",
-            "overall": 65.0,
-            "macabets_rating": 66.9
           }
         ],
         "SECONDARY": [
@@ -1060,7 +1060,7 @@
             "name": "Caleb Williams",
             "position": "QB",
             "overall": 90.0,
-            "macabets_rating": 89.62
+            "macabets_rating": 89.24
           },
           {
             "name": "Case Keenum",
@@ -1080,13 +1080,13 @@
             "name": "D'Andre Swift",
             "position": "HB",
             "overall": 85.0,
-            "macabets_rating": 85.62
+            "macabets_rating": 85.68
           },
           {
             "name": "Kyle Monangai",
             "position": "HB",
             "overall": 78.0,
-            "macabets_rating": 79.66
+            "macabets_rating": 79.85
           },
           {
             "name": "Roschon Johnson",
@@ -1100,31 +1100,31 @@
             "name": "Rome Odunze",
             "position": "WR",
             "overall": 82.0,
-            "macabets_rating": 82.86
+            "macabets_rating": 82.73
           },
           {
             "name": "Colston Loveland",
             "position": "TE",
             "overall": 84.0,
-            "macabets_rating": 82.09
+            "macabets_rating": 81.79
           },
           {
             "name": "Luther Burden III",
             "position": "WR",
             "overall": 79.0,
-            "macabets_rating": 79.53
+            "macabets_rating": 79.59
           },
           {
             "name": "Cole Kmet",
             "position": "TE",
             "overall": 78.0,
-            "macabets_rating": 77.33
+            "macabets_rating": 77.43
           },
           {
             "name": "Kalif Raymond",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.62
+            "macabets_rating": 77.0
           }
         ],
         "OL": [
@@ -1263,7 +1263,7 @@
             "name": "Joe Burrow",
             "position": "QB",
             "overall": 97.0,
-            "macabets_rating": 96.11
+            "macabets_rating": 94.95
           },
           {
             "name": "Joe Flacco",
@@ -1289,13 +1289,13 @@
             "name": "Chase Brown",
             "position": "HB",
             "overall": 82.0,
-            "macabets_rating": 83.05
+            "macabets_rating": 83.14
           },
           {
             "name": "Samaje Perine",
             "position": "HB",
             "overall": 75.0,
-            "macabets_rating": 77.06
+            "macabets_rating": 76.98
           },
           {
             "name": "Tahj Brooks",
@@ -1309,25 +1309,25 @@
             "name": "Ja'Marr Chase",
             "position": "WR",
             "overall": 99.0,
-            "macabets_rating": 98.32
+            "macabets_rating": 97.69
           },
           {
             "name": "Tee Higgins",
             "position": "WR",
             "overall": 87.0,
-            "macabets_rating": 87.2
+            "macabets_rating": 86.93
           },
           {
             "name": "Mike Gesicki",
             "position": "TE",
             "overall": 77.0,
-            "macabets_rating": 76.02
+            "macabets_rating": 76.68
           },
           {
             "name": "Andrei Iosivas",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.7
+            "macabets_rating": 74.59
           },
           {
             "name": "Colbie Young",
@@ -1478,7 +1478,7 @@
             "name": "Deshaun Watson",
             "position": "QB",
             "overall": 69.0,
-            "macabets_rating": 71.71
+            "macabets_rating": 71.64
           },
           {
             "name": "Dillon Gabriel",
@@ -1498,7 +1498,7 @@
             "name": "Quinshon Judkins",
             "position": "HB",
             "overall": 82.0,
-            "macabets_rating": 83.35
+            "macabets_rating": 83.0
           },
           {
             "name": "Dylan Sampson",
@@ -1510,7 +1510,7 @@
             "name": "Raheim Sanders",
             "position": "HB",
             "overall": 69.0,
-            "macabets_rating": 72.0
+            "macabets_rating": 71.98
           }
         ],
         "WR_TE": [
@@ -1518,19 +1518,19 @@
             "name": "Jerry Jeudy",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 81.64
+            "macabets_rating": 81.42
           },
           {
             "name": "Harold Fannin Jr",
             "position": "TE",
             "overall": 80.0,
-            "macabets_rating": 78.51
+            "macabets_rating": 78.41
           },
           {
             "name": "KC Concepcion Jr",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.59
+            "macabets_rating": 76.65
           },
           {
             "name": "Cedric Tillman",
@@ -1542,7 +1542,7 @@
             "name": "Denzel Boston",
             "position": "WR",
             "overall": 74.0,
-            "macabets_rating": 75.67
+            "macabets_rating": 75.8
           }
         ],
         "OL": [
@@ -1681,7 +1681,7 @@
             "name": "Dak Prescott",
             "position": "QB",
             "overall": 91.0,
-            "macabets_rating": 90.97
+            "macabets_rating": 89.96
           },
           {
             "name": "Joe Milton",
@@ -1701,7 +1701,7 @@
             "name": "Javonte Williams",
             "position": "HB",
             "overall": 86.0,
-            "macabets_rating": 86.27
+            "macabets_rating": 86.24
           },
           {
             "name": "Jaydon Blue",
@@ -1721,31 +1721,31 @@
             "name": "CeeDee Lamb",
             "position": "WR",
             "overall": 93.0,
-            "macabets_rating": 92.89
+            "macabets_rating": 92.53
           },
           {
             "name": "George Pickens",
             "position": "WR",
             "overall": 89.0,
-            "macabets_rating": 89.03
+            "macabets_rating": 88.56
           },
           {
             "name": "Jake Ferguson",
             "position": "TE",
             "overall": 82.0,
-            "macabets_rating": 80.11
+            "macabets_rating": 79.93
           },
           {
             "name": "Ryan Flournoy",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 77.68
+            "macabets_rating": 77.53
           },
           {
             "name": "KaVontae Turpin",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 76.17
+            "macabets_rating": 76.1
           }
         ],
         "OL": [
@@ -1884,7 +1884,7 @@
             "name": "Bo Nix",
             "position": "QB",
             "overall": 81.0,
-            "macabets_rating": 82.51
+            "macabets_rating": 81.67
           },
           {
             "name": "Jarrett Stidham",
@@ -1904,13 +1904,13 @@
             "name": "J.K. Dobbins",
             "position": "HB",
             "overall": 82.0,
-            "macabets_rating": 83.03
+            "macabets_rating": 82.65
           },
           {
             "name": "RJ Harvey",
             "position": "HB",
             "overall": 80.0,
-            "macabets_rating": 81.47
+            "macabets_rating": 81.37
           },
           {
             "name": "Jonah Coleman",
@@ -1924,19 +1924,19 @@
             "name": "Courtland Sutton",
             "position": "WR",
             "overall": 87.0,
-            "macabets_rating": 86.78
+            "macabets_rating": 86.31
           },
           {
             "name": "Jaylen Waddle",
             "position": "WR",
             "overall": 86.0,
-            "macabets_rating": 85.84
+            "macabets_rating": 85.51
           },
           {
             "name": "Troy Franklin",
             "position": "WR",
             "overall": 79.0,
-            "macabets_rating": 80.15
+            "macabets_rating": 80.04
           },
           {
             "name": "Marvin Mims Jr",
@@ -1948,7 +1948,7 @@
             "name": "Evan Engram",
             "position": "TE",
             "overall": 78.0,
-            "macabets_rating": 76.62
+            "macabets_rating": 76.94
           }
         ],
         "OL": [
@@ -2070,12 +2070,12 @@
       "team": "DET",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Jared Goff",
       "qb2": "Teddy Bridgewater",
       "count_qb": 3,
       "count_rb": 4,
-      "count_wr_te": 12,
+      "count_wr_te": 13,
       "count_ol": 14,
       "count_dl_edge": 13,
       "count_lb": 9,
@@ -2087,7 +2087,7 @@
             "name": "Jared Goff",
             "position": "QB",
             "overall": 88.0,
-            "macabets_rating": 88.02
+            "macabets_rating": 87.18
           },
           {
             "name": "Teddy Bridgewater",
@@ -2107,7 +2107,7 @@
             "name": "Jahmyr Gibbs",
             "position": "HB",
             "overall": 98.0,
-            "macabets_rating": 95.84
+            "macabets_rating": 95.36
           },
           {
             "name": "Isiah Pacheco",
@@ -2119,7 +2119,7 @@
             "name": "Sione Vaki",
             "position": "HB",
             "overall": 68.0,
-            "macabets_rating": 71.0
+            "macabets_rating": 70.97
           }
         ],
         "WR_TE": [
@@ -2127,31 +2127,31 @@
             "name": "Amon-Ra St. Brown",
             "position": "WR",
             "overall": 95.0,
-            "macabets_rating": 94.49
+            "macabets_rating": 94.17
           },
           {
             "name": "Sam LaPorta",
             "position": "TE",
             "overall": 88.0,
-            "macabets_rating": 85.36
+            "macabets_rating": 85.23
           },
           {
             "name": "Jameson Williams",
             "position": "WR",
             "overall": 85.0,
-            "macabets_rating": 84.53
+            "macabets_rating": 84.27
           },
           {
             "name": "Isaac TeSlaa",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.81
+            "macabets_rating": 74.72
           },
           {
-            "name": "Cedrick Wilson Jr",
+            "name": "Greg Dortch",
             "position": "WR",
-            "overall": 71.0,
-            "macabets_rating": 73.2
+            "overall": 73.0,
+            "macabets_rating": 74.48
           }
         ],
         "OL": [
@@ -2290,7 +2290,7 @@
             "name": "Jordan Love",
             "position": "QB",
             "overall": 86.0,
-            "macabets_rating": 86.76
+            "macabets_rating": 86.29
           },
           {
             "name": "Tyrod Taylor",
@@ -2316,7 +2316,7 @@
             "name": "MarShawn Lloyd",
             "position": "HB",
             "overall": 72.0,
-            "macabets_rating": 74.8
+            "macabets_rating": 74.6
           }
         ],
         "WR_TE": [
@@ -2324,31 +2324,31 @@
             "name": "Tucker Kraft",
             "position": "TE",
             "overall": 85.0,
-            "macabets_rating": 82.76
+            "macabets_rating": 82.73
           },
           {
             "name": "Jayden Reed",
             "position": "WR",
             "overall": 80.0,
-            "macabets_rating": 80.98
+            "macabets_rating": 80.69
           },
           {
             "name": "Christian Watson",
             "position": "WR",
             "overall": 78.0,
-            "macabets_rating": 79.31
+            "macabets_rating": 79.81
           },
           {
             "name": "Matthew Golden",
             "position": "WR",
             "overall": 78.0,
-            "macabets_rating": 79.22
+            "macabets_rating": 79.59
           },
           {
             "name": "Bo Melton",
             "position": "WR",
             "overall": 72.0,
-            "macabets_rating": 73.82
+            "macabets_rating": 73.77
           }
         ],
         "OL": [
@@ -2487,7 +2487,7 @@
             "name": "C.J. Stroud",
             "position": "QB",
             "overall": 76.0,
-            "macabets_rating": 78.33
+            "macabets_rating": 78.39
           },
           {
             "name": "Davis Mills",
@@ -2507,13 +2507,13 @@
             "name": "David Montgomery",
             "position": "HB",
             "overall": 83.0,
-            "macabets_rating": 84.35
+            "macabets_rating": 84.61
           },
           {
             "name": "Woody Marks",
             "position": "HB",
             "overall": 80.0,
-            "macabets_rating": 81.76
+            "macabets_rating": 81.4
           },
           {
             "name": "Jawhar Jordan",
@@ -2527,19 +2527,19 @@
             "name": "Nico Collins",
             "position": "WR",
             "overall": 90.0,
-            "macabets_rating": 90.3
+            "macabets_rating": 90.36
           },
           {
             "name": "Dalton Schultz",
             "position": "TE",
             "overall": 84.0,
-            "macabets_rating": 82.37
+            "macabets_rating": 82.32
           },
           {
             "name": "Kayshon Boutte",
             "position": "WR",
             "overall": 80.0,
-            "macabets_rating": 81.25
+            "macabets_rating": 81.11
           },
           {
             "name": "Tank Dell",
@@ -2690,7 +2690,7 @@
             "name": "Daniel Jones",
             "position": "QB",
             "overall": 78.0,
-            "macabets_rating": 80.32
+            "macabets_rating": 79.68
           },
           {
             "name": "Anthony Richardson Sr",
@@ -2716,7 +2716,7 @@
             "name": "Jonathan Taylor",
             "position": "HB",
             "overall": 96.0,
-            "macabets_rating": 94.72
+            "macabets_rating": 94.32
           },
           {
             "name": "DJ Giddens",
@@ -2736,19 +2736,19 @@
             "name": "Alec Pierce",
             "position": "WR",
             "overall": 84.0,
-            "macabets_rating": 84.81
+            "macabets_rating": 84.65
           },
           {
             "name": "Tyler Warren",
             "position": "TE",
             "overall": 83.0,
-            "macabets_rating": 81.34
+            "macabets_rating": 81.29
           },
           {
             "name": "Josh Downs",
             "position": "WR",
             "overall": 80.0,
-            "macabets_rating": 80.83
+            "macabets_rating": 80.67
           },
           {
             "name": "Nick Westbrook-Ikhine",
@@ -2760,7 +2760,7 @@
             "name": "Ashton Dulin",
             "position": "WR",
             "overall": 72.0,
-            "macabets_rating": 73.83
+            "macabets_rating": 73.75
           }
         ],
         "OL": [
@@ -2882,11 +2882,11 @@
       "team": "JAX",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Trevor Lawrence",
       "qb2": "Quinn Ewers",
       "count_qb": 5,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 14,
       "count_dl_edge": 13,
@@ -2899,7 +2899,7 @@
             "name": "Trevor Lawrence",
             "position": "QB",
             "overall": 84.0,
-            "macabets_rating": 85.0
+            "macabets_rating": 84.69
           },
           {
             "name": "Quinn Ewers",
@@ -2931,16 +2931,16 @@
             "name": "Bhayshul Tuten",
             "position": "HB",
             "overall": 76.0,
-            "macabets_rating": 78.2
+            "macabets_rating": 78.27
           },
           {
             "name": "Chris Rodriguez Jr",
             "position": "HB",
             "overall": 72.0,
-            "macabets_rating": 74.92
+            "macabets_rating": 74.74
           },
           {
-            "name": "Ameer Abdullah",
+            "name": "LeQuint Allen Jr",
             "position": "HB",
             "overall": 71.0,
             "macabets_rating": 74.0
@@ -2951,31 +2951,31 @@
             "name": "Jakobi Meyers",
             "position": "WR",
             "overall": 82.0,
-            "macabets_rating": 82.7
+            "macabets_rating": 82.66
           },
           {
             "name": "Parker Washington",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 81.92
+            "macabets_rating": 82.1
           },
           {
             "name": "Brian Thomas Jr",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 81.89
+            "macabets_rating": 81.76
           },
           {
             "name": "Brenton Strange",
             "position": "TE",
             "overall": 77.0,
-            "macabets_rating": 76.27
+            "macabets_rating": 76.35
           },
           {
             "name": "Josh Cameron",
             "position": "WR",
             "overall": 68.0,
-            "macabets_rating": 70.63
+            "macabets_rating": 70.66
           }
         ],
         "OL": [
@@ -3097,14 +3097,14 @@
       "team": "KC",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 75,
       "qb1": "Patrick Mahomes",
       "qb2": "Justin Fields",
       "count_qb": 4,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 12,
+      "count_dl_edge": 13,
       "count_lb": 7,
       "count_secondary": 13,
       "count_st": 3,
@@ -3114,7 +3114,7 @@
             "name": "Patrick Mahomes",
             "position": "QB",
             "overall": 93.0,
-            "macabets_rating": 92.56
+            "macabets_rating": 91.75
           },
           {
             "name": "Justin Fields",
@@ -3140,7 +3140,7 @@
             "name": "Kenneth Walker",
             "position": "HB",
             "overall": 90.0,
-            "macabets_rating": 89.99
+            "macabets_rating": 90.02
           },
           {
             "name": "Brashard Smith",
@@ -3152,7 +3152,7 @@
             "name": "Emmett Johnson",
             "position": "HB",
             "overall": 68.0,
-            "macabets_rating": 71.0
+            "macabets_rating": 71.07
           }
         ],
         "WR_TE": [
@@ -3160,25 +3160,25 @@
             "name": "Travis Kelce",
             "position": "TE",
             "overall": 91.0,
-            "macabets_rating": 88.0
+            "macabets_rating": 87.78
           },
           {
             "name": "Rashee Rice",
             "position": "WR",
             "overall": 85.0,
-            "macabets_rating": 85.53
+            "macabets_rating": 85.4
           },
           {
             "name": "Xavier Worthy",
             "position": "WR",
             "overall": 79.0,
-            "macabets_rating": 79.71
+            "macabets_rating": 79.46
           },
           {
             "name": "Tyquan Thornton",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.95
+            "macabets_rating": 76.85
           },
           {
             "name": "Jalen Royals",
@@ -3323,7 +3323,7 @@
             "name": "Matthew Stafford",
             "position": "QB",
             "overall": 99.0,
-            "macabets_rating": 95.72
+            "macabets_rating": 95.42
           },
           {
             "name": "Ty Simpson",
@@ -3335,7 +3335,7 @@
             "name": "Stetson Bennett IV",
             "position": "QB",
             "overall": 63.0,
-            "macabets_rating": 65.99
+            "macabets_rating": 65.96
           }
         ],
         "RB": [
@@ -3343,13 +3343,13 @@
             "name": "Kyren Williams",
             "position": "HB",
             "overall": 89.0,
-            "macabets_rating": 88.46
+            "macabets_rating": 88.43
           },
           {
             "name": "Blake Corum",
             "position": "HB",
             "overall": 78.0,
-            "macabets_rating": 79.65
+            "macabets_rating": 79.62
           },
           {
             "name": "Jarquez Hunter",
@@ -3363,25 +3363,25 @@
             "name": "Puka Nacua",
             "position": "WR",
             "overall": 98.0,
-            "macabets_rating": 96.59
+            "macabets_rating": 96.54
           },
           {
             "name": "Davante Adams",
             "position": "WR",
             "overall": 90.0,
-            "macabets_rating": 89.68
+            "macabets_rating": 89.66
           },
           {
             "name": "Tyler Higbee",
             "position": "TE",
             "overall": 74.0,
-            "macabets_rating": 73.81
+            "macabets_rating": 73.74
           },
           {
             "name": "Jordan Whittington",
             "position": "WR",
             "overall": 72.0,
-            "macabets_rating": 73.73
+            "macabets_rating": 73.72
           },
           {
             "name": "Tyler Scott",
@@ -3526,7 +3526,7 @@
             "name": "Justin Herbert",
             "position": "QB",
             "overall": 90.0,
-            "macabets_rating": 90.13
+            "macabets_rating": 89.32
           },
           {
             "name": "Trey Lance",
@@ -3540,7 +3540,7 @@
             "name": "Omarion Hampton",
             "position": "HB",
             "overall": 81.0,
-            "macabets_rating": 82.28
+            "macabets_rating": 82.04
           },
           {
             "name": "Kimani Vidal",
@@ -3552,7 +3552,7 @@
             "name": "Keaton Mitchell",
             "position": "HB",
             "overall": 75.0,
-            "macabets_rating": 77.32
+            "macabets_rating": 77.13
           }
         ],
         "WR_TE": [
@@ -3560,25 +3560,25 @@
             "name": "Ladd McConkey",
             "position": "WR",
             "overall": 83.0,
-            "macabets_rating": 83.43
+            "macabets_rating": 83.6
           },
           {
             "name": "Quentin Johnston",
             "position": "WR",
             "overall": 80.0,
-            "macabets_rating": 81.09
+            "macabets_rating": 80.76
           },
           {
             "name": "David Njoku",
             "position": "TE",
             "overall": 80.0,
-            "macabets_rating": 78.4
+            "macabets_rating": 78.53
           },
           {
             "name": "Tre' Harris",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 75.01
+            "macabets_rating": 74.93
           },
           {
             "name": "Oronde Gadsden",
@@ -3729,7 +3729,7 @@
             "name": "Kirk Cousins",
             "position": "QB",
             "overall": 73.0,
-            "macabets_rating": 75.52
+            "macabets_rating": 75.27
           },
           {
             "name": "Aidan O'Connell",
@@ -3743,13 +3743,13 @@
             "name": "Ashton Jeanty",
             "position": "HB",
             "overall": 85.0,
-            "macabets_rating": 85.81
+            "macabets_rating": 85.94
           },
           {
             "name": "Mike Washington Jr.",
             "position": "HB",
             "overall": 70.0,
-            "macabets_rating": 73.0
+            "macabets_rating": 72.91
           },
           {
             "name": "Dylan Laube",
@@ -3769,19 +3769,19 @@
             "name": "Tre Tucker",
             "position": "WR",
             "overall": 78.0,
-            "macabets_rating": 79.15
+            "macabets_rating": 78.99
           },
           {
             "name": "Jalen Nailor",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.47
+            "macabets_rating": 78.34
           },
           {
             "name": "Jack Bech",
             "position": "WR",
             "overall": 72.0,
-            "macabets_rating": 74.35
+            "macabets_rating": 74.41
           },
           {
             "name": "Phillip Dorsett II",
@@ -3909,7 +3909,7 @@
       "team": "MIA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 81,
+      "rated_players": 80,
       "qb1": "Malik Willis",
       "qb2": "Kyle McCord",
       "count_qb": 5,
@@ -3917,7 +3917,7 @@
       "count_wr_te": 14,
       "count_ol": 14,
       "count_dl_edge": 13,
-      "count_lb": 7,
+      "count_lb": 6,
       "count_secondary": 19,
       "count_st": 4,
       "top_by_unit": {
@@ -3926,7 +3926,7 @@
             "name": "Malik Willis",
             "position": "QB",
             "overall": 74.0,
-            "macabets_rating": 76.05
+            "macabets_rating": 75.87
           },
           {
             "name": "Kyle McCord",
@@ -3958,7 +3958,7 @@
             "name": "De'Von Achane",
             "position": "HB",
             "overall": 88.0,
-            "macabets_rating": 88.23
+            "macabets_rating": 87.82
           },
           {
             "name": "Ollie Gordon II",
@@ -3970,7 +3970,7 @@
             "name": "Jaylen Wright",
             "position": "HB",
             "overall": 73.0,
-            "macabets_rating": 75.7
+            "macabets_rating": 75.64
           }
         ],
         "WR_TE": [
@@ -3990,19 +3990,19 @@
             "name": "Malik Washington",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.56
+            "macabets_rating": 74.76
           },
           {
             "name": "Caleb Douglas",
             "position": "WR",
             "overall": 71.0,
-            "macabets_rating": 73.53
+            "macabets_rating": 73.89
           },
           {
             "name": "Chris Bell",
             "position": "WR",
             "overall": 71.0,
-            "macabets_rating": 73.34
+            "macabets_rating": 73.28
           }
         ],
         "OL": [
@@ -4065,16 +4065,16 @@
             "macabets_rating": 83.19
           },
           {
-            "name": "Tyrel Dodson",
-            "position": "LB",
-            "overall": 77.0,
-            "macabets_rating": 77.52
-          },
-          {
             "name": "Jacob Rodriguez",
             "position": "LB",
             "overall": 76.0,
             "macabets_rating": 76.32
+          },
+          {
+            "name": "Willie Gay Jr",
+            "position": "LB",
+            "overall": 72.0,
+            "macabets_rating": 72.49
           }
         ],
         "SECONDARY": [
@@ -4124,11 +4124,11 @@
       "team": "MIN",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 75,
+      "rated_players": 74,
       "qb1": "Kyler Murray",
       "qb2": "J.J. McCarthy",
       "count_qb": 4,
-      "count_rb": 7,
+      "count_rb": 6,
       "count_wr_te": 10,
       "count_ol": 15,
       "count_dl_edge": 15,
@@ -4141,7 +4141,7 @@
             "name": "Kyler Murray",
             "position": "QB",
             "overall": 75.0,
-            "macabets_rating": 76.83
+            "macabets_rating": 76.69
           },
           {
             "name": "J.J. McCarthy",
@@ -4153,7 +4153,7 @@
             "name": "Carson Wentz",
             "position": "QB",
             "overall": 68.0,
-            "macabets_rating": 71.0
+            "macabets_rating": 70.87
           },
           {
             "name": "Max Brosmer",
@@ -4167,13 +4167,13 @@
             "name": "Jordan Mason",
             "position": "HB",
             "overall": 81.0,
-            "macabets_rating": 81.88
+            "macabets_rating": 81.7
           },
           {
             "name": "Aaron Jones Sr",
             "position": "HB",
             "overall": 80.0,
-            "macabets_rating": 81.58
+            "macabets_rating": 81.32
           },
           {
             "name": "Demond Claiborne",
@@ -4187,31 +4187,31 @@
             "name": "Justin Jefferson",
             "position": "WR",
             "overall": 94.0,
-            "macabets_rating": 94.01
+            "macabets_rating": 93.87
           },
           {
             "name": "Jordan Addison",
             "position": "WR",
             "overall": 84.0,
-            "macabets_rating": 84.7
+            "macabets_rating": 84.43
           },
           {
             "name": "Jauan Jennings",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 81.61
+            "macabets_rating": 81.48
           },
           {
             "name": "T.J. Hockenson",
             "position": "TE",
             "overall": 83.0,
-            "macabets_rating": 81.14
+            "macabets_rating": 81.3
           },
           {
             "name": "Josh Oliver",
             "position": "TE",
             "overall": 73.0,
-            "macabets_rating": 73.09
+            "macabets_rating": 73.13
           }
         ],
         "OL": [
@@ -4350,7 +4350,7 @@
             "name": "Drake Maye",
             "position": "QB",
             "overall": 92.0,
-            "macabets_rating": 91.16
+            "macabets_rating": 90.72
           },
           {
             "name": "Tommy DeVito",
@@ -4382,7 +4382,7 @@
             "name": "Rhamondre Stevenson",
             "position": "HB",
             "overall": 79.0,
-            "macabets_rating": 80.62
+            "macabets_rating": 80.59
           }
         ],
         "WR_TE": [
@@ -4390,31 +4390,31 @@
             "name": "A.J. Brown",
             "position": "WR",
             "overall": 89.0,
-            "macabets_rating": 88.69
+            "macabets_rating": 88.66
           },
           {
             "name": "Hunter Henry",
             "position": "TE",
             "overall": 86.0,
-            "macabets_rating": 84.12
+            "macabets_rating": 83.92
           },
           {
             "name": "Romeo Doubs",
             "position": "WR",
             "overall": 79.0,
-            "macabets_rating": 79.93
+            "macabets_rating": 79.91
           },
           {
             "name": "DeMario Douglas",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.19
+            "macabets_rating": 78.18
           },
           {
             "name": "Mack Hollins",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 78.03
+            "macabets_rating": 77.97
           }
         ],
         "OL": [
@@ -4553,7 +4553,7 @@
             "name": "Tyler Shough",
             "position": "QB",
             "overall": 77.0,
-            "macabets_rating": 79.0
+            "macabets_rating": 79.4
           },
           {
             "name": "Spencer Rattler",
@@ -4573,7 +4573,7 @@
             "name": "Travis Etienne Jr",
             "position": "HB",
             "overall": 87.0,
-            "macabets_rating": 87.26
+            "macabets_rating": 87.02
           },
           {
             "name": "Alvin Kamara",
@@ -4585,7 +4585,7 @@
             "name": "Kendre Miller",
             "position": "HB",
             "overall": 76.0,
-            "macabets_rating": 78.18
+            "macabets_rating": 78.01
           }
         ],
         "WR_TE": [
@@ -4593,7 +4593,7 @@
             "name": "Chris Olave",
             "position": "WR",
             "overall": 87.0,
-            "macabets_rating": 87.44
+            "macabets_rating": 87.37
           },
           {
             "name": "Jordyn Tyson",
@@ -4605,13 +4605,13 @@
             "name": "Juwan Johnson",
             "position": "TE",
             "overall": 79.0,
-            "macabets_rating": 77.29
+            "macabets_rating": 77.77
           },
           {
             "name": "Devaughn Vele",
             "position": "WR",
             "overall": 74.0,
-            "macabets_rating": 75.88
+            "macabets_rating": 76.49
           },
           {
             "name": "Trey Palmer",
@@ -4756,7 +4756,7 @@
             "name": "Jaxson Dart",
             "position": "QB",
             "overall": 77.0,
-            "macabets_rating": 79.1
+            "macabets_rating": 79.16
           },
           {
             "name": "Jameis Winston",
@@ -4776,13 +4776,13 @@
             "name": "Cam Skattebo",
             "position": "HB",
             "overall": 81.0,
-            "macabets_rating": 82.15
+            "macabets_rating": 82.02
           },
           {
             "name": "Tyrone Tracy Jr",
             "position": "HB",
             "overall": 79.0,
-            "macabets_rating": 80.58
+            "macabets_rating": 80.47
           },
           {
             "name": "Patrick Ricard",
@@ -4796,7 +4796,7 @@
             "name": "Malik Nabers",
             "position": "WR",
             "overall": 86.0,
-            "macabets_rating": 86.32
+            "macabets_rating": 86.16
           },
           {
             "name": "Darius Slayton",
@@ -4808,7 +4808,7 @@
             "name": "Darnell Mooney",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 77.91
+            "macabets_rating": 77.83
           },
           {
             "name": "Calvin Austin",
@@ -4959,7 +4959,7 @@
             "name": "Geno Smith",
             "position": "QB",
             "overall": 72.0,
-            "macabets_rating": 75.0
+            "macabets_rating": 74.65
           },
           {
             "name": "Cade Klubnik",
@@ -4979,13 +4979,13 @@
             "name": "Breece Hall",
             "position": "HB",
             "overall": 87.0,
-            "macabets_rating": 86.95
+            "macabets_rating": 86.91
           },
           {
             "name": "Braelon Allen",
             "position": "HB",
             "overall": 72.0,
-            "macabets_rating": 74.92
+            "macabets_rating": 74.74
           },
           {
             "name": "Isaiah Davis",
@@ -4999,7 +4999,7 @@
             "name": "Garrett Wilson",
             "position": "WR",
             "overall": 86.0,
-            "macabets_rating": 86.11
+            "macabets_rating": 86.0
           },
           {
             "name": "Tim Patrick",
@@ -5011,7 +5011,7 @@
             "name": "Omar Cooper Jr.",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.9
+            "macabets_rating": 76.85
           },
           {
             "name": "Adonai Mitchell",
@@ -5023,7 +5023,7 @@
             "name": "Mason Taylor",
             "position": "TE",
             "overall": 74.0,
-            "macabets_rating": 73.86
+            "macabets_rating": 73.64
           }
         ],
         "OL": [
@@ -5162,7 +5162,7 @@
             "name": "Jalen Hurts",
             "position": "QB",
             "overall": 82.0,
-            "macabets_rating": 83.42
+            "macabets_rating": 83.11
           },
           {
             "name": "Andy Dalton",
@@ -5188,13 +5188,13 @@
             "name": "Saquon Barkley",
             "position": "HB",
             "overall": 92.0,
-            "macabets_rating": 91.24
+            "macabets_rating": 90.42
           },
           {
             "name": "Tank Bigsby",
             "position": "HB",
             "overall": 77.0,
-            "macabets_rating": 79.3
+            "macabets_rating": 79.24
           },
           {
             "name": "Dameon Pierce",
@@ -5208,13 +5208,13 @@
             "name": "DeVonta Smith",
             "position": "WR",
             "overall": 92.0,
-            "macabets_rating": 91.68
+            "macabets_rating": 91.24
           },
           {
             "name": "Dallas Goedert",
             "position": "TE",
             "overall": 89.0,
-            "macabets_rating": 86.28
+            "macabets_rating": 86.38
           },
           {
             "name": "Marquise Brown",
@@ -5226,13 +5226,13 @@
             "name": "Dontayvion Wicks",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 77.51
+            "macabets_rating": 77.63
           },
           {
             "name": "Makai Lemon",
             "position": "WR",
             "overall": 76.0,
-            "macabets_rating": 77.06
+            "macabets_rating": 76.74
           }
         ],
         "OL": [
@@ -5371,7 +5371,7 @@
             "name": "Aaron Rodgers",
             "position": "QB",
             "overall": 79.0,
-            "macabets_rating": 80.46
+            "macabets_rating": 79.95
           },
           {
             "name": "Drew Allar",
@@ -5397,13 +5397,13 @@
             "name": "Rico Dowdle",
             "position": "HB",
             "overall": 84.0,
-            "macabets_rating": 84.88
+            "macabets_rating": 84.47
           },
           {
             "name": "Jaylen Warren",
             "position": "HB",
             "overall": 83.0,
-            "macabets_rating": 84.21
+            "macabets_rating": 84.03
           },
           {
             "name": "Eli Heidenreich",
@@ -5417,19 +5417,19 @@
             "name": "DK Metcalf",
             "position": "WR",
             "overall": 85.0,
-            "macabets_rating": 85.54
+            "macabets_rating": 85.17
           },
           {
             "name": "Michael Pittman",
             "position": "WR",
             "overall": 83.0,
-            "macabets_rating": 83.62
+            "macabets_rating": 83.5
           },
           {
             "name": "Pat Freiermuth",
             "position": "TE",
             "overall": 79.0,
-            "macabets_rating": 78.13
+            "macabets_rating": 78.43
           },
           {
             "name": "Germie Bernard",
@@ -5441,7 +5441,7 @@
             "name": "Darnell Washington",
             "position": "TE",
             "overall": 76.0,
-            "macabets_rating": 74.99
+            "macabets_rating": 74.94
           }
         ],
         "OL": [
@@ -5565,7 +5565,7 @@
       "madden_players": 74,
       "rated_players": 70,
       "qb1": "Sam Darnold",
-      "qb2": "Drew Lock",
+      "qb2": "Jalen Milroe",
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 12,
@@ -5580,19 +5580,19 @@
             "name": "Sam Darnold",
             "position": "QB",
             "overall": 87.0,
-            "macabets_rating": 87.54
-          },
-          {
-            "name": "Drew Lock",
-            "position": "QB",
-            "overall": 66.0,
-            "macabets_rating": 69.33
+            "macabets_rating": 87.52
           },
           {
             "name": "Jalen Milroe",
             "position": "QB",
             "overall": 66.0,
             "macabets_rating": 69.0
+          },
+          {
+            "name": "Drew Lock",
+            "position": "QB",
+            "overall": 66.0,
+            "macabets_rating": 68.93
           }
         ],
         "RB": [
@@ -5606,7 +5606,7 @@
             "name": "Jadarian Price",
             "position": "HB",
             "overall": 75.0,
-            "macabets_rating": 77.31
+            "macabets_rating": 77.3
           },
           {
             "name": "Emanuel Wilson",
@@ -5620,19 +5620,19 @@
             "name": "Jaxon Smith-Njigba",
             "position": "WR",
             "overall": 99.0,
-            "macabets_rating": 97.91
+            "macabets_rating": 97.84
           },
           {
             "name": "Cooper Kupp",
             "position": "WR",
             "overall": 83.0,
-            "macabets_rating": 83.74
+            "macabets_rating": 83.72
           },
           {
             "name": "Rashid Shaheed",
             "position": "WR",
             "overall": 79.0,
-            "macabets_rating": 79.6
+            "macabets_rating": 79.57
           },
           {
             "name": "Tory Horton",
@@ -5644,7 +5644,7 @@
             "name": "A.J. Barner",
             "position": "TE",
             "overall": 75.0,
-            "macabets_rating": 74.44
+            "macabets_rating": 74.34
           }
         ],
         "OL": [
@@ -5783,7 +5783,7 @@
             "name": "Brock Purdy",
             "position": "QB",
             "overall": 85.0,
-            "macabets_rating": 86.18
+            "macabets_rating": 85.67
           },
           {
             "name": "Mac Jones",
@@ -5803,7 +5803,7 @@
             "name": "Christian McCaffrey",
             "position": "HB",
             "overall": 97.0,
-            "macabets_rating": 95.47
+            "macabets_rating": 95.37
           },
           {
             "name": "Kyle Juszczyk",
@@ -5823,13 +5823,13 @@
             "name": "George Kittle",
             "position": "TE",
             "overall": 96.0,
-            "macabets_rating": 92.47
+            "macabets_rating": 92.29
           },
           {
             "name": "Mike Evans",
             "position": "WR",
             "overall": 91.0,
-            "macabets_rating": 90.5
+            "macabets_rating": 90.46
           },
           {
             "name": "Ricky Pearsall",
@@ -5986,7 +5986,7 @@
             "name": "Baker Mayfield",
             "position": "QB",
             "overall": 83.0,
-            "macabets_rating": 84.1
+            "macabets_rating": 83.53
           },
           {
             "name": "Jake Browning",
@@ -6006,13 +6006,13 @@
             "name": "Bucky Irving",
             "position": "HB",
             "overall": 86.0,
-            "macabets_rating": 86.17
+            "macabets_rating": 86.1
           },
           {
             "name": "Kenny Gainwell",
             "position": "HB",
             "overall": 79.0,
-            "macabets_rating": 80.61
+            "macabets_rating": 80.39
           },
           {
             "name": "Sean Tucker",
@@ -6026,13 +6026,13 @@
             "name": "Chris Godwin Jr",
             "position": "WR",
             "overall": 82.0,
-            "macabets_rating": 83.28
+            "macabets_rating": 83.15
           },
           {
             "name": "Emeka Egbuka",
             "position": "WR",
             "overall": 81.0,
-            "macabets_rating": 82.42
+            "macabets_rating": 82.36
           },
           {
             "name": "Jalen McMillan",
@@ -6044,13 +6044,13 @@
             "name": "Cade Otton",
             "position": "TE",
             "overall": 75.0,
-            "macabets_rating": 74.86
+            "macabets_rating": 74.95
           },
           {
             "name": "Tez Johnson",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.47
+            "macabets_rating": 74.37
           }
         ],
         "OL": [
@@ -6172,14 +6172,14 @@
       "team": "TEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 81,
+      "rated_players": 80,
       "qb1": "Cam Ward",
       "qb2": "Will Levis",
       "count_qb": 4,
       "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 17,
+      "count_dl_edge": 16,
       "count_lb": 7,
       "count_secondary": 15,
       "count_st": 3,
@@ -6189,7 +6189,7 @@
             "name": "Cam Ward",
             "position": "QB",
             "overall": 75.0,
-            "macabets_rating": 77.04
+            "macabets_rating": 76.54
           },
           {
             "name": "Will Levis",
@@ -6215,13 +6215,13 @@
             "name": "Tony Pollard",
             "position": "HB",
             "overall": 83.0,
-            "macabets_rating": 83.97
+            "macabets_rating": 83.59
           },
           {
             "name": "Tyjae Spears",
             "position": "HB",
             "overall": 77.0,
-            "macabets_rating": 79.32
+            "macabets_rating": 79.21
           },
           {
             "name": "Kalel Mullings",
@@ -6235,7 +6235,7 @@
             "name": "Wan'Dale Robinson",
             "position": "WR",
             "overall": 84.0,
-            "macabets_rating": 84.28
+            "macabets_rating": 84.05
           },
           {
             "name": "Calvin Ridley",
@@ -6247,19 +6247,19 @@
             "name": "Elic Ayomanor",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.61
+            "macabets_rating": 78.5
           },
           {
             "name": "Carnell Tate",
             "position": "WR",
             "overall": 77.0,
-            "macabets_rating": 78.56
+            "macabets_rating": 78.49
           },
           {
             "name": "Chimere Dike",
             "position": "WR",
             "overall": 74.0,
-            "macabets_rating": 75.52
+            "macabets_rating": 75.46
           }
         ],
         "OL": [
@@ -6398,7 +6398,7 @@
             "name": "Jayden Daniels",
             "position": "QB",
             "overall": 80.0,
-            "macabets_rating": 81.17
+            "macabets_rating": 80.73
           },
           {
             "name": "Marcus Mariota",
@@ -6424,13 +6424,13 @@
             "name": "Jacory Croskey-Merritt",
             "position": "HB",
             "overall": 79.0,
-            "macabets_rating": 80.75
+            "macabets_rating": 80.6
           },
           {
             "name": "Rachaad White",
             "position": "HB",
             "overall": 78.0,
-            "macabets_rating": 80.1
+            "macabets_rating": 79.87
           },
           {
             "name": "Jerome Ford",
@@ -6444,25 +6444,25 @@
             "name": "Terry McLaurin",
             "position": "WR",
             "overall": 91.0,
-            "macabets_rating": 91.05
+            "macabets_rating": 90.58
           },
           {
             "name": "Jaylin Lane",
             "position": "WR",
             "overall": 75.0,
-            "macabets_rating": 76.23
+            "macabets_rating": 76.16
           },
           {
             "name": "Dyami Brown",
             "position": "WR",
             "overall": 74.0,
-            "macabets_rating": 75.93
+            "macabets_rating": 75.75
           },
           {
             "name": "Antonio Williams",
             "position": "WR",
             "overall": 73.0,
-            "macabets_rating": 74.94
+            "macabets_rating": 75.14
           },
           {
             "name": "Van Jefferson",
@@ -6640,12 +6640,12 @@
       "team": "BUF",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 71,
       "qb1": "Josh Allen",
       "qb2": "Kyle Allen",
       "count_qb": 3,
-      "count_rb": 5,
-      "count_wr_te": 15,
+      "count_rb": 4,
+      "count_wr_te": 14,
       "count_ol": 12,
       "count_dl_edge": 17,
       "count_lb": 6,
@@ -6656,7 +6656,7 @@
       "team": "CAR",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 74,
+      "rated_players": 75,
       "qb1": "Bryce Young",
       "qb2": "Kenny Pickett",
       "count_qb": 3,
@@ -6664,7 +6664,7 @@
       "count_wr_te": 15,
       "count_ol": 14,
       "count_dl_edge": 16,
-      "count_lb": 5,
+      "count_lb": 6,
       "count_secondary": 14,
       "count_st": 3
     },
@@ -6752,12 +6752,12 @@
       "team": "DET",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Jared Goff",
       "qb2": "Teddy Bridgewater",
       "count_qb": 3,
       "count_rb": 4,
-      "count_wr_te": 12,
+      "count_wr_te": 13,
       "count_ol": 14,
       "count_dl_edge": 13,
       "count_lb": 9,
@@ -6816,11 +6816,11 @@
       "team": "JAX",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 74,
       "qb1": "Trevor Lawrence",
       "qb2": "Quinn Ewers",
       "count_qb": 5,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 13,
       "count_ol": 14,
       "count_dl_edge": 13,
@@ -6832,14 +6832,14 @@
       "team": "KC",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 73,
+      "rated_players": 75,
       "qb1": "Patrick Mahomes",
       "qb2": "Justin Fields",
       "count_qb": 4,
-      "count_rb": 4,
+      "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 12,
+      "count_dl_edge": 13,
       "count_lb": 7,
       "count_secondary": 13,
       "count_st": 3
@@ -6896,7 +6896,7 @@
       "team": "MIA",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 81,
+      "rated_players": 80,
       "qb1": "Malik Willis",
       "qb2": "Kyle McCord",
       "count_qb": 5,
@@ -6904,7 +6904,7 @@
       "count_wr_te": 14,
       "count_ol": 14,
       "count_dl_edge": 13,
-      "count_lb": 7,
+      "count_lb": 6,
       "count_secondary": 19,
       "count_st": 4
     },
@@ -6912,11 +6912,11 @@
       "team": "MIN",
       "status": "PASS",
       "madden_players": 73,
-      "rated_players": 75,
+      "rated_players": 74,
       "qb1": "Kyler Murray",
       "qb2": "J.J. McCarthy",
       "count_qb": 4,
-      "count_rb": 7,
+      "count_rb": 6,
       "count_wr_te": 10,
       "count_ol": 15,
       "count_dl_edge": 15,
@@ -7026,7 +7026,7 @@
       "madden_players": 74,
       "rated_players": 70,
       "qb1": "Sam Darnold",
-      "qb2": "Drew Lock",
+      "qb2": "Jalen Milroe",
       "count_qb": 3,
       "count_rb": 6,
       "count_wr_te": 12,
@@ -7072,14 +7072,14 @@
       "team": "TEN",
       "status": "PASS",
       "madden_players": 74,
-      "rated_players": 81,
+      "rated_players": 80,
       "qb1": "Cam Ward",
       "qb2": "Will Levis",
       "count_qb": 4,
       "count_rb": 5,
       "count_wr_te": 14,
       "count_ol": 16,
-      "count_dl_edge": 17,
+      "count_dl_edge": 16,
       "count_lb": 7,
       "count_secondary": 15,
       "count_st": 3
