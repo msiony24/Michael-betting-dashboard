@@ -184,7 +184,9 @@ def _wr_madden(path: Path, names_ovr):
     pd.DataFrame(rows).to_csv(path, index=False)
 
 
-def test_performance_uses_efficiency_not_volume(tmp_path):
+def test_performance_uses_efficiency_not_volume(tmp_path, monkeypatch):
+    from engine import nfl_rating_engine as engine
+    monkeypatch.setattr(engine, "RATING_MODEL", "v1.5")
     """Same per-target production must earn the same grade; volume only adds trust."""
     madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
     _wr_madden(madden, [("Busy Receiver", 85), ("Part Timer", 85), ("Dud Receiver", 85)])
@@ -203,7 +205,9 @@ def test_performance_uses_efficiency_not_volume(tmp_path):
     assert players.loc["Dud Receiver", "performance_grade"] < busy.performance_grade
 
 
-def test_one_bad_game_only_nudges_an_elite_player(tmp_path):
+def test_one_bad_game_only_nudges_an_elite_player(tmp_path, monkeypatch):
+    from engine import nfl_rating_engine as engine
+    monkeypatch.setattr(engine, "RATING_MODEL", "v1.5")
     madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
     _wr_madden(madden, [("Elite Receiver", 99), ("Average Receiver", 80), ("Other Receiver", 78)])
     pd.DataFrame([
@@ -242,3 +246,62 @@ def test_team_performance_is_rescaled_to_roster_scale():
     assert round(sum(out.values()) / 3, 2) == 79.0
     assert out["A"] < out["B"] < out["C"]
     assert 74 < out["A"] < 79
+
+
+def test_default_model_is_restored_v14_weighting():
+    from engine import nfl_rating_engine as engine
+    from engine.nfl_rating_engine import legacy_team_performance_weight
+
+    assert engine.RATING_MODEL == "v1.4"
+    assert legacy_team_performance_weight(2026, 1, current_year=2026) == 0.275
+    assert legacy_team_performance_weight(2026, 10, current_year=2026) == 0.80
+    assert legacy_team_performance_weight(2025, 18, current_year=2026) == 0.20
+
+
+def test_v14_mode_matches_frozen_v14_engine(tmp_path):
+    """Restored weighting must reproduce the frozen v1.4 engine on identical inputs."""
+    import importlib.util
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("legacy_v14_for_test", root / "audit" / "legacy_nfl_rating_engine_v14.py")
+    legacy = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = legacy
+    spec.loader.exec_module(legacy)
+
+    madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
+    _wr_madden(madden, [("Receiver A", 90), ("Receiver B", 80), ("Receiver C", 72)])
+    pd.DataFrame([
+        {"player_display_name": "Receiver A", "team": "BUF", "position": "WR",
+         "targets": 40, "receptions": 25, "receiving_yards": 300, "receiving_tds": 2},
+        {"player_display_name": "Receiver B", "team": "BUF", "position": "WR",
+         "targets": 60, "receptions": 45, "receiving_yards": 700, "receiving_tds": 6},
+        {"player_display_name": "Receiver C", "team": "BUF", "position": "WR",
+         "targets": 20, "receptions": 10, "receiving_yards": 90, "receiving_tds": 0},
+    ]).to_csv(nfl / "player_weekly_stats.csv", index=False)
+    snapshot = nfl / "team_snapshot.csv"
+    pd.DataFrame([{"team_abbr": "BUF", "season": 2026, "through_week": 3, "offensive_line": 60,
+                   "defensive_line": 90, "secondary": 55, "special_teams": 70, "defense": 75}]).to_csv(snapshot, index=False)
+    no_chart = tmp_path / "none.csv"
+
+    ours = build_player_ratings(madden, nfl, depth_chart_path=no_chart)
+    theirs = legacy.build_player_ratings(madden, nfl, depth_chart_path=no_chart)
+    assert ours["macabets_rating"].round(4).tolist() == theirs["macabets_rating"].round(4).tolist()
+
+    our_team = build_team_ratings(ours, snapshot, no_chart, current_season=2026)["Buffalo Bills"]
+    import engine.nfl_rating_engine as engine
+    original = legacy.datetime
+
+    class _Frozen(original):
+        @classmethod
+        def now(cls, tz=None):
+            return original(2026, 9, 15, tzinfo=tz)
+
+    legacy.datetime = _Frozen
+    try:
+        their_team = legacy.build_team_ratings(theirs, snapshot, no_chart)["Buffalo Bills"]
+    finally:
+        legacy.datetime = original
+    for unit in ("offensive_line", "defensive_front", "secondary", "special_teams", "linebackers"):
+        assert abs(our_team["units"][unit]["grade"] - their_team["units"][unit]["grade"]) < 1e-6, unit
+    assert abs(our_team["overall_rating"] - their_team["overall_rating"]) < 1e-6

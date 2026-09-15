@@ -94,11 +94,15 @@ def test_backtest_runs_end_to_end_and_scores_every_variant(tmp_path):
     for v in variants:
         assert predictions[f"margin__{v.name}"].notna().all()
     # Performance blending must actually change something relative to Madden only.
-    assert not np.allclose(predictions["margin__madden_only"], predictions["margin__v1_5_current"])
+    assert not np.allclose(predictions["margin__madden_only"], predictions["margin__current_engine"])
+    assert not np.allclose(predictions["margin__madden_only"], predictions["margin__v1_5_efficiency"])
+    # The live engine in v1.4 mode must reproduce the frozen v1.4 engine.
+    assert np.allclose(predictions["margin__current_engine"], predictions["margin__v1_4_legacy"], atol=0.05)
 
     summary = bt.summarize(predictions, variants)
     assert set(summary["table"]["variant"]) == {v.name for v in variants}
-    assert "v1_5_current_vs_madden_only" in summary["comparisons"]
+    assert "current_engine_vs_madden_only" in summary["comparisons"]
+    assert "current_engine_vs_v1_5_efficiency" in summary["comparisons"]
     assert "market_closing_moneyline" in summary["market"]
     report = bt.write_report(summary, {"season": 2025, "madden_iteration": "synthetic",
                                        "generated_at_utc": "now"}, tmp_path)
@@ -109,7 +113,11 @@ def test_backtest_runs_end_to_end_and_scores_every_variant(tmp_path):
 def test_current_engine_settings_are_restored_after_a_variant(tmp_path):
     from engine import nfl_rating_engine as engine
 
-    before = (dict(engine.PERFORMANCE_STABILITY), engine.TEAM_PERFORMANCE_CAP, engine.TEAM_PERFORMANCE_STABILITY)
-    with bt._current_settings(bt.Variant("x", player_stability_mult=2.0, team_cap=0.1, team_stability=1.0)):
+    before = (dict(engine.PERFORMANCE_STABILITY), engine.TEAM_PERFORMANCE_CAP,
+              engine.TEAM_PERFORMANCE_STABILITY, engine.RATING_MODEL)
+    variant = bt.Variant("x", model="v1.5", player_stability_mult=2.0, team_cap=0.1, team_stability=1.0)
+    with bt._current_settings(variant):
         assert engine.TEAM_PERFORMANCE_CAP == 0.1
-    assert (dict(engine.PERFORMANCE_STABILITY), engine.TEAM_PERFORMANCE_CAP, engine.TEAM_PERFORMANCE_STABILITY) == before
+        assert engine.RATING_MODEL == "v1.5"
+    assert (dict(engine.PERFORMANCE_STABILITY), engine.TEAM_PERFORMANCE_CAP,
+            engine.TEAM_PERFORMANCE_STABILITY, engine.RATING_MODEL) == before
