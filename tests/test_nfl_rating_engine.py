@@ -36,7 +36,7 @@ def test_builds_players_and_blends_qb_performance(tmp_path):
     assert qb.rating_source == "Madden 27 + nflverse performance"
 
 
-def test_builds_team_units_and_keeps_prediction_off(tmp_path):
+def test_builds_team_units_and_reports_prediction_influence(tmp_path):
     madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir(); _madden_fixture(madden)
     pd.DataFrame([{"team_abbr": "BUF", "quarterback": 90, "offensive_line": 82,
                    "defensive_line": 84, "secondary": 83, "special_teams": 70,
@@ -45,7 +45,7 @@ def test_builds_team_units_and_keeps_prediction_off(tmp_path):
     teams = build_team_ratings(players, nfl / "team_snapshot.csv")
     bills = teams["Buffalo Bills"]
     assert bills["overall_rating"] > 0
-    assert bills["prediction_influence_enabled"] is False
+    assert bills["prediction_influence_enabled"] is True
     assert "quarterback" in bills["units"]
 
 
@@ -176,3 +176,69 @@ def test_nickname_resolves_gsis_but_different_first_name_does_not(tmp_path):
     assert out.loc["Joshua Palmer", "gsis_id"] == "00-PALMER"
     assert out.loc["Chigoziem Okonkwo", "gsis_id"] == "00-OKONKWO"
     assert out.loc["Cody White", "gsis_id"] == ""
+
+
+def _wr_madden(path: Path, names_ovr):
+    rows = [{"player_name": n, "team": "BUF", "position": "WR", "overall": o,
+             "speed": o, "catching": o, "awareness": o} for n, o in names_ovr]
+    pd.DataFrame(rows).to_csv(path, index=False)
+
+
+def test_performance_uses_efficiency_not_volume(tmp_path):
+    """Same per-target production must earn the same grade; volume only adds trust."""
+    madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
+    _wr_madden(madden, [("Busy Receiver", 85), ("Part Timer", 85), ("Dud Receiver", 85)])
+    pd.DataFrame([
+        {"player_display_name": "Busy Receiver", "team": "BUF", "position": "WR",
+         "targets": 100, "receptions": 70, "receiving_yards": 900, "receiving_tds": 5},
+        {"player_display_name": "Part Timer", "team": "BUF", "position": "WR",
+         "targets": 20, "receptions": 14, "receiving_yards": 180, "receiving_tds": 1},
+        {"player_display_name": "Dud Receiver", "team": "BUF", "position": "WR",
+         "targets": 60, "receptions": 20, "receiving_yards": 150, "receiving_tds": 0},
+    ]).to_csv(nfl / "player_weekly_stats.csv", index=False)
+    players = build_player_ratings(madden, nfl).set_index("player_name")
+    busy, part = players.loc["Busy Receiver"], players.loc["Part Timer"]
+    assert abs(busy.performance_grade - part.performance_grade) < 0.01
+    assert busy.performance_weight > part.performance_weight
+    assert players.loc["Dud Receiver", "performance_grade"] < busy.performance_grade
+
+
+def test_one_bad_game_only_nudges_an_elite_player(tmp_path):
+    madden = tmp_path / "madden.csv"; nfl = tmp_path / "nfl"; nfl.mkdir()
+    _wr_madden(madden, [("Elite Receiver", 99), ("Average Receiver", 80), ("Other Receiver", 78)])
+    pd.DataFrame([
+        {"player_display_name": "Elite Receiver", "team": "BUF", "position": "WR",
+         "targets": 9, "receptions": 2, "receiving_yards": 11, "receiving_tds": 0},
+        {"player_display_name": "Average Receiver", "team": "BUF", "position": "WR",
+         "targets": 8, "receptions": 6, "receiving_yards": 90, "receiving_tds": 1},
+        {"player_display_name": "Other Receiver", "team": "BUF", "position": "WR",
+         "targets": 7, "receptions": 5, "receiving_yards": 70, "receiving_tds": 0},
+    ]).to_csv(nfl / "player_weekly_stats.csv", index=False)
+    players = build_player_ratings(madden, nfl).set_index("player_name")
+    elite = players.loc["Elite Receiver"]
+    assert elite.macabets_rating < elite.trait_grade
+    assert elite.trait_grade - elite.macabets_rating < 3.0
+
+
+def test_team_performance_weight_grows_with_games_and_stays_capped():
+    from engine.nfl_rating_engine import TEAM_PERFORMANCE_CAP, team_performance_weight
+
+    assert team_performance_weight(2026, 0, current_year=2026) == 0.0
+    week1 = team_performance_weight(2026, 1, current_year=2026)
+    week8 = team_performance_weight(2026, 8, current_year=2026)
+    week17 = team_performance_weight(2026, 17, current_year=2026)
+    assert 0 < week1 < 0.12
+    assert week1 < week8 < week17 < TEAM_PERFORMANCE_CAP
+    assert team_performance_weight(2025, 18, current_year=2026) == 0.20
+    assert team_performance_weight(2027, 1, current_year=2026) == 0.0
+
+
+def test_team_performance_is_rescaled_to_roster_scale():
+    from engine.nfl_rating_engine import _rescale_to_roster
+
+    perf = {"A": 50.0, "B": 68.0, "C": 86.0}
+    roster = {"A": 76.0, "B": 79.0, "C": 82.0}
+    out = _rescale_to_roster(perf, roster)
+    assert round(sum(out.values()) / 3, 2) == 79.0
+    assert out["A"] < out["B"] < out["C"]
+    assert 74 < out["A"] < 79
